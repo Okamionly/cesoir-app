@@ -1,0 +1,118 @@
+[
+  {
+    "timestamp": "2026-04-11T01:10:00.451879",
+    "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Read",
+    "tool_use_id": "toolu_01PeJTXpu1PfQ53wmSFQstQG",
+    "tool_input": {
+      "file_path": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app\\tailwind.config.ts"
+    },
+    "error": "File does not exist. Note: your current working directory is C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app.",
+    "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+    "raw_input": {
+      "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+      "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+      "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Read",
+      "tool_input": {
+        "file_path": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app\\tailwind.config.ts"
+      },
+      "tool_use_id": "toolu_01PeJTXpu1PfQ53wmSFQstQG",
+      "error": "File does not exist. Note: your current working directory is C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app.",
+      "is_interrupt": false,
+      "logged_at": "2026-04-11T01:10:00.451879"
+    }
+  },
+  {
+    "timestamp": "2026-04-11T01:18:56.966212",
+    "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "mcp__Claude_Preview__preview_screenshot",
+    "tool_use_id": "toolu_01EwAo5nF924M1zB6rke7Vfh",
+    "tool_input": {
+      "serverId": "fad1c500-915a-4209-b670-e28168136cdb"
+    },
+    "error": "preview_screenshot timed out after 30s. The preview window may be stuck (modal dialog, navigation hang, or unresponsive renderer). Check preview_console_logs for errors.",
+    "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+    "raw_input": {
+      "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+      "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+      "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "mcp__Claude_Preview__preview_screenshot",
+      "tool_input": {
+        "serverId": "fad1c500-915a-4209-b670-e28168136cdb"
+      },
+      "tool_use_id": "toolu_01EwAo5nF924M1zB6rke7Vfh",
+      "error": "preview_screenshot timed out after 30s. The preview window may be stuck (modal dialog, navigation hang, or unresponsive renderer). Check preview_console_logs for errors.",
+      "is_interrupt": false,
+      "logged_at": "2026-04-11T01:18:56.966212"
+    }
+  },
+  {
+    "timestamp": "2026-04-11T01:19:58.395870",
+    "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "mcp__Claude_Preview__preview_screenshot",
+    "tool_use_id": "toolu_01VNjx2WBAvyYXz4LP1yuV7k",
+    "tool_input": {
+      "serverId": "fad1c500-915a-4209-b670-e28168136cdb"
+    },
+    "error": "preview_screenshot timed out after 30s. The preview window may be stuck (modal dialog, navigation hang, or unresponsive renderer). Check preview_console_logs for errors.",
+    "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+    "raw_input": {
+      "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+      "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+      "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "mcp__Claude_Preview__preview_screenshot",
+      "tool_input": {
+        "serverId": "fad1c500-915a-4209-b670-e28168136cdb"
+      },
+      "tool_use_id": "toolu_01VNjx2WBAvyYXz4LP1yuV7k",
+      "error": "preview_screenshot timed out after 30s. The preview window may be stuck (modal dialog, navigation hang, or unresponsive renderer). Check preview_console_logs for errors.",
+      "is_interrupt": false,
+      "logged_at": "2026-04-11T01:19:58.395870"
+    }
+  },
+  {
+    "timestamp": "2026-04-11T01:21:42.695849",
+    "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "mcp__Claude_Preview__preview_screenshot",
+    "tool_use_id": "toolu_01Sk91uM7zsJAYQTctKMKpbS",
+    "tool_input": {
+      "serverId": "fad1c500-915a-4209-b670-e28168136cdb"
+    },
+    "error": "preview_screenshot timed out after 30s. The preview window may be stuck (modal dialog, navigation hang, or unresponsive renderer). Check preview_console_logs for errors.",
+    "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+    "raw_input": {
+      "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+      "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+      "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "mcp__Claude_Preview__preview_screenshot",
+      "tool_input": {
+        "serverId": "fad1c500-915a-4209-b670-e28168136cdb"
+      },
+      "tool_use_id": "toolu_01Sk91uM7zsJAYQTctKMKpbS",
+      "error": "preview_screenshot timed out after 30s. The preview window may be stuck (modal dialog, navigation hang, or unresponsive renderer). Check preview_console_logs for errors.",
+      "is_interrupt": false,
+      "logged_at": "2026-04-11T01:21:42.695849"
+    }
+  }
+]
