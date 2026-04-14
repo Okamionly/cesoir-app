@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ModeKey, MODES, MODE_KEYS } from "@/lib/modes";
 import { MOCK_PROFILES, Profile } from "@/lib/mock-profiles";
@@ -20,6 +21,7 @@ export default function BrowsePage() {
   const [idx, setIdx] = useState(0);
   const [info, setInfo] = useState(false);
   const [match, setMatch] = useState<Profile | null>(null);
+  const [matchConvoId, setMatchConvoId] = useState<string | null>(null);
   const [showPulse, setShowPulse] = useState(true);
   const { profiles } = useProfiles(position?.lat, position?.lng, filter === "all" ? undefined : filter);
   const { like, pass } = useInteractions(user?.id);
@@ -40,7 +42,10 @@ export default function BrowsePage() {
     if (card) {
       if (action === "like") {
         const result = await like(card.id, card.mode);
-        if (result?.matched) setMatch(card);
+        if (result?.matched) {
+          setMatch(card);
+          setMatchConvoId(result.conversationId ?? null);
+        }
       } else {
         await pass(card.id);
       }
@@ -119,7 +124,7 @@ export default function BrowsePage() {
       {card && <ActionButtons onPass={swipe.triggerPass} onLike={swipe.triggerLike} onSuperLike={swipe.triggerLike} />}
 
       {/* Match toast */}
-      {match && <MatchToast profile={match} onDismiss={() => setMatch(null)} />}
+      {match && <MatchToast profile={match} conversationId={matchConvoId} onDismiss={() => { setMatch(null); setMatchConvoId(null); }} />}
     </div>
   );
 }
@@ -190,7 +195,7 @@ function EmptyState({ onReset }: { onReset: () => void }) {
   );
 }
 
-function MatchToast({ profile, onDismiss }: { profile: typeof MOCK_PROFILES[0]; onDismiss: () => void }) {
+function MatchToast({ profile, conversationId, onDismiss }: { profile: Profile; conversationId: string | null; onDismiss: () => void }) {
   return (
     <motion.div
       role="alert" aria-live="assertive"
@@ -211,7 +216,11 @@ function MatchToast({ profile, onDismiss }: { profile: typeof MOCK_PROFILES[0]; 
             <p className="text-[14px] font-bold text-text"><span className="gradient-text">Match !</span> {profile.name}</p>
             <p className="text-[11px] text-text-muted">Vous etes dispos ce soir</p>
           </div>
-          <button onClick={onDismiss} className="gradient-bg text-white px-4 py-2 rounded-full text-[12px] font-bold">Ecrire</button>
+          {conversationId ? (
+            <Link href={`/chat/${conversationId}`} onClick={onDismiss} className="gradient-bg text-white px-4 py-2 rounded-full text-[12px] font-bold">Ecrire</Link>
+          ) : (
+            <button onClick={onDismiss} className="gradient-bg text-white px-4 py-2 rounded-full text-[12px] font-bold">Ecrire</button>
+          )}
         </div>
       </div>
     </motion.div>

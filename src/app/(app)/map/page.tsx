@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { useGeolocation } from "@/lib/useGeolocation";
+import { useAuth } from "@/context/AuthContext";
+import { useProfiles } from "@/lib/useProfiles";
 import { MOCK_PROFILES, Profile } from "@/lib/mock-profiles";
 import { MODES, ModeKey, MODE_KEYS } from "@/lib/modes";
 import maplibregl from "maplibre-gl";
@@ -21,7 +23,8 @@ const MODE_COLORS: Record<string, string> = {
 };
 
 export default function MapPage() {
-  const { position, error, loading } = useGeolocation();
+  const { user } = useAuth();
+  const { position, error, loading } = useGeolocation(user?.id);
   const [filter, setFilter] = useState<ModeKey | "all">("all");
   const [selected, setSelected] = useState<Profile | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -30,11 +33,15 @@ export default function MapPage() {
   const markersRef = useRef<maplibregl.Marker[]>([]);
 
   const center = position ? { lat: position.lat, lng: position.lng } : { lat: 48.8566, lng: 2.3522 };
+  const { profiles: realProfiles } = useProfiles(position?.lat, position?.lng, filter === "all" ? undefined : filter);
 
-  const profilesWithPos = useMemo(() =>
-    MOCK_PROFILES.map(p => ({ ...p, pos: fakePos(center.lat, center.lng, p.distance) })),
-    [center.lat, center.lng]
-  );
+  // Use real profiles if available, fallback to mock with fake positions
+  const profilesWithPos = useMemo(() => {
+    if (realProfiles.length > 0) {
+      return realProfiles.map(p => ({ ...p, pos: { lat: center.lat + (Math.random() - 0.5) * 0.02, lng: center.lng + (Math.random() - 0.5) * 0.02 } }));
+    }
+    return MOCK_PROFILES.map(p => ({ ...p, pos: fakePos(center.lat, center.lng, p.distance) }));
+  }, [realProfiles, center.lat, center.lng]);
 
   const filtered = filter === "all" ? profilesWithPos : profilesWithPos.filter(p => p.mode === filter);
 

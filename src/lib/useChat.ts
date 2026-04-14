@@ -133,16 +133,24 @@ export function useConversations(userId: string | undefined) {
       .channel(`conv-list-${userId}`)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages" },
-        () => {
-          fetchConversations();
-        },
+        { event: "INSERT", schema: "public", table: "conversations",
+          filter: `user_a=eq.${userId}` },
+        () => fetchConversations(),
       )
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "conversations" },
-        () => {
-          fetchConversations();
+        { event: "INSERT", schema: "public", table: "conversations",
+          filter: `user_b=eq.${userId}` },
+        () => fetchConversations(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "conversations" },
+        (payload) => {
+          const conv = payload.new as { user_a: string; user_b: string };
+          if (conv.user_a === userId || conv.user_b === userId) {
+            fetchConversations();
+          }
         },
       )
       .subscribe();

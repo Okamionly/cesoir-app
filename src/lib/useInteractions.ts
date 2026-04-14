@@ -27,18 +27,21 @@ export function useInteractions(userId?: string) {
     const matched = !!data;
 
     // If matched, create a conversation
+    let conversationId: string | null = null;
     if (matched) {
       const userA = userId < targetId ? userId : targetId;
       const userB = userId < targetId ? targetId : userId;
 
-      await supabase.from("conversations").upsert({
+      const { data: conv } = await supabase.from("conversations").upsert({
         user_a: userA,
         user_b: userB,
         mode,
-      }, { onConflict: "user_a,user_b" });
+      }, { onConflict: "user_a,user_b" }).select("id").single();
+
+      conversationId = conv?.id ?? null;
     }
 
-    return { matched };
+    return { matched, conversationId };
   }, [userId]);
 
   const pass = useCallback(async (targetId: string) => {
