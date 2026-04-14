@@ -158,18 +158,28 @@ export default function ProfilePage() {
         <p className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3">Parametres</p>
         <div className="bg-bg-card border border-border rounded-2xl overflow-hidden divide-y divide-border">
           {[
-            { label: "Modifier mon profil", sub: "Photos, bio, prompts" },
-            { label: "Preferences", sub: "Age, distance, genre" },
-            { label: "Notifications", sub: "Matchs, messages, rappels" },
-            { label: "Securite", sub: "Mot de passe, blocage, signalement" },
+            { label: "Modifier mon profil", sub: "Photos, bio, prompts", href: "/profile/edit" },
+            { label: "Preferences", sub: "Age, distance, genre", href: null },
+            { label: "Notifications", sub: "Matchs, messages, rappels", href: null },
+            { label: "Securite", sub: "Mot de passe, blocage, signalement", href: "/safety" },
           ].map((item) => (
-            <button key={item.label} className="w-full flex items-center justify-between px-4 py-3.5 text-left active:bg-border/20 transition-colors tap-target">
-              <div>
-                <span className="text-[13px] font-semibold text-text block">{item.label}</span>
-                <span className="text-[10px] text-text-muted">{item.sub}</span>
-              </div>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-muted"><path d="M9 18l6-6-6-6"/></svg>
-            </button>
+            item.href ? (
+              <Link key={item.label} href={item.href} className="w-full flex items-center justify-between px-4 py-3.5 text-left active:bg-border/20 transition-colors tap-target">
+                <div>
+                  <span className="text-[13px] font-semibold text-text block">{item.label}</span>
+                  <span className="text-[10px] text-text-muted">{item.sub}</span>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-muted" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+              </Link>
+            ) : (
+              <button key={item.label} className="w-full flex items-center justify-between px-4 py-3.5 text-left active:bg-border/20 transition-colors tap-target">
+                <div>
+                  <span className="text-[13px] font-semibold text-text block">{item.label}</span>
+                  <span className="text-[10px] text-text-muted">{item.sub}</span>
+                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-muted" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+              </button>
+            )
           ))}
         </div>
       </div>
