@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { ModeKey, MODES, MODE_KEYS } from "@/lib/modes";
 import { MOCK_PROFILES, Profile } from "@/lib/mock-profiles";
+import PulseClock from "@/components/app/PulseClock";
 
 export default function BrowsePage() {
   const [filter, setFilter] = useState<ModeKey | "all">("all");
@@ -89,6 +90,11 @@ export default function BrowsePage() {
           ))}
         </div>
       </header>
+
+      {/* Pulse Clock */}
+      <div className="shrink-0 px-3 pt-2">
+        <PulseClock />
+      </div>
 
       {/* Card stack */}
       <main className="flex-1 relative px-3 pb-1 overflow-hidden" aria-label="Profils disponibles">
