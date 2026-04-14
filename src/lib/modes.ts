@@ -7,7 +7,12 @@ export type ModeKey =
   | "new-in-town"
   | "langue"
   | "dog-date"
-  | "seasonal";
+  | "seasonal"
+  | "fit-date"
+  | "foodie-quest"
+  | "culture-club"
+  | "sober-tonight"
+  | "gamer-night";
 
 export interface ModeDefinition {
   key: ModeKey;
@@ -103,6 +108,52 @@ export const MODES: Record<ModeKey, ModeDefinition> = {
     badge: "Prochain event",
     badgeColor: "amber",
     tags: ["Noel", "Nouvel An", "Saint-Valentin"],
+  },
+  "fit-date": {
+    key: "fit-date",
+    icon: "💪",
+    name: "Fit Date",
+    color: "#f97316",
+    description: "Trouve un partenaire de sport ce soir. Running, yoga, escalade...",
+    badge: "Nouveau",
+    badgeColor: "pink",
+    tags: ["Running", "Yoga", "Escalade", "Crossfit", "Natation"],
+  },
+  "foodie-quest": {
+    key: "foodie-quest",
+    icon: "🔥",
+    name: "Foodie Quest",
+    color: "#dc2626",
+    description: "Aventure culinaire a deux. Decouvre un restau que personne ne connait.",
+    badge: "Trending",
+    badgeColor: "pink",
+    tags: ["Street Food", "Gastronomie", "Brunch", "Cuisine du monde"],
+  },
+  "culture-club": {
+    key: "culture-club",
+    icon: "🎭",
+    name: "Culture Club",
+    color: "#7c3aed",
+    description: "Musee, expo, theatre, cinema d'auteur. Pour les esprits curieux.",
+    tags: ["Expo", "Theatre", "Cinema", "Lecture", "Debat"],
+  },
+  "sober-tonight": {
+    key: "sober-tonight",
+    icon: "🍵",
+    name: "Sober Tonight",
+    color: "#059669",
+    description: "Sorties 100% sans alcool. The, balade, jeux, patisserie.",
+    badge: "Blue Ocean",
+    badgeColor: "green",
+    tags: ["Mocktails", "The", "Jeux", "Balade", "Patisserie"],
+  },
+  "gamer-night": {
+    key: "gamer-night",
+    icon: "🎮",
+    name: "Gamer Night",
+    color: "#2563eb",
+    description: "Bar gaming, soiree JdR, LAN party, jeux de societe ce soir.",
+    tags: ["JdR", "Bar Gaming", "Console", "Board Games", "E-sport"],
   },
 };
 

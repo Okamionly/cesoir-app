@@ -1,26 +1,46 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Outfit, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk", weight: ["500", "700"] });
 
 export const metadata: Metadata = {
-  title: "CeSoir - Trouve quelqu'un ce soir",
-  description: "9 modes de rencontre pour ne plus etre seul(e) ce soir. Diner, langue, balade canine, soiree de fete...",
+  title: {
+    default: "CeSoir — Trouve quelqu'un ce soir",
+    template: "%s | CeSoir",
+  },
+  description: "L'app qui te connecte avec des gens pres de toi, disponibles ce soir. 9 modes de rencontre. 100% gratuit.",
+  metadataBase: new URL("https://cesoir-app.vercel.app"),
+  openGraph: {
+    title: "CeSoir — Trouve quelqu'un ce soir",
+    description: "9 modes de rencontre pour ne plus etre seul(e) ce soir. Diner, langues, chiens, events... 100% gratuit.",
+    url: "https://cesoir-app.vercel.app",
+    siteName: "CeSoir",
+    locale: "fr_FR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "CeSoir — Trouve quelqu'un ce soir",
+    description: "9 modes de rencontre. Ce soir, pas demain.",
+  },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
     title: "CeSoir",
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#000000",
+  themeColor: "#FFFFFF",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: "cover",
 };
 
@@ -30,8 +50,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className={`${inter.className} h-full`}>
-      <body className="min-h-full bg-bg text-text">{children}</body>
+    <html lang="fr" className={`${outfit.variable} ${spaceGrotesk.variable} h-full`}>
+      <body className="min-h-full bg-bg text-text font-sans">{children}</body>
     </html>
   );
 }
