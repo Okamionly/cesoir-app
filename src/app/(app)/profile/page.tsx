@@ -1,8 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useState, useEffect } from "react";
 import { MODES } from "@/lib/modes";
-import { MODE_ICONS, IconHeart, IconStar, IconUser } from "@/components/ui/Icons";
+import { MODE_ICONS, IconStar } from "@/components/ui/Icons";
+import { useAuth } from "@/lib/useAuth";
+import { supabase } from "@/lib/supabase";
+import PhotoUpload from "@/components/app/PhotoUpload";
 
 const activeModes = ["solo-diner", "langue", "dog-date"] as const;
 
@@ -13,11 +17,32 @@ const prompts = [
 ];
 
 export default function ProfilePage() {
+  const { user } = useAuth();
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [profileName, setProfileName] = useState("Youssef");
+
+  useEffect(() => {
+    if (!user) return;
+    supabase
+      .from("profiles")
+      .select("avatar_url, name")
+      .eq("id", user.id)
+      .single()
+      .then(({ data }) => {
+        if (data?.avatar_url) setAvatarUrl(data.avatar_url);
+        if (data?.name) setProfileName(data.name);
+      });
+  }, [user]);
+
   return (
     <div className="min-h-screen bg-bg">
       {/* Photo header */}
       <div className="relative h-72 overflow-hidden">
-        <div className="absolute inset-0 gradient-bg opacity-20" />
+        {avatarUrl ? (
+          <img src={avatarUrl} alt="" className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-30" aria-hidden="true" />
+        ) : (
+          <div className="absolute inset-0 gradient-bg opacity-20" />
+        )}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-bg" />
 
         {/* Top bar */}
@@ -34,14 +59,24 @@ export default function ProfilePage() {
       {/* Avatar + info — overlapping the header */}
       <div className="relative -mt-20 px-5">
         <div className="flex items-end gap-4">
-          <div className="w-28 h-28 rounded-2xl gradient-bg p-[3px] shadow-glow shrink-0">
-            <div className="w-full h-full rounded-[13px] bg-bg flex items-center justify-center text-[36px] font-black text-accent">
-              Y
+          {user ? (
+            <PhotoUpload
+              userId={user.id}
+              currentAvatarUrl={avatarUrl}
+              onUploadComplete={(url) => setAvatarUrl(url)}
+              variant="compact"
+              fallbackLetter={profileName.charAt(0).toUpperCase()}
+            />
+          ) : (
+            <div className="w-28 h-28 rounded-2xl gradient-bg p-[3px] shadow-glow shrink-0">
+              <div className="w-full h-full rounded-[13px] bg-bg flex items-center justify-center text-[36px] font-black text-accent">
+                {profileName.charAt(0).toUpperCase()}
+              </div>
             </div>
-          </div>
+          )}
           <div className="pb-1">
             <div className="flex items-center gap-2">
-              <h2 className="text-[24px] font-black tracking-tight text-text">Youssef</h2>
+              <h2 className="text-[24px] font-black tracking-tight text-text">{profileName}</h2>
               <span className="text-[14px] text-text-muted font-light">28</span>
             </div>
             <p className="text-[13px] text-text-muted">Paris, France</p>

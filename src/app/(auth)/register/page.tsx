@@ -7,6 +7,7 @@ import { MODES, MODE_KEYS } from "@/lib/modes";
 import { MODE_ICONS } from "@/components/ui/Icons";
 import { useAuth } from "@/lib/useAuth";
 import { supabase } from "@/lib/supabase";
+import PhotoUpload from "@/components/app/PhotoUpload";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -21,11 +22,13 @@ export default function RegisterPage() {
   const [modes, setModes] = useState<string[]>([]);
   const [bio, setBio] = useState("");
   const [error, setError] = useState("");
+  const [tempUserId, setTempUserId] = useState<string | null>(null);
+  const [photoUploaded, setPhotoUploaded] = useState(false);
 
   const toggleMode = (k: string) => setModes(p => p.includes(k) ? p.filter(m => m !== k) : [...p, k]);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  // Create account at end of step 2 so photo upload (step 3) has an authenticated user
+  async function handleCreateAccount() {
     setError("");
 
     const user = await signUp(email, password, {
@@ -40,11 +43,6 @@ export default function RegisterPage() {
       return;
     }
 
-    // Save bio
-    if (bio) {
-      await supabase.from("profiles").update({ bio }).eq("id", user.id);
-    }
-
     // Activate selected modes
     for (const mode of modes) {
       await supabase.from("mode_activations").insert({
@@ -53,6 +51,19 @@ export default function RegisterPage() {
         is_active: true,
         available_time: "Dispo maintenant",
       });
+    }
+
+    setTempUserId(user.id);
+    setStep(3);
+  }
+
+  // Final step: save bio and redirect
+  async function handleFinish(e: React.FormEvent) {
+    e.preventDefault();
+    if (!tempUserId) return;
+
+    if (bio) {
+      await supabase.from("profiles").update({ bio }).eq("id", tempUserId);
     }
 
     router.push("/browse");
@@ -67,8 +78,8 @@ export default function RegisterPage() {
         </div>
 
         {/* Progress */}
-        <div className="flex gap-1.5 mb-6" role="progressbar" aria-valuenow={step} aria-valuemin={1} aria-valuemax={3} aria-label={`Etape ${step} sur 3`}>
-          {[1,2,3].map(s => (
+        <div className="flex gap-1.5 mb-6" role="progressbar" aria-valuenow={step} aria-valuemin={1} aria-valuemax={4} aria-label={`Etape ${step} sur 4`}>
+          {[1,2,3,4].map(s => (
             <div key={s} className={`h-1 flex-1 rounded-full ${s <= step ? "gradient-bg" : "bg-border"}`} />
           ))}
         </div>
@@ -155,7 +166,32 @@ export default function RegisterPage() {
             </div>
             <div className="flex gap-3">
               <button type="button" onClick={() => setStep(1)} className="flex-1 py-3.5 rounded-full text-sm font-medium border border-border tap-target">Retour</button>
-              <button type="button" onClick={() => setStep(3)} disabled={modes.length === 0}
+              <button type="button" onClick={handleCreateAccount} disabled={modes.length === 0 || authLoading}
+                className="flex-1 gradient-bg text-white py-3.5 rounded-full text-sm font-semibold disabled:opacity-40 active:scale-[0.98] transition-transform tap-target">
+                {authLoading ? "Creation..." : "Suivant"}
+              </button>
+            </div>
+            <p className="text-[10px] text-text-muted text-center mt-4 leading-relaxed">
+              En t&apos;inscrivant, tu acceptes nos <Link href="/cgu" className="text-accent underline">CGU</Link> et notre <Link href="/privacy" className="text-accent underline">Politique de confidentialite</Link>.
+            </p>
+          </div>
+        )}
+
+        {/* Step 3 — Photo (optional) */}
+        {step === 3 && tempUserId && (
+          <div className="animate-fade-up">
+            <h1 className="text-xl font-bold mb-1">Ajoute ta photo</h1>
+            <p className="text-sm text-text-muted mb-8">Les profils avec photo recoivent 3x plus de matchs.</p>
+            <PhotoUpload
+              userId={tempUserId}
+              onUploadComplete={() => setPhotoUploaded(true)}
+            />
+            <div className="flex gap-3 mt-8">
+              <button type="button" onClick={() => setStep(4)}
+                className="flex-1 py-3.5 rounded-full text-sm font-medium border border-border text-text-muted tap-target">
+                Passer
+              </button>
+              <button type="button" onClick={() => setStep(4)} disabled={!photoUploaded}
                 className="flex-1 gradient-bg text-white py-3.5 rounded-full text-sm font-semibold disabled:opacity-40 active:scale-[0.98] transition-transform tap-target">
                 Suivant
               </button>
@@ -163,9 +199,9 @@ export default function RegisterPage() {
           </div>
         )}
 
-        {/* Step 3 */}
-        {step === 3 && (
-          <form onSubmit={handleSubmit} className="animate-fade-up">
+        {/* Step 4 — Bio */}
+        {step === 4 && (
+          <form onSubmit={handleFinish} className="animate-fade-up">
             <h1 className="text-xl font-bold mb-1">Parle de toi</h1>
             <p className="text-sm text-text-muted mb-6">Qu&apos;est-ce qui te rend unique ?</p>
             <div className="space-y-4">
@@ -175,16 +211,13 @@ export default function RegisterPage() {
                   className="w-full px-3 py-3 bg-bg border border-border rounded-xl text-sm text-text resize-none" />
               </div>
               <div className="flex gap-3">
-                <button type="button" onClick={() => setStep(2)} className="flex-1 py-3.5 rounded-full text-sm font-medium border border-border tap-target">Retour</button>
-                <button type="submit" disabled={authLoading}
-                  className="flex-1 gradient-bg text-white py-3.5 rounded-full text-sm font-semibold disabled:opacity-40 active:scale-[0.98] transition-transform tap-target">
-                  {authLoading ? "Creation..." : "C'est parti !"}
+                <button type="button" onClick={() => setStep(3)} className="flex-1 py-3.5 rounded-full text-sm font-medium border border-border tap-target">Retour</button>
+                <button type="submit"
+                  className="flex-1 gradient-bg text-white py-3.5 rounded-full text-sm font-semibold active:scale-[0.98] transition-transform tap-target">
+                  C&apos;est parti !
                 </button>
               </div>
             </div>
-            <p className="text-[10px] text-text-muted text-center mt-6 leading-relaxed">
-              En t&apos;inscrivant, tu acceptes nos <Link href="/cgu" className="text-accent underline">CGU</Link> et notre <Link href="/privacy" className="text-accent underline">Politique de confidentialite</Link>.
-            </p>
           </form>
         )}
 

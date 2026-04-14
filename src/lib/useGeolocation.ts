@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { supabase } from "./supabase";
 
 interface GeoPosition {
   lat: number;
@@ -15,28 +16,38 @@ interface UseGeolocationResult {
   refresh: () => void;
 }
 
-export function useGeolocation(): UseGeolocationResult {
+export function useGeolocation(userId?: string): UseGeolocationResult {
   const [position, setPosition] = useState<GeoPosition | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const getPosition = useCallback(() => {
     if (!navigator.geolocation) {
-      setError("Geolocalisation non supportee par ton navigateur");
+      setError("Geolocalisation non supportee");
       setLoading(false);
       return;
     }
 
     setLoading(true);
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setPosition({
+      async (pos) => {
+        const newPos = {
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
           accuracy: pos.coords.accuracy,
-        });
+        };
+        setPosition(newPos);
         setError(null);
         setLoading(false);
+
+        // Save to Supabase if user is authenticated
+        if (userId) {
+          await supabase.rpc("update_location", {
+            uid: userId,
+            lat: newPos.lat,
+            lng: newPos.lng,
+          });
+        }
       },
       (err) => {
         switch (err.code) {
@@ -47,7 +58,7 @@ export function useGeolocation(): UseGeolocationResult {
             setError("Position indisponible");
             break;
           case err.TIMEOUT:
-            setError("Delai d'attente depasse");
+            setError("Delai depasse");
             break;
           default:
             setError("Erreur de geolocalisation");
@@ -56,10 +67,14 @@ export function useGeolocation(): UseGeolocationResult {
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
     );
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     getPosition();
+
+    // Update position every 5 minutes
+    const interval = setInterval(getPosition, 5 * 60 * 1000);
+    return () => clearInterval(interval);
   }, [getPosition]);
 
   return { position, error, loading, refresh: getPosition };
