@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { MODES, MODE_KEYS } from "@/lib/modes";
+import Countdown from "@/components/landing/Countdown";
+import LiveTicker from "@/components/landing/LiveTicker";
 
 const features = [
   { icon: "⚡", title: "Ce soir, pas demain", desc: "Trouve quelqu'un disponible maintenant. Pas de conversations qui trainent." },
@@ -45,6 +47,8 @@ export default function LandingPage() {
               <span className="text-[12px] text-text-muted font-medium">3 842 personnes en ligne ce soir</span>
             </div>
 
+            <Countdown />
+
             <h1 className="font-display text-[48px] sm:text-[56px] font-bold leading-[0.95] tracking-tight mb-6">
               Seul(e) ce soir&nbsp;?<br />
               <span className="gradient-text">Plus maintenant.</span>
@@ -77,6 +81,9 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+
+        {/* === LIVE TICKER === */}
+        <LiveTicker />
 
         {/* === HOW IT WORKS === */}
         <section className="px-6 py-20" aria-labelledby="how-title">
