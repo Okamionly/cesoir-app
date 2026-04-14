@@ -36,7 +36,7 @@ export default function LoginPage() {
         <p className="text-sm text-text-muted text-center mb-8">Connecte-toi pour voir qui est dispo</p>
 
         {(error || authError) && (
-          <div className="bg-danger/10 border border-danger/20 text-danger text-[13px] px-4 py-3 rounded-xl mb-4">
+          <div role="alert" className="bg-danger/10 border border-danger/20 text-danger text-[13px] px-4 py-3 rounded-xl mb-4">
             {error || authError}
           </div>
         )}

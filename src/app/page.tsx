@@ -38,15 +38,15 @@ export default function LandingPage() {
           </Link>
 
           {/* Secondary */}
-          <Link href="/browse" className="mt-4 text-[14px] text-white/40 hover:text-white/70 transition-colors py-2">
+          <Link href="/browse" className="mt-4 text-[14px] text-white/60 hover:text-white/70 transition-colors py-2">
             Explorer les profils →
           </Link>
         </div>
 
         {/* Scroll indicator */}
         <div className="absolute bottom-8 flex flex-col items-center gap-2 animate-pulse">
-          <span className="text-[11px] text-white/30 tracking-widest uppercase">Scroll</span>
-          <span className="text-white/20">↓</span>
+          <span className="text-[11px] text-white/60 tracking-widest uppercase">Scroll</span>
+          <span className="text-white/60">↓</span>
         </div>
       </section>
 
@@ -65,15 +65,15 @@ export default function LandingPage() {
         <div className="flex gap-8">
           <div className="text-center">
             <p className="text-[32px] font-black" style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>14</p>
-            <p className="text-[11px] text-white/40 uppercase tracking-wider">Modes</p>
+            <p className="text-[11px] text-white/60 uppercase tracking-wider">Modes</p>
           </div>
           <div className="text-center">
             <p className="text-[32px] font-black" style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>0€</p>
-            <p className="text-[11px] text-white/40 uppercase tracking-wider">Pour toujours</p>
+            <p className="text-[11px] text-white/60 uppercase tracking-wider">Pour toujours</p>
           </div>
           <div className="text-center">
             <p className="text-[32px] font-black" style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>2h</p>
-            <p className="text-[11px] text-white/40 uppercase tracking-wider">Moy. avant RDV</p>
+            <p className="text-[11px] text-white/60 uppercase tracking-wider">Moy. avant RDV</p>
           </div>
         </div>
         </FadeInSection>
@@ -154,7 +154,7 @@ export default function LandingPage() {
           <h2 className="text-[40px] font-black mb-4">
             Ce soir, c&apos;est<br /><span style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>ton</span> soir.
           </h2>
-          <p className="text-white/40 text-[15px] mb-10">Gratuit. Sans pub. Sans paywall.</p>
+          <p className="text-white/60 text-[15px] mb-10">Gratuit. Sans pub. Sans paywall.</p>
           <Link
             href="/register"
             className="inline-block px-10 py-4 rounded-full text-[17px] font-bold text-white active:scale-95 transition-transform"
@@ -172,12 +172,12 @@ export default function LandingPage() {
           <span className="text-base font-bold">CeSoir</span>
         </div>
         <div className="flex justify-center gap-5 mb-4">
-          <Link href="/safety" className="text-[11px] text-white/30 hover:text-white/60">Securite</Link>
-          <Link href="/modes" className="text-[11px] text-white/30 hover:text-white/60">Modes</Link>
-          <Link href="/cgu" className="text-[11px] text-white/30 hover:text-white/60">CGU</Link>
-          <Link href="/privacy" className="text-[11px] text-white/30 hover:text-white/60">Confidentialite</Link>
+          <Link href="/safety" className="text-[11px] text-white/60 hover:text-white/60">Securite</Link>
+          <Link href="/modes" className="text-[11px] text-white/60 hover:text-white/60">Modes</Link>
+          <Link href="/cgu" className="text-[11px] text-white/60 hover:text-white/60">CGU</Link>
+          <Link href="/privacy" className="text-[11px] text-white/60 hover:text-white/60">Confidentialite</Link>
         </div>
-        <p className="text-[11px] text-white/20">&copy; 2026 CeSoir. Tous droits reserves.</p>
+        <p className="text-[11px] text-white/60">&copy; 2026 CeSoir. Tous droits reserves.</p>
       </footer>
     </div>
   );

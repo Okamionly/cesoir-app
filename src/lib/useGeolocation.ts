@@ -43,7 +43,7 @@ export function useGeolocation(userId?: string): UseGeolocationResult {
         // Save to Supabase if user is authenticated
         if (userId) {
           await supabase.rpc("update_location", {
-            uid: userId,
+            user_id: userId,
             lat: newPos.lat,
             lng: newPos.lng,
           });

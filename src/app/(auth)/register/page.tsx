@@ -86,7 +86,7 @@ export default function RegisterPage() {
 
         {/* Error */}
         {(error || authError) && (
-          <div className="bg-danger/10 border border-danger/20 text-danger text-[13px] px-4 py-3 rounded-xl mb-4">
+          <div role="alert" className="bg-danger/10 border border-danger/20 text-danger text-[13px] px-4 py-3 rounded-xl mb-4">
             {error || authError}
           </div>
         )}
