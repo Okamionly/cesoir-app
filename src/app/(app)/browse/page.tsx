@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ModeKey, MODES, MODE_KEYS } from "@/lib/modes";
 import { MOCK_PROFILES } from "@/lib/mock-profiles";
 import { useSwipe } from "@/lib/useSwipe";
@@ -52,23 +52,33 @@ export default function BrowsePage() {
       <ModeFilter active={filter} onChange={(m) => { setFilter(m); setIdx(0); }} />
 
       {/* Pulse Clock */}
-      {showPulse && (
-        <motion.div className="shrink-0 px-4 pb-2" initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }}>
-          <PulseClock />
-        </motion.div>
-      )}
+      <AnimatePresence>
+        {showPulse && (
+          <motion.div
+            key="pulse"
+            className="shrink-0 px-4 pb-2"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25 }}
+          >
+            <PulseClock />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Card area */}
       <main className="flex-1 relative px-4 pb-1 overflow-hidden">
-        {card ? (
-          <>
-            {next1 && (
-              <motion.div className="absolute inset-x-5 top-1 bottom-2 rounded-[28px] overflow-hidden z-[1]" style={{ scale: swipe.nextScale }}>
-                <div className="absolute inset-0 bg-[#111]" />
-                <img src={next1.photo} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20 blur-[4px]" />
-              </motion.div>
-            )}
-            <SwipeCard
+        <AnimatePresence mode="popLayout">
+          {card ? (
+            <motion.div key={card.id} className="w-full h-full" initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} transition={{ type: "spring", stiffness: 400, damping: 30 }}>
+              {next1 && (
+                <motion.div className="absolute inset-x-5 top-1 bottom-2 rounded-[28px] overflow-hidden z-[1]" style={{ scale: swipe.nextScale }}>
+                  <div className="absolute inset-0 bg-[#111]" />
+                  <img src={next1.photo} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20 blur-[4px]" />
+                </motion.div>
+              )}
+              <SwipeCard
               profile={card}
               index={idx}
               total={list.length}
@@ -82,10 +92,11 @@ export default function BrowsePage() {
               onLike={swipe.triggerLike}
               onPass={swipe.triggerPass}
             />
-          </>
-        ) : (
-          <EmptyState onReset={() => { setIdx(0); setFilter("all"); }} />
-        )}
+            </motion.div>
+          ) : (
+            <EmptyState key="empty" onReset={() => { setIdx(0); setFilter("all"); }} />
+          )}
+        </AnimatePresence>
       </main>
 
       {/* Actions */}

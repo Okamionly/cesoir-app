@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FadeInSection, StaggerContainer, StaggerItem, ScaleIn } from "@/components/landing/AnimatedSection";
 
 export default function LandingPage() {
   return (
@@ -51,6 +52,7 @@ export default function LandingPage() {
 
       {/* Second screen — the promise */}
       <section className="min-h-screen flex flex-col items-center justify-center px-6 text-center relative">
+        <FadeInSection>
         <p className="text-[14px] text-[#a855f7] uppercase tracking-[0.3em] font-bold mb-6">Le concept</p>
         <h2 className="text-[36px] sm:text-[48px] font-black leading-tight mb-6 max-w-lg">
           Pas demain.<br />Pas la semaine prochaine.<br /><span style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Maintenant.</span>
@@ -74,16 +76,19 @@ export default function LandingPage() {
             <p className="text-[11px] text-white/40 uppercase tracking-wider">Moy. avant RDV</p>
           </div>
         </div>
+        </FadeInSection>
       </section>
 
       {/* Third screen — modes carousel */}
       <section className="py-20 px-6 relative">
-        <p className="text-[14px] text-[#ec4899] uppercase tracking-[0.3em] font-bold mb-4 text-center">14 modes</p>
-        <h2 className="text-[32px] font-black text-center mb-12">
-          Choisis ton <span style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>ambiance</span>
-        </h2>
+        <FadeInSection>
+          <p className="text-[14px] text-[#ec4899] uppercase tracking-[0.3em] font-bold mb-4 text-center">14 modes</p>
+          <h2 className="text-[32px] font-black text-center mb-12">
+            Choisis ton <span style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>ambiance</span>
+          </h2>
+        </FadeInSection>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-w-4xl mx-auto">
+        <StaggerContainer className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-w-4xl mx-auto">
           {[
             { icon: "🍽️", name: "Solo Diner" },
             { icon: "🎬", name: "Plus-One" },
@@ -100,25 +105,28 @@ export default function LandingPage() {
             { icon: "🍵", name: "Sober Tonight" },
             { icon: "🎮", name: "Gamer Night" },
           ].map((m) => (
+            <StaggerItem key={m.name}>
             <Link
-              key={m.name}
               href="/register"
               className="flex flex-col items-center gap-2 p-5 rounded-2xl border border-white/5 bg-white/[0.02] hover:border-[#a855f7]/40 hover:bg-white/[0.04] transition-all group"
             >
               <span className="text-3xl group-hover:scale-110 transition-transform">{m.icon}</span>
               <span className="text-[13px] font-semibold text-white/70 group-hover:text-white">{m.name}</span>
             </Link>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
       </section>
 
       {/* Fourth screen — safety */}
       <section className="py-20 px-6 text-center">
-        <p className="text-[14px] text-[#22c55e] uppercase tracking-[0.3em] font-bold mb-4">Securite</p>
-        <h2 className="text-[32px] font-black mb-12">
-          Ta securite est <span className="text-[#22c55e]">sacree.</span>
-        </h2>
-        <div className="grid grid-cols-3 gap-4 max-w-sm mx-auto">
+        <FadeInSection>
+          <p className="text-[14px] text-[#22c55e] uppercase tracking-[0.3em] font-bold mb-4">Securite</p>
+          <h2 className="text-[32px] font-black mb-12">
+            Ta securite est <span className="text-[#22c55e]">sacree.</span>
+          </h2>
+        </FadeInSection>
+        <StaggerContainer className="grid grid-cols-3 gap-4 max-w-sm mx-auto">
           {[
             { icon: "📸", label: "Verifie" },
             { icon: "🆘", label: "SOS" },
@@ -127,12 +135,14 @@ export default function LandingPage() {
             { icon: "🚫", label: "Zero tol." },
             { icon: "📍", label: "Lieux surs" },
           ].map((s) => (
-            <div key={s.label} className="flex flex-col items-center gap-1.5 p-4 rounded-xl border border-[#22c55e]/10 bg-[#22c55e]/[0.03]">
-              <span className="text-2xl">{s.icon}</span>
-              <span className="text-[10px] text-[#22c55e] font-semibold uppercase tracking-wider">{s.label}</span>
-            </div>
+            <StaggerItem key={s.label}>
+              <div className="flex flex-col items-center gap-1.5 p-4 rounded-xl border border-[#22c55e]/10 bg-[#22c55e]/[0.03]">
+                <span className="text-2xl">{s.icon}</span>
+                <span className="text-[10px] text-[#22c55e] font-semibold uppercase tracking-wider">{s.label}</span>
+              </div>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerContainer>
       </section>
 
       {/* Final CTA */}
@@ -140,7 +150,7 @@ export default function LandingPage() {
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full opacity-15 blur-[100px]" style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)" }} />
         </div>
-        <div className="relative z-10">
+        <ScaleIn className="relative z-10">
           <h2 className="text-[40px] font-black mb-4">
             Ce soir, c&apos;est<br /><span style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>ton</span> soir.
           </h2>
@@ -152,7 +162,7 @@ export default function LandingPage() {
           >
             Commencer maintenant
           </Link>
-        </div>
+        </ScaleIn>
       </section>
 
       {/* Footer */}
