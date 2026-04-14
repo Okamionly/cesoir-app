@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { MODES, MODE_KEYS } from "@/lib/modes";
 import { MODE_ICONS } from "@/components/ui/Icons";
-import { useAuth } from "@/lib/useAuth";
+import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import PhotoUpload from "@/components/app/PhotoUpload";
 

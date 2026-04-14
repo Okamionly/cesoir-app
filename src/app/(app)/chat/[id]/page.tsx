@@ -3,7 +3,7 @@
 import { use, useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuth } from "@/lib/useAuth";
+import { useAuth } from "@/context/AuthContext";
 import { useChat } from "@/lib/useChat";
 import { supabase } from "@/lib/supabase";
 import type { DbProfile, DbConversation } from "@/lib/supabase";

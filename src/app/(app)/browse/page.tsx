@@ -3,20 +3,29 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ModeKey, MODES, MODE_KEYS } from "@/lib/modes";
-import { MOCK_PROFILES } from "@/lib/mock-profiles";
+import { MOCK_PROFILES, Profile } from "@/lib/mock-profiles";
 import { useSwipe } from "@/lib/useSwipe";
+import { useAuth } from "@/context/AuthContext";
+import { useGeolocation } from "@/lib/useGeolocation";
+import { useProfiles } from "@/lib/useProfiles";
+import { useInteractions } from "@/lib/useInteractions";
 import { MODE_ICONS, IconHeart, IconX, IconStar } from "@/components/ui/Icons";
 import PulseClock from "@/components/app/PulseClock";
 import SwipeCard from "@/components/app/SwipeCard";
 
 export default function BrowsePage() {
+  const { user } = useAuth();
+  const { position } = useGeolocation(user?.id);
   const [filter, setFilter] = useState<ModeKey | "all">("all");
   const [idx, setIdx] = useState(0);
   const [info, setInfo] = useState(false);
-  const [match, setMatch] = useState<typeof MOCK_PROFILES[0] | null>(null);
+  const [match, setMatch] = useState<Profile | null>(null);
   const [showPulse, setShowPulse] = useState(true);
+  const { profiles } = useProfiles(position?.lat, position?.lng, filter === "all" ? undefined : filter);
+  const { like, pass } = useInteractions(user?.id);
 
-  const list = filter === "all" ? MOCK_PROFILES : MOCK_PROFILES.filter(p => p.mode === filter);
+  // Use real profiles if available, fallback to mock
+  const list = profiles.length > 0 ? profiles : (filter === "all" ? MOCK_PROFILES : MOCK_PROFILES.filter(p => p.mode === filter));
   const card = list[idx];
   const next1 = list[idx + 1];
 
@@ -27,8 +36,15 @@ export default function BrowsePage() {
     }
   }, [match]);
 
-  const handleAction = useCallback((action: "like" | "pass") => {
-    if (action === "like" && card && Math.random() > 0.6) setMatch(card);
+  const handleAction = useCallback(async (action: "like" | "pass") => {
+    if (card) {
+      if (action === "like") {
+        const result = await like(card.id, card.mode);
+        if (result?.matched) setMatch(card);
+      } else {
+        await pass(card.id);
+      }
+    }
     setIdx(i => Math.min(i + 1, list.length));
     setInfo(false);
     setShowPulse(false);

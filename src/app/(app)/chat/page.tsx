@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useAuth } from "@/lib/useAuth";
+import { useAuth } from "@/context/AuthContext";
 import { useConversations } from "@/lib/useChat";
 import type { ConversationWithPeer } from "@/lib/useChat";
 import { MODES } from "@/lib/modes";

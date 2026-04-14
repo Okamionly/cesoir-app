@@ -54,6 +54,24 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" className={`${outfit.variable} ${spaceGrotesk.variable} h-full`}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebApplication",
+              "name": "CeSoir",
+              "url": "https://cesoir-app.vercel.app",
+              "description": "14 modes de rencontre pour ne plus etre seul(e) ce soir. 100% gratuit.",
+              "applicationCategory": "SocialNetworkingApplication",
+              "operatingSystem": "All",
+              "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
+              "publisher": { "@type": "Organization", "name": "CeSoir", "logo": "https://cesoir-app.vercel.app/icon.svg" },
+            }),
+          }}
+        />
+      </head>
       <body className="min-h-full bg-bg text-text font-sans">{children}</body>
     </html>
   );
