@@ -44,6 +44,28 @@ export default function ModesPage() {
         animate="visible"
         aria-label="Liste des modes"
       >
+        {/* Sorties de groupe link */}
+        <motion.div variants={cardVariants}>
+          <Link
+            href="/group"
+            className="block bg-accent/5 border border-accent/20 rounded-2xl p-4 active:scale-[0.98] transition-transform hover:border-accent/40"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center shadow-glow">
+                <span className="text-[18px] text-white" aria-hidden="true">👥</span>
+              </div>
+              <div className="flex-1">
+                <h2 className="text-[15px] font-bold text-text">Sorties de groupe</h2>
+                <p className="text-[11px] text-text-muted">Rejoins une sortie ou cree la tienne</p>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] text-accent font-semibold">8 sorties</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-accent" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+              </div>
+            </div>
+          </Link>
+        </motion.div>
+
         {MODE_KEYS.map((key) => {
           const mode = MODES[key];
           const count = MOCK_PROFILES.filter(p => p.mode === key).length;

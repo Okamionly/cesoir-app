@@ -35,6 +35,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
+    // Refresh token every 50 minutes
+    const refreshInterval = setInterval(async () => {
+      const { error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) {
+        // Token refresh failed — force re-login
+        console.error("Session refresh failed:", refreshError.message);
+        await supabase.auth.signOut();
+        setUser(null);
+        _currentUserId = null;
+        window.location.href = "/login";
+      }
+    }, 50 * 60 * 1000); // 50 minutes
+
     // Mark offline when user closes tab
     const handleUnload = () => {
       const uid = _currentUserId;
@@ -49,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       subscription.unsubscribe();
+      clearInterval(refreshInterval);
       window.removeEventListener("beforeunload", handleUnload);
     };
   }, []);

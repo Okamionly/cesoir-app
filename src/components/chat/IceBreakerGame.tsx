@@ -227,6 +227,76 @@ export function IceBreakerButton({ onStartGame }: IceBreakerButtonProps) {
   );
 }
 
+// ---------- Sub-card: Question Random ----------
+
+interface QuestionCardInnerProps {
+  question: string;
+  isOwn: boolean;
+  time: string;
+  onInteract?: (answer: string) => void;
+  localAnswer: string | null;
+  setLocalAnswer: (val: string) => void;
+  showResult: boolean;
+}
+
+function QuestionCardInner({ question, isOwn, time, onInteract, localAnswer, setLocalAnswer, showResult }: QuestionCardInnerProps) {
+  const [inputVal, setInputVal] = useState("");
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      className={`flex ${isOwn ? "justify-end" : "justify-start"} mt-3`}
+    >
+      <div className="max-w-[85%] rounded-2xl bg-bg-card border border-border p-3.5">
+        <p className="text-[11px] text-accent font-semibold mb-2">🎲 Question Random</p>
+        <p className="text-[14px] font-semibold text-text mb-3">{question}</p>
+        {!localAnswer ? (
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={inputVal}
+              onChange={(e) => setInputVal(e.target.value)}
+              placeholder="Ta reponse..."
+              className="flex-1 bg-bg border border-border rounded-xl px-3 py-2 text-[13px] text-text placeholder:text-text-muted focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
+            />
+            <button
+              onClick={() => {
+                if (inputVal.trim()) {
+                  setLocalAnswer(inputVal.trim());
+                  onInteract?.(inputVal.trim());
+                }
+              }}
+              disabled={!inputVal.trim()}
+              className="px-3 py-2 rounded-xl gradient-bg text-white text-[13px] font-semibold disabled:opacity-40 active:scale-95 transition-transform"
+            >
+              OK
+            </button>
+          </div>
+        ) : (
+          <div>
+            <div className="bg-accent/5 border border-accent/15 rounded-xl px-3 py-2 mb-1.5">
+              <p className="text-[11px] text-accent font-semibold">Toi</p>
+              <p className="text-[13px] text-text">{localAnswer}</p>
+            </div>
+            {showResult && (
+              <motion.div
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-bg border border-border rounded-xl px-3 py-2"
+              >
+                <p className="text-[11px] text-text-muted font-semibold">L'autre</p>
+                <p className="text-[13px] text-text">Bonne question ! Je dirais pareil</p>
+              </motion.div>
+            )}
+          </div>
+        )}
+        <span className="block text-[10px] text-text-muted mt-2 text-right">{time}</span>
+      </div>
+    </motion.div>
+  );
+}
+
 // ---------- GameCard (displayed in chat) ----------
 
 interface GameCardProps {
@@ -319,8 +389,6 @@ export function GameCard({ game, isOwn, time, onInteract }: GameCardProps) {
             {(["A", "B"] as const).map((choice) => {
               const label = choice === "A" ? payload.optionA : payload.optionB;
               const isSelected = localAnswer === choice;
-              const otherChose = showResult ? (choice === "A" ? "B" : "A") : null;
-              const bothChoseSame = showResult && localAnswer === (Math.random() > 0.5 ? "A" : "B");
               return (
                 <button
                   key={choice}
@@ -362,59 +430,16 @@ export function GameCard({ game, isOwn, time, onInteract }: GameCardProps) {
 
   if (game.type === "question") {
     const payload = game.payload as QuestionPayload;
-    const [inputVal, setInputVal] = useState("");
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 8, scale: 0.96 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        className={`flex ${isOwn ? "justify-end" : "justify-start"} mt-3`}
-      >
-        <div className="max-w-[85%] rounded-2xl bg-bg-card border border-border p-3.5">
-          <p className="text-[11px] text-accent font-semibold mb-2">🎲 Question Random</p>
-          <p className="text-[14px] font-semibold text-text mb-3">{payload.question}</p>
-          {!localAnswer ? (
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={inputVal}
-                onChange={(e) => setInputVal(e.target.value)}
-                placeholder="Ta reponse..."
-                className="flex-1 bg-bg border border-border rounded-xl px-3 py-2 text-[13px] text-text placeholder:text-text-muted focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/15"
-              />
-              <button
-                onClick={() => {
-                  if (inputVal.trim()) {
-                    setLocalAnswer(inputVal.trim());
-                    onInteract?.(inputVal.trim());
-                  }
-                }}
-                disabled={!inputVal.trim()}
-                className="px-3 py-2 rounded-xl gradient-bg text-white text-[13px] font-semibold disabled:opacity-40 active:scale-95 transition-transform"
-              >
-                OK
-              </button>
-            </div>
-          ) : (
-            <div>
-              <div className="bg-accent/5 border border-accent/15 rounded-xl px-3 py-2 mb-1.5">
-                <p className="text-[11px] text-accent font-semibold">Toi</p>
-                <p className="text-[13px] text-text">{localAnswer}</p>
-              </div>
-              {showResult && (
-                <motion.div
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-bg border border-border rounded-xl px-3 py-2"
-                >
-                  <p className="text-[11px] text-text-muted font-semibold">L'autre</p>
-                  <p className="text-[13px] text-text">Bonne question ! Je dirais pareil 😄</p>
-                </motion.div>
-              )}
-            </div>
-          )}
-          <span className="block text-[10px] text-text-muted mt-2 text-right">{time}</span>
-        </div>
-      </motion.div>
+      <QuestionCardInner
+        question={payload.question}
+        isOwn={isOwn}
+        time={time}
+        onInteract={onInteract}
+        localAnswer={localAnswer}
+        setLocalAnswer={setLocalAnswer}
+        showResult={showResult}
+      />
     );
   }
 

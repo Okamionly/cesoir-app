@@ -14,6 +14,11 @@ import { MODE_ICONS, IconHeart, IconX, IconStar } from "@/components/ui/Icons";
 import PulseClock from "@/components/app/PulseClock";
 import SwipeCard from "@/components/app/SwipeCard";
 import ReportSheet from "@/components/app/ReportSheet";
+import StoriesBar from "@/components/app/StoriesBar";
+import ConfirmDispo from "@/components/app/ConfirmDispo";
+import Revanche from "@/components/app/Revanche";
+import NotificationPreview from "@/components/app/NotificationPreview";
+import MidnightReset from "@/components/app/MidnightReset";
 
 export default function BrowsePage() {
   const { user } = useAuth();
@@ -65,14 +70,38 @@ export default function BrowsePage() {
       <header className="shrink-0 px-5 pt-3 pb-2">
         <div className="flex items-center justify-between">
           <h1 className="text-[18px] font-black tracking-tight text-text">CeSoir</h1>
-          <button onClick={() => setShowPulse(!showPulse)} className="text-[11px] text-accent font-semibold tap-target py-1">
-            {showPulse ? "Masquer" : "Pulse"} · {list.length}
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/flash-plans"
+              className="flex items-center gap-1 bg-accent/10 border border-accent/20 px-2.5 py-1 rounded-full tap-target"
+            >
+              <span className="text-[10px]" aria-hidden="true">⚡</span>
+              <span className="text-[10px] text-accent font-semibold">Flash Plans</span>
+            </Link>
+            <button onClick={() => setShowPulse(!showPulse)} className="text-[11px] text-accent font-semibold tap-target py-1">
+              {showPulse ? "Masquer" : "Pulse"} · {list.length}
+            </button>
+          </div>
         </div>
       </header>
 
+      {/* Notification Preview */}
+      <NotificationPreview />
+
+      {/* Midnight Reset */}
+      <MidnightReset />
+
+      {/* Stories Bar */}
+      <StoriesBar />
+
       {/* Mode filter */}
       <ModeFilter active={filter} onChange={(m) => { setFilter(m); setIdx(0); }} />
+
+      {/* Confirm Dispo */}
+      <ConfirmDispo />
+
+      {/* Revanche — Second Chance */}
+      <Revanche />
 
       {/* Pulse Clock */}
       <AnimatePresence>

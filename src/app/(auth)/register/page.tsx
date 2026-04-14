@@ -66,7 +66,7 @@ export default function RegisterPage() {
       await supabase.from("profiles").update({ bio }).eq("id", tempUserId);
     }
 
-    router.push("/browse");
+    router.push("/onboarding");
   }
 
   return (

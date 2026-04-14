@@ -4,7 +4,7 @@ import { use, useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
-import { useChat } from "@/lib/useChat";
+import { useChat, useTypingIndicator } from "@/lib/useChat";
 import { supabase } from "@/lib/supabase";
 import type { DbProfile, DbConversation } from "@/lib/supabase";
 import { MODES } from "@/lib/modes";
@@ -19,6 +19,8 @@ import { LocationShareButton, LocationCard } from "@/components/chat/LocationSha
 import { IceBreakerButton, GameCard, type GameData } from "@/components/chat/IceBreakerGame";
 import { PlaylistShareButton, MusicCard, type SongData } from "@/components/chat/PlaylistShare";
 import { PlusMenu } from "@/components/chat/PlusMenu";
+import VibeCheck, { VibeCheckButton } from "@/components/chat/VibeCheck";
+import AIWingman from "@/components/chat/AIWingman";
 
 // ---------- Types for special messages ----------
 
@@ -53,7 +55,9 @@ function SendIcon({ size = 20, className = "" }: { size?: number; className?: st
   );
 }
 
-function ChatBubble({ content, isOwn, time, showTail }: { content: string; isOwn: boolean; time: string; showTail: boolean }) {
+function ChatBubble({ content, isOwn, time, showTail, readAt }: { content: string; isOwn: boolean; time: string; showTail: boolean; readAt?: string | null }) {
+  const readTime = readAt ? new Date(readAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : null;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8, scale: 0.96 }}
@@ -61,21 +65,28 @@ function ChatBubble({ content, isOwn, time, showTail }: { content: string; isOwn
       transition={{ duration: 0.2, ease: "easeOut" }}
       className={`flex ${isOwn ? "justify-end" : "justify-start"} ${showTail ? "mt-3" : "mt-0.5"}`}
     >
-      <div
-        className={`relative max-w-[78%] px-3.5 py-2.5 text-[15px] leading-relaxed ${
-          isOwn
-            ? "gradient-bg text-white rounded-2xl rounded-br-md"
-            : "bg-[#F2F2F2] text-text rounded-2xl rounded-bl-md"
-        }`}
-      >
-        <p className="whitespace-pre-wrap break-words">{content}</p>
-        <span
-          className={`block text-[10px] mt-1 ${
-            isOwn ? "text-white/60 text-right" : "text-text-muted text-right"
+      <div className={isOwn ? "flex flex-col items-end max-w-[78%]" : "max-w-[78%]"}>
+        <div
+          className={`relative w-full px-3.5 py-2.5 text-[15px] leading-relaxed ${
+            isOwn
+              ? "gradient-bg text-white rounded-2xl rounded-br-md"
+              : "bg-[#F2F2F2] text-text rounded-2xl rounded-bl-md"
           }`}
         >
-          {time}
-        </span>
+          <p className="whitespace-pre-wrap break-words">{content}</p>
+          <span
+            className={`block text-[10px] mt-1 ${
+              isOwn ? "text-white/60 text-right" : "text-text-muted text-right"
+            }`}
+          >
+            {time}
+          </span>
+        </div>
+        {isOwn && readTime && (
+          <span className="text-[10px] text-text-muted mt-0.5 mr-1">
+            Vu a {readTime}
+          </span>
+        )}
       </div>
     </motion.div>
   );
@@ -142,7 +153,7 @@ export default function ConversationPage({
 }) {
   const { id: conversationId } = use(params);
   const { user } = useAuth();
-  const { messages, loading, sending, sendMessage, markAsRead } = useChat(
+  const { messages, loading, loadingMore, hasMore, sending, sendMessage, markAsRead, loadMore } = useChat(
     conversationId,
     user?.id,
   );
@@ -151,12 +162,23 @@ export default function ConversationPage({
   const [peer, setPeer] = useState<Pick<DbProfile, "id" | "name" | "avatar_url" | "is_online"> | null>(null);
   const [convoMode, setConvoMode] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesTopRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Typing indicator
+  const { peerTyping, sendTyping, stopTyping } = useTypingIndicator(
+    conversationId,
+    user?.id,
+    user?.user_metadata?.name,
+  );
 
   // State for special messages
   const [specialMessages, setSpecialMessages] = useState<SpecialMessage[]>(MOCK_SPECIAL_MESSAGES);
   const [reactions, setReactions] = useState<Record<string, Reaction[]>>(MOCK_REACTIONS);
   const [playlist, setPlaylist] = useState<SongData[]>(MOCK_PLAYLIST);
+
+  // Vibe Check state
+  const [showVibeCheck, setShowVibeCheck] = useState(false);
 
   // fetch conversation metadata + peer profile
   useEffect(() => {
@@ -200,9 +222,10 @@ export default function ConversationPage({
     const text = inputValue.trim();
     if (!text) return;
     setInputValue("");
+    stopTyping();
     await sendMessage(text);
     inputRef.current?.focus();
-  }, [inputValue, sendMessage]);
+  }, [inputValue, sendMessage, stopTyping]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -394,6 +417,9 @@ export default function ConversationPage({
               <p className="text-[11px] text-safe">En ligne</p>
             )}
           </div>
+
+          {/* Vibe Check button */}
+          <VibeCheckButton onClick={() => setShowVibeCheck(true)} />
         </div>
       </header>
 
@@ -415,6 +441,26 @@ export default function ConversationPage({
             </div>
             <p className="text-sm text-text-muted">Aucun message pour le moment</p>
             <p className="text-xs text-text-muted mt-1">Envoie le premier message !</p>
+          </div>
+        )}
+
+        {/* Load older messages */}
+        {!loading && hasMore && (
+          <div className="flex justify-center py-3" ref={messagesTopRef}>
+            <button
+              onClick={loadMore}
+              disabled={loadingMore}
+              className="text-xs text-accent font-medium px-4 py-2 rounded-full border border-accent/20 bg-accent/5 hover:bg-accent/10 transition-colors disabled:opacity-50"
+            >
+              {loadingMore ? (
+                <span className="flex items-center gap-2">
+                  <span className="w-3 h-3 border border-accent border-t-transparent rounded-full animate-spin" />
+                  Chargement...
+                </span>
+              ) : (
+                "Charger les messages precedents"
+              )}
+            </button>
           </div>
         )}
 
@@ -443,6 +489,7 @@ export default function ConversationPage({
                     isOwn={msg.isOwn}
                     time={formatTime(msg.createdAt)}
                     showTail={showTail}
+                    readAt={msg.isOwn ? msg.readAt : undefined}
                   />
                 </ReactionWrapper>
               );
@@ -515,8 +562,31 @@ export default function ConversationPage({
 
         {sending && <TypingIndicator />}
 
+        {peerTyping && (
+          <div className="flex justify-start mt-2">
+            <div className="bg-[#F2F2F2] rounded-2xl rounded-bl-md px-4 py-3 flex gap-1.5 items-center">
+              <span className="text-xs text-text-muted font-medium">{peerTyping} ecrit</span>
+              {[0, 1, 2].map((i) => (
+                <motion.div
+                  key={i}
+                  className="w-1.5 h-1.5 rounded-full bg-text-muted"
+                  animate={{ y: [0, -3, 0] }}
+                  transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.12 }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
         <div ref={messagesEndRef} />
       </div>
+
+      {/* AI Wingman suggestions */}
+      <AIWingman
+        mode={convoMode}
+        messageCount={messages.length}
+        onSelectSuggestion={(text) => setInputValue(text)}
+      />
 
       {/* Input bar */}
       <div className="sticky bottom-0 border-t border-border bg-bg/95 backdrop-blur-md px-3 py-2" style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}>
@@ -532,7 +602,7 @@ export default function ConversationPage({
           <textarea
             ref={inputRef}
             value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            onChange={(e) => { setInputValue(e.target.value); sendTyping(); }}
             onKeyDown={handleKeyDown}
             placeholder="Message..."
             rows={1}
@@ -558,6 +628,16 @@ export default function ConversationPage({
           </button>
         </div>
       </div>
+
+      {/* Vibe Check overlay */}
+      {showVibeCheck && (
+        <VibeCheck
+          peerName={peer?.name ?? "..."}
+          peerInitial={peer?.name?.[0] ?? "?"}
+          userInitial="Y"
+          onClose={() => setShowVibeCheck(false)}
+        />
+      )}
     </div>
   );
 }

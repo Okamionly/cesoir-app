@@ -1,9 +1,47 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { supabase } from "./supabase";
 
+// ---------- Undo history ----------
+
+interface InteractionRecord {
+  targetId: string;
+  action: "like" | "pass" | "superlike";
+  mode?: string;
+}
+
+const MAX_HISTORY = 5;
+
 export function useInteractions(userId?: string) {
+  const [history, setHistory] = useState<InteractionRecord[]>([]);
+
+  /** Push an action into the undo history (max 5) */
+  const pushHistory = useCallback((record: InteractionRecord) => {
+    setHistory((prev) => [...prev.slice(-(MAX_HISTORY - 1)), record]);
+  }, []);
+
+  /** Undo the last interaction — deletes the row from Supabase */
+  const undo = useCallback(async () => {
+    if (!userId) return null;
+
+    const last = history[history.length - 1];
+    if (!last) return null;
+
+    // Remove from DB
+    await supabase
+      .from("interactions")
+      .delete()
+      .eq("from_user", userId)
+      .eq("to_user", last.targetId)
+      .eq("action", last.action);
+
+    // Pop from history
+    setHistory((prev) => prev.slice(0, -1));
+
+    return last;
+  }, [userId, history]);
+
   const like = useCallback(async (targetId: string, mode?: string) => {
     if (!userId) return { matched: false };
 
@@ -14,6 +52,7 @@ export function useInteractions(userId?: string) {
       action: "like",
       mode,
     });
+    pushHistory({ targetId, action: "like", mode });
 
     // Check if it's a mutual match
     const { data } = await supabase
@@ -42,7 +81,7 @@ export function useInteractions(userId?: string) {
     }
 
     return { matched, conversationId };
-  }, [userId]);
+  }, [userId, pushHistory]);
 
   const pass = useCallback(async (targetId: string) => {
     if (!userId) return;
@@ -51,7 +90,8 @@ export function useInteractions(userId?: string) {
       to_user: targetId,
       action: "pass",
     });
-  }, [userId]);
+    pushHistory({ targetId, action: "pass" });
+  }, [userId, pushHistory]);
 
   const superlike = useCallback(async (targetId: string, mode?: string) => {
     if (!userId) return { matched: false };
@@ -62,6 +102,7 @@ export function useInteractions(userId?: string) {
       action: "superlike",
       mode,
     });
+    pushHistory({ targetId, action: "superlike", mode });
 
     const { data } = await supabase
       .from("interactions")
@@ -84,7 +125,7 @@ export function useInteractions(userId?: string) {
     }
 
     return { matched };
-  }, [userId]);
+  }, [userId, pushHistory]);
 
   const report = useCallback(async (targetId: string, reason: string, details?: string) => {
     if (!userId) return;
@@ -102,5 +143,5 @@ export function useInteractions(userId?: string) {
     });
   }, [userId]);
 
-  return { like, pass, superlike, report };
+  return { like, pass, superlike, report, undo, history };
 }

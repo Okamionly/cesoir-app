@@ -20,13 +20,16 @@
   --font-display: var(--font-space-grotesk), -apple-system, sans-serif;
 }
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; height: -webkit-fill-available; }
 body {
   background: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-sans);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  overflow-x: hidden;
 }
 body { padding-top: env(safe-area-inset-top); }
 
@@ -118,3 +121,22 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
   0%, 100% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.4); opacity: 0.7; }
 }
+
+/* === PAGE TRANSITIONS === */
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pageExit {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-8px); }
+}
+.page-enter {
+  animation: pageEnter 0.3s ease-out both;
+}
+.page-exit {
+  animation: pageExit 0.2s ease-in both;
+}
+
+/* === SWIPE AREA === */
+.swipe-area { touch-action: pan-y; }

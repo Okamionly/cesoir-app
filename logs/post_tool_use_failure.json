@@ -114,5 +114,328 @@
       "is_interrupt": false,
       "logged_at": "2026-04-11T01:21:42.695849"
     }
+  },
+  {
+    "timestamp": "2026-04-11T01:24:32.700711",
+    "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_018ECs1d6ozsn6kFCz6dnyua",
+    "tool_input": {
+      "command": "cd \"C:/Users/mrgue/CLAUDE CODE/cesoir-app\" && gh repo create cesoir-app --public --source=. --push 2>&1",
+      "timeout": 30000,
+      "description": "Create GitHub repo and push"
+    },
+    "error": "Exit code 127\n/usr/bin/bash: line 1: gh: command not found",
+    "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+    "raw_input": {
+      "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+      "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+      "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "cd \"C:/Users/mrgue/CLAUDE CODE/cesoir-app\" && gh repo create cesoir-app --public --source=. --push 2>&1",
+        "timeout": 30000,
+        "description": "Create GitHub repo and push"
+      },
+      "tool_use_id": "toolu_018ECs1d6ozsn6kFCz6dnyua",
+      "error": "Exit code 127\n/usr/bin/bash: line 1: gh: command not found",
+      "is_interrupt": false,
+      "logged_at": "2026-04-11T01:24:32.700711"
+    }
+  },
+  {
+    "timestamp": "2026-04-11T01:24:55.294219",
+    "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "mcp__github__create_repository",
+    "tool_use_id": "toolu_01GpSDYJoi64bJUyVKQtNjfn",
+    "tool_input": {
+      "name": "cesoir-app",
+      "description": "CeSoir - 9 modes de rencontre pour ne plus etre seul(e) ce soir. Next.js + Supabase + PWA mobile-first.",
+      "private": false,
+      "autoInit": false
+    },
+    "error": "MCP error -32603: Authentication Failed: Requires authentication",
+    "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+    "raw_input": {
+      "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+      "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+      "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "mcp__github__create_repository",
+      "tool_input": {
+        "name": "cesoir-app",
+        "description": "CeSoir - 9 modes de rencontre pour ne plus etre seul(e) ce soir. Next.js + Supabase + PWA mobile-first.",
+        "private": false,
+        "autoInit": false
+      },
+      "tool_use_id": "toolu_01GpSDYJoi64bJUyVKQtNjfn",
+      "error": "MCP error -32603: Authentication Failed: Requires authentication",
+      "is_interrupt": false,
+      "logged_at": "2026-04-11T01:24:55.294219"
+    }
+  },
+  {
+    "timestamp": "2026-04-11T01:38:17.695441",
+    "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "mcp__Claude_Preview__preview_screenshot",
+    "tool_use_id": "toolu_01FdCWmQGzBTZQufpS49f366",
+    "tool_input": {
+      "serverId": "fad1c500-915a-4209-b670-e28168136cdb"
+    },
+    "error": "preview_screenshot timed out after 30s. The preview window may be stuck (modal dialog, navigation hang, or unresponsive renderer). Check preview_console_logs for errors.",
+    "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+    "raw_input": {
+      "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+      "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+      "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "mcp__Claude_Preview__preview_screenshot",
+      "tool_input": {
+        "serverId": "fad1c500-915a-4209-b670-e28168136cdb"
+      },
+      "tool_use_id": "toolu_01FdCWmQGzBTZQufpS49f366",
+      "error": "preview_screenshot timed out after 30s. The preview window may be stuck (modal dialog, navigation hang, or unresponsive renderer). Check preview_console_logs for errors.",
+      "is_interrupt": false,
+      "logged_at": "2026-04-11T01:38:17.695441"
+    }
+  },
+  {
+    "timestamp": "2026-04-11T01:45:08.613635",
+    "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "mcp__Claude_Preview__preview_screenshot",
+    "tool_use_id": "toolu_01NzqE5jdkcmTpLSdcydyNoo",
+    "tool_input": {
+      "serverId": "4ae5a9f1-a414-46e4-a80c-493d2321b0ea"
+    },
+    "error": "preview_screenshot timed out after 30s. The preview window may be stuck (modal dialog, navigation hang, or unresponsive renderer). Check preview_console_logs for errors.",
+    "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+    "raw_input": {
+      "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+      "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+      "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "mcp__Claude_Preview__preview_screenshot",
+      "tool_input": {
+        "serverId": "4ae5a9f1-a414-46e4-a80c-493d2321b0ea"
+      },
+      "tool_use_id": "toolu_01NzqE5jdkcmTpLSdcydyNoo",
+      "error": "preview_screenshot timed out after 30s. The preview window may be stuck (modal dialog, navigation hang, or unresponsive renderer). Check preview_console_logs for errors.",
+      "is_interrupt": false,
+      "logged_at": "2026-04-11T01:45:08.613635"
+    }
+  },
+  {
+    "timestamp": "2026-04-14T17:54:22.744975",
+    "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "mcp__d1ede3da-3ea3-449a-9b98-6a77d908b3f1__check_domain_availability_and_price",
+    "tool_use_id": "toolu_012uuSAJb495EhaN5WhppC6M",
+    "tool_input": {
+      "names": [
+        "cesoir.app",
+        "cesoir.fr",
+        "cesoir.io",
+        "cesoir.co",
+        "ce-soir.app",
+        "cesoir.love",
+        "cesoir.date",
+        "cesoir.social",
+        "getcessoir.com",
+        "cesoir.club"
+      ]
+    },
+    "error": "This connector requires authentication. The user needs to connect it before this tool can be used.",
+    "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+    "raw_input": {
+      "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+      "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+      "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "mcp__d1ede3da-3ea3-449a-9b98-6a77d908b3f1__check_domain_availability_and_price",
+      "tool_input": {
+        "names": [
+          "cesoir.app",
+          "cesoir.fr",
+          "cesoir.io",
+          "cesoir.co",
+          "ce-soir.app",
+          "cesoir.love",
+          "cesoir.date",
+          "cesoir.social",
+          "getcessoir.com",
+          "cesoir.club"
+        ]
+      },
+      "tool_use_id": "toolu_012uuSAJb495EhaN5WhppC6M",
+      "error": "This connector requires authentication. The user needs to connect it before this tool can be used.",
+      "is_interrupt": false,
+      "logged_at": "2026-04-14T17:54:22.744975"
+    }
+  },
+  {
+    "timestamp": "2026-04-14T17:55:02.702489",
+    "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "mcp__d1ede3da-3ea3-449a-9b98-6a77d908b3f1__check_domain_availability_and_price",
+    "tool_use_id": "toolu_01DnNUg8rv7peWcCNC83BX6D",
+    "tool_input": {
+      "names": [
+        "cesoir.app",
+        "cesoir.fr",
+        "cesoir.io",
+        "cesoir.co",
+        "ce-soir.app",
+        "cesoir.love",
+        "cesoir.date",
+        "cesoir.social",
+        "cesoir.club",
+        "cesoir.tonight"
+      ]
+    },
+    "error": "This connector requires authentication. The user needs to connect it before this tool can be used.",
+    "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+    "raw_input": {
+      "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+      "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+      "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+      "permission_mode": "bypassPermissions",
+      "agent_id": "a6385023d1c4b27ec",
+      "agent_type": "general-purpose",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "mcp__d1ede3da-3ea3-449a-9b98-6a77d908b3f1__check_domain_availability_and_price",
+      "tool_input": {
+        "names": [
+          "cesoir.app",
+          "cesoir.fr",
+          "cesoir.io",
+          "cesoir.co",
+          "ce-soir.app",
+          "cesoir.love",
+          "cesoir.date",
+          "cesoir.social",
+          "cesoir.club",
+          "cesoir.tonight"
+        ]
+      },
+      "tool_use_id": "toolu_01DnNUg8rv7peWcCNC83BX6D",
+      "error": "This connector requires authentication. The user needs to connect it before this tool can be used.",
+      "is_interrupt": false,
+      "logged_at": "2026-04-14T17:55:02.702489"
+    }
+  },
+  {
+    "timestamp": "2026-04-14T17:55:11.419276",
+    "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Read",
+    "tool_use_id": "toolu_013BCiHCwTeVi2S2ucqANWMr",
+    "tool_input": {
+      "file_path": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app\\graphify-out\\GRAPH_REPORT.md"
+    },
+    "error": "File does not exist. Note: your current working directory is C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app.",
+    "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+    "raw_input": {
+      "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+      "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+      "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+      "permission_mode": "bypassPermissions",
+      "agent_id": "a4bb83fa06dae6394",
+      "agent_type": "general-purpose",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Read",
+      "tool_input": {
+        "file_path": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app\\graphify-out\\GRAPH_REPORT.md"
+      },
+      "tool_use_id": "toolu_013BCiHCwTeVi2S2ucqANWMr",
+      "error": "File does not exist. Note: your current working directory is C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app.",
+      "is_interrupt": false,
+      "logged_at": "2026-04-14T17:55:11.419276"
+    }
+  },
+  {
+    "timestamp": "2026-04-14T17:56:34.003910",
+    "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "mcp__Claude_Preview__preview_eval",
+    "tool_use_id": "toolu_0175qQgnLnTGyFqG5KU9vuKh",
+    "tool_input": {
+      "serverId": "070bfe6d-39dc-4db4-bb9b-a8434f14e0e2",
+      "expression": "window.location.href = '/map'; \"map\""
+    },
+    "error": "Server not found. No running servers for this workspace.",
+    "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+    "raw_input": {
+      "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+      "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+      "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "mcp__Claude_Preview__preview_eval",
+      "tool_input": {
+        "serverId": "070bfe6d-39dc-4db4-bb9b-a8434f14e0e2",
+        "expression": "window.location.href = '/map'; \"map\""
+      },
+      "tool_use_id": "toolu_0175qQgnLnTGyFqG5KU9vuKh",
+      "error": "Server not found. No running servers for this workspace.",
+      "is_interrupt": false,
+      "logged_at": "2026-04-14T17:56:34.003910"
+    }
+  },
+  {
+    "timestamp": "2026-04-14T17:56:40.682181",
+    "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Read",
+    "tool_use_id": "toolu_01MdGQg5G2qvPunHugGh3gMs",
+    "tool_input": {
+      "file_path": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app\\graphify-out\\GRAPH_REPORT.md"
+    },
+    "error": "File does not exist. Note: your current working directory is C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app.",
+    "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+    "raw_input": {
+      "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+      "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+      "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+      "permission_mode": "bypassPermissions",
+      "agent_id": "a0b533233568483f4",
+      "agent_type": "general-purpose",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Read",
+      "tool_input": {
+        "file_path": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app\\graphify-out\\GRAPH_REPORT.md"
+      },
+      "tool_use_id": "toolu_01MdGQg5G2qvPunHugGh3gMs",
+      "error": "File does not exist. Note: your current working directory is C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app.",
+      "is_interrupt": false,
+      "logged_at": "2026-04-14T17:56:40.682181"
+    }
   }
 ]

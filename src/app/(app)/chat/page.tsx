@@ -1,6 +1,8 @@
 "use client";
 
+import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/context/AuthContext";
 import { useConversations } from "@/lib/useChat";
 import type { ConversationWithPeer } from "@/lib/useChat";
@@ -55,70 +57,193 @@ function getAvatarColor(mode: string | null): string {
 
 // ---------- Sub-components ----------
 
-function ConversationRow({ convo }: { convo: ConversationWithPeer }) {
+function ConversationRow({
+  convo,
+  onArchive,
+  onDelete,
+}: {
+  convo: ConversationWithPeer;
+  onArchive?: (id: string) => void;
+  onDelete?: (id: string) => void;
+}) {
   const modeInfo = getModeInfo(convo.mode);
   const hasUnread = convo.unreadCount > 0;
   const avatarColor = getAvatarColor(convo.mode);
+  const [showActions, setShowActions] = useState(false);
+  const [contextMenu, setContextMenu] = useState(false);
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touchStartXRef = useRef(0);
+  const swipeThreshold = 80;
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartXRef.current = e.touches[0].clientX;
+    longPressTimerRef.current = setTimeout(() => {
+      setContextMenu(true);
+    }, 600);
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    const deltaX = touchStartXRef.current - e.touches[0].clientX;
+    if (Math.abs(deltaX) > 10 && longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+    if (deltaX > swipeThreshold) {
+      setShowActions(true);
+    } else if (deltaX < -30) {
+      setShowActions(false);
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }, []);
 
   return (
-    <Link
-      href={`/chat/${convo.id}`}
-      role="listitem"
-      className="flex items-center gap-3.5 px-4 py-3.5 active:bg-bg-card transition-colors cursor-pointer border-b border-border/50"
-    >
-      {/* Avatar */}
-      <div className="relative shrink-0">
-        {convo.peer.avatar_url ? (
-          <img
-            src={convo.peer.avatar_url}
-            alt={convo.peer.name}
-            className="w-14 h-14 rounded-full object-cover"
-          />
-        ) : (
-          <div
-            className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold text-white"
-            style={{ background: avatarColor }}
+    <div className="relative overflow-hidden" role="listitem">
+      {/* Swipe reveal actions */}
+      <AnimatePresence>
+        {showActions && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute right-0 top-0 bottom-0 flex items-stretch z-10"
           >
-            {convo.peer.name[0]}
-          </div>
+            <button
+              onClick={() => {
+                onArchive?.(convo.id);
+                setShowActions(false);
+              }}
+              className="flex items-center justify-center px-5 bg-amber-500 text-white text-xs font-bold"
+            >
+              Archiver
+            </button>
+            <button
+              onClick={() => {
+                onDelete?.(convo.id);
+                setShowActions(false);
+              }}
+              className="flex items-center justify-center px-5 bg-red-500 text-white text-xs font-bold"
+            >
+              Supprimer
+            </button>
+          </motion.div>
         )}
-        {convo.peer.is_online && (
-          <div className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-safe border-2 border-bg" />
-        )}
-      </div>
+      </AnimatePresence>
 
-      {/* Content */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between mb-0.5">
-          <span className={`text-[15px] ${hasUnread ? "font-bold text-text" : "font-semibold text-text"}`}>
-            {convo.peer.name}
-          </span>
-          <div className="flex items-center gap-1.5">
-            {MOCK_MATCHED_AT[convo.id] && (
-              <SparkTimer matchedAt={MOCK_MATCHED_AT[convo.id]} compact />
-            )}
-            <span className={`text-[11px] ${hasUnread ? "text-accent font-semibold" : "text-text-muted"}`}>
-              {formatTime(convo.lastMessageAt)}
-            </span>
-          </div>
+      {/* Context menu (long press) */}
+      <AnimatePresence>
+        {contextMenu && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-40"
+              onClick={() => setContextMenu(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.15 }}
+              className="absolute right-4 top-2 z-50 bg-bg-card border border-border rounded-xl shadow-xl overflow-hidden min-w-[160px]"
+            >
+              <button
+                onClick={() => {
+                  onArchive?.(convo.id);
+                  setContextMenu(false);
+                }}
+                className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-text hover:bg-bg active:bg-border/50 transition-colors"
+              >
+                <span className="text-base">📦</span>
+                <span>Archiver</span>
+              </button>
+              <div className="h-px bg-border" />
+              <button
+                onClick={() => {
+                  onDelete?.(convo.id);
+                  setContextMenu(false);
+                }}
+                className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-red-500 hover:bg-bg active:bg-border/50 transition-colors"
+              >
+                <span className="text-base">🗑️</span>
+                <span>Supprimer</span>
+              </button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      <Link
+        href={`/chat/${convo.id}`}
+        className="flex items-center gap-3.5 px-4 py-3.5 active:bg-bg-card transition-colors cursor-pointer border-b border-border/50 relative z-0"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          setContextMenu(true);
+        }}
+      >
+        {/* Avatar */}
+        <div className="relative shrink-0">
+          {convo.peer.avatar_url ? (
+            <img
+              src={convo.peer.avatar_url}
+              alt={convo.peer.name}
+              className="w-14 h-14 rounded-full object-cover"
+            />
+          ) : (
+            <div
+              className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold text-white"
+              style={{ background: avatarColor }}
+            >
+              {convo.peer.name[0]}
+            </div>
+          )}
+          {convo.peer.is_online && (
+            <div className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-safe border-2 border-bg" />
+          )}
         </div>
-        <div className="flex items-center justify-between gap-2">
-          <p className={`text-[13px] truncate ${hasUnread ? "text-text font-medium" : "text-text-muted"}`}>
-            {convo.lastMessage ?? "Aucun message"}
-          </p>
-          {hasUnread && (
-            <span className="shrink-0 w-5 h-5 gradient-bg rounded-full flex items-center justify-center text-[10px] font-bold text-white">
-              {convo.unreadCount}
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between mb-0.5">
+            <span className={`text-[15px] ${hasUnread ? "font-bold text-text" : "font-semibold text-text"}`}>
+              {convo.peer.name}
+            </span>
+            <div className="flex items-center gap-1.5">
+              {MOCK_MATCHED_AT[convo.id] && (
+                <SparkTimer matchedAt={MOCK_MATCHED_AT[convo.id]} compact />
+              )}
+              <span className={`text-[11px] ${hasUnread ? "text-accent font-semibold" : "text-text-muted"}`}>
+                {formatTime(convo.lastMessageAt)}
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <p className={`text-[13px] truncate ${hasUnread ? "text-text font-medium" : "text-text-muted"}`}>
+              {convo.lastMessage ?? "Aucun message"}
+            </p>
+            {hasUnread && (
+              <span className="shrink-0 w-5 h-5 gradient-bg rounded-full flex items-center justify-center text-[10px] font-bold text-white">
+                {convo.unreadCount}
+              </span>
+            )}
+          </div>
+          {modeInfo && (
+            <span className="text-[10px] text-text-muted mt-0.5">
+              {modeInfo.icon} {modeInfo.name}
             </span>
           )}
         </div>
-        {modeInfo && (
-          <span className="text-[10px] text-text-muted mt-0.5">
-            {modeInfo.icon} {modeInfo.name}
-          </span>
-        )}
-      </div>
-    </Link>
+      </Link>
+    </div>
   );
 }
 
@@ -164,7 +289,7 @@ function MatchBubble({ convo }: { convo: ConversationWithPeer }) {
 
 export default function ChatPage() {
   const { user } = useAuth();
-  const { conversations: realConversations, loading } = useConversations(user?.id);
+  const { conversations: realConversations, loading, archiveConversation, deleteConversation } = useConversations(user?.id);
 
   // fallback to mock data when not logged in
   const conversations = user && realConversations.length > 0 ? realConversations : mockChats;
@@ -251,7 +376,12 @@ export default function ChatPage() {
           </div>
         )}
         {conversations.map((convo) => (
-          <ConversationRow key={convo.id} convo={convo} />
+          <ConversationRow
+            key={convo.id}
+            convo={convo}
+            onArchive={archiveConversation}
+            onDelete={deleteConversation}
+          />
         ))}
       </div>
     </div>

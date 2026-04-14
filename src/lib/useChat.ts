@@ -162,32 +162,87 @@ export function useConversations(userId: string | undefined) {
     };
   }, [userId, fetchConversations]);
 
-  return { conversations, loading, refresh: fetchConversations };
+  /** Soft-delete: archive a conversation (sets archived_at, keeps data) */
+  const archiveConversation = useCallback(async (conversationId: string) => {
+    if (!userId) return;
+    await supabase
+      .from("conversations")
+      .update({ archived_at: new Date().toISOString() })
+      .eq("id", conversationId)
+      .or(`user_a.eq.${userId},user_b.eq.${userId}`);
+
+    // Remove from local state immediately
+    setConversations((prev) => prev.filter((c) => c.id !== conversationId));
+  }, [userId]);
+
+  /** Hard-delete: permanently remove conversation and all its messages */
+  const deleteConversation = useCallback(async (conversationId: string) => {
+    if (!userId) return;
+
+    // Delete messages first (FK constraint)
+    await supabase
+      .from("messages")
+      .delete()
+      .eq("conversation_id", conversationId);
+
+    // Delete conversation
+    await supabase
+      .from("conversations")
+      .delete()
+      .eq("id", conversationId)
+      .or(`user_a.eq.${userId},user_b.eq.${userId}`);
+
+    // Remove from local state
+    setConversations((prev) => prev.filter((c) => c.id !== conversationId));
+  }, [userId]);
+
+  return { conversations, loading, refresh: fetchConversations, archiveConversation, deleteConversation };
 }
 
 // ---------- Hook : single conversation messages ----------
 
+const PAGE_SIZE = 50;
+
 export function useChat(conversationId: string | undefined, userId: string | undefined) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [sending, setSending] = useState(false);
   const channelRef = useRef<RealtimeChannel | null>(null);
+  const offsetRef = useRef(0);
 
-  // fetch existing messages
+  // fetch last PAGE_SIZE messages (most recent first, then reverse for display)
   useEffect(() => {
     if (!conversationId || !userId) return;
 
     let cancelled = false;
+    offsetRef.current = 0;
 
     (async () => {
       setLoading(true);
+      setHasMore(true);
+
+      // count total messages for this conversation
+      const { count } = await supabase
+        .from("messages")
+        .select("id", { count: "exact", head: true })
+        .eq("conversation_id", conversationId);
+
+      const total = count ?? 0;
+      const start = Math.max(0, total - PAGE_SIZE);
+      const end = total - 1;
+
       const { data, error } = await supabase
         .from("messages")
         .select("*")
         .eq("conversation_id", conversationId)
-        .order("created_at", { ascending: true });
+        .order("created_at", { ascending: true })
+        .range(start, end);
 
       if (!cancelled && !error && data) {
+        offsetRef.current = start;
+        setHasMore(start > 0);
         setMessages(
           data.map((m: DbMessage) => ({
             id: m.id,
@@ -206,6 +261,52 @@ export function useChat(conversationId: string | undefined, userId: string | und
       cancelled = true;
     };
   }, [conversationId, userId]);
+
+  // load older messages (previous PAGE_SIZE)
+  const loadMore = useCallback(async () => {
+    if (!conversationId || !userId || loadingMore || !hasMore) return;
+
+    setLoadingMore(true);
+    const currentStart = offsetRef.current;
+    const newStart = Math.max(0, currentStart - PAGE_SIZE);
+    const newEnd = currentStart - 1;
+
+    if (newEnd < 0) {
+      setHasMore(false);
+      setLoadingMore(false);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("messages")
+      .select("*")
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: true })
+      .range(newStart, newEnd);
+
+    if (!error && data && data.length > 0) {
+      offsetRef.current = newStart;
+      setHasMore(newStart > 0);
+      const older = data.map((m: DbMessage) => ({
+        id: m.id,
+        senderId: m.sender_id,
+        content: m.content,
+        createdAt: m.created_at,
+        readAt: m.read_at,
+        isOwn: m.sender_id === userId,
+      }));
+      setMessages((prev) => {
+        // dedupe
+        const existingIds = new Set(prev.map((p) => p.id));
+        const unique = older.filter((m) => !existingIds.has(m.id));
+        return [...unique, ...prev];
+      });
+    } else {
+      setHasMore(false);
+    }
+
+    setLoadingMore(false);
+  }, [conversationId, userId, loadingMore, hasMore]);
 
   // subscribe to new messages in this conversation
   useEffect(() => {
@@ -341,7 +442,77 @@ export function useChat(conversationId: string | undefined, userId: string | und
       .is("read_at", null);
   }, [conversationId, userId]);
 
-  return { messages, loading, sending, sendMessage, markAsRead };
+  return { messages, loading, loadingMore, hasMore, sending, sendMessage, markAsRead, loadMore };
+}
+
+// ---------- Hook : typing indicator via Presence ----------
+
+export function useTypingIndicator(
+  conversationId: string | undefined,
+  userId: string | undefined,
+  userName: string | undefined,
+) {
+  const [peerTyping, setPeerTyping] = useState<string | null>(null);
+  const channelRef = useRef<RealtimeChannel | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!conversationId || !userId) return;
+
+    const channel = supabase.channel(`typing-${conversationId}`, {
+      config: { presence: { key: userId } },
+    });
+
+    channel
+      .on("presence", { event: "sync" }, () => {
+        const state = channel.presenceState();
+        let typing: string | null = null;
+        for (const key of Object.keys(state)) {
+          if (key !== userId) {
+            const presences = state[key] as Array<{ is_typing?: boolean; name?: string }>;
+            const active = presences.find((p) => p.is_typing);
+            if (active) {
+              typing = active.name ?? "...";
+            }
+          }
+        }
+        setPeerTyping(typing);
+      })
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await channel.track({ is_typing: false, name: userName ?? "Utilisateur" });
+        }
+      });
+
+    channelRef.current = channel;
+
+    return () => {
+      channel.unsubscribe();
+      channelRef.current = null;
+    };
+  }, [conversationId, userId, userName]);
+
+  const sendTyping = useCallback(() => {
+    const channel = channelRef.current;
+    if (!channel) return;
+
+    channel.track({ is_typing: true, name: userName ?? "Utilisateur" });
+
+    // Auto-clear typing after 3 seconds of inactivity
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      channel.track({ is_typing: false, name: userName ?? "Utilisateur" });
+    }, 3000);
+  }, [userName]);
+
+  const stopTyping = useCallback(() => {
+    const channel = channelRef.current;
+    if (!channel) return;
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    channel.track({ is_typing: false, name: userName ?? "Utilisateur" });
+  }, [userName]);
+
+  return { peerTyping, sendTyping, stopTyping };
 }
 
 // ---------- Helper : create conversation + send first message ----------

@@ -11,6 +11,7 @@ import { supabase } from "@/lib/supabase";
 import PhotoUpload from "@/components/app/PhotoUpload";
 import KarmaBadge from "@/components/app/KarmaBadge";
 import AudioIntro from "@/components/app/AudioIntro";
+import CheckIn from "@/components/app/CheckIn";
 
 const activeModes = ["solo-diner", "langue", "dog-date"] as const;
 
@@ -54,6 +55,9 @@ export default function ProfilePage() {
     if (typeof window !== "undefined") return localStorage.getItem("cesoir-zone") || "";
     return "";
   });
+
+  // Check-in demo state
+  const [showCheckIn, setShowCheckIn] = useState(false);
 
   // Persist to localStorage
   useEffect(() => { localStorage.setItem("cesoir-tonight-chips", JSON.stringify(selectedChips)); }, [selectedChips]);
@@ -335,6 +339,25 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {/* Simuler un check-in (demo) */}
+      <div className="px-5 mb-4">
+        <button
+          onClick={() => setShowCheckIn(true)}
+          className="w-full flex items-center justify-between bg-bg-card border border-accent/15 rounded-2xl p-4 active:scale-[0.98] transition-transform tap-target"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+              <span className="text-[18px]" aria-hidden="true">📋</span>
+            </div>
+            <div>
+              <p className="text-[13px] font-bold text-text">Simuler un check-in</p>
+              <p className="text-[10px] text-text-muted">Tester le retour post-rencontre</p>
+            </div>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-muted" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
+
       {/* Leaderboard link */}
       <div className="px-5 mb-4">
         <Link
@@ -363,6 +386,13 @@ export default function ProfilePage() {
           Se deconnecter
         </button>
       </div>
+
+      {/* Check-in modal */}
+      <CheckIn
+        peerName="Sarah"
+        isOpen={showCheckIn}
+        onClose={() => setShowCheckIn(false)}
+      />
     </div>
   );
 }

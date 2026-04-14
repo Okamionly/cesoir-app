@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { FadeInSection, StaggerContainer, StaggerItem, ScaleIn } from "@/components/landing/AnimatedSection";
+import { CountUpNumbers } from "@/components/landing/CountUpNumbers";
 
 export default function LandingPage() {
   return (
@@ -27,6 +28,56 @@ export default function LandingPage() {
           <p className="text-[18px] sm:text-[22px] text-white/60 font-light tracking-wide mb-12">
             Trouve quelqu&apos;un. <span className="text-white font-medium">Ce soir.</span>
           </p>
+
+          {/* Phone mockup */}
+          <div className="mb-8" style={{ animation: "float 6s ease-in-out infinite" }}>
+            <div className="relative mx-auto" style={{ width: 220, height: 440 }}>
+              {/* iPhone frame */}
+              <div className="absolute inset-0 rounded-[36px] border-[3px] border-white/20 bg-black/80 backdrop-blur-sm overflow-hidden shadow-[0_0_60px_rgba(168,85,247,0.2)]">
+                {/* Notch */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[90px] h-[26px] bg-black rounded-b-2xl z-10" />
+                {/* Screen content — mini browse preview */}
+                <div className="absolute inset-[3px] rounded-[33px] overflow-hidden bg-[#0A0A0A]">
+                  {/* Mini header */}
+                  <div className="px-4 pt-8 pb-2 flex items-center gap-2">
+                    <span className="text-[10px] text-[#a855f7]">☾</span>
+                    <span className="text-[9px] font-bold text-white/90">CeSoir</span>
+                  </div>
+                  {/* Mini mode pills */}
+                  <div className="px-3 flex gap-1 mb-2">
+                    <span className="px-2 py-0.5 rounded-full text-[6px] font-semibold bg-[#a855f7]/20 text-[#a855f7] border border-[#a855f7]/30">Solo Diner</span>
+                    <span className="px-2 py-0.5 rounded-full text-[6px] font-semibold bg-white/5 text-white/40 border border-white/10">Night Owl</span>
+                    <span className="px-2 py-0.5 rounded-full text-[6px] font-semibold bg-white/5 text-white/40 border border-white/10">Langues</span>
+                  </div>
+                  {/* Mini profile cards */}
+                  <div className="px-3 space-y-2">
+                    {[
+                      { name: "Marie, 26", mode: "Solo Diner", dist: "0.8 km", color: "#8B5CF6" },
+                      { name: "Lucas, 31", mode: "Night Owl", dist: "1.2 km", color: "#6366F1" },
+                      { name: "Amina, 24", mode: "Langues", dist: "2.1 km", color: "#06B6D4" },
+                    ].map((p) => (
+                      <div key={p.name} className="flex items-center gap-2 p-2 rounded-xl border border-white/5 bg-white/[0.02]">
+                        <div className="w-8 h-8 rounded-full shrink-0" style={{ background: `linear-gradient(135deg, ${p.color}, ${p.color}88)` }} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[8px] font-bold text-white/90 truncate">{p.name}</p>
+                          <p className="text-[6px] text-white/40">{p.mode} - {p.dist}</p>
+                        </div>
+                        <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px]" style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)" }}>
+                          ♥
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Mini bottom nav */}
+                  <div className="absolute bottom-0 left-0 right-0 px-4 py-2 border-t border-white/5 bg-black/80 flex justify-around">
+                    {["☾", "🔍", "💬", "👤"].map((icon, i) => (
+                      <span key={i} className={`text-[10px] ${i === 0 ? "text-[#a855f7]" : "text-white/30"}`}>{icon}</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* CTA */}
           <Link
@@ -113,6 +164,63 @@ export default function LandingPage() {
               <span className="text-3xl group-hover:scale-110 transition-transform">{m.icon}</span>
               <span className="text-[13px] font-semibold text-white/70 group-hover:text-white">{m.name}</span>
             </Link>
+            </StaggerItem>
+          ))}
+        </StaggerContainer>
+      </section>
+
+      {/* Social proof numbers */}
+      <section className="py-16 px-6">
+        <CountUpNumbers />
+      </section>
+
+      {/* Temoignages */}
+      <section className="py-20 px-6 relative">
+        <FadeInSection>
+          <p className="text-[14px] text-[#a855f7] uppercase tracking-[0.3em] font-bold mb-4 text-center">Temoignages</p>
+          <h2 className="text-[32px] font-black text-center mb-12">
+            Ils ont ose. <span style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Ils racontent.</span>
+          </h2>
+        </FadeInSection>
+
+        <StaggerContainer className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto">
+          {[
+            {
+              quote: "J'ai rencontre mon meilleur ami sur Solo Diner",
+              name: "Marie",
+              age: 26,
+              stars: 5,
+            },
+            {
+              quote: "Breakup Recovery m'a sauve la vie, zero jugement",
+              name: "Lucas",
+              age: 31,
+              stars: 5,
+            },
+            {
+              quote: "3 soirees en une semaine grace a Night Owl",
+              name: "Amina",
+              age: 24,
+              stars: 5,
+            },
+          ].map((t) => (
+            <StaggerItem key={t.name}>
+              <div className="p-5 rounded-2xl border border-[#a855f7]/15 bg-white/[0.02] backdrop-blur-sm relative">
+                {/* Quote marks */}
+                <span className="absolute top-3 left-4 text-[32px] text-[#a855f7]/20 leading-none font-serif">&ldquo;</span>
+                <div className="pt-6 pb-3">
+                  <p className="text-[14px] text-white/80 leading-relaxed italic mb-4">&ldquo;{t.quote}&rdquo;</p>
+                  {/* Stars */}
+                  <div className="flex gap-0.5 mb-3">
+                    {Array.from({ length: t.stars }).map((_, i) => (
+                      <span key={i} className="text-[12px] text-[#f59e0b]">★</span>
+                    ))}
+                  </div>
+                  <p className="text-[13px] font-semibold text-white/90">
+                    {t.name}, <span className="text-white/50 font-normal">{t.age} ans</span>
+                  </p>
+                </div>
+              </div>
             </StaggerItem>
           ))}
         </StaggerContainer>
