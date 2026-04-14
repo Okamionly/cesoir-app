@@ -13,6 +13,7 @@ import { useInteractions } from "@/lib/useInteractions";
 import { MODE_ICONS, IconHeart, IconX, IconStar } from "@/components/ui/Icons";
 import PulseClock from "@/components/app/PulseClock";
 import SwipeCard from "@/components/app/SwipeCard";
+import ReportSheet from "@/components/app/ReportSheet";
 
 export default function BrowsePage() {
   const { user } = useAuth();
@@ -23,8 +24,9 @@ export default function BrowsePage() {
   const [match, setMatch] = useState<Profile | null>(null);
   const [matchConvoId, setMatchConvoId] = useState<string | null>(null);
   const [showPulse, setShowPulse] = useState(true);
+  const [showReport, setShowReport] = useState(false);
   const { profiles } = useProfiles(position?.lat, position?.lng, filter === "all" ? undefined : filter);
-  const { like, pass } = useInteractions(user?.id);
+  const { like, pass, report } = useInteractions(user?.id);
 
   // Use real profiles if available, fallback to mock
   const list = profiles.length > 0 ? profiles : (filter === "all" ? MOCK_PROFILES : MOCK_PROFILES.filter(p => p.mode === filter));
@@ -112,6 +114,7 @@ export default function BrowsePage() {
               onDragEnd={swipe.onDragEnd}
               onLike={swipe.triggerLike}
               onPass={swipe.triggerPass}
+              onReport={() => setShowReport(true)}
             />
             </motion.div>
           ) : (
@@ -125,6 +128,20 @@ export default function BrowsePage() {
 
       {/* Match toast */}
       {match && <MatchToast profile={match} conversationId={matchConvoId} onDismiss={() => { setMatch(null); setMatchConvoId(null); }} />}
+
+      {/* Report sheet */}
+      {card && (
+        <ReportSheet
+          profileName={card.name}
+          isOpen={showReport}
+          onClose={() => setShowReport(false)}
+          onReport={async (reason, details) => {
+            await report(card.id, reason, details);
+            setShowReport(false);
+            swipe.triggerPass();
+          }}
+        />
+      )}
     </div>
   );
 }

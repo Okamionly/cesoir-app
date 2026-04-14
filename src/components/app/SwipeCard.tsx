@@ -17,6 +17,7 @@ interface SwipeCardProps {
   nopeOpacity: MotionValue<number>;
   onDragEnd: (_: unknown, info: { offset: { x: number }; velocity: { x: number } }) => void;
   onLike: () => void;
+  onReport?: () => void;
   onPass: () => void;
 }
 
@@ -33,6 +34,7 @@ export default function SwipeCard({
   onDragEnd,
   onLike,
   onPass,
+  onReport,
 }: SwipeCardProps) {
   const ModeIcon = MODE_ICONS[p.mode];
 
@@ -72,9 +74,20 @@ export default function SwipeCard({
         </div>
       </motion.div>
 
-      {/* Counter */}
-      <div className="absolute top-5 right-5 bg-black/40 backdrop-blur-md rounded-full px-3 py-1.5 text-[10px] text-white/70 font-semibold z-10">
-        {index + 1} / {total}
+      {/* Counter + Report */}
+      <div className="absolute top-5 right-5 flex items-center gap-2 z-10">
+        {onReport && (
+          <button
+            onClick={(e) => { e.stopPropagation(); onReport(); }}
+            className="bg-black/40 backdrop-blur-md rounded-full w-8 h-8 flex items-center justify-center text-white/70 text-[14px] tap-target"
+            aria-label="Signaler ce profil"
+          >
+            ···
+          </button>
+        )}
+        <div className="bg-black/40 backdrop-blur-md rounded-full px-3 py-1.5 text-[10px] text-white/70 font-semibold">
+          {index + 1} / {total}
+        </div>
       </div>
 
       {/* Mode badge */}
