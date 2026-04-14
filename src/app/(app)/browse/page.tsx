@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
 import { ModeKey, MODES, MODE_KEYS } from "@/lib/modes";
 import { MOCK_PROFILES, Profile } from "@/lib/mock-profiles";
+import { MODE_ICONS, IconHeart, IconX, IconStar } from "@/components/ui/Icons";
 import PulseClock from "@/components/app/PulseClock";
 
 export default function BrowsePage() {
@@ -11,234 +12,272 @@ export default function BrowsePage() {
   const [idx, setIdx] = useState(0);
   const [info, setInfo] = useState(false);
   const [match, setMatch] = useState<Profile | null>(null);
-  const [gone, setGone] = useState(false);
+  const [showPulse, setShowPulse] = useState(true);
 
   const list = filter === "all" ? MOCK_PROFILES : MOCK_PROFILES.filter(p => p.mode === filter);
   const card = list[idx];
   const next1 = list[idx + 1];
-  const next2 = list[idx + 2];
 
-  // Motion values for spring physics
   const x = useMotionValue(0);
-  const rotate = useTransform(x, [-300, 0, 300], [-15, 0, 15]);
-  const likeOpacity = useTransform(x, [0, 100], [0, 1]);
-  const nopeOpacity = useTransform(x, [-100, 0], [1, 0]);
-  // Next card scales up as current card moves
-  const nextScale = useTransform(x, [-200, 0, 200], [1, 0.95, 1]);
-  const nextY = useTransform(x, [-200, 0, 200], [0, 8, 0]);
+  const rotate = useTransform(x, [-300, 0, 300], [-12, 0, 12]);
+  const likeOp = useTransform(x, [0, 100], [0, 1]);
+  const nopeOp = useTransform(x, [-100, 0], [1, 0]);
+  const nextScale = useTransform(x, [-200, 0, 200], [1, 0.94, 1]);
 
   useEffect(() => { if (match) { const t = setTimeout(() => setMatch(null), 4000); return () => clearTimeout(t); } }, [match]);
 
   const goNext = useCallback((action: "like" | "pass") => {
-    setGone(true);
-    const target = action === "like" ? 500 : -500;
-    animate(x, target, { type: "spring", stiffness: 300, damping: 30 });
+    animate(x, action === "like" ? 500 : -500, { type: "spring", stiffness: 300, damping: 30 });
     setTimeout(() => {
       if (action === "like" && Math.random() > 0.6) setMatch(card);
       setIdx(i => Math.min(i + 1, list.length));
       x.set(0);
-      setGone(false);
       setInfo(false);
+      setShowPulse(false);
     }, 300);
   }, [card, list.length, x]);
 
-  const onDragEnd = useCallback((_: unknown, info: { offset: { x: number }; velocity: { x: number } }) => {
-    if (info.offset.x > 120 || info.velocity.x > 500) goNext("like");
-    else if (info.offset.x < -120 || info.velocity.x < -500) goNext("pass");
+  const onDragEnd = useCallback((_: unknown, i: { offset: { x: number }; velocity: { x: number } }) => {
+    if (i.offset.x > 120 || i.velocity.x > 500) goNext("like");
+    else if (i.offset.x < -120 || i.velocity.x < -500) goNext("pass");
   }, [goNext]);
 
-  const extras = (p: Profile) => {
-    const tags: React.ReactNode[] = [];
-    if (p.cuisine) tags.push(<span key="c" className="bg-white/10 px-2.5 py-1 rounded-lg text-[11px]">🍽️ {p.cuisine}</span>);
-    if (p.event) tags.push(<span key="e" className="bg-accent/10 px-2.5 py-1 rounded-lg text-[11px] text-[#8B5CF6]">🎫 {p.event}</span>);
-    if (p.dog) tags.push(<span key="d" className="bg-white/10 px-2.5 py-1 rounded-lg text-[11px]">🐶 {p.dog} · {p.breed}</span>);
-    if (p.speaks) tags.push(<span key="l" className="bg-white/10 px-2.5 py-1 rounded-lg text-[11px]">🗣️ {p.speaks.join(", ")} → {p.learns}</span>);
-    if (p.safe) tags.push(<span key="s" className="bg-[#22c55e]/15 px-2.5 py-1 rounded-lg text-[11px] text-[#22c55e]">💚 Safe Space</span>);
-    if (p.from) tags.push(<span key="f" className="bg-white/10 px-2.5 py-1 rounded-lg text-[11px]">✈️ {p.from}</span>);
-    if (p.ambassador) tags.push(<span key="a" className="bg-amber-500/15 px-2.5 py-1 rounded-lg text-[11px] text-amber-400">🏅 Ambassadeur</span>);
-    return tags;
-  };
+  const ModeIcon = card ? MODE_ICONS[card.mode] : null;
 
   return (
     <div className="h-screen bg-bg flex flex-col">
-      {/* Header */}
-      <header className="shrink-0 px-4 pt-2 pb-1 border-b border-border">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <span className="text-lg text-accent" aria-hidden="true">☾</span>
-            <span className="text-base font-bold text-text">CeSoir</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-[11px] text-text-muted">
-            <span className="w-1.5 h-1.5 rounded-full bg-safe" aria-hidden="true" />
-            Dispos pres de toi
-          </div>
-        </div>
-        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2" role="tablist" aria-label="Filtrer par mode">
-          <button role="tab" aria-selected={filter === "all"} onClick={() => { setFilter("all"); setIdx(0); }} className="shrink-0 flex flex-col items-center gap-1">
-            <div className={filter === "all" ? "story-ring" : "story-ring-off"}>
-              <div className="w-11 h-11 rounded-full bg-bg flex items-center justify-center text-sm">⭐</div>
-            </div>
-            <span className={`text-[9px] font-medium ${filter === "all" ? "text-text" : "text-text-muted"}`}>Tout</span>
+      {/* Header — minimal */}
+      <header className="shrink-0 px-5 pt-3 pb-2">
+        <div className="flex items-center justify-between">
+          <h1 className="text-[18px] font-black tracking-tight text-text">CeSoir</h1>
+          <button onClick={() => setShowPulse(!showPulse)} className="text-[11px] text-accent font-semibold tap-target py-1">
+            {showPulse ? "Masquer" : "Pulse"} ·  {list.length}
           </button>
-          {MODE_KEYS.map(k => (
-            <button role="tab" aria-selected={filter === k} key={k} onClick={() => { setFilter(k); setIdx(0); }} className="shrink-0 flex flex-col items-center gap-1">
-              <div className={filter === k ? "story-ring" : "story-ring-off"}>
-                <div className="w-11 h-11 rounded-full bg-bg flex items-center justify-center text-sm">{MODES[k].icon}</div>
-              </div>
-              <span className={`text-[9px] font-medium max-w-[44px] truncate ${filter === k ? "text-text" : "text-text-muted"}`}>{MODES[k].name}</span>
-            </button>
-          ))}
         </div>
       </header>
 
-      {/* Pulse Clock */}
-      <div className="shrink-0 px-3 pt-2">
-        <PulseClock />
+      {/* Mode filter — icon-based, no emojis */}
+      <div className="shrink-0 flex gap-3 px-5 pb-3 overflow-x-auto no-scrollbar">
+        <button
+          onClick={() => { setFilter("all"); setIdx(0); }}
+          className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
+            filter === "all" ? "border-accent bg-accent/10 text-accent" : "border-border text-text-muted"
+          }`}
+          aria-label="Tous les modes"
+        >
+          <IconStar size={16} />
+        </button>
+        {MODE_KEYS.map(k => {
+          const Icon = MODE_ICONS[k];
+          const active = filter === k;
+          return (
+            <button
+              key={k}
+              onClick={() => { setFilter(k); setIdx(0); }}
+              className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
+                active ? "border-accent bg-accent/10 text-accent" : "border-border text-text-muted hover:text-text-soft"
+              }`}
+              aria-label={MODES[k].name}
+              title={MODES[k].name}
+            >
+              {Icon && <Icon size={16} />}
+            </button>
+          );
+        })}
       </div>
 
-      {/* Card stack */}
-      <main className="flex-1 relative px-3 pb-1 overflow-hidden" aria-label="Profils disponibles">
+      {/* Pulse Clock — collapsible */}
+      {showPulse && (
+        <motion.div
+          className="shrink-0 px-4 pb-2"
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: "auto", opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+        >
+          <PulseClock />
+        </motion.div>
+      )}
+
+      {/* Card area */}
+      <main className="flex-1 relative px-4 pb-1 overflow-hidden">
         {card ? (
           <>
-            {/* Card 3 (back) */}
-            {next2 && (
-              <div className="absolute inset-x-5 top-2 bottom-3 rounded-[24px] bg-[#1a1a1a] scale-[0.9] translate-y-4 opacity-30 z-0" />
-            )}
-
-            {/* Card 2 (behind) */}
+            {/* Next card preview */}
             {next1 && (
               <motion.div
-                className="absolute inset-x-4 top-1 bottom-2 rounded-[24px] bg-[#141414] z-[1] overflow-hidden"
-                style={{ scale: nextScale, y: nextY }}
+                className="absolute inset-x-5 top-1 bottom-2 rounded-[28px] overflow-hidden z-[1]"
+                style={{ scale: nextScale }}
               >
-                <img src={next1.photo} alt="" className="absolute top-[6%] left-1/2 -translate-x-1/2 w-[55%] max-w-[200px] opacity-40 blur-[2px]" />
+                <div className="absolute inset-0 bg-[#111]" />
+                <img src={next1.photo} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20 blur-[4px]" />
               </motion.div>
             )}
 
-            {/* Card 1 (active — draggable) */}
+            {/* Active card */}
             <motion.div
-              className="relative w-full h-full rounded-[24px] overflow-hidden select-none z-[2] card-dark"
+              className="relative w-full h-full rounded-[28px] overflow-hidden select-none z-[2]"
               style={{ x, rotate, cursor: "grab" }}
               drag="x"
               dragConstraints={{ left: 0, right: 0 }}
-              dragElastic={0.9}
+              dragElastic={0.7}
               onDragEnd={onDragEnd}
               onClick={() => setInfo(!info)}
               whileDrag={{ cursor: "grabbing" }}
               role="button"
               tabIndex={0}
-              aria-label={`Profil de ${card.name}, ${card.age} ans`}
-              aria-expanded={info}
+              aria-label={`${card.name}, ${card.age} ans`}
               onKeyDown={(e) => {
                 if (e.key === "ArrowRight") goNext("like");
                 else if (e.key === "ArrowLeft") goNext("pass");
                 else if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setInfo(!info); }
               }}
             >
-              {/* BG */}
-              <div className="absolute inset-0" style={{ background: `linear-gradient(160deg, ${card.color}20 0%, #0a0a0a 50%)` }} />
-
-              {/* Photo */}
+              {/* Full-bleed photo */}
               <img
                 src={card.photo}
                 alt={`Photo de ${card.name}`}
-                className="absolute top-[4%] left-1/2 -translate-x-1/2 w-[65%] max-w-[260px] rounded-2xl object-cover pointer-events-none"
-                style={{ filter: "drop-shadow(0 16px 32px rgba(0,0,0,0.5))" }}
+                className="absolute inset-0 w-full h-full object-cover"
               />
 
-              {/* LIKE label */}
-              <motion.div className="absolute top-6 left-4 z-10" style={{ opacity: likeOpacity }}>
-                <div className="px-5 py-2 rounded-2xl border-2 border-[#00FF88] bg-[#00FF88]/10 -rotate-6">
-                  <span className="text-[#00FF88] text-xl font-black tracking-wider">LIKE</span>
+              {/* Dark gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+
+              {/* Swipe indicators */}
+              <motion.div className="absolute top-8 left-6 z-10" style={{ opacity: likeOp }}>
+                <div className="px-5 py-2 rounded-2xl border-2 border-[#00FF88] bg-[#00FF88]/15 backdrop-blur-sm -rotate-6">
+                  <span className="text-[#00FF88] text-[18px] font-black tracking-widest">LIKE</span>
                 </div>
               </motion.div>
-
-              {/* NOPE label */}
-              <motion.div className="absolute top-6 right-4 z-10" style={{ opacity: nopeOpacity }}>
-                <div className="px-5 py-2 rounded-2xl border-2 border-danger bg-danger/10 rotate-6">
-                  <span className="text-danger text-xl font-black tracking-wider">NOPE</span>
+              <motion.div className="absolute top-8 right-6 z-10" style={{ opacity: nopeOp }}>
+                <div className="px-5 py-2 rounded-2xl border-2 border-[#ff4466] bg-[#ff4466]/15 backdrop-blur-sm rotate-6">
+                  <span className="text-[#ff4466] text-[18px] font-black tracking-widest">NOPE</span>
                 </div>
               </motion.div>
 
               {/* Counter */}
-              <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm rounded-full px-2.5 py-1 text-[10px] text-white/70 font-medium z-10">
-                {idx + 1}/{list.length}
+              <div className="absolute top-5 right-5 bg-black/40 backdrop-blur-md rounded-full px-3 py-1.5 text-[10px] text-white/70 font-semibold z-10">
+                {idx + 1} / {list.length}
               </div>
 
-              {/* Info panel */}
-              <div className={`absolute bottom-0 left-0 right-0 transition-all duration-300 ${info ? "h-[60%]" : "h-[40%]"}`}>
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
-                <div className={`relative h-full flex flex-col justify-end p-5 ${info ? "overflow-y-auto" : ""}`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="bg-white/10 px-2.5 py-1 rounded-lg text-[10px] font-medium text-white">{MODES[card.mode].icon} {MODES[card.mode].name}</span>
-                    {card.time === "Dispo maintenant" && <span className="flex items-center gap-1 bg-[#00FF88]/15 px-2 py-1 rounded-lg text-[10px] text-[#00FF88] font-medium"><span className="w-1.5 h-1.5 rounded-full bg-[#00FF88]" />Now</span>}
+              {/* Mode badge — top left */}
+              <div className="absolute top-5 left-5 z-10 flex items-center gap-1.5 bg-black/40 backdrop-blur-md rounded-full px-3 py-1.5">
+                {ModeIcon && <ModeIcon size={14} className="text-white/80" />}
+                <span className="text-[10px] text-white/80 font-semibold">{MODES[card.mode].name}</span>
+              </div>
+
+              {/* Bottom info — editorial layout */}
+              <div className={`absolute bottom-0 left-0 right-0 transition-all duration-300 ${info ? "h-[65%]" : "h-[38%]"}`}>
+                <div className={`relative h-full flex flex-col justify-end p-6 ${info ? "overflow-y-auto" : ""}`}>
+
+                  {/* Availability pill */}
+                  {card.time === "Dispo maintenant" && (
+                    <div className="flex items-center gap-1.5 mb-3">
+                      <span className="w-2 h-2 rounded-full bg-[#00FF88]" />
+                      <span className="text-[11px] text-[#00FF88] font-bold uppercase tracking-widest">Maintenant</span>
+                    </div>
+                  )}
+
+                  {/* Name — big editorial type */}
+                  <h2 className="text-[38px] font-black leading-[0.95] tracking-tight text-white mb-1">
+                    {card.name}
+                  </h2>
+                  <p className="text-[15px] text-white/50 font-light mb-3">
+                    {card.age} ans · {card.distance} km · <span className="text-[#00FF88] font-medium">{card.time}</span>
+                  </p>
+
+                  {/* Bio */}
+                  <p className={`text-[14px] text-white/70 leading-relaxed ${info ? "" : "line-clamp-2"}`}>
+                    {card.bio}
+                  </p>
+
+                  {/* Tags — clean pills */}
+                  <div className="flex flex-wrap gap-1.5 mt-3">
+                    {card.cuisine && <span className="px-3 py-1 rounded-full bg-white/8 text-[11px] text-white/70 font-medium">{card.cuisine}</span>}
+                    {card.event && <span className="px-3 py-1 rounded-full bg-accent/15 text-[11px] text-accent font-medium">{card.event}</span>}
+                    {card.dog && <span className="px-3 py-1 rounded-full bg-white/8 text-[11px] text-white/70 font-medium">{card.dog} · {card.breed}</span>}
+                    {card.safe && <span className="px-3 py-1 rounded-full bg-[#00FF88]/15 text-[11px] text-[#00FF88] font-medium">Safe Space</span>}
+                    {card.from && <span className="px-3 py-1 rounded-full bg-white/8 text-[11px] text-white/70 font-medium">{card.from}</span>}
+                    {card.speaks && <span className="px-3 py-1 rounded-full bg-white/8 text-[11px] text-white/70 font-medium">{card.speaks.join(" · ")} → {card.learns}</span>}
                   </div>
 
-                  <h2 className="font-display text-[32px] font-bold leading-none mb-1 text-white">
-                    {card.name}<span className="font-sans text-xl font-light text-white/50">, {card.age}</span>
-                  </h2>
-
-                  <p className="text-[12px] text-white/50 mb-3">📍 {card.distance} km · <span className="text-[#00FF88]">{card.time}</span></p>
-
-                  <p className={`text-[13px] text-white/70 leading-relaxed mb-3 ${info ? "" : "line-clamp-2"}`}>{card.bio}</p>
-
-                  <div className="flex flex-wrap gap-1.5">{extras(card)}</div>
-
-                  {info && card.speaks && (
-                    <div className="mt-4 pt-3 border-t border-white/10">
-                      <p className="text-[9px] text-white/40 uppercase tracking-widest font-bold mb-2">Langues</p>
-                      <div className="flex gap-1.5">
-                        {card.speaks.map(l => <span key={l} className="text-[10px] bg-cyan-500/10 px-2 py-0.5 rounded text-cyan-400">{l}</span>)}
-                        {card.learns && <span className="text-[10px] bg-accent/10 px-2 py-0.5 rounded text-accent">→ {card.learns}</span>}
-                      </div>
-                    </div>
+                  {/* Expanded details */}
+                  {info && (
+                    <motion.div
+                      className="mt-4 pt-4 border-t border-white/8 space-y-3"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                    >
+                      {card.speaks && (
+                        <div>
+                          <p className="text-[9px] text-white/30 uppercase tracking-[0.2em] font-bold mb-2">Langues</p>
+                          <div className="flex gap-1.5">
+                            {card.speaks.map(l => <span key={l} className="text-[11px] bg-[#06b6d4]/15 px-2.5 py-0.5 rounded-full text-[#06b6d4] font-medium">{l}</span>)}
+                            {card.learns && <span className="text-[11px] bg-accent/15 px-2.5 py-0.5 rounded-full text-accent font-medium">→ {card.learns}</span>}
+                          </div>
+                        </div>
+                      )}
+                      {card.dog && (
+                        <div>
+                          <p className="text-[9px] text-white/30 uppercase tracking-[0.2em] font-bold mb-1">Compagnon</p>
+                          <p className="text-[13px] text-white/80">{card.dog} — {card.breed}, {card.dogAge}</p>
+                        </div>
+                      )}
+                      {card.event && (
+                        <div>
+                          <p className="text-[9px] text-white/30 uppercase tracking-[0.2em] font-bold mb-1">Event</p>
+                          <p className="text-[13px] text-white/80">{card.event}</p>
+                        </div>
+                      )}
+                    </motion.div>
                   )}
-                  {info && card.dog && (
-                    <div className="mt-3 pt-3 border-t border-white/10">
-                      <p className="text-[9px] text-white/40 uppercase tracking-widest font-bold mb-1">Compagnon</p>
-                      <p className="text-[12px] text-white">🐶 {card.dog} — {card.breed}, {card.dogAge}</p>
-                    </div>
-                  )}
+
+                  {/* Expand hint */}
+                  <div className="flex justify-center mt-3">
+                    <div className={`w-8 h-[3px] rounded-full bg-white/20 transition-transform ${info ? "rotate-180" : ""}`} />
+                  </div>
                 </div>
               </div>
             </motion.div>
           </>
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center animate-fade-up">
-            <p className="text-3xl mb-4" aria-hidden="true">✨</p>
-            <p className="font-bold mb-1">C&apos;est tout pour ce soir</p>
-            <p className="text-sm text-text-muted mb-6">Reviens plus tard ou change de mode</p>
-            <button onClick={() => { setIdx(0); setFilter("all"); }} className="gradient-bg text-white px-6 py-3 rounded-full text-sm font-semibold">Recommencer</button>
+          <div className="w-full h-full flex flex-col items-center justify-center">
+            <div className="w-16 h-16 rounded-full gradient-bg flex items-center justify-center mb-5">
+              <IconStar size={24} className="text-white" />
+            </div>
+            <p className="text-[17px] font-bold mb-1 text-text">C&apos;est tout pour ce soir</p>
+            <p className="text-[13px] text-text-muted mb-8">Reviens plus tard ou change de mode</p>
+            <button onClick={() => { setIdx(0); setFilter("all"); }} className="gradient-bg text-white px-8 py-3 rounded-full text-[14px] font-semibold">
+              Recommencer
+            </button>
           </div>
         )}
       </main>
 
-      {/* Actions */}
+      {/* Action buttons — refined with custom icons */}
       {card && (
-        <div className="shrink-0 flex items-center justify-center gap-5 pt-2 pb-20" role="group" aria-label="Actions">
+        <div className="shrink-0 flex items-center justify-center gap-6 pt-2 pb-[76px]" role="group" aria-label="Actions">
           <motion.button
             onClick={() => goNext("pass")}
             aria-label="Passer"
-            className="w-14 h-14 rounded-full bg-bg border border-border flex items-center justify-center text-lg text-text-muted"
-            whileTap={{ scale: 0.75 }}
-            whileHover={{ borderColor: "#ef4444", color: "#ef4444" }}
+            className="w-[54px] h-[54px] rounded-full bg-bg border-2 border-border flex items-center justify-center text-text-muted"
+            whileTap={{ scale: 0.8, borderColor: "#ff4466" }}
           >
-            ✕
+            <IconX size={22} />
           </motion.button>
           <motion.button
             aria-label="Super like"
-            className="w-11 h-11 rounded-full bg-bg border border-border flex items-center justify-center text-sm text-text-muted"
-            whileTap={{ scale: 0.75 }}
+            className="w-[44px] h-[44px] rounded-full bg-bg border-2 border-border flex items-center justify-center text-text-muted"
+            whileTap={{ scale: 0.8, borderColor: "#06b6d4" }}
           >
-            ⭐
+            <IconStar size={18} />
           </motion.button>
           <motion.button
             onClick={() => goNext("like")}
             aria-label="Liker"
-            className="w-14 h-14 rounded-full gradient-bg flex items-center justify-center text-xl text-white shadow-glow"
-            whileTap={{ scale: 0.75 }}
+            className="w-[54px] h-[54px] rounded-full gradient-bg flex items-center justify-center text-white shadow-glow"
+            whileTap={{ scale: 0.8 }}
           >
-            ♥
+            <IconHeart size={22} />
           </motion.button>
         </div>
       )}
@@ -246,25 +285,29 @@ export default function BrowsePage() {
       {/* Match toast */}
       {match && (
         <motion.div
-          role="alert"
-          aria-live="assertive"
+          role="alert" aria-live="assertive"
           className="fixed bottom-24 left-4 right-4 z-50"
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 100, opacity: 0 }}
           transition={{ type: "spring", stiffness: 400, damping: 25 }}
         >
-          <div className="bg-bg border border-accent/30 rounded-2xl p-3.5 shadow-glow">
+          <div className="bg-bg border border-accent/20 rounded-2xl p-4 shadow-glow">
             <div className="flex items-center gap-3">
-              <div className="flex -space-x-2">
-                <div className="w-10 h-10 rounded-full gradient-bg p-[2px] z-10"><div className="w-full h-full rounded-full bg-bg flex items-center justify-center text-sm font-bold text-accent">Y</div></div>
-                <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-bg"><img src={match.photo} alt={match.name} className="w-full h-full object-cover" /></div>
+              <div className="flex -space-x-3">
+                <div className="w-12 h-12 rounded-full gradient-bg p-[2px] z-10">
+                  <div className="w-full h-full rounded-full bg-bg flex items-center justify-center text-[14px] font-bold text-accent">Y</div>
+                </div>
+                <img src={match.photo} alt={match.name} className="w-12 h-12 rounded-full object-cover border-2 border-bg" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-text"><span className="gradient-text">Match</span> avec {match.name}</p>
-                <p className="text-[10px] text-text-muted">Dispos ce soir</p>
+                <p className="text-[14px] font-bold text-text">
+                  <span className="gradient-text">Match !</span> {match.name}
+                </p>
+                <p className="text-[11px] text-text-muted">Vous etes dispos ce soir</p>
               </div>
-              <button onClick={() => setMatch(null)} className="gradient-bg text-white px-3.5 py-1.5 rounded-full text-[11px] font-bold">Ecrire</button>
+              <button onClick={() => setMatch(null)} className="gradient-bg text-white px-4 py-2 rounded-full text-[12px] font-bold">
+                Ecrire
+              </button>
             </div>
           </div>
         </motion.div>

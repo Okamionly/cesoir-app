@@ -2,117 +2,144 @@
 
 import Link from "next/link";
 import { MODES } from "@/lib/modes";
+import { MODE_ICONS, IconHeart, IconStar, IconUser } from "@/components/ui/Icons";
 
 const activeModes = ["solo-diner", "langue", "dog-date"] as const;
-const stats = [
-  { label: "Rencontres", value: "12", icon: "🤝" },
-  { label: "Note", value: "4.9", icon: "⭐" },
-  { label: "Matchs", value: "28", icon: "♥" },
-  { label: "Ce mois", value: "5", icon: "📅" },
+
+const prompts = [
+  { question: "Mon restaurant prefere a Paris...", answer: "Un petit izakaya cache dans le 11e. Je te montre si tu viens." },
+  { question: "La derniere chose qui m'a fait rire...", answer: "Mon chien Rex qui essaie de voler un croissant a une terrasse." },
+  { question: "Ce soir, j'ai envie de...", answer: "Decouvrir un endroit que je connais pas avec quelqu'un que je connais pas encore." },
 ];
 
 export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-bg">
-      {/* Header */}
-      <div className="relative h-44 overflow-hidden bg-bg-card">
-        <div className="absolute inset-0 gradient-bg opacity-10" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-bg" />
-        <div className="absolute top-3 left-4 flex items-center gap-2">
-          <span className="text-lg text-accent" aria-hidden="true">☾</span>
-          <span className="text-base font-bold">Mon Profil</span>
-        </div>
-        <button aria-label="Parametres" className="absolute top-3 right-4 w-9 h-9 rounded-full bg-bg border border-border flex items-center justify-center text-sm tap-target">
-          ⚙️
-        </button>
-      </div>
+      {/* Photo header */}
+      <div className="relative h-72 overflow-hidden">
+        <div className="absolute inset-0 gradient-bg opacity-20" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-bg" />
 
-      {/* Avatar */}
-      <div className="relative -mt-14 flex flex-col items-center">
-        <div className="w-24 h-24 rounded-full gradient-bg flex items-center justify-center text-3xl font-black text-white ring-4 ring-bg shadow-glow">
-          Y
-        </div>
-        <div className="flex items-center gap-1.5 mt-3">
-          <span className="w-2.5 h-2.5 rounded-full bg-safe" aria-hidden="true" />
-          <span className="text-xs text-safe font-semibold">Dispo ce soir</span>
-        </div>
-        <h1 className="text-2xl font-black mt-2 text-text">Youssef, 28</h1>
-        <p className="text-sm text-text-muted">📍 Paris, France</p>
-        <div className="flex items-center gap-1.5 mt-2 bg-accent/10 border border-accent/20 px-3 py-1 rounded-full">
-          <span className="text-xs" aria-hidden="true">✅</span>
-          <span className="text-[11px] text-accent font-semibold">Profil verifie</span>
+        {/* Top bar */}
+        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-5 pt-4 z-10">
+          <h1 className="text-[16px] font-black text-text tracking-tight">Mon Profil</h1>
+          <Link href="/modes" className="w-9 h-9 rounded-full bg-bg/80 backdrop-blur border border-border flex items-center justify-center tap-target">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-muted">
+              <circle cx="12" cy="12" r="3"/><path d="M12 1v4m0 14v4m-7.78-2.22l2.83-2.83m9.9-9.9l2.83-2.83M1 12h4m14 0h4M4.22 4.22l2.83 2.83m9.9 9.9l2.83 2.83"/>
+            </svg>
+          </Link>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-4 gap-2 px-4 mt-6">
-        {stats.map((s) => (
-          <div key={s.label} className="bg-bg-card border border-border rounded-2xl p-3 text-center">
-            <span className="text-lg" aria-hidden="true">{s.icon}</span>
-            <p className="text-xl font-black gradient-text mt-1">{s.value}</p>
-            <p className="text-[9px] text-text-muted font-semibold uppercase tracking-wider">{s.label}</p>
+      {/* Avatar + info — overlapping the header */}
+      <div className="relative -mt-20 px-5">
+        <div className="flex items-end gap-4">
+          <div className="w-28 h-28 rounded-2xl gradient-bg p-[3px] shadow-glow shrink-0">
+            <div className="w-full h-full rounded-[13px] bg-bg flex items-center justify-center text-[36px] font-black text-accent">
+              Y
+            </div>
+          </div>
+          <div className="pb-1">
+            <div className="flex items-center gap-2">
+              <h2 className="text-[24px] font-black tracking-tight text-text">Youssef</h2>
+              <span className="text-[14px] text-text-muted font-light">28</span>
+            </div>
+            <p className="text-[13px] text-text-muted">Paris, France</p>
+            <div className="flex items-center gap-1.5 mt-1">
+              <span className="w-2 h-2 rounded-full bg-safe" />
+              <span className="text-[11px] text-safe font-semibold">Dispo ce soir</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Verification + reliability */}
+        <div className="flex gap-2 mt-4">
+          <div className="flex items-center gap-1.5 bg-accent/8 border border-accent/15 px-3 py-1.5 rounded-full">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-accent"><path d="M20 6L9 17l-5-5"/></svg>
+            <span className="text-[11px] text-accent font-semibold">Verifie</span>
+          </div>
+          <div className="flex items-center gap-1.5 bg-safe/8 border border-safe/15 px-3 py-1.5 rounded-full">
+            <IconStar size={12} className="text-safe" />
+            <span className="text-[11px] text-safe font-semibold">4.9</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats — clean horizontal */}
+      <div className="flex gap-1 px-5 mt-5">
+        {[
+          { n: "12", l: "Rencontres" },
+          { n: "28", l: "Matchs" },
+          { n: "5", l: "Ce mois" },
+        ].map(s => (
+          <div key={s.l} className="flex-1 bg-bg-card border border-border rounded-xl py-3 text-center">
+            <p className="text-[20px] font-black gradient-text">{s.n}</p>
+            <p className="text-[9px] text-text-muted uppercase tracking-wider font-semibold">{s.l}</p>
           </div>
         ))}
       </div>
 
-      {/* Active modes */}
-      <div className="px-4 mt-6">
-        <p className="text-[10px] text-text-muted uppercase tracking-widest font-semibold mb-3">Modes actifs ce soir</p>
+      {/* Prompts — Hinge style */}
+      <div className="px-5 mt-6">
+        <p className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3">A propos</p>
+        <div className="space-y-3">
+          {prompts.map((p, i) => (
+            <div key={i} className="bg-bg-card border border-border rounded-2xl p-4 hover:border-accent/20 transition-colors">
+              <p className="text-[11px] text-accent font-bold uppercase tracking-wider mb-2">{p.question}</p>
+              <p className="text-[14px] text-text leading-relaxed">{p.answer}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Active modes — with custom icons */}
+      <div className="px-5 mt-6">
+        <p className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3">Modes actifs ce soir</p>
         <div className="flex gap-2 overflow-x-auto no-scrollbar">
           {activeModes.map((key) => {
             const mode = MODES[key];
+            const Icon = MODE_ICONS[key];
             return (
-              <div key={key} className="shrink-0 flex items-center gap-2 bg-bg-card border border-accent/20 rounded-2xl px-4 py-3">
-                <span className="text-xl" aria-hidden="true">{mode.icon}</span>
+              <div key={key} className="shrink-0 flex items-center gap-2.5 bg-bg-card border border-accent/15 rounded-2xl px-4 py-3">
+                {Icon && <Icon size={20} className="text-accent" />}
                 <div>
-                  <p className="text-sm font-bold text-text">{mode.name}</p>
+                  <p className="text-[13px] font-bold text-text">{mode.name}</p>
                   <p className="text-[10px] text-text-muted">Actif</p>
                 </div>
               </div>
             );
           })}
-          <button className="shrink-0 flex items-center gap-2 border border-dashed border-border rounded-2xl px-4 py-3 text-text-muted tap-target" aria-label="Ajouter un mode">
-            <span className="text-xl" aria-hidden="true">+</span>
-            <span className="text-sm font-medium">Ajouter</span>
+          <button className="shrink-0 flex items-center gap-2 border border-dashed border-border rounded-2xl px-4 py-3 text-text-muted tap-target">
+            <span className="text-[16px]">+</span>
+            <span className="text-[12px] font-medium">Ajouter</span>
           </button>
         </div>
       </div>
 
-      {/* Bio */}
-      <div className="px-4 mt-6">
-        <p className="text-[10px] text-text-muted uppercase tracking-widest font-semibold mb-2">Bio</p>
-        <div className="bg-bg-card border border-border rounded-2xl p-4">
-          <p className="text-sm text-text-soft leading-relaxed">
-            Curieux de tout, toujours partant pour decouvrir un nouveau resto ou pratiquer une langue. Mon chien Rex est mon meilleur wingman 🐶
-          </p>
-        </div>
-      </div>
-
-      {/* Menu */}
-      <div className="px-4 mt-6 mb-4">
-        <p className="text-[10px] text-text-muted uppercase tracking-widest font-semibold mb-2">Parametres</p>
+      {/* Settings — minimal */}
+      <div className="px-5 mt-6 mb-4">
+        <p className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3">Parametres</p>
         <div className="bg-bg-card border border-border rounded-2xl overflow-hidden divide-y divide-border">
           {[
-            { label: "Modifier mon profil", icon: "✏️" },
-            { label: "Preferences de recherche", icon: "🎯" },
-            { label: "Notifications", icon: "🔔" },
-            { label: "Securite & confidentialite", icon: "🔒" },
-            { label: "Obtenir le badge verifie", icon: "✅", accent: true },
+            { label: "Modifier mon profil", sub: "Photos, bio, prompts" },
+            { label: "Preferences", sub: "Age, distance, genre" },
+            { label: "Notifications", sub: "Matchs, messages, rappels" },
+            { label: "Securite", sub: "Mot de passe, blocage, signalement" },
           ].map((item) => (
-            <button key={item.label} className="w-full flex items-center justify-between px-4 py-3.5 text-left active:bg-border/30 transition-colors tap-target">
-              <div className="flex items-center gap-3">
-                <span className="text-lg" aria-hidden="true">{item.icon}</span>
-                <span className={`text-sm font-medium ${"accent" in item ? "text-accent" : "text-text"}`}>{item.label}</span>
+            <button key={item.label} className="w-full flex items-center justify-between px-4 py-3.5 text-left active:bg-border/20 transition-colors tap-target">
+              <div>
+                <span className="text-[13px] font-semibold text-text block">{item.label}</span>
+                <span className="text-[10px] text-text-muted">{item.sub}</span>
               </div>
-              <span className="text-text-muted text-sm" aria-hidden="true">›</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-muted"><path d="M9 18l6-6-6-6"/></svg>
             </button>
           ))}
         </div>
       </div>
 
       {/* Logout */}
-      <div className="px-4 pb-24">
-        <Link href="/" className="block w-full text-center text-sm text-danger font-semibold py-3 bg-danger/5 border border-danger/10 rounded-2xl tap-target">
+      <div className="px-5 pb-24">
+        <Link href="/" className="block w-full text-center text-[13px] text-danger font-semibold py-3 bg-danger/5 border border-danger/10 rounded-xl tap-target">
           Se deconnecter
         </Link>
       </div>
