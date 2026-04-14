@@ -45,17 +45,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return null;
     }
 
-    if (data.user) {
-      await supabase.from("profiles").insert({
-        id: data.user.id,
-        name: metadata.name,
-        age: metadata.age,
-        gender: metadata.gender,
-        looking_for: metadata.looking_for,
-        bio: "",
-        is_online: true,
-      });
-    }
+    // Profile is auto-created by DB trigger on auth.users INSERT
+    // (handle_new_user function with SECURITY DEFINER)
 
     setUser(data.user);
     setLoading(false);

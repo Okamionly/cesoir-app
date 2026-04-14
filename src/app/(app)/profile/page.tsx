@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { MODES } from "@/lib/modes";
 import { MODE_ICONS, IconStar } from "@/components/ui/Icons";
@@ -17,7 +18,8 @@ const prompts = [
 ];
 
 export default function ProfilePage() {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+  const router = useRouter();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [profileName, setProfileName] = useState("Youssef");
 
@@ -174,9 +176,12 @@ export default function ProfilePage() {
 
       {/* Logout */}
       <div className="px-5 pb-24">
-        <Link href="/" className="block w-full text-center text-[13px] text-danger font-semibold py-3 bg-danger/5 border border-danger/10 rounded-xl tap-target">
+        <button
+          onClick={async () => { await signOut(); router.push("/"); }}
+          className="w-full text-center text-[13px] text-danger font-semibold py-3 bg-danger/5 border border-danger/10 rounded-xl tap-target"
+        >
           Se deconnecter
-        </Link>
+        </button>
       </div>
     </div>
   );

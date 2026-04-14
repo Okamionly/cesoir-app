@@ -5,7 +5,7 @@ import { supabase } from "./supabase";
 import { MOCK_PROFILES, Profile } from "./mock-profiles";
 
 export function useProfiles(lat?: number, lng?: number, mode?: string) {
-  const [profiles, setProfiles] = useState<Profile[]>(MOCK_PROFILES);
+  const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [isReal, setIsReal] = useState(false);
 
