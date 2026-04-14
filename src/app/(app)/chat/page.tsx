@@ -6,6 +6,15 @@ import { useConversations } from "@/lib/useChat";
 import type { ConversationWithPeer } from "@/lib/useChat";
 import { MODES } from "@/lib/modes";
 import type { ModeKey } from "@/lib/modes";
+import SparkTimer from "@/components/chat/SparkTimer";
+
+// Mock matched-at times for demo (each convo matched at different times)
+const MOCK_MATCHED_AT: Record<string, string> = {
+  "1": new Date(Date.now() - 3600 * 1000).toISOString(),      // 1h ago
+  "2": new Date(Date.now() - 5400 * 1000).toISOString(),      // 1h30 ago
+  "3": new Date(Date.now() - 6800 * 1000).toISOString(),      // ~1h53 ago
+  "4": new Date(Date.now() - 1200 * 1000).toISOString(),      // 20min ago
+};
 
 // ---------- Mock data (fallback when not logged in) ----------
 
@@ -84,9 +93,14 @@ function ConversationRow({ convo }: { convo: ConversationWithPeer }) {
           <span className={`text-[15px] ${hasUnread ? "font-bold text-text" : "font-semibold text-text"}`}>
             {convo.peer.name}
           </span>
-          <span className={`text-[11px] ${hasUnread ? "text-accent font-semibold" : "text-text-muted"}`}>
-            {formatTime(convo.lastMessageAt)}
-          </span>
+          <div className="flex items-center gap-1.5">
+            {MOCK_MATCHED_AT[convo.id] && (
+              <SparkTimer matchedAt={MOCK_MATCHED_AT[convo.id]} compact />
+            )}
+            <span className={`text-[11px] ${hasUnread ? "text-accent font-semibold" : "text-text-muted"}`}>
+              {formatTime(convo.lastMessageAt)}
+            </span>
+          </div>
         </div>
         <div className="flex items-center justify-between gap-2">
           <p className={`text-[13px] truncate ${hasUnread ? "text-text font-medium" : "text-text-muted"}`}>

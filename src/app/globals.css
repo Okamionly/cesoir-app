@@ -76,7 +76,45 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 .story-ring { padding:2px; background:linear-gradient(135deg,#8B5CF6,#00FF88); border-radius:9999px; }
 .story-ring-off { padding:2px; background:#EBEBEB; border-radius:9999px; }
 
+/* === DARK MODE === */
+.dark {
+  --color-bg: #0A0A0A;
+  --color-bg-card: #141414;
+  --color-border: #1F1F1F;
+  --color-text: #F5F5F5;
+  --color-text-inv: #111111;
+  --color-text-muted: #888888;
+  --color-text-soft: #AAAAAA;
+}
+
+.dark .shadow-glow { box-shadow: 0 0 40px rgba(139,92,246,0.35); }
+.dark .gradient-bg-subtle { background: linear-gradient(135deg, rgba(139,92,246,0.15), rgba(0,255,136,0.15)); }
+.dark .story-ring-off { background: #1F1F1F; }
+
 /* === DARK CARD (for swipe cards) === */
 .card-dark { background: #111; color: #fff; }
 .card-dark .text-muted-card { color: #888; }
 .card-dark .accent-card { color: #00FF88; }
+
+/* === SHIMMER ANIMATION (Skeleton) === */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.animate-shimmer {
+  background: linear-gradient(90deg, var(--color-bg-card) 25%, rgba(139,92,246,0.08) 50%, var(--color-bg-card) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+/* === CONFETTI PARTICLE === */
+@keyframes confetti-fall {
+  0% { opacity: 1; transform: translate(0, 0) rotate(0deg) scale(1); }
+  100% { opacity: 0; transform: translate(var(--tx), var(--ty)) rotate(var(--rot)) scale(0.3); }
+}
+
+/* === PULSE DOT (badge) === */
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.7; }
+}

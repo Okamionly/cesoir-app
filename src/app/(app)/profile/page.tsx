@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { motion, useScroll, useTransform } from "framer-motion";
 import { MODES } from "@/lib/modes";
 import { MODE_ICONS, IconStar } from "@/components/ui/Icons";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import PhotoUpload from "@/components/app/PhotoUpload";
+import KarmaBadge from "@/components/app/KarmaBadge";
+import AudioIntro from "@/components/app/AudioIntro";
 
 const activeModes = ["solo-diner", "langue", "dog-date"] as const;
 
@@ -17,11 +20,53 @@ const prompts = [
   { question: "Ce soir, j'ai envie de...", answer: "Decouvrir un endroit que je connais pas avec quelqu'un que je connais pas encore." },
 ];
 
+const TONIGHT_CHIPS = ["Diner", "Boire un verre", "Cinema", "Balade", "Concert", "Jeux", "Cuisiner", "Sport"];
+const MOOD_EMOJIS = ["😊", "🔥", "🥂", "🌙", "💜", "🎉", "😴", "🤔"];
+const TIME_SLOTS = ["19h-21h", "21h-23h", "23h+", "Flexible"];
+
 export default function ProfilePage() {
   const { user, signOut } = useAuth();
   const router = useRouter();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [profileName, setProfileName] = useState("Youssef");
+
+  // Ce soir state
+  const [selectedChips, setSelectedChips] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("cesoir-tonight-chips");
+      return saved ? JSON.parse(saved) : [];
+    }
+    return [];
+  });
+  const [moodEmoji, setMoodEmoji] = useState<string>(() => {
+    if (typeof window !== "undefined") return localStorage.getItem("cesoir-mood-emoji") || "";
+    return "";
+  });
+  const [moodText, setMoodText] = useState<string>(() => {
+    if (typeof window !== "undefined") return localStorage.getItem("cesoir-mood-text") || "";
+    return "";
+  });
+  const [timeSlot, setTimeSlot] = useState<string>(() => {
+    if (typeof window !== "undefined") return localStorage.getItem("cesoir-time-slot") || "";
+    return "";
+  });
+  const [zone, setZone] = useState<string>(() => {
+    if (typeof window !== "undefined") return localStorage.getItem("cesoir-zone") || "";
+    return "";
+  });
+
+  // Persist to localStorage
+  useEffect(() => { localStorage.setItem("cesoir-tonight-chips", JSON.stringify(selectedChips)); }, [selectedChips]);
+  useEffect(() => { localStorage.setItem("cesoir-mood-emoji", moodEmoji); }, [moodEmoji]);
+  useEffect(() => { localStorage.setItem("cesoir-mood-text", moodText); }, [moodText]);
+  useEffect(() => { localStorage.setItem("cesoir-time-slot", timeSlot); }, [timeSlot]);
+  useEffect(() => { localStorage.setItem("cesoir-zone", zone); }, [zone]);
+
+  // Parallax scroll
+  const headerRef = useRef<HTMLDivElement>(null);
+  const { scrollY } = useScroll();
+  const bgY = useTransform(scrollY, [0, 300], [0, 150]);
+  const bgScale = useTransform(scrollY, [0, 300], [1.1, 1.0]);
 
   useEffect(() => {
     if (!user) return;
@@ -36,15 +81,24 @@ export default function ProfilePage() {
       });
   }, [user]);
 
+  const toggleChip = (chip: string) => {
+    setSelectedChips(prev => prev.includes(chip) ? prev.filter(c => c !== chip) : [...prev, chip]);
+  };
+
   return (
     <div className="min-h-screen bg-bg">
-      {/* Photo header */}
-      <div className="relative h-72 overflow-hidden">
-        {avatarUrl ? (
-          <img src={avatarUrl} alt="" className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-30" aria-hidden="true" />
-        ) : (
-          <div className="absolute inset-0 gradient-bg opacity-20" />
-        )}
+      {/* Parallax photo header */}
+      <div ref={headerRef} className="relative h-72 overflow-hidden">
+        <motion.div
+          className="absolute inset-0 w-full h-full"
+          style={{ y: bgY, scale: bgScale }}
+        >
+          {avatarUrl ? (
+            <img src={avatarUrl} alt="" className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-30" aria-hidden="true" />
+          ) : (
+            <div className="absolute inset-0 gradient-bg opacity-20" />
+          )}
+        </motion.div>
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-bg" />
 
         {/* Top bar */}
@@ -89,17 +143,19 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Verification + reliability */}
+        {/* Verification + karma */}
         <div className="flex gap-2 mt-4">
           <div className="flex items-center gap-1.5 bg-accent/8 border border-accent/15 px-3 py-1.5 rounded-full">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-accent"><path d="M20 6L9 17l-5-5"/></svg>
             <span className="text-[11px] text-accent font-semibold">Verifie</span>
           </div>
-          <div className="flex items-center gap-1.5 bg-safe/8 border border-safe/15 px-3 py-1.5 rounded-full">
-            <IconStar size={12} className="text-safe" />
-            <span className="text-[11px] text-safe font-semibold">4.9</span>
-          </div>
+          <KarmaBadge score={4.8} meetups={12} />
         </div>
+      </div>
+
+      {/* Audio Intro */}
+      <div className="px-5 mt-5">
+        <AudioIntro />
       </div>
 
       {/* Stats — clean horizontal */}
@@ -114,6 +170,100 @@ export default function ProfilePage() {
             <p className="text-[9px] text-text-muted uppercase tracking-wider font-semibold">{s.l}</p>
           </div>
         ))}
+      </div>
+
+      {/* === CE SOIR JE VEUX === */}
+      <div className="px-5 mt-6">
+        <p className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3">Ce soir je veux...</p>
+        <div className="flex flex-wrap gap-2">
+          {TONIGHT_CHIPS.map(chip => {
+            const on = selectedChips.includes(chip);
+            return (
+              <button
+                key={chip}
+                onClick={() => toggleChip(chip)}
+                aria-pressed={on}
+                className={`px-3.5 py-2 rounded-full text-[12px] font-medium transition-all tap-target ${
+                  on
+                    ? "border-2 border-accent bg-accent/10 text-accent"
+                    : "border border-border text-text-muted hover:border-accent/30"
+                }`}
+              >
+                {chip}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* === MON MOOD === */}
+      <div className="px-5 mt-6">
+        <p className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3">Mon mood</p>
+        <div className="flex gap-2 mb-3 overflow-x-auto no-scrollbar">
+          {MOOD_EMOJIS.map(emoji => (
+            <button
+              key={emoji}
+              onClick={() => setMoodEmoji(emoji === moodEmoji ? "" : emoji)}
+              aria-pressed={moodEmoji === emoji}
+              className={`w-10 h-10 rounded-full flex items-center justify-center text-[20px] shrink-0 transition-all tap-target ${
+                moodEmoji === emoji
+                  ? "border-2 border-accent bg-accent/10 scale-110"
+                  : "border border-border hover:border-accent/30"
+              }`}
+            >
+              {emoji}
+            </button>
+          ))}
+        </div>
+        {(moodEmoji || moodText) && (
+          <div className="bg-bg-card border border-border rounded-2xl p-3 flex items-center gap-2">
+            {moodEmoji && <span className="text-[20px]">{moodEmoji}</span>}
+            <input
+              type="text"
+              value={moodText}
+              onChange={e => setMoodText(e.target.value.slice(0, 50))}
+              placeholder="Envie de decouvrir un nouveau quartier"
+              maxLength={50}
+              className="flex-1 bg-transparent text-[13px] text-text placeholder:text-text-muted outline-none"
+              aria-label="Texte de mood"
+            />
+            <span className="text-[9px] text-text-muted shrink-0">{moodText.length}/50</span>
+          </div>
+        )}
+      </div>
+
+      {/* === MA DISPO === */}
+      <div className="px-5 mt-6">
+        <p className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3">Ma dispo</p>
+        <div className="flex gap-2">
+          {TIME_SLOTS.map(slot => (
+            <button
+              key={slot}
+              onClick={() => setTimeSlot(slot === timeSlot ? "" : slot)}
+              aria-pressed={timeSlot === slot}
+              className={`flex-1 py-2.5 rounded-xl text-[12px] font-medium transition-all tap-target ${
+                timeSlot === slot
+                  ? "gradient-bg text-white shadow-glow"
+                  : "border border-border text-text-muted hover:border-accent/30"
+              }`}
+            >
+              {slot}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* === MA ZONE CE SOIR === */}
+      <div className="px-5 mt-6">
+        <p className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3">Ma zone ce soir</p>
+        <input
+          type="text"
+          value={zone}
+          onChange={e => setZone(e.target.value)}
+          placeholder="ex: Marais, Bastille, Montmartre..."
+          className="w-full px-4 py-3 bg-bg-card border border-border rounded-xl text-[13px] text-text placeholder:text-text-muted outline-none focus:border-accent/30 transition-colors"
+          aria-label="Zone pour ce soir"
+        />
       </div>
 
       {/* Prompts — Hinge style */}
@@ -159,6 +309,7 @@ export default function ProfilePage() {
         <div className="bg-bg-card border border-border rounded-2xl overflow-hidden divide-y divide-border">
           {[
             { label: "Modifier mon profil", sub: "Photos, bio, prompts", href: "/profile/edit" },
+            { label: "Verification video", sub: "Selfie video pour la confiance", href: "/profile/verify" as string | null },
             { label: "Preferences", sub: "Age, distance, genre", href: null },
             { label: "Notifications", sub: "Matchs, messages, rappels", href: null },
             { label: "Securite", sub: "Mot de passe, blocage, signalement", href: "/safety" },
@@ -182,6 +333,25 @@ export default function ProfilePage() {
             )
           ))}
         </div>
+      </div>
+
+      {/* Leaderboard link */}
+      <div className="px-5 mb-4">
+        <Link
+          href="/leaderboard"
+          className="flex items-center justify-between bg-bg-card border border-accent/15 rounded-2xl p-4 active:scale-[0.98] transition-transform tap-target"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+              <span className="text-[18px]" aria-hidden="true">🏆</span>
+            </div>
+            <div>
+              <p className="text-[13px] font-bold text-text">Leaderboard</p>
+              <p className="text-[10px] text-text-muted">Ta position: #47 · 3 rencontres</p>
+            </div>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-muted" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+        </Link>
       </div>
 
       {/* Logout */}
