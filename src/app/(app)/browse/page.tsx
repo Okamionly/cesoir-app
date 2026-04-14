@@ -116,7 +116,7 @@ export default function BrowsePage() {
       </main>
 
       {/* Actions */}
-      {card && <ActionButtons onPass={swipe.triggerPass} onLike={swipe.triggerLike} />}
+      {card && <ActionButtons onPass={swipe.triggerPass} onLike={swipe.triggerLike} onSuperLike={swipe.triggerLike} />}
 
       {/* Match toast */}
       {match && <MatchToast profile={match} onDismiss={() => setMatch(null)} />}
@@ -159,13 +159,13 @@ function FilterButton({ active, onClick, label, children }: { active: boolean; o
   );
 }
 
-function ActionButtons({ onPass, onLike }: { onPass: () => void; onLike: () => void }) {
+function ActionButtons({ onPass, onLike, onSuperLike }: { onPass: () => void; onLike: () => void; onSuperLike: () => void }) {
   return (
     <div className="shrink-0 flex items-center justify-center gap-6 pt-2 pb-[76px]" role="group" aria-label="Actions">
       <motion.button onClick={onPass} aria-label="Passer" className="w-[54px] h-[54px] rounded-full bg-bg border-2 border-border flex items-center justify-center text-text-muted" whileTap={{ scale: 0.8 }}>
         <IconX size={22} />
       </motion.button>
-      <motion.button aria-label="Super like" className="w-[44px] h-[44px] rounded-full bg-bg border-2 border-border flex items-center justify-center text-text-muted" whileTap={{ scale: 0.8 }}>
+      <motion.button onClick={onSuperLike} aria-label="Super like" className="w-[44px] h-[44px] rounded-full bg-bg border-2 border-border flex items-center justify-center text-text-muted" whileTap={{ scale: 0.8 }}>
         <IconStar size={18} />
       </motion.button>
       <motion.button onClick={onLike} aria-label="Liker" className="w-[54px] h-[54px] rounded-full gradient-bg flex items-center justify-center text-white shadow-glow" whileTap={{ scale: 0.8 }}>

@@ -15,6 +15,8 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
+let _currentUserId: string | null = null;
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -23,15 +25,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      _currentUserId = session?.user?.id ?? null;
       setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      _currentUserId = session?.user?.id ?? null;
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    // Mark offline when user closes tab
+    const handleUnload = () => {
+      const uid = _currentUserId;
+      if (uid) {
+        navigator.sendBeacon(
+          `https://ycyxmvzilzkusecpgvbi.supabase.co/rest/v1/profiles?id=eq.${uid}`,
+          JSON.stringify({ is_online: false, last_seen: new Date().toISOString() })
+        );
+      }
+    };
+    window.addEventListener("beforeunload", handleUnload);
+
+    return () => {
+      subscription.unsubscribe();
+      window.removeEventListener("beforeunload", handleUnload);
+    };
   }, []);
 
   const signUp = useCallback(async (email: string, password: string, metadata: { name: string; age: number; gender: string; looking_for: string }) => {
