@@ -538,5 +538,71 @@
       "is_interrupt": false,
       "logged_at": "2026-04-15T00:55:17.465082"
     }
+  },
+  {
+    "timestamp": "2026-04-15T02:42:17.955971",
+    "session_id": "4912ee90-99ad-43a5-9100-8680fcceecf7",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01HdwKycHF3TPc9vPbAm2Yua",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app\" && npx next dev -p 3001 2>&1 &\nsleep 5\ncurl -s -o /dev/null -w \"%{http_code}\" http://localhost:3001/",
+      "timeout": 30000,
+      "description": "Start dev server and check if it responds"
+    },
+    "error": "Exit code 7\n\u00e2\u2013\u00b2 Next.js 16.2.3 (Turbopack)\n- Local:         http://localhost:3001\n- Network:       http://192.168.1.138:3001\n\u00e2\u0153\u201c Ready in 355ms\n\u00e2\u00a8\u00af Another next dev server is already running.\n\n- Local:        http://localhost:3004\n- PID:          33764\n- Dir:          C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app\n- Log:          .next\\dev\\logs\\next-development.log\n\nRun taskkill /PID 33764 /F to stop it.\n\u001b[?25h\n000",
+    "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+    "permission_mode": "default",
+    "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\4912ee90-99ad-43a5-9100-8680fcceecf7.jsonl",
+    "raw_input": {
+      "session_id": "4912ee90-99ad-43a5-9100-8680fcceecf7",
+      "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\4912ee90-99ad-43a5-9100-8680fcceecf7.jsonl",
+      "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+      "permission_mode": "default",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "cd \"C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app\" && npx next dev -p 3001 2>&1 &\nsleep 5\ncurl -s -o /dev/null -w \"%{http_code}\" http://localhost:3001/",
+        "timeout": 30000,
+        "description": "Start dev server and check if it responds"
+      },
+      "tool_use_id": "toolu_01HdwKycHF3TPc9vPbAm2Yua",
+      "error": "Exit code 7\n\u00e2\u2013\u00b2 Next.js 16.2.3 (Turbopack)\n- Local:         http://localhost:3001\n- Network:       http://192.168.1.138:3001\n\u00e2\u0153\u201c Ready in 355ms\n\u00e2\u00a8\u00af Another next dev server is already running.\n\n- Local:        http://localhost:3004\n- PID:          33764\n- Dir:          C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app\n- Log:          .next\\dev\\logs\\next-development.log\n\nRun taskkill /PID 33764 /F to stop it.\n\u001b[?25h\n000",
+      "is_interrupt": false,
+      "logged_at": "2026-04-15T02:42:17.955971"
+    }
+  },
+  {
+    "timestamp": "2026-04-15T02:50:49.536830",
+    "session_id": "4912ee90-99ad-43a5-9100-8680fcceecf7",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01ChuZnYoeF7rqzrxBCQHFg1",
+    "tool_input": {
+      "command": "cd \"C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app\" && git push",
+      "timeout": 30000,
+      "description": "Push to remote"
+    },
+    "error": "Exit code 128\nfatal: No configured push destination.\nEither specify the URL from the command-line or configure a remote repository using\n\n    git remote add <name> <url>\n\nand then push using the remote name\n\n    git push <name>",
+    "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+    "permission_mode": "acceptEdits",
+    "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\4912ee90-99ad-43a5-9100-8680fcceecf7.jsonl",
+    "raw_input": {
+      "session_id": "4912ee90-99ad-43a5-9100-8680fcceecf7",
+      "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\4912ee90-99ad-43a5-9100-8680fcceecf7.jsonl",
+      "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+      "permission_mode": "acceptEdits",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "cd \"C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app\" && git push",
+        "timeout": 30000,
+        "description": "Push to remote"
+      },
+      "tool_use_id": "toolu_01ChuZnYoeF7rqzrxBCQHFg1",
+      "error": "Exit code 128\nfatal: No configured push destination.\nEither specify the URL from the command-line or configure a remote repository using\n\n    git remote add <name> <url>\n\nand then push using the remote name\n\n    git push <name>",
+      "is_interrupt": false,
+      "logged_at": "2026-04-15T02:50:49.536830"
+    }
   }
 ]
