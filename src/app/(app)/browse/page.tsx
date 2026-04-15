@@ -24,6 +24,8 @@ import Revanche from "@/components/app/Revanche";
 import NotificationPreview from "@/components/app/NotificationPreview";
 import MidnightReset from "@/components/app/MidnightReset";
 import IntentionBadge, { type Intention, INTENTIONS } from "@/components/app/IntentionBadge";
+import { playSound } from "@/lib/sounds";
+import { haptics } from "@/lib/haptics";
 import { useSwipeUndo } from "@/lib/useSwipeUndo";
 import { useMatchCap } from "@/lib/useMatchCap";
 import { useRoses } from "@/lib/useRoses";
@@ -125,14 +127,19 @@ export default function BrowsePage() {
       pushSwipe(card);
 
       if (action === "like") {
+        playSound("like");
+        haptics.medium();
         const mode = currentMatch?.sharedModes[0] ?? card.mode;
         const result = await like(card.id, mode);
         if (result?.matched) {
+          playSound("match");
+          haptics.heavy();
           setMatch(card);
           setMatchConvoId(result.conversationId ?? null);
           incrementMatch();
         }
       } else {
+        haptics.light();
         await pass(card.id);
       }
     }
@@ -148,10 +155,14 @@ export default function BrowsePage() {
     const spent = useRose(1, `Super like sur ${card.name}`);
     if (!spent) return; // Not enough roses — button should be disabled but guard here
 
+    playSound("match");
+    haptics.match();
     pushSwipe(card);
     const mode = currentMatch?.sharedModes[0] ?? card.mode;
     const result = await superlike(card.id, mode);
     if (result?.matched) {
+      playSound("match");
+      haptics.heavy();
       setMatch(card);
       setMatchConvoId(null);
       incrementMatch();

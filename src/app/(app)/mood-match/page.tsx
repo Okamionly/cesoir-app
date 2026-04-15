@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import { moodMatchVariants, springs, micro } from "@/lib/motion-design";
+import { playSound } from "@/lib/sounds";
 import RadarAnimation from "@/components/app/RadarAnimation";
 
 // ─────────────────────────────────────────
@@ -232,6 +233,7 @@ export default function MoodMatchPage() {
       setFoundCount(count);
       const match = findMatch(selectedMood);
       setMatchedProfile(match);
+      playSound("match");
       // Small delay before showing result for dramatic effect
       setTimeout(() => {
         setStep("result");

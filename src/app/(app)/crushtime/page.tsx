@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import { springs, micro, easings } from "@/lib/motion-design";
+import { playSound } from "@/lib/sounds";
 
 // ─── Types ───────────────────────────────────────
 type GameState = "intro" | "playing" | "correct" | "wrong" | "cooldown";
@@ -155,9 +156,11 @@ export default function CrushTimePage() {
       if (timerRef.current) clearInterval(timerRef.current);
 
       if (index === CORRECT_INDEX) {
+        playSound("success");
         setXpEarned(50);
         setState("correct");
       } else {
+        playSound("error");
         setState("wrong");
       }
       setLastPlayed();

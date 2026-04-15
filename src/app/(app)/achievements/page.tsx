@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { achievementVariants, springs, micro } from "@/lib/motion-design";
+import { playSound } from "@/lib/sounds";
+import { haptics } from "@/lib/haptics";
 import {
   ALL_BADGES,
   RARITY_CONFIG,
@@ -395,6 +397,7 @@ function BadgeCard({
           },
           opacity: { duration: 0.3, delay: index * 0.06 },
         }}
+        onAnimationComplete={() => { if (index === 0) { playSound("success"); haptics.success(); } }}
         onClick={onSelect}
         className={`relative flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-colors ${rarityBorderClass(badge.rarity, true)} ${rarityBgClass(badge.rarity, true)} hover:brightness-110`}
         whileTap={micro.tapScale}

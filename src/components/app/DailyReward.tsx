@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { springs } from "@/lib/motion-design";
+import { playSound } from "@/lib/sounds";
+import { haptics } from "@/lib/haptics";
 import { useGamification } from "@/lib/useGamification";
 
 // ─────────────────────────────────────────
@@ -142,6 +144,8 @@ export default function DailyReward() {
   const handleClaim = useCallback(async () => {
     if (claimed) return;
     setClaimed(true);
+    playSound("success");
+    haptics.success();
 
     const reward = DAY_REWARDS[(streakData.day - 1) % CYCLE_LENGTH];
 

@@ -8,6 +8,8 @@ import { MODES, type ModeKey } from "@/lib/modes";
 import { useFeed, type FeedActivity } from "@/lib/useFeed";
 import TutorialOverlay from "@/components/app/TutorialOverlay";
 import StoriesBar from "@/components/app/StoriesBar";
+import EmptyState from "@/components/ui/EmptyState";
+import PageHeader from "@/components/ui/PageHeader";
 
 // --- Types ---
 
@@ -248,20 +250,22 @@ export default function FeedPage() {
       <TutorialOverlay />
 
       {/* Header */}
-      <header className="sticky top-0 z-30 bg-bg/80 backdrop-blur-xl border-b border-border px-4 py-3">
-        <div className="flex items-center gap-2.5">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00FF88] opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#00FF88]" />
-          </span>
-          <h1 className="text-lg font-display font-bold text-text">En direct</h1>
-          {useDemoMode && (
-            <span className="ml-auto text-[10px] font-semibold text-text-muted bg-card border border-border px-2 py-0.5 rounded-full">
-              DEMO
+      <PageHeader
+        title="En direct"
+        rightAction={
+          <div className="flex items-center gap-2.5">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00FF88] opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#00FF88]" />
             </span>
-          )}
-        </div>
-      </header>
+            {useDemoMode && (
+              <span className="text-[10px] font-semibold text-text-muted bg-card border border-border px-2 py-0.5 rounded-full">
+                DEMO
+              </span>
+            )}
+          </div>
+        }
+      />
 
       {/* Stories bar */}
       <StoriesBar />
@@ -325,15 +329,13 @@ export default function FeedPage() {
         <FeedSkeleton />
       ) : items.length === 0 ? (
         /* Empty state */
-        <div className="flex flex-col items-center justify-center py-20 px-6 text-center" role="status">
-          <div className="w-16 h-16 rounded-full bg-card border border-border flex items-center justify-center mb-4">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-muted" aria-hidden="true">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-          <p className="text-sm font-semibold text-text-muted">Rien a signaler pour le moment</p>
-          <p className="text-xs text-text-muted mt-1">L&apos;activite apparaitra ici des que ca bouge</p>
-        </div>
+        <EmptyState
+          emoji="☾"
+          title="Rien a signaler pour le moment"
+          subtitle="L'activite apparaitra ici des que ca bouge"
+          actionLabel="Explorer les profils"
+          actionHref="/browse"
+        />
       ) : (
         /* Feed list */
         <>

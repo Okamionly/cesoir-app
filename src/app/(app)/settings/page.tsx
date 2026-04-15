@@ -10,6 +10,7 @@ import { setMuted, isMuted } from "@/lib/sounds";
 import { useDarkMode } from "@/components/ui/DarkModeProvider";
 import { useAccessibility, type FontSize } from "@/components/ui/ReducedMotion";
 import { useTranslation, setLocale as persistLocale, SUPPORTED_LOCALES, type Locale } from "@/lib/i18n";
+import { useWomenFirstSettings } from "@/lib/useWomenFirst";
 
 // ── Types ──────────────────────────────────────────
 
@@ -279,6 +280,26 @@ function AccessibilitySection({ index }: { index: number }) {
   );
 }
 
+// ── Women First toggle with description ───────────
+
+function WomenFirstToggleRow() {
+  const { settings: wfSettings, toggle } = useWomenFirstSettings();
+
+  return (
+    <div className="px-4 py-3.5">
+      <div className="flex items-center justify-between">
+        <span className="text-[13px] font-semibold text-text">
+          Les femmes ecrivent d&apos;abord
+        </span>
+        <Toggle value={wfSettings.enabled} onChange={toggle} />
+      </div>
+      <p className="text-[11px] text-text-muted mt-1">
+        Comme Bumble — les femmes initient la conversation
+      </p>
+    </div>
+  );
+}
+
 // ── Main Page ──────────────────────────────────────
 
 // Map between settings French labels and DarkModeProvider values
@@ -439,6 +460,7 @@ export default function SettingsPage() {
             value={settings.privacy.modeFantome}
             onChange={(v) => updatePrivacy("modeFantome", v)}
           />
+          <WomenFirstToggleRow />
         </Section>
 
         {/* ── 4. Apparence ──────────────────────────── */}

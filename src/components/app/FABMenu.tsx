@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
+import { playSound } from "@/lib/sounds";
+import { haptics } from "@/lib/haptics";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -146,6 +148,7 @@ export function FABMenu() {
   }, [handleEscape]);
 
   const handleAction = useCallback((href: string) => {
+    playSound("tap");
     setIsOpen(false);
     router.push(href);
   }, [router]);
@@ -209,7 +212,7 @@ export function FABMenu() {
 
       {/* Main FAB */}
       <motion.button
-        onClick={() => setIsOpen((v) => !v)}
+        onClick={() => { playSound("tap"); haptics.medium(); setIsOpen((v) => !v); }}
         animate={{ rotate: isOpen ? 135 : 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
         className="relative z-[801] flex h-14 w-14 items-center justify-center rounded-full shadow-lg shadow-accent/30 gradient-bg"

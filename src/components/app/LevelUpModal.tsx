@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { springs } from "@/lib/motion-design";
+import { playSound } from "@/lib/sounds";
+import { haptics } from "@/lib/haptics";
 import type { LevelUpData } from "@/lib/useGamification";
 
 interface LevelUpModalProps {
@@ -50,6 +52,8 @@ export default function LevelUpModal({ data, onDismiss }: LevelUpModalProps) {
   // Spawn confetti on open
   useEffect(() => {
     if (data) {
+      playSound("match");
+      haptics.heavy();
       const timer = setTimeout(spawnConfetti, 200);
       return () => clearTimeout(timer);
     }

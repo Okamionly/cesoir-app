@@ -5,6 +5,8 @@ import { FABMenu } from "@/components/app/FABMenu";
 import OfflineBanner from "@/components/app/OfflineBanner";
 import SeasonalOverlay from "@/components/app/SeasonalOverlay";
 import SeasonalBanner from "@/components/app/SeasonalBanner";
+import SplashScreen from "@/components/app/SplashScreen";
+import PageLoader from "@/components/app/PageLoader";
 import { DarkModeProvider } from "@/components/ui/DarkModeProvider";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import { ToastProvider } from "@/components/ui/Toast";
@@ -18,6 +20,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <DarkModeProvider>
         <AccessibilityProvider>
           <ToastProvider>
+            <SplashScreen />
             <div className="min-h-screen bg-bg">
               <OfflineBanner />
               <Suspense fallback={null}>
@@ -25,7 +28,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </Suspense>
               <main id="main-content" className="pb-safe">
                 <ErrorBoundary>
-                  <PageTransition>{children}</PageTransition>
+                  <PageTransition>
+                    <Suspense fallback={<PageLoader />}>
+                      {children}
+                    </Suspense>
+                  </PageTransition>
                 </ErrorBoundary>
               </main>
               <FABMenu />
