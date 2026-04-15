@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { motion, useScroll, useTransform, AnimatePresence } from "motion/react";
-import { profileVariants, springs, micro, ambient } from "@/lib/motion-design";
+import { motion, useScroll, useTransform } from "motion/react";
+import { profileVariants, springs } from "@/lib/motion-design";
 import { MODES } from "@/lib/modes";
-import { MODE_ICONS, IconStar } from "@/components/ui/Icons";
+import { MODE_ICONS } from "@/components/ui/Icons";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import PhotoUpload from "@/components/app/PhotoUpload";
@@ -25,14 +25,6 @@ const prompts = [
 const TONIGHT_CHIPS = ["Diner", "Boire un verre", "Cinema", "Balade", "Concert", "Jeux", "Cuisiner", "Sport"];
 const MOOD_EMOJIS = ["😊", "🔥", "🥂", "🌙", "💜", "🎉", "😴", "🤔"];
 const TIME_SLOTS = ["19h-21h", "21h-23h", "23h+", "Flexible"];
-
-const BADGES = [
-  { icon: "🌙", name: "Noctambule" },
-  { icon: "⭐", name: "Top Rated" },
-  { icon: "🔥", name: "7j Streak" },
-  { icon: "🌍", name: "Globe-Trotter" },
-  { icon: "💬", name: "Bavard" },
-];
 
 export default function ProfilePage() {
   const { user, signOut } = useAuth();
@@ -181,27 +173,6 @@ export default function ProfilePage() {
       >
         <AudioIntro />
       </motion.div>
-
-      {/* Stats — clean horizontal with staggered slide-from-left */}
-      <div className="flex gap-1 px-5 mt-5">
-        {[
-          { n: "12", l: "Rencontres" },
-          { n: "28", l: "Matchs" },
-          { n: "5", l: "Ce mois" },
-        ].map((s, i) => (
-          <motion.div
-            key={s.l}
-            className="flex-1 bg-bg-card border border-border rounded-xl py-3 text-center"
-            variants={profileVariants.statsRow}
-            initial="hidden"
-            animate="visible"
-            custom={i}
-          >
-            <p className="text-[20px] font-black gradient-text">{s.n}</p>
-            <p className="text-[9px] text-text-muted uppercase tracking-wider font-semibold">{s.l}</p>
-          </motion.div>
-        ))}
-      </div>
 
       {/* === CE SOIR JE VEUX === slide from right (even card) */}
       <motion.div
@@ -446,79 +417,6 @@ export default function ProfilePage() {
           </div>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-muted" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
         </Link>
-      </div>
-
-      {/* Leaderboard link */}
-      <div className="px-5 mb-4">
-        <Link
-          href="/leaderboard"
-          className="flex items-center justify-between bg-bg-card border border-accent/15 rounded-2xl p-4 active:scale-[0.98] transition-transform tap-target"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
-              <span className="text-[18px]" aria-hidden="true">🏆</span>
-            </div>
-            <div>
-              <p className="text-[13px] font-bold text-text">Leaderboard</p>
-              <p className="text-[10px] text-text-muted">Ta position: #47 · 3 rencontres</p>
-            </div>
-          </div>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-muted" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
-        </Link>
-      </div>
-
-      {/* === MES STATS === */}
-      <div className="px-5 mt-6">
-        <p className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3">Mes Stats</p>
-        <div className="grid grid-cols-2 gap-2">
-          {[
-            { icon: "🔥", label: "Streak actuel", value: "7" },
-            { icon: "⭐", label: "Karma total", value: "4.8" },
-            { icon: "📊", label: "Taux de reponse", value: "95%" },
-            { icon: "📅", label: "Membre depuis", value: "Avril 2026" },
-          ].map((stat, i) => (
-            <motion.div
-              key={stat.label}
-              className="bg-bg-card border border-border rounded-2xl p-4 flex flex-col items-center gap-2"
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ ...springs.elastic, delay: 0.2 + i * 0.1 }}
-            >
-              <span className="text-[24px]" aria-hidden="true">{stat.icon}</span>
-              {stat.label === "Taux de reponse" ? (
-                <div className="relative w-12 h-12 flex items-center justify-center">
-                  <svg className="absolute inset-0 w-12 h-12 -rotate-90" viewBox="0 0 48 48">
-                    <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" strokeWidth="3" className="text-border" />
-                    <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" strokeWidth="3" className="text-accent" strokeDasharray={`${0.95 * 2 * Math.PI * 20} ${2 * Math.PI * 20}`} strokeLinecap="round" />
-                  </svg>
-                  <span className="text-[13px] font-black text-text">{stat.value}</span>
-                </div>
-              ) : (
-                <p className="text-[20px] font-black gradient-text">{stat.value}</p>
-              )}
-              <p className="text-[9px] text-text-muted uppercase tracking-wider font-semibold text-center">{stat.label}</p>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
-      {/* === BADGES === */}
-      <div className="px-5 mt-6">
-        <p className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3">Badges</p>
-        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-          {BADGES.map((badge, i) => (
-            <motion.div
-              key={badge.name}
-              className="shrink-0 flex flex-col items-center gap-1.5 bg-bg-card border border-border rounded-2xl px-4 py-3 min-w-[80px]"
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ ...springs.elastic, delay: 0.2 + i * 0.06 }}
-            >
-              <span className="text-[24px]">{badge.icon}</span>
-              <span className="text-[10px] font-semibold text-text-muted text-center whitespace-nowrap">{badge.name}</span>
-            </motion.div>
-          ))}
-        </div>
       </div>
 
       {/* Logout */}
