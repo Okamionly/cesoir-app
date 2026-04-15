@@ -1,16 +1,33 @@
 {
   "name": "CeSoir",
   "short_name": "CeSoir",
-  "description": "Trouve quelqu'un ce soir. 14 modes de rencontre.",
-  "start_url": "/browse",
+  "description": "Trouve quelqu'un pour ce soir",
+  "start_url": "/feed",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#FFFFFF",
+  "background_color": "#0A0A0A",
   "theme_color": "#8B5CF6",
   "orientation": "portrait",
+  "categories": ["social", "lifestyle"],
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "/icon-192.svg", "sizes": "192x192", "type": "image/svg+xml" },
+    { "src": "/icon-512.svg", "sizes": "512x512", "type": "image/svg+xml" },
+    { "src": "/icon-512.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "maskable" }
   ],
-  "categories": ["social", "lifestyle"]
+  "screenshots": [
+    {
+      "src": "/screenshots/mobile-feed.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "CeSoir feed - Trouve quelqu'un pour ce soir"
+    },
+    {
+      "src": "/screenshots/mobile-modes.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "CeSoir - 14 modes de rencontre"
+    }
+  ]
 }

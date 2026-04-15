@@ -123,7 +123,7 @@ export default function ProfilePage() {
         {/* Top bar */}
         <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-5 pt-4 z-10">
           <h1 className="text-[16px] font-black text-text tracking-tight">Mon Profil</h1>
-          <Link href="/modes" className="w-9 h-9 rounded-full bg-bg/80 backdrop-blur border border-border flex items-center justify-center tap-target">
+          <Link href="/settings" className="w-9 h-9 rounded-full bg-bg/80 backdrop-blur border border-border flex items-center justify-center tap-target">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-muted">
               <circle cx="12" cy="12" r="3"/><path d="M12 1v4m0 14v4m-7.78-2.22l2.83-2.83m9.9-9.9l2.83-2.83M1 12h4m14 0h4M4.22 4.22l2.83 2.83m9.9 9.9l2.83 2.83"/>
             </svg>
@@ -381,8 +381,8 @@ export default function ProfilePage() {
           {[
             { label: "Modifier mon profil", sub: "Photos, bio, prompts", href: "/profile/edit" },
             { label: "Verification video", sub: "Selfie video pour la confiance", href: "/profile/verify" as string | null },
-            { label: "Preferences", sub: "Age, distance, genre", href: null },
-            { label: "Notifications", sub: "Matchs, messages, rappels", href: null },
+            { label: "Preferences", sub: "Age, distance, genre", href: "/settings" },
+            { label: "Notifications", sub: "Matchs, messages, rappels", href: "/settings" },
             { label: "Securite", sub: "Mot de passe, blocage, signalement", href: "/safety" },
           ].map((item) => (
             item.href ? (

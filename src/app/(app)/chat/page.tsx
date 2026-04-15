@@ -4,10 +4,11 @@ import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import { useAuth } from "@/context/AuthContext";
-import { useConversations } from "@/lib/useChat";
-import type { ConversationWithPeer } from "@/lib/useChat";
+import { useConversations } from "@/lib/useConversations";
+import type { ConversationPreview } from "@/lib/useConversations";
 import { MODES } from "@/lib/modes";
 import type { ModeKey } from "@/lib/modes";
+import { springs, ambient } from "@/lib/motion-design";
 import SparkTimer from "@/components/chat/SparkTimer";
 
 // Mock matched-at times for demo (each convo matched at different times)
@@ -18,13 +19,13 @@ const MOCK_MATCHED_AT: Record<string, string> = {
   "4": new Date(Date.now() - 1200 * 1000).toISOString(),      // 20min ago
 };
 
-// ---------- Mock data (fallback when not logged in) ----------
+// ---------- Mock data (fallback / demo mode) ----------
 
-const mockChats: ConversationWithPeer[] = [
-  { id: "1", peer: { id: "m1", name: "Sarah", avatar_url: null, is_online: true }, lastMessage: "Super ! On se retrouve a 20h au resto ?", lastMessageAt: new Date().toISOString(), unreadCount: 2, mode: "solo-diner" },
-  { id: "2", peer: { id: "m2", name: "Claire", avatar_url: null, is_online: true }, lastMessage: "Rex est trop content ! A tout a l'heure", lastMessageAt: new Date().toISOString(), unreadCount: 1, mode: "dog-date" },
-  { id: "3", peer: { id: "m3", name: "Marta", avatar_url: null, is_online: false }, lastMessage: "Perfecto ! Hablamos en espanol et francais", lastMessageAt: new Date().toISOString(), unreadCount: 0, mode: "langue" },
-  { id: "4", peer: { id: "m4", name: "Thomas", avatar_url: null, is_online: false }, lastMessage: "J'ai pris les places, RDV devant le cinema", lastMessageAt: new Date().toISOString(), unreadCount: 0, mode: "plus-one" },
+const mockChats: ConversationPreview[] = [
+  { id: "1", peer: { id: "m1", name: "Sarah", avatar_url: null, is_online: true }, lastMessage: "Super ! On se retrouve a 20h au resto ?", lastMessageSenderId: null, lastMessageAt: new Date().toISOString(), unreadCount: 2, mode: "solo-diner", createdAt: new Date().toISOString() },
+  { id: "2", peer: { id: "m2", name: "Claire", avatar_url: null, is_online: true }, lastMessage: "Rex est trop content ! A tout a l'heure", lastMessageSenderId: null, lastMessageAt: new Date().toISOString(), unreadCount: 1, mode: "dog-date", createdAt: new Date().toISOString() },
+  { id: "3", peer: { id: "m3", name: "Marta", avatar_url: null, is_online: false }, lastMessage: "Perfecto ! Hablamos en espanol et francais", lastMessageSenderId: null, lastMessageAt: new Date().toISOString(), unreadCount: 0, mode: "langue", createdAt: new Date().toISOString() },
+  { id: "4", peer: { id: "m4", name: "Thomas", avatar_url: null, is_online: false }, lastMessage: "J'ai pris les places, RDV devant le cinema", lastMessageSenderId: null, lastMessageAt: new Date().toISOString(), unreadCount: 0, mode: "plus-one", createdAt: new Date().toISOString() },
 ];
 
 // ---------- Helpers ----------
@@ -59,10 +60,12 @@ function getAvatarColor(mode: string | null): string {
 
 function ConversationRow({
   convo,
+  index,
   onArchive,
   onDelete,
 }: {
-  convo: ConversationWithPeer;
+  convo: ConversationPreview;
+  index: number;
   onArchive?: (id: string) => void;
   onDelete?: (id: string) => void;
 }) {
@@ -103,7 +106,15 @@ function ConversationRow({
   }, []);
 
   return (
-    <div className="relative overflow-hidden" role="listitem">
+    <motion.div
+      className="relative overflow-hidden"
+      role="listitem"
+      initial={{ opacity: 0, x: -30 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ ...springs.heavy, delay: index * 0.06 }}
+      whileHover={{ y: -1, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
+      whileTap={{ scale: 0.98, transition: springs.micro }}
+    >
       {/* Swipe reveal actions */}
       <AnimatePresence>
         {showActions && (
@@ -231,9 +242,14 @@ function ConversationRow({
               {convo.lastMessage ?? "Aucun message"}
             </p>
             {hasUnread && (
-              <span className="shrink-0 w-5 h-5 gradient-bg rounded-full flex items-center justify-center text-[10px] font-bold text-white">
+              <motion.span
+                className="shrink-0 w-5 h-5 gradient-bg rounded-full flex items-center justify-center text-[10px] font-bold text-white"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={springs.elastic}
+              >
                 {convo.unreadCount}
-              </span>
+              </motion.span>
             )}
           </div>
           {modeInfo && (
@@ -243,11 +259,11 @@ function ConversationRow({
           )}
         </div>
       </Link>
-    </div>
+    </motion.div>
   );
 }
 
-function MatchBubble({ convo }: { convo: ConversationWithPeer }) {
+function MatchBubble({ convo }: { convo: ConversationPreview }) {
   const avatarColor = getAvatarColor(convo.mode);
 
   return (
@@ -289,15 +305,65 @@ function MatchBubble({ convo }: { convo: ConversationWithPeer }) {
 
 export default function ChatPage() {
   const { user } = useAuth();
-  const { conversations: realConversations, loading, archiveConversation, deleteConversation } = useConversations(user?.id);
+  const { conversations: realConversations, loading, totalUnread, refresh } = useConversations();
 
-  // fallback to mock data when not logged in
-  const conversations = user && realConversations.length > 0 ? realConversations : mockChats;
+  // Fallback to mock data when conversations is empty (demo mode)
+  const conversations = realConversations.length > 0 ? realConversations : mockChats;
   const withUnread = conversations.filter((c) => c.unreadCount > 0);
-  const totalUnread = conversations.reduce((sum, c) => sum + c.unreadCount, 0);
+  const displayUnread = realConversations.length > 0 ? totalUnread : conversations.reduce((sum, c) => sum + c.unreadCount, 0);
+
+  // --- Pull-to-refresh ---
+  const mainRef = useRef<HTMLDivElement>(null);
+  const [pullY, setPullY] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const touchStartY = useRef(0);
+
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartY.current = e.touches[0].clientY;
+  }, []);
+
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
+    if (refreshing) return;
+    const el = mainRef.current;
+    if (el && el.scrollTop > 0) return;
+    const delta = e.touches[0].clientY - touchStartY.current;
+    if (delta > 0) {
+      setPullY(Math.min(delta * 0.4, 80));
+    }
+  }, [refreshing]);
+
+  const onTouchEnd = useCallback(async () => {
+    if (pullY > 50) {
+      setRefreshing(true);
+      await refresh();
+      await new Promise((r) => setTimeout(r, 800));
+      setRefreshing(false);
+    }
+    setPullY(0);
+  }, [pullY, refresh]);
 
   return (
-    <div className="min-h-screen bg-bg">
+    <div
+      ref={mainRef}
+      className="min-h-screen bg-bg overflow-y-auto"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
+      {/* Pull-to-refresh indicator */}
+      {(pullY > 0 || refreshing) && (
+        <div
+          className="shrink-0 flex items-center justify-center overflow-hidden transition-all"
+          style={{ height: refreshing ? 40 : pullY }}
+        >
+          <motion.div
+            className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full"
+            animate={{ rotate: refreshing ? 360 : pullY * 3 }}
+            transition={refreshing ? { repeat: Infinity, duration: 0.6, ease: "linear" } : { duration: 0 }}
+          />
+        </div>
+      )}
+
       {/* Header */}
       <header className="sticky top-0 z-40 bg-bg/95 backdrop-blur-md border-b border-border px-4 pt-2 pb-3">
         <div className="flex items-center justify-between">
@@ -306,22 +372,39 @@ export default function ChatPage() {
             <span className="text-base font-bold">Messages</span>
           </div>
           <div className="flex items-center gap-1.5">
-            {totalUnread > 0 && (
-              <>
+            {displayUnread > 0 && (
+              <motion.span
+                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-accent/15"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={springs.elastic}
+              >
                 <span className="w-2 h-2 rounded-full bg-accent animate-pulse" aria-hidden="true" />
                 <span className="text-[11px] text-accent font-semibold">
-                  {totalUnread} nouveau{totalUnread > 1 ? "x" : ""}
+                  {displayUnread} nouveau{displayUnread > 1 ? "x" : ""}
                 </span>
-              </>
+              </motion.span>
             )}
           </div>
         </div>
       </header>
 
-      {/* Loading state */}
-      {user && loading && (
-        <div className="flex justify-center items-center py-12">
-          <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+      {/* Loading skeleton */}
+      {loading && (
+        <div className="px-4 py-3 space-y-1">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3.5 py-3.5 animate-pulse">
+              <div className="w-14 h-14 rounded-full bg-border/50 shrink-0" />
+              <div className="flex-1 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="h-4 w-24 rounded bg-border/50" />
+                  <div className="h-3 w-10 rounded bg-border/30" />
+                </div>
+                <div className="h-3 w-48 rounded bg-border/30" />
+                <div className="h-2.5 w-16 rounded bg-border/20" />
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
@@ -364,26 +447,30 @@ export default function ChatPage() {
       </div>
 
       {/* Chat list */}
-      <div role="list" aria-label="Conversations">
-        <p className="text-[10px] text-text-muted uppercase tracking-widest font-semibold px-4 pt-4 pb-2">Conversations</p>
-        {conversations.length === 0 && !loading && (
-          <div className="flex flex-col items-center justify-center py-16 text-center px-4">
-            <div className="w-16 h-16 rounded-full gradient-bg-subtle border border-accent/20 flex items-center justify-center mb-4">
-              <span className="text-2xl">💬</span>
+      {!loading && (
+        <div role="list" aria-label="Conversations">
+          <p className="text-[10px] text-text-muted uppercase tracking-widest font-semibold px-4 pt-4 pb-2">Conversations</p>
+          {conversations.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-16 text-center px-4">
+              <motion.div
+                className="w-16 h-16 rounded-full gradient-bg-subtle border border-accent/20 flex items-center justify-center mb-4"
+                animate={ambient.float(5)}
+              >
+                <span className="text-2xl">💬</span>
+              </motion.div>
+              <p className="text-sm text-text-muted">Aucune conversation</p>
+              <p className="text-xs text-text-muted mt-1">Explore les profils et envoie un message !</p>
             </div>
-            <p className="text-sm text-text-muted">Aucune conversation</p>
-            <p className="text-xs text-text-muted mt-1">Explore les profils et envoie un message !</p>
-          </div>
-        )}
-        {conversations.map((convo) => (
-          <ConversationRow
-            key={convo.id}
-            convo={convo}
-            onArchive={archiveConversation}
-            onDelete={deleteConversation}
-          />
-        ))}
-      </div>
+          )}
+          {conversations.map((convo, i) => (
+            <ConversationRow
+              key={convo.id}
+              convo={convo}
+              index={i}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

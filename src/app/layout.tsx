@@ -7,31 +7,31 @@ const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space
 
 export const metadata: Metadata = {
   title: {
-    default: "CeSoir — Trouve quelqu'un ce soir",
+    default: "CeSoir — Trouve quelqu'un pour ce soir",
     template: "%s | CeSoir",
   },
-  description: "L'app qui te connecte avec des gens pres de toi, disponibles ce soir. 14 modes de rencontre. 100% gratuit.",
+  description: "L'app qui connecte les gens seuls ce soir. 14 modes, matching en temps reel, gratuit.",
+  keywords: "rencontre, sortie, ce soir, dating, plan, soiree, Paris",
   metadataBase: new URL("https://cesoir-app.vercel.app"),
   alternates: { canonical: "/" },
   openGraph: {
-    title: "CeSoir — Trouve quelqu'un ce soir",
-    description: "14 modes de rencontre pour ne plus etre seul(e) ce soir. Diner, sport, langues, chiens, gaming... 100% gratuit.",
+    title: "CeSoir — Trouve quelqu'un pour ce soir",
+    description: "L'app qui connecte les gens seuls ce soir. 14 modes, matching en temps reel, gratuit.",
     url: "https://cesoir-app.vercel.app",
     siteName: "CeSoir",
     locale: "fr_FR",
     type: "website",
-    images: [{ url: "/icon.svg", width: 512, height: 512, alt: "CeSoir logo" }],
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "CeSoir — Trouve quelqu'un pour ce soir" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "CeSoir — Trouve quelqu'un ce soir",
-    description: "14 modes de rencontre. Ce soir, pas demain.",
-    images: ["/icon.svg"],
+    title: "CeSoir — Trouve quelqu'un pour ce soir",
+    description: "L'app qui connecte les gens seuls ce soir. 14 modes, matching en temps reel, gratuit.",
   },
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "CeSoir",
   },
   robots: {
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#FFFFFF",
+  themeColor: "#8B5CF6",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
