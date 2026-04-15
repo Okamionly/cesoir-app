@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { mapVariants, springs, micro, ambient } from "@/lib/motion-design";
 import Link from "next/link";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { useAuth } from "@/context/AuthContext";
@@ -42,7 +43,7 @@ interface HeatZone {
 
 export default function MapPage() {
   const { user } = useAuth();
-  const { position, error, loading } = useGeolocation(user?.id);
+  const { latitude, longitude, error, loading } = useGeolocation();
   const [filter, setFilter] = useState<ModeKey | "all">("all");
   const [selected, setSelected] = useState<Profile | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<OpenEvent | null>(null);
@@ -55,8 +56,8 @@ export default function MapPage() {
   const eventMarkersRef = useRef<maplibregl.Marker[]>([]);
   const heatMarkersRef = useRef<HTMLDivElement[]>([]);
 
-  const center = position ? { lat: position.lat, lng: position.lng } : { lat: 48.8566, lng: 2.3522 };
-  const { profiles: realProfiles } = useProfiles(position?.lat, position?.lng, filter === "all" ? undefined : filter);
+  const center = latitude && longitude ? { lat: latitude, lng: longitude } : { lat: 48.8566, lng: 2.3522 };
+  const { profiles: realProfiles } = useProfiles(latitude ?? undefined, longitude ?? undefined, filter === "all" ? undefined : filter);
 
   const profilesWithPos = useMemo(() => {
     if (realProfiles.length > 0) {
@@ -131,7 +132,22 @@ export default function MapPage() {
     markersRef.current.forEach(m => m.remove());
     markersRef.current = [];
 
-    filtered.forEach(p => {
+    // Inject radial-burst keyframes once for MapLibre DOM markers
+    if (!document.getElementById("radial-burst-styles")) {
+      const burstStyle = document.createElement("style");
+      burstStyle.id = "radial-burst-styles";
+      burstStyle.textContent = `
+        @keyframes radial-burst {
+          0% { transform: scale(0); opacity: 0; }
+          60% { transform: scale(1.15); opacity: 1; }
+          80% { transform: scale(0.95); }
+          100% { transform: scale(1); opacity: 1; }
+        }
+      `;
+      document.head.appendChild(burstStyle);
+    }
+
+    filtered.forEach((p, idx) => {
       const color = MODE_COLORS[p.mode] || "#8B5CF6";
 
       const el = document.createElement("div");
@@ -139,7 +155,8 @@ export default function MapPage() {
         width: 40px; height: 40px; border-radius: 50%; overflow: hidden;
         border: 3px solid ${color}; cursor: pointer;
         box-shadow: 0 0 12px ${color}44;
-        transition: transform 0.2s;
+        transform: scale(0); opacity: 0;
+        animation: radial-burst 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) ${idx * 0.05}s forwards;
       `;
       el.innerHTML = `<img src="${p.photo}" style="width:100%;height:100%;object-fit:cover;" />`;
       el.onmouseenter = () => { el.style.transform = "scale(1.2)"; };
@@ -261,14 +278,16 @@ export default function MapPage() {
             <span className="text-base font-bold">Carte</span>
           </div>
           <div className="flex items-center gap-2">
-            <Link
-              href="/flash-plans"
-              className="flex items-center gap-1 bg-accent/10 border border-accent/20 px-2.5 py-1 rounded-full tap-target"
-            >
-              <span className="text-[10px]" aria-hidden="true">⚡</span>
-              <span className="text-[10px] text-accent font-semibold">Flash Plans</span>
-            </Link>
-            <button
+            <motion.div whileHover={micro.hoverLift} whileTap={micro.tapScale}>
+              <Link
+                href="/flash-plans"
+                className="flex items-center gap-1 bg-accent/10 border border-accent/20 px-2.5 py-1 rounded-full tap-target"
+              >
+                <span className="text-[10px]" aria-hidden="true">⚡</span>
+                <span className="text-[10px] text-accent font-semibold">Flash Plans</span>
+              </Link>
+            </motion.div>
+            <motion.button
               onClick={() => setShowHeatMap(!showHeatMap)}
               className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold border tap-target transition-all ${
                 showHeatMap
@@ -276,25 +295,43 @@ export default function MapPage() {
                   : "border-border text-text-muted"
               }`}
               aria-pressed={showHeatMap}
+              whileHover={{ scale: 1.1, rotate: 15 }}
+              whileTap={{ scale: 0.9 }}
+              transition={springs.micro}
             >
               Zones chaudes {showHeatMap ? "●" : "○"}
-            </button>
+            </motion.button>
             <div className="text-[11px] text-text-muted">
-              {loading ? "Localisation..." : error ? <span className="text-danger">{error}</span> : <><span className="w-1.5 h-1.5 rounded-full bg-safe inline-block mr-1" />{filtered.length}</>}
+              {loading ? "Localisation..." : error ? <span className="text-danger">{error}</span> : <><span className="w-1.5 h-1.5 rounded-full bg-safe inline-block mr-1" /><motion.span key={`count-${filtered.length}`} initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={springs.snap}>{filtered.length}</motion.span></>}
             </div>
           </div>
         </div>
         <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-2">
-          <button onClick={() => setFilter("all")} className={`shrink-0 px-3 py-1.5 rounded-full text-[10px] font-semibold border tap-target ${filter === "all" ? "border-accent gradient-bg-subtle text-accent" : "border-border text-text-muted"}`}>
+          <motion.button
+            onClick={() => setFilter("all")}
+            className={`shrink-0 px-3 py-1.5 rounded-full text-[10px] font-semibold border tap-target ${filter === "all" ? "border-accent gradient-bg-subtle text-accent" : "border-border text-text-muted"}`}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ ...springs.snap, delay: 0 }}
+            whileTap={micro.tapScale}
+          >
             Tout ({MOCK_PROFILES.length})
-          </button>
-          {MODE_KEYS.map(k => {
+          </motion.button>
+          {MODE_KEYS.map((k, i) => {
             const count = MOCK_PROFILES.filter(p => p.mode === k).length;
             if (count === 0) return null;
             return (
-              <button key={k} onClick={() => setFilter(k)} className={`shrink-0 px-3 py-1.5 rounded-full text-[10px] font-semibold border tap-target ${filter === k ? "border-accent gradient-bg-subtle text-accent" : "border-border text-text-muted"}`}>
-                {MODES[k].icon} {count}
-              </button>
+              <motion.button
+                key={k}
+                onClick={() => setFilter(k)}
+                className={`shrink-0 px-3 py-1.5 rounded-full text-[10px] font-semibold border tap-target ${filter === k ? "border-accent gradient-bg-subtle text-accent" : "border-border text-text-muted"}`}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ ...springs.snap, delay: (i + 1) * 0.04 }}
+                whileTap={micro.tapScale}
+              >
+                {MODES[k].icon} <motion.span key={`${k}-${count}`} initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={springs.snap}>{count}</motion.span>
+              </motion.button>
             );
           })}
         </div>
@@ -303,6 +340,15 @@ export default function MapPage() {
       {/* Map */}
       <div className="flex-1 relative z-0" style={{ minHeight: "calc(100vh - 120px)" }}>
         <div ref={mapContainer} className="w-full h-full" style={{ display: mapFailed ? "none" : "block" }} />
+
+        {/* User position pulsing dot */}
+        {latitude && longitude && !mapFailed && (
+          <motion.div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none"
+            style={{ width: 18, height: 18, borderRadius: "50%", background: "#8B5CF6" }}
+            animate={mapVariants.userDot.idle}
+          />
+        )}
 
         {/* Offline fallback map */}
         {mapFailed && (
@@ -342,31 +388,36 @@ export default function MapPage() {
               );
             })}
 
-            {/* Profile markers on fallback */}
+            {/* Profile markers on fallback — radial burst */}
             {filtered.slice(0, 12).map((p, i) => {
               const color = MODE_COLORS[p.mode] || "#8B5CF6";
               return (
-                <button
+                <motion.button
                   key={`fb-${i}`}
-                  className="absolute flex items-center justify-center cursor-pointer transition-transform hover:scale-125"
+                  className="absolute flex items-center justify-center cursor-pointer"
                   style={{
                     width: 40, height: 40, borderRadius: "50%", overflow: "hidden",
                     border: `3px solid ${color}`,
                     boxShadow: `0 0 12px ${color}44`,
                     top: `${20 + ((p.pos.lat - center.lat + 0.015) / 0.03) * 60}%`,
                     left: `${10 + ((p.pos.lng - center.lng + 0.015) / 0.03) * 80}%`,
-                    transform: "translate(-50%, -50%)",
                   }}
+                  variants={mapVariants.marker}
+                  initial="hidden"
+                  animate="visible"
+                  custom={i}
+                  whileHover={{ scale: 1.25, transition: springs.snap }}
+                  whileTap={micro.tapScale}
                   onClick={() => { setSelected(p); setSelectedEvent(null); }}
                 >
                   <img src={p.photo} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                </button>
+                </motion.button>
               );
             })}
 
-            {/* Open events on fallback */}
+            {/* Open events on fallback — radial burst */}
             {openEvents.map((ev, i) => (
-              <button
+              <motion.button
                 key={`fb-ev-${i}`}
                 className="absolute flex items-center justify-center cursor-pointer"
                 style={{
@@ -375,40 +426,63 @@ export default function MapPage() {
                   boxShadow: "0 0 20px rgba(139,92,246,0.4)",
                   top: `${20 + ((ev.lat - center.lat + 0.015) / 0.03) * 60}%`,
                   left: `${10 + ((ev.lng - center.lng + 0.015) / 0.03) * 80}%`,
-                  transform: "translate(-50%, -50%)",
-                  animation: "pulse-dot 2s ease-in-out infinite",
                 }}
+                variants={mapVariants.marker}
+                initial="hidden"
+                animate="visible"
+                custom={filtered.length + i}
+                whileTap={micro.tapScale}
                 onClick={() => { setSelectedEvent(ev); setSelected(null); }}
               >
                 <span style={{ fontSize: 22 }}>🎉</span>
-              </button>
+              </motion.button>
             ))}
 
-            {/* Offline notice */}
-            <div className="absolute bottom-28 left-1/2 -translate-x-1/2 z-10">
+            {/* Offline notice — slide up */}
+            <motion.div
+              className="absolute bottom-28 left-1/2 -translate-x-1/2 z-10"
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ ...springs.heavy, delay: 0.3 }}
+            >
               <div className="bg-black/60 backdrop-blur-sm border border-white/10 rounded-full px-4 py-2 flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-warn animate-pulse" />
                 <span className="text-[11px] text-white/70 whitespace-nowrap">Carte hors-ligne — connecte-toi pour la carte complete</span>
               </div>
-            </div>
+            </motion.div>
           </div>
         )}
 
-        {/* Selected profile */}
+        {/* Selected profile — bottom sheet with springs.heavy */}
         <AnimatePresence>
           {selected && (
             <motion.div
               className="absolute bottom-24 left-3 right-3 z-[1000]"
-              initial={{ y: 100, opacity: 0 }}
+              initial={{ y: "100%", opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 100, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+              exit={{ y: "100%", opacity: 0 }}
+              transition={springs.heavy}
             >
               <div className="bg-bg border border-border rounded-2xl p-4 shadow-glow">
-                <button onClick={() => setSelected(null)} className="absolute top-3 right-3 w-7 h-7 rounded-full bg-bg-card border border-border flex items-center justify-center text-xs text-text-muted tap-target" aria-label="Fermer">✕</button>
+                <motion.button
+                  onClick={() => setSelected(null)}
+                  className="absolute top-3 right-3 w-7 h-7 rounded-full bg-bg-card border border-border flex items-center justify-center text-xs text-text-muted tap-target"
+                  aria-label="Fermer"
+                  whileHover={{ scale: 1.1, rotate: 15 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={springs.micro}
+                >✕</motion.button>
 
                 <div className="flex items-center gap-3 mb-3">
-                  <img src={selected.photo} alt={selected.name} className="w-14 h-14 rounded-full object-cover border-2" style={{ borderColor: MODE_COLORS[selected.mode] }} />
+                  <motion.img
+                    src={selected.photo}
+                    alt={selected.name}
+                    className="w-14 h-14 rounded-full object-cover border-2"
+                    style={{ borderColor: MODE_COLORS[selected.mode] }}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ ...springs.elastic, delay: 0.1 }}
+                  />
                   <div>
                     <h3 className="text-[15px] font-bold">{selected.name}, {selected.age}</h3>
                     <div className="flex items-center gap-2 text-[11px] text-text-muted">
@@ -419,44 +493,72 @@ export default function MapPage() {
                 </div>
 
                 <div className="flex items-center gap-1.5 mb-2">
-                  <span className="bg-accent/10 border border-accent/15 px-2.5 py-0.5 rounded-full text-[10px] text-accent font-medium">
+                  <motion.span
+                    className="bg-accent/10 border border-accent/15 px-2.5 py-0.5 rounded-full text-[10px] text-accent font-medium"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ ...springs.snap, delay: 0.15 }}
+                  >
                     {MODES[selected.mode].icon} {MODES[selected.mode].name}
-                  </span>
-                  {selected.cuisine && <span className="bg-bg-card border border-border px-2 py-0.5 rounded-full text-[10px] text-text-muted">🍽️ {selected.cuisine}</span>}
-                  {selected.dog && <span className="bg-bg-card border border-border px-2 py-0.5 rounded-full text-[10px] text-text-muted">🐶 {selected.dog}</span>}
+                  </motion.span>
+                  {selected.cuisine && <motion.span className="bg-bg-card border border-border px-2 py-0.5 rounded-full text-[10px] text-text-muted" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ ...springs.snap, delay: 0.2 }}>🍽️ {selected.cuisine}</motion.span>}
+                  {selected.dog && <motion.span className="bg-bg-card border border-border px-2 py-0.5 rounded-full text-[10px] text-text-muted" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ ...springs.snap, delay: 0.25 }}>🐶 {selected.dog}</motion.span>}
                 </div>
 
                 <p className="text-[12px] text-text-muted leading-relaxed line-clamp-2 mb-3">{selected.bio}</p>
 
-                <div className="flex gap-2">
-                  <button className="flex-1 gradient-bg text-white py-2.5 rounded-full text-[12px] font-semibold active:scale-95 transition-transform tap-target">♥ Like</button>
-                  <button className="px-4 py-2.5 border border-border rounded-full text-[12px] font-medium text-text-muted active:scale-95 transition-transform tap-target">Profil</button>
-                </div>
+                <motion.div
+                  className="flex gap-2"
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ ...springs.heavy, delay: 0.2 }}
+                >
+                  <motion.button
+                    className="flex-1 gradient-bg text-white py-2.5 rounded-full text-[12px] font-semibold tap-target"
+                    whileTap={micro.tapScale}
+                  >♥ Like</motion.button>
+                  <motion.button
+                    className="px-4 py-2.5 border border-border rounded-full text-[12px] font-medium text-text-muted tap-target"
+                    whileTap={micro.tapScale}
+                  >Profil</motion.button>
+                </motion.div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Selected open event */}
+        {/* Selected open event — bottom sheet with springs.heavy */}
         <AnimatePresence>
           {selectedEvent && (
             <motion.div
               className="absolute bottom-24 left-3 right-3 z-[1000]"
-              initial={{ y: 100, opacity: 0 }}
+              initial={{ y: "100%", opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 100, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+              exit={{ y: "100%", opacity: 0 }}
+              transition={springs.heavy}
             >
               <div className="bg-bg border border-accent/20 rounded-2xl p-4 shadow-glow">
-                <button onClick={() => setSelectedEvent(null)} className="absolute top-3 right-3 w-7 h-7 rounded-full bg-bg-card border border-border flex items-center justify-center text-xs text-text-muted tap-target" aria-label="Fermer">✕</button>
+                <motion.button
+                  onClick={() => setSelectedEvent(null)}
+                  className="absolute top-3 right-3 w-7 h-7 rounded-full bg-bg-card border border-border flex items-center justify-center text-xs text-text-muted tap-target"
+                  aria-label="Fermer"
+                  whileHover={{ scale: 1.1, rotate: 15 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={springs.micro}
+                >✕</motion.button>
 
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 rounded-full gradient-bg flex items-center justify-center text-[22px] shadow-glow">
+                  <motion.div
+                    className="w-12 h-12 rounded-full gradient-bg flex items-center justify-center text-[22px] shadow-glow"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ ...springs.elastic, delay: 0.1 }}
+                  >
                     🎉
-                  </div>
+                  </motion.div>
                   <div>
                     <h3 className="text-[15px] font-bold text-text">{selectedEvent.title}</h3>
-                    <p className="text-[11px] text-text-muted">{selectedEvent.time} · {selectedEvent.spots}</p>
+                    <p className="text-[11px] text-text-muted">{selectedEvent.time} · <motion.span key={`spots-${selectedEvent.id}`} initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={springs.snap}>{selectedEvent.spots}</motion.span></p>
                   </div>
                 </div>
 
@@ -464,7 +566,10 @@ export default function MapPage() {
 
                 <motion.button
                   className="w-full gradient-bg text-white py-2.5 rounded-full text-[12px] font-semibold shadow-glow tap-target"
-                  whileTap={{ scale: 0.96 }}
+                  whileTap={micro.tapScale}
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ ...springs.heavy, delay: 0.15 }}
                 >
                   Demander a rejoindre
                 </motion.button>

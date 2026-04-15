@@ -28,7 +28,7 @@ interface UseMatchesResult {
 
 export function useMatches(options: MatchOptions = {}): UseMatchesResult {
   const { user } = useAuth();
-  const { position } = useGeolocation(user?.id);
+  const { latitude, longitude } = useGeolocation();
 
   const [matches, setMatches] = useState<MatchCandidate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +40,7 @@ export function useMatches(options: MatchOptions = {}): UseMatchesResult {
   optionsRef.current = options;
 
   const fetchMatches = useCallback(async () => {
-    if (!user?.id || !position) return;
+    if (!user?.id || !latitude || !longitude) return;
 
     setLoading(true);
     setError(null);
@@ -48,8 +48,8 @@ export function useMatches(options: MatchOptions = {}): UseMatchesResult {
     try {
       const results = await findMatches(
         user.id,
-        position.lat,
-        position.lng,
+        latitude,
+        longitude,
         optionsRef.current,
       );
       setMatches(results);
@@ -61,12 +61,12 @@ export function useMatches(options: MatchOptions = {}): UseMatchesResult {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, position]);
+  }, [user?.id, latitude, longitude]);
 
   // Initial fetch + auto-refresh every 30s
   useEffect(() => {
     // Don't fetch until we have auth + position
-    if (!user?.id || !position) {
+    if (!user?.id || !latitude || !longitude) {
       setLoading(false);
       return;
     }
@@ -75,7 +75,7 @@ export function useMatches(options: MatchOptions = {}): UseMatchesResult {
 
     const interval = setInterval(fetchMatches, REFRESH_INTERVAL_MS);
     return () => clearInterval(interval);
-  }, [fetchMatches, user?.id, position]);
+  }, [fetchMatches, user?.id, latitude, longitude]);
 
   return { matches, loading, error, refresh: fetchMatches };
 }

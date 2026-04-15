@@ -23,7 +23,7 @@ import MidnightReset from "@/components/app/MidnightReset";
 
 export default function BrowsePage() {
   const { user } = useAuth();
-  const { position } = useGeolocation(user?.id);
+  const { latitude, longitude } = useGeolocation();
   const [filter, setFilter] = useState<ModeKey | "all">("all");
   const [idx, setIdx] = useState(0);
   const [info, setInfo] = useState(false);
@@ -31,7 +31,7 @@ export default function BrowsePage() {
   const [matchConvoId, setMatchConvoId] = useState<string | null>(null);
   const [showPulse, setShowPulse] = useState(false);
   const [showReport, setShowReport] = useState(false);
-  const { profiles } = useProfiles(position?.lat, position?.lng, filter === "all" ? undefined : filter);
+  const { profiles } = useProfiles(latitude ?? undefined, longitude ?? undefined, filter === "all" ? undefined : filter);
   const { like, pass, report } = useInteractions(user?.id);
 
   // Use real profiles if available, fallback to mock
