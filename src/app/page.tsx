@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FadeInSection, StaggerContainer, StaggerItem, ScaleIn } from "@/components/landing/AnimatedSection";
 import { CountUpNumbers } from "@/components/landing/CountUpNumbers";
+import { Moon3DLoader } from "@/components/landing/Moon3DLoader";
 
 export default function LandingPage() {
   return (
@@ -16,8 +17,8 @@ export default function LandingPage() {
 
         {/* Content */}
         <div className="relative z-10 flex flex-col items-center">
-          {/* Moon logo */}
-          <span className="text-6xl text-[#8B5CF6] mb-6 drop-shadow-[0_0_30px_rgba(139,92,246,0.5)]" style={{ animation: "float 6s ease-in-out infinite" }}>☾</span>
+          {/* 3D Moon globe */}
+          <Moon3DLoader />
 
           {/* App name — massive */}
           <h1 className="text-[80px] sm:text-[120px] font-black tracking-tighter leading-none mb-4" style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
