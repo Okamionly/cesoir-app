@@ -77,7 +77,7 @@ export default function ModesPage() {
               animate={modesVariants.floatLoop(index)}
             >
               <Link
-                href={`/browse?mode=${key}`}
+                href={`/modes/${key}`}
                 className="block bg-bg-card border border-border rounded-2xl p-4 hover:border-accent/30"
               >
                 <div className="flex items-start justify-between mb-2">

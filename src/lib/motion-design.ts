@@ -603,6 +603,127 @@ export const discoverVariants = {
   } satisfies Variants,
 };
 
+/**
+ * VIBES — Musical pulse
+ * Mood cards stagger from scale with elastic springs,
+ * equalizer bars bounce, songs slide in from left
+ */
+export const vibesVariants = {
+  grid: {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.05, delayChildren: 0.1 },
+    },
+  } satisfies Variants,
+  moodCard: {
+    hidden: { opacity: 0, scale: 0.7 },
+    visible: (i: number) => ({
+      opacity: 1,
+      scale: 1,
+      transition: {
+        ...springs.elastic,
+        delay: i * 0.05,
+      },
+    }),
+  } satisfies Variants,
+  songRow: {
+    hidden: { opacity: 0, x: -20 },
+    visible: (i: number) => ({
+      opacity: 1,
+      x: 0,
+      transition: { ...springs.heavy, delay: i * 0.08 },
+    }),
+  } satisfies Variants,
+  shareCard: {
+    hidden: { scale: 0.8, opacity: 0 },
+    visible: {
+      scale: 1,
+      opacity: 1,
+      transition: springs.elastic,
+    },
+    exit: { scale: 0.8, opacity: 0, transition: { duration: 0.2 } },
+  } satisfies Variants,
+  glowPulse: (color: string) => ({
+    boxShadow: [
+      `0 0 0px ${color}00`,
+      `0 0 24px ${color}40`,
+      `0 0 0px ${color}00`,
+    ],
+    transition: { duration: 2, repeat: Infinity, ease: "easeInOut" as const },
+  }),
+};
+
+/**
+ * IDEAS — Date suggestion cards
+ * Swipe cards use browseVariants physics, dice spins with rubber spring,
+ * chips stagger with snap, card expand scales with heavy spring
+ */
+export const ideasVariants = {
+  chip: {
+    hidden: { opacity: 0, x: -15, scale: 0.9 },
+    visible: (i: number) => ({
+      opacity: 1,
+      x: 0,
+      scale: 1,
+      transition: { ...springs.snap, delay: i * 0.04 },
+    }),
+    tap: { scale: 0.92, transition: springs.micro },
+  } satisfies Variants,
+  card: {
+    hidden: { opacity: 0, scale: 0.85, y: 30 },
+    visible: (i: number) => ({
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: { ...springs.elastic, delay: i * 0.04 },
+    }),
+    hover: {
+      y: -4,
+      boxShadow: "0 12px 30px rgba(0,0,0,0.1)",
+      transition: springs.gentle,
+    },
+    tap: { scale: 0.97, transition: springs.micro },
+  } satisfies Variants,
+  grid: {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.04, delayChildren: 0.1 },
+    },
+  } satisfies Variants,
+  savedItem: {
+    hidden: { opacity: 0, scale: 0.8, y: 10 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: springs.elastic,
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.8,
+      x: -50,
+      transition: { duration: 0.2 },
+    },
+  } satisfies Variants,
+  saveHeart: {
+    hidden: { scale: 0 },
+    visible: {
+      scale: [0, 1.3, 0.9, 1.1, 1],
+      transition: { duration: 0.5, times: [0, 0.3, 0.5, 0.7, 1] },
+    },
+  } satisfies Variants,
+  diceRoll: {
+    idle: { rotate: 0, scale: 1 },
+    spinning: {
+      rotate: 720,
+      scale: [1, 1.2, 1],
+      transition: { ...springs.rubber, duration: 0.6 },
+    },
+  } satisfies Variants,
+};
+
 // ─────────────────────────────────────────
 // MICRO-INTERACTIONS — reusable touches
 // ─────────────────────────────────────────

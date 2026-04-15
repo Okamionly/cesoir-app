@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { MODES, MODE_KEYS } from "@/lib/modes";
-import { BADGES, type BadgeKey } from "@/lib/badges";
+import { getBadgeById, RARITY_CONFIG, type Badge } from "@/lib/badges";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -15,7 +15,7 @@ async function getPublicProfile(id: string) {
     age: 28,
     bio: "Passione de cuisine, de langues et de decouvertes. Toujours partant pour un bon diner ou une balade nocturne.",
     activeModes: ["solo-diner", "langue", "dog-date"] as string[],
-    badges: ["verified", "foodie", "early-adopter"] as BadgeKey[],
+    badges: ["verifie", "foodie-certifie", "fondateur"] as string[],
     city: "Paris",
     meetupCount: 12,
   };
@@ -41,7 +41,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function PublicProfilePage({ params }: PageProps) {
   const { id } = await params;
   const profile = await getPublicProfile(id);
-  const profileBadges = profile.badges.map((key) => BADGES[key]).filter(Boolean);
+  const profileBadges = profile.badges.map((key) => getBadgeById(key)).filter((b): b is Badge => b !== undefined);
 
   return (
     <div className="min-h-screen bg-bg">
@@ -117,20 +117,23 @@ export default async function PublicProfilePage({ params }: PageProps) {
           <div className="mt-6">
             <p className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3">Badges</p>
             <div className="flex flex-wrap gap-2">
-              {profileBadges.map((badge) => (
-                <div
-                  key={badge.key}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-[12px] font-medium"
-                  style={{
-                    borderColor: `${badge.color}30`,
-                    background: `${badge.color}10`,
-                    color: badge.color,
-                  }}
-                >
-                  <span aria-hidden="true">{badge.icon}</span>
-                  <span>{badge.label}</span>
-                </div>
-              ))}
+              {profileBadges.map((badge) => {
+                const color = RARITY_CONFIG[badge.rarity].borderColor;
+                return (
+                  <div
+                    key={badge.id}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border text-[12px] font-medium"
+                    style={{
+                      borderColor: `${color}30`,
+                      background: `${color}10`,
+                      color,
+                    }}
+                  >
+                    <span aria-hidden="true">{badge.emoji}</span>
+                    <span>{badge.name}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
