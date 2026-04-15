@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 
 // ---------------------------------------------------------------------------
@@ -67,6 +67,16 @@ function SwapIcon() {
 export function FABMenu({ onDispo, onNewPlan, onSOS, onChangeMode }: FABMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
 
+  // Close on Escape key for keyboard accessibility
+  const handleEscape = useCallback((e: KeyboardEvent) => {
+    if (e.key === "Escape" && isOpen) setIsOpen(false);
+  }, [isOpen]);
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [handleEscape]);
+
   const actions: FABAction[] = [
     {
       label: "Dispo ce soir",
@@ -120,8 +130,9 @@ export function FABMenu({ onDispo, onNewPlan, onSOS, onChangeMode }: FABMenuProp
 
       {/* Action buttons */}
       <AnimatePresence>
-        {isOpen &&
-          actions.map((action, i) => (
+        {isOpen && (
+          <div role="menu" aria-label="Actions rapides">
+          {actions.map((action, i) => (
             <motion.div
               key={action.label}
               initial={{ opacity: 0, x: 0, y: 0, scale: 0.3 }}
@@ -145,6 +156,7 @@ export function FABMenu({ onDispo, onNewPlan, onSOS, onChangeMode }: FABMenuProp
               </span>
               <button
                 onClick={action.onClick}
+                role="menuitem"
                 className="flex h-12 w-12 items-center justify-center rounded-full text-white shadow-lg transition-transform active:scale-90"
                 style={{ backgroundColor: action.color }}
                 aria-label={action.label}
@@ -153,6 +165,8 @@ export function FABMenu({ onDispo, onNewPlan, onSOS, onChangeMode }: FABMenuProp
               </button>
             </motion.div>
           ))}
+          </div>
+        )}
       </AnimatePresence>
 
       {/* Main FAB */}
@@ -162,6 +176,8 @@ export function FABMenu({ onDispo, onNewPlan, onSOS, onChangeMode }: FABMenuProp
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
         className="relative z-[801] flex h-14 w-14 items-center justify-center rounded-full shadow-lg shadow-accent/30 gradient-bg"
         aria-label={isOpen ? "Fermer le menu" : "Ouvrir le menu"}
+        aria-expanded={isOpen}
+        aria-haspopup="true"
       >
         <span className="text-xl font-bold text-white select-none">
           {isOpen ? "+" : "\u263E"}

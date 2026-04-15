@@ -113,7 +113,7 @@ export default function ProfilePage() {
           style={{ y: bgY, scale: bgScale }}
         >
           {avatarUrl ? (
-            <img src={avatarUrl} alt="" className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-30" aria-hidden="true" />
+            <img src={avatarUrl} alt="" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover blur-2xl opacity-30" aria-hidden="true" />
           ) : (
             <div className="absolute inset-0 gradient-bg opacity-20" />
           )}
@@ -380,7 +380,7 @@ export default function ProfilePage() {
         <div className="bg-bg-card border border-border rounded-2xl overflow-hidden divide-y divide-border">
           {[
             { label: "Modifier mon profil", sub: "Photos, bio, prompts", href: "/profile/edit" },
-            { label: "Verification video", sub: "Selfie video pour la confiance", href: "/profile/verify" as string | null },
+            { label: "Verification", sub: "Badge Verifie via selfie, SMS ou social", href: "/profile/verify" as string | null },
             { label: "Preferences", sub: "Age, distance, genre", href: "/settings" },
             { label: "Notifications", sub: "Matchs, messages, rappels", href: "/settings" },
             { label: "Securite", sub: "Mot de passe, blocage, signalement", href: "/safety" },

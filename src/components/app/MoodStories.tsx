@@ -183,7 +183,7 @@ function StoryViewer({ stories, initialIndex, onClose }: StoryViewerProps) {
               className="w-8 h-8 rounded-full p-[2px]"
               style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)" }}
             >
-              <img src={story.photo} alt="" className="w-full h-full rounded-full object-cover" />
+              <img src={story.photo} alt="" loading="lazy" decoding="async" className="w-full h-full rounded-full object-cover" />
             </div>
             <div>
               <p className="text-[13px] font-bold text-white">{story.name}</p>

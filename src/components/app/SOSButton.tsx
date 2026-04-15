@@ -2,11 +2,14 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { useSafety } from "@/lib/useSafety";
 
 export default function SOSButton() {
+  const { triggerSOS, sosActive } = useSafety();
   const [activated, setActivated] = useState(false);
   const [countdown, setCountdown] = useState(30);
   const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null);
+  const [sent, setSent] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Triple-tap detection on any moon logo element
@@ -55,7 +58,6 @@ export default function SOSButton() {
           setPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         },
         () => {
-          // Geolocation denied or unavailable
           setPosition(null);
         },
         { enableHighAccuracy: true, timeout: 10000 },
@@ -63,10 +65,11 @@ export default function SOSButton() {
     }
   }, [activated]);
 
-  // Countdown timer
+  // Countdown timer -- when it hits 0, trigger the real SOS via useSafety
   useEffect(() => {
     if (!activated) {
       setCountdown(30);
+      setSent(false);
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
@@ -78,12 +81,11 @@ export default function SOSButton() {
     intervalRef.current = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
-          // Simulate emergency call
-          console.log("[SOS] Appel d'urgence simule", {
-            timestamp: new Date().toISOString(),
-            position,
-          });
-          console.log("[SOS] Notification envoyee aux contacts d'urgence");
+          if (intervalRef.current) clearInterval(intervalRef.current);
+          intervalRef.current = null;
+          // Fire the centralized SOS
+          triggerSOS();
+          setSent(true);
           return 0;
         }
         return prev - 1;
@@ -96,12 +98,13 @@ export default function SOSButton() {
         intervalRef.current = null;
       }
     };
-  }, [activated, position]);
+  }, [activated, triggerSOS]);
 
   const handleCancel = useCallback(() => {
     setActivated(false);
     setCountdown(30);
     setPosition(null);
+    setSent(false);
   }, []);
 
   return (
@@ -145,11 +148,13 @@ export default function SOSButton() {
           </h2>
 
           <p className="text-white/90 text-center px-8 mb-6 text-sm leading-relaxed">
-            Envoi de ta position a tes contacts d&apos;urgence...
+            {sent
+              ? "Alerte envoyee a tes contacts de confiance."
+              : "Envoi de ta position a tes contacts d'urgence..."}
           </p>
 
           {/* Countdown */}
-          {countdown > 0 ? (
+          {countdown > 0 && !sent ? (
             <div className="mb-8">
               <div className="text-6xl font-bold text-white font-display tabular-nums">
                 {countdown}
@@ -161,7 +166,9 @@ export default function SOSButton() {
           ) : (
             <div className="mb-8 text-center">
               <p className="text-white text-lg font-semibold">
-                Appel d&apos;urgence en cours...
+                {sosActive
+                  ? "Envoi en cours..."
+                  : "Tes contacts ont ete alertes."}
               </p>
               {position && (
                 <p className="text-white/70 text-xs mt-2">
@@ -172,7 +179,7 @@ export default function SOSButton() {
           )}
 
           {/* Progress bar */}
-          {countdown > 0 && (
+          {countdown > 0 && !sent && (
             <div className="w-64 h-1.5 bg-white/20 rounded-full overflow-hidden mb-8">
               <motion.div
                 className="h-full bg-white rounded-full"
@@ -189,7 +196,7 @@ export default function SOSButton() {
             className="tap-target px-8 py-3 rounded-full border-2 border-white text-white font-semibold text-sm transition-colors hover:bg-white hover:text-red-600 active:scale-95"
             aria-label="Annuler l'alerte SOS"
           >
-            Annuler
+            {sent ? "Fermer" : "Annuler"}
           </button>
         </motion.div>
       )}

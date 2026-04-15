@@ -46,7 +46,7 @@ function AvatarCircle({ src, name }: { src: string | null; name: string }) {
   return (
     <div className="w-24 h-24 rounded-full gradient-bg p-[3px] shadow-glow">
       {src ? (
-        <img src={src} alt={name} className="w-full h-full rounded-full object-cover" />
+        <img src={src} alt={name} loading="lazy" decoding="async" className="w-full h-full rounded-full object-cover" />
       ) : (
         <div className="w-full h-full rounded-full bg-bg flex items-center justify-center text-[32px] font-black text-accent">
           {name.charAt(0).toUpperCase()}

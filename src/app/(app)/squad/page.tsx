@@ -203,7 +203,7 @@ export default function SquadPage() {
                   className="w-10 h-10 rounded-full border-2 border-bg overflow-hidden"
                   style={{ marginLeft: i > 0 ? "-8px" : 0, zIndex: mySquad.length - i }}
                 >
-                  <img src={member.photo} alt={member.name} className="w-full h-full object-cover" />
+                  <img src={member.photo} alt={member.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                 </motion.div>
               ))}
               {mySquad.length < 4 && (
@@ -330,7 +330,7 @@ export default function SquadPage() {
                       className="w-9 h-9 rounded-full border-2 border-card overflow-hidden"
                       style={{ marginLeft: j > 0 ? "-10px" : 0, zIndex: squad.members.length - j }}
                     >
-                      <img src={member.photo} alt={member.name} className="w-full h-full object-cover" />
+                      <img src={member.photo} alt={member.name} loading="lazy" decoding="async" className="w-full h-full object-cover" />
                     </motion.div>
                   ))}
                   {squad.members.length > 3 && (

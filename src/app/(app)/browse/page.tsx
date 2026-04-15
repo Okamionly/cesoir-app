@@ -199,7 +199,7 @@ export default function BrowsePage() {
       <ModeFilter active={filter} onChange={(m) => { setFilter(m); setIdx(0); }} />
 
       {/* Card area — 3D Perspective deck */}
-      <main ref={mainRef} className="flex-1 relative px-4 pb-1 overflow-hidden" style={{ perspective: 800 }}>
+      <main ref={mainRef} className="flex-1 relative px-4 pb-1 overflow-hidden" style={{ perspective: 800 }} role="list" aria-label="Profils a decouvrir">
         {/* Loading skeleton — 3 placeholder cards with pulse animation */}
         {loading && matches.length === 0 && (
           <div className="w-full h-full flex flex-col items-center justify-center gap-3">
@@ -241,6 +241,8 @@ export default function BrowsePage() {
               <motion.div
                 key={card.id}
                 className="w-full h-full"
+                role="listitem"
+                aria-label={`${card.name}, ${card.age} ans — ${MODES[card.mode]?.name ?? card.mode}`}
                 variants={browseVariants.card}
                 initial="initial"
                 animate="center"
@@ -257,7 +259,7 @@ export default function BrowsePage() {
                     style={{ scale: swipe.nextScale }}
                   >
                     <div className="absolute inset-0 bg-[#111]" />
-                    <img src={next1.photo} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20 blur-[4px]" />
+                    <img src={next1.photo} alt="" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover opacity-20 blur-[4px]" />
                   </motion.div>
                 )}
                 <SwipeCard
@@ -387,7 +389,7 @@ function MatchToast({ profile, conversationId, onDismiss }: { profile: Profile; 
             <div className="w-12 h-12 rounded-full gradient-bg p-[2px] z-10">
               <div className="w-full h-full rounded-full bg-bg flex items-center justify-center text-[14px] font-bold text-accent">Y</div>
             </div>
-            <img src={profile.photo} alt={profile.name} className="w-12 h-12 rounded-full object-cover border-2 border-bg" />
+            <img src={profile.photo} alt={profile.name} loading="lazy" decoding="async" className="w-12 h-12 rounded-full object-cover border-2 border-bg" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-[14px] font-bold text-text"><span className="gradient-text">Match !</span> {profile.name}</p>

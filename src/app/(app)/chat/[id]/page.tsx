@@ -98,7 +98,7 @@ function ChatBubble({ content, isOwn, time, showTail, readAt }: { content: strin
 
 function TypingIndicator() {
   return (
-    <div className="flex justify-start mt-2">
+    <div className="flex justify-start mt-2" role="status" aria-label="Envoi en cours">
       <div className="bg-[#F2F2F2] rounded-2xl rounded-bl-md px-4 py-3 flex gap-1 items-center">
         {[0, 1, 2].map((i) => (
           <motion.div
@@ -390,6 +390,8 @@ export default function ConversationPage({
               <img
                 src={peer.avatar_url}
                 alt={peer.name}
+                loading="lazy"
+                decoding="async"
                 className="w-10 h-10 rounded-full object-cover"
               />
             ) : (
@@ -588,6 +590,14 @@ export default function ConversationPage({
         mode={convoMode}
         messageCount={messages.length}
         onSelectSuggestion={(text) => setInputValue(text)}
+        unansweredCount={(() => {
+          let count = 0;
+          for (let i = messages.length - 1; i >= 0; i--) {
+            if (messages[i].isOwn) count++;
+            else break;
+          }
+          return count;
+        })()}
       />
 
       {/* Input bar */}

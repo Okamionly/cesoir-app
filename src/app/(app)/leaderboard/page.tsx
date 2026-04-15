@@ -103,7 +103,7 @@ export default function LeaderboardPage() {
             animate={{ opacity: 1, x: 0, boxShadow: GLOW_SHADOWS[2] }}
             transition={{ ...springs.heavy, delay: 2 * 0.06 }}
           >
-            <img src={top3[1].photo} alt={top3[1].name} className="w-16 h-16 rounded-full object-cover border-3" style={{ borderColor: MEDAL_COLORS[2], borderWidth: 3 }} />
+            <img src={top3[1].photo} alt={top3[1].name} loading="lazy" decoding="async" className="w-16 h-16 rounded-full object-cover border-3" style={{ borderColor: MEDAL_COLORS[2], borderWidth: 3 }} />
             <p className="text-[12px] font-bold text-text mt-1.5">{top3[1].name}</p>
             <motion.p
               key={`meetups-2-${top3[1].meetups}`}
@@ -125,7 +125,7 @@ export default function LeaderboardPage() {
             transition={{ ...springs.heavy, delay: 1 * 0.06 }}
           >
             <div className="relative">
-              <img src={top3[0].photo} alt={top3[0].name} className="w-20 h-20 rounded-full object-cover border-3" style={{ borderColor: MEDAL_COLORS[1], borderWidth: 3 }} />
+              <img src={top3[0].photo} alt={top3[0].name} loading="lazy" decoding="async" className="w-20 h-20 rounded-full object-cover border-3" style={{ borderColor: MEDAL_COLORS[1], borderWidth: 3 }} />
               <motion.span
                 className="absolute -top-2 -right-2 text-[18px]"
                 animate={leaderboardVariants.crown.idle}
@@ -154,7 +154,7 @@ export default function LeaderboardPage() {
             animate={{ opacity: 1, x: 0, boxShadow: GLOW_SHADOWS[3] }}
             transition={{ ...springs.heavy, delay: 3 * 0.06 }}
           >
-            <img src={top3[2].photo} alt={top3[2].name} className="w-16 h-16 rounded-full object-cover border-3" style={{ borderColor: MEDAL_COLORS[3], borderWidth: 3 }} />
+            <img src={top3[2].photo} alt={top3[2].name} loading="lazy" decoding="async" className="w-16 h-16 rounded-full object-cover border-3" style={{ borderColor: MEDAL_COLORS[3], borderWidth: 3 }} />
             <p className="text-[12px] font-bold text-text mt-1.5">{top3[2].name}</p>
             <motion.p
               key={`meetups-3-${top3[2].meetups}`}
@@ -191,7 +191,7 @@ export default function LeaderboardPage() {
               <span className="w-6 text-[13px] font-bold text-text-muted text-center shrink-0">
                 {entry.rank}
               </span>
-              <img src={entry.photo} alt={entry.name} className="w-9 h-9 rounded-full object-cover shrink-0" />
+              <img src={entry.photo} alt={entry.name} loading="lazy" decoding="async" className="w-9 h-9 rounded-full object-cover shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-[13px] font-semibold text-text truncate">{entry.name}</p>
                 <p className="text-[10px] text-text-muted">{entry.meetups} rencontres</p>
