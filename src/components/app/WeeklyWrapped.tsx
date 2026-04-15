@@ -72,7 +72,7 @@ export default function WeeklyWrapped({ stats }: WeeklyWrappedProps) {
         ref={cardRef}
         className="relative overflow-hidden rounded-3xl p-6"
         style={{
-          background: "linear-gradient(135deg, #8B5CF6 0%, #ec4899 50%, #f59e0b 100%)",
+          background: "linear-gradient(135deg, #8B5CF6 0%, #00FF88 100%)",
         }}
       >
         <div className="relative z-10 text-white">
@@ -116,7 +116,7 @@ export default function WeeklyWrapped({ stats }: WeeklyWrappedProps) {
         onClick={handleShare}
         className="w-full mt-4 py-3 rounded-full text-sm font-semibold transition-all active:scale-[0.98]"
         style={{
-          background: shared ? "#22c55e" : "linear-gradient(135deg, #8B5CF6, #ec4899)",
+          background: shared ? "#22c55e" : "linear-gradient(135deg, #8B5CF6, #00FF88)",
           color: "#fff",
         }}
       >

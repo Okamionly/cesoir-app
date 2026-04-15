@@ -86,7 +86,7 @@ export default function ModesPage() {
                       <h2 className="text-[15px] font-bold text-text">{mode.name}</h2>
                       <div className="flex items-center gap-1.5 mt-0.5">
                         <span className="w-1.5 h-1.5 rounded-full bg-safe" aria-hidden="true" />
-                        <span className="text-[10px] text-text-muted">{count * 12 + Math.floor(Math.random() * 30)} actifs</span>
+                        <span className="text-[10px] text-text-muted">{count * 12 + (key.length * 7 % 30)} actifs</span>
                       </div>
                     </div>
                   </div>

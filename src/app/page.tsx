@@ -4,7 +4,7 @@ import { CountUpNumbers } from "@/components/landing/CountUpNumbers";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-black text-white overflow-hidden">
+    <div id="main-content" className="min-h-screen bg-black text-white overflow-hidden">
       {/* Full-screen hero — just the name */}
       <section className="relative h-screen flex flex-col items-center justify-center">
         {/* Animated orbs */}
@@ -45,7 +45,7 @@ export default function LandingPage() {
                   </div>
                   {/* Mini mode pills */}
                   <div className="px-3 flex gap-1 mb-2">
-                    <span className="px-2 py-0.5 rounded-full text-[6px] font-semibold bg-[#8B5CF6]/20 text-[#8B5CF6] border border-[#a855f7]/30">Solo Diner</span>
+                    <span className="px-2 py-0.5 rounded-full text-[6px] font-semibold bg-[#8B5CF6]/20 text-[#8B5CF6] border border-[#8B5CF6]/30">Solo Diner</span>
                     <span className="px-2 py-0.5 rounded-full text-[6px] font-semibold bg-white/5 text-white/40 border border-white/10">Night Owl</span>
                     <span className="px-2 py-0.5 rounded-full text-[6px] font-semibold bg-white/5 text-white/40 border border-white/10">Langues</span>
                   </div>
@@ -159,7 +159,7 @@ export default function LandingPage() {
             <StaggerItem key={m.name}>
             <Link
               href="/register"
-              className="flex flex-col items-center gap-2 p-5 rounded-2xl border border-white/5 bg-white/[0.02] hover:border-[#a855f7]/40 hover:bg-white/[0.04] transition-all group"
+              className="flex flex-col items-center gap-2 p-5 rounded-2xl border border-white/5 bg-white/[0.02] hover:border-[#8B5CF6]/40 hover:bg-white/[0.04] transition-all group"
             >
               <span className="text-3xl group-hover:scale-110 transition-transform">{m.icon}</span>
               <span className="text-[13px] font-semibold text-white/70 group-hover:text-white">{m.name}</span>
@@ -205,7 +205,7 @@ export default function LandingPage() {
             },
           ].map((t) => (
             <StaggerItem key={t.name}>
-              <div className="p-5 rounded-2xl border border-[#a855f7]/15 bg-white/[0.02] backdrop-blur-sm relative">
+              <div className="p-5 rounded-2xl border border-[#8B5CF6]/15 bg-white/[0.02] backdrop-blur-sm relative">
                 {/* Quote marks */}
                 <span className="absolute top-3 left-4 text-[32px] text-[#8B5CF6]/20 leading-none font-serif">&ldquo;</span>
                 <div className="pt-6 pb-3">
@@ -279,11 +279,11 @@ export default function LandingPage() {
           <span className="text-lg text-[#8B5CF6]">☾</span>
           <span className="text-base font-bold">CeSoir</span>
         </div>
-        <div className="flex justify-center gap-5 mb-4">
-          <Link href="/safety" className="text-[11px] text-white/60 hover:text-white/60">Securite</Link>
-          <Link href="/modes" className="text-[11px] text-white/60 hover:text-white/60">Modes</Link>
-          <Link href="/cgu" className="text-[11px] text-white/60 hover:text-white/60">CGU</Link>
-          <Link href="/privacy" className="text-[11px] text-white/60 hover:text-white/60">Confidentialite</Link>
+        <div className="flex justify-center gap-6 mb-4">
+          <Link href="/safety" className="text-[13px] text-white/50 hover:text-white transition-colors py-1">Securite</Link>
+          <Link href="/modes" className="text-[13px] text-white/50 hover:text-white transition-colors py-1">Modes</Link>
+          <Link href="/cgu" className="text-[13px] text-white/50 hover:text-white transition-colors py-1">CGU</Link>
+          <Link href="/privacy" className="text-[13px] text-white/50 hover:text-white transition-colors py-1">Confidentialite</Link>
         </div>
         <p className="text-[11px] text-white/60">&copy; 2026 CeSoir. Tous droits reserves.</p>
       </footer>

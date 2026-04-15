@@ -9,7 +9,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <AuthProvider>
       <DarkModeProvider>
         <div className="min-h-screen bg-bg">
-          <main className="pb-safe">
+          <main id="main-content" className="pb-safe">
             <PageTransition>{children}</PageTransition>
           </main>
           <BottomNav />

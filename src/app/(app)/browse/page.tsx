@@ -28,7 +28,7 @@ export default function BrowsePage() {
   const [info, setInfo] = useState(false);
   const [match, setMatch] = useState<Profile | null>(null);
   const [matchConvoId, setMatchConvoId] = useState<string | null>(null);
-  const [showPulse, setShowPulse] = useState(true);
+  const [showPulse, setShowPulse] = useState(false);
   const [showReport, setShowReport] = useState(false);
   const { profiles } = useProfiles(position?.lat, position?.lng, filter === "all" ? undefined : filter);
   const { like, pass, report } = useInteractions(user?.id);
@@ -65,7 +65,7 @@ export default function BrowsePage() {
   const swipe = useSwipe(handleAction);
 
   return (
-    <div className="h-screen bg-bg flex flex-col">
+    <div className="h-screen bg-bg flex flex-col max-w-lg mx-auto">
       {/* Header */}
       <header className="shrink-0 px-5 pt-3 pb-2">
         <div className="flex items-center justify-between">
@@ -85,39 +85,14 @@ export default function BrowsePage() {
         </div>
       </header>
 
-      {/* Notification Preview */}
+      {/* Notification Preview — floating overlay */}
       <NotificationPreview />
 
       {/* Midnight Reset */}
       <MidnightReset />
 
-      {/* Stories Bar */}
-      <StoriesBar />
-
       {/* Mode filter */}
       <ModeFilter active={filter} onChange={(m) => { setFilter(m); setIdx(0); }} />
-
-      {/* Confirm Dispo */}
-      <ConfirmDispo />
-
-      {/* Revanche — Second Chance */}
-      <Revanche />
-
-      {/* Pulse Clock */}
-      <AnimatePresence>
-        {showPulse && (
-          <motion.div
-            key="pulse"
-            className="shrink-0 px-4 pb-2"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25 }}
-          >
-            <PulseClock />
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Card area */}
       <main className="flex-1 relative px-4 pb-1 overflow-hidden">

@@ -69,7 +69,7 @@ export function CountUpNumbers() {
       <div className="text-center">
         <p
           className="text-[36px] sm:text-[44px] font-black tabular-nums"
-          style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
+          style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
         >
           {rencontres.toLocaleString("fr-FR")}
         </p>
@@ -78,7 +78,7 @@ export function CountUpNumbers() {
       <div className="text-center">
         <p
           className="text-[36px] sm:text-[44px] font-black tabular-nums"
-          style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
+          style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
         >
           {modes}
         </p>
@@ -87,7 +87,7 @@ export function CountUpNumbers() {
       <div className="text-center">
         <p
           className="text-[36px] sm:text-[44px] font-black tabular-nums"
-          style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
+          style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
         >
           {avis}/5
         </p>
