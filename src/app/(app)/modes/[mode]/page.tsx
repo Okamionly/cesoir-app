@@ -161,11 +161,11 @@ export default function ModeDetailPage({
       }
       setActivated(true);
       setTimeout(() => {
-        router.push("/browse");
+        router.push(`/browse?mode=${modeKey}`);
       }, 600);
     } catch {
       // Proceed to browse even if insert fails
-      router.push("/browse");
+      router.push(`/browse?mode=${modeKey}`);
     }
   }, [user, modeKey, router]);
 
@@ -335,6 +335,59 @@ export default function ModeDetailPage({
             </div>
           </div>
         </motion.div>
+      </section>
+
+      {/* ─── GOING TONIGHT ─── */}
+      <section className="px-5 py-2" aria-labelledby="going-tonight-heading">
+        <motion.h2
+          id="going-tonight-heading"
+          className="text-[15px] font-bold mb-3"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.45 }}
+        >
+          Going Tonight
+        </motion.h2>
+
+        <div className="space-y-2">
+          {[
+            { title: `${modeData.name} Meetup`, time: "20h30", venue: "Le Comptoir", attendees: Math.max(4, activeCount % 12) },
+            { title: `Soiree ${modeData.tags[0] ?? modeData.name}`, time: "21h00", venue: "Cafe de Flore", attendees: Math.max(3, (activeCount % 8) + 2) },
+          ].map((event, i) => (
+            <motion.div
+              key={i}
+              className="flex items-center gap-3 bg-bg-card border border-border rounded-2xl p-3.5"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 + i * 0.1, ...springs.heavy }}
+            >
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-base"
+                style={{ background: `${modeData.color}12` }}
+              >
+                {modeData.icon}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-[13px] font-bold truncate">{event.title}</h3>
+                <p className="text-[11px] text-text-muted">{event.venue} &middot; {event.time}</p>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex -space-x-1.5">
+                  {Array.from({ length: Math.min(3, event.attendees) }).map((_, j) => (
+                    <div
+                      key={j}
+                      className="w-5 h-5 rounded-full border border-bg"
+                      style={{ background: `${modeData.color}${25 + j * 15}` }}
+                    />
+                  ))}
+                </div>
+                <span className="text-[10px] font-semibold" style={{ color: modeData.color }}>
+                  {event.attendees}
+                </span>
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </section>
 
       {/* ─── COMMENT CA MARCHE ─── */}

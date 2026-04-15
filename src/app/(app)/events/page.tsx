@@ -6,6 +6,7 @@ import { springs, micro } from "@/lib/motion-design";
 import { MODES, type ModeKey } from "@/lib/modes";
 import { MOCK_EVENTS, type PopUpEvent } from "@/lib/popup-events";
 import Link from "next/link";
+import CrossLinkCard from "@/components/app/CrossLinkCard";
 
 // --- Filter tabs ---
 
@@ -166,6 +167,19 @@ function EventCard({
                 </span>
               </div>
 
+              {/* Voir sur la carte */}
+              <Link
+                href={`/map?lat=${event.lat}&lng=${event.lng}&event=${event.id}`}
+                onClick={(e) => e.stopPropagation()}
+                className="shrink-0 flex items-center gap-1 px-2.5 py-1.5 rounded-full border border-border text-[10px] font-semibold text-text-muted hover:border-accent/30 hover:text-accent transition-colors"
+              >
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+                  <circle cx="12" cy="9" r="2.5" />
+                </svg>
+                Carte
+              </Link>
+
               {/* Spacer */}
               <div className="flex-1" />
 
@@ -285,19 +299,30 @@ export default function EventsPage() {
                 {events.length} events
               </span>
             </div>
-            <Link href="/events/create">
-              <motion.span
-                whileHover={{ scale: 1.05, boxShadow: "0 0 15px rgba(139,92,246,0.4)" }}
-                whileTap={{ scale: 0.92 }}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full gradient-bg text-white text-[11px] font-bold shadow-glow"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
-                  <line x1="12" y1="5" x2="12" y2="19" />
-                  <line x1="5" y1="12" x2="19" y2="12" />
-                </svg>
-                Creer
-              </motion.span>
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link href="/events/marketplace">
+                <motion.span
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.92 }}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full border border-accent/30 text-accent text-[11px] font-bold"
+                >
+                  🛍️ Marketplace
+                </motion.span>
+              </Link>
+              <Link href="/events/create">
+                <motion.span
+                  whileHover={{ scale: 1.05, boxShadow: "0 0 15px rgba(139,92,246,0.4)" }}
+                  whileTap={{ scale: 0.92 }}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full gradient-bg text-white text-[11px] font-bold shadow-glow"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
+                  </svg>
+                  Creer
+                </motion.span>
+              </Link>
+            </div>
           </div>
         </motion.div>
 
@@ -342,6 +367,17 @@ export default function EventsPage() {
           "Actualiser"
         )}
       </button>
+
+      {/* Speed Dating link */}
+      <div className="px-4 pb-3">
+        <CrossLinkCard
+          emoji="⚡"
+          title="Speed Dating"
+          subtitle="Rencontres express de 5 min ce soir"
+          href="/speed-dating"
+          gradient="linear-gradient(135deg, rgba(139,92,246,0.08), rgba(0,255,136,0.08))"
+        />
+      </div>
 
       {/* Content */}
       {loading ? (

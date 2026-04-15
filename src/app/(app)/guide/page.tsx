@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { springs, ambient, micro } from "@/lib/motion-design";
+import Link from "next/link";
 import {
   GUIDE_NEIGHBORHOODS,
   type GuideNeighborhood,
@@ -14,6 +15,8 @@ import {
   getActivityLabel,
   getGoogleMapsUrl,
 } from "@/lib/neighborhoodGuide";
+import { MOCK_EVENTS } from "@/lib/popup-events";
+import CrossLinkCard from "@/components/app/CrossLinkCard";
 
 // ─────────────────────────────────────────
 // Motion variants — Guide signature
@@ -231,6 +234,19 @@ export default function GuidePage() {
 
           {/* Local tips */}
           <LocalTips tips={neighborhood.localTips} />
+
+          {/* Events dans ce quartier */}
+          <NeighborhoodEvents arrondissement={neighborhood.arrondissement} />
+
+          {/* Voir sur la carte */}
+          <div className="px-5 mb-6">
+            <CrossLinkCard
+              emoji="🗺️"
+              title="Voir sur la carte"
+              subtitle={`Explorer ${neighborhood.name} en mode carte`}
+              href="/map"
+            />
+          </div>
         </motion.div>
       </AnimatePresence>
     </div>
@@ -353,6 +369,19 @@ function SpotCard({ spot, index }: { spot: Spot; index: number }) {
             </span>
           </div>
 
+          {/* Voir sur la carte */}
+          <Link
+            href={`/map?spot=${encodeURIComponent(spot.name)}`}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-full border border-border text-text-muted text-[10px] font-semibold hover:border-accent/30 hover:text-accent transition-colors"
+            aria-label={`Voir ${spot.name} sur la carte`}
+          >
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+              <circle cx="12" cy="9" r="2.5" />
+            </svg>
+            Carte
+          </Link>
+
           {/* Y aller button */}
           <a
             href={getGoogleMapsUrl(spot.address)}
@@ -414,6 +443,65 @@ function LocalTips({ tips }: { tips: string[] }) {
               {tip}
             </p>
           </motion.div>
+        ))}
+      </div>
+    </motion.section>
+  );
+}
+
+function NeighborhoodEvents({ arrondissement }: { arrondissement: string }) {
+  // Filter events that match this neighborhood's arrondissement
+  const localEvents = MOCK_EVENTS.filter(ev => ev.arrondissement === arrondissement);
+  // Fallback: if no exact match, show first 2 events
+  const eventsToShow = localEvents.length > 0 ? localEvents.slice(0, 3) : MOCK_EVENTS.slice(0, 2);
+
+  return (
+    <motion.section
+      className="px-5 mt-6 mb-4"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={springs.heavy}
+    >
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <span className="text-lg" aria-hidden="true">🔥</span>
+          <h3 className="text-[15px] font-bold text-text">Events dans ce quartier</h3>
+        </div>
+        <Link href="/events" className="text-[11px] text-accent font-semibold">
+          Voir tout
+        </Link>
+      </div>
+      <div className="space-y-2">
+        {eventsToShow.map((event, i) => (
+          <Link key={event.id} href={`/events/${event.id}`} className="block">
+            <motion.div
+              className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border/50"
+              initial={{ opacity: 0, x: -15 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ ...springs.heavy, delay: i * 0.08 }}
+              whileHover={{ y: -2, boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-[#00FF88] flex items-center justify-center shrink-0">
+                <span className="text-base">🎉</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[12px] font-bold text-text truncate">{event.title}</p>
+                <p className="text-[10px] text-text-muted">{event.time} · {event.venue}, {event.arrondissement}</p>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <Link
+                  href={`/map?lat=${event.lat}&lng=${event.lng}&event=${event.id}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center gap-0.5 px-2 py-1 rounded-full border border-border text-[9px] font-semibold text-text-muted hover:text-accent hover:border-accent/30 transition-colors"
+                >
+                  📍 Carte
+                </Link>
+              </div>
+            </motion.div>
+          </Link>
         ))}
       </div>
     </motion.section>

@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence, type TargetAndTransition } from "motion/react";
 import { feedVariants, springs } from "@/lib/motion-design";
 import { MODES, type ModeKey } from "@/lib/modes";
 import { useFeed, type FeedActivity } from "@/lib/useFeed";
 import TutorialOverlay from "@/components/app/TutorialOverlay";
+import StoriesBar from "@/components/app/StoriesBar";
 
 // --- Types ---
 
@@ -260,6 +262,40 @@ export default function FeedPage() {
           )}
         </div>
       </header>
+
+      {/* Stories bar */}
+      <StoriesBar />
+
+      {/* Quick access cards */}
+      <div className="px-4 pt-3 pb-1">
+        <div className="flex gap-2.5 overflow-x-auto no-scrollbar">
+          {([
+            { emoji: "\uD83C\uDFAF", label: "Ta selection", href: "/queue", from: "#8B5CF6", to: "#6D28D9" },
+            { emoji: "\u2728", label: "Standouts", href: "/standouts", from: "#EC4899", to: "#BE185D" },
+            { emoji: "\uD83D\uDD25", label: "Trending", href: "/trending-profiles", from: "#F59E0B", to: "#D97706" },
+            { emoji: "\uD83D\uDCCD", label: "Croises", href: "/crossed", from: "#3B82F6", to: "#1D4ED8" },
+          ] as const).map((card, i) => (
+            <motion.div
+              key={card.href}
+              initial={{ opacity: 0, scale: 0.85, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{
+                ...springs.snap,
+                delay: 0.1 + i * 0.06,
+              }}
+            >
+              <Link
+                href={card.href}
+                className="flex flex-col items-center justify-center shrink-0 w-[82px] h-[72px] rounded-2xl text-white shadow-md active:scale-95 transition-transform"
+                style={{ background: `linear-gradient(135deg, ${card.from}, ${card.to})` }}
+              >
+                <span className="text-[22px] leading-none" aria-hidden="true">{card.emoji}</span>
+                <span className="text-[10px] font-bold mt-1 whitespace-nowrap">{card.label}</span>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </div>
 
       {/* Pull to refresh */}
       <button

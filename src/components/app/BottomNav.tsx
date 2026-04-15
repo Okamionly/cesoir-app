@@ -66,7 +66,7 @@ function useSafeBadgeData(): {
 
 // ---------- Tab configuration ----------
 
-type TabKey = "browse" | "map" | "chat" | "modes" | "profile";
+type TabKey = "feed" | "map" | "chat" | "modes" | "profile";
 
 const tabs: {
   href: `/${TabKey}`;
@@ -74,7 +74,7 @@ const tabs: {
   Icon: typeof IconSearch;
   label: string;
 }[] = [
-  { href: "/browse", key: "browse", Icon: IconSearch, label: "Explorer" },
+  { href: "/feed", key: "feed", Icon: IconSearch, label: "Explorer" },
   { href: "/map", key: "map", Icon: IconMap, label: "Carte" },
   { href: "/chat", key: "chat", Icon: IconChat, label: "Chat" },
   { href: "/modes", key: "modes", Icon: IconMoon, label: "Modes" },
@@ -147,7 +147,7 @@ export default function BottomNav({
 }: BottomNavProps) {
   const pathname = usePathname();
   const prevBadgesRef = useRef<Record<TabKey, number>>({
-    browse: 0,
+    feed: 0,
     map: 0,
     chat: 0,
     modes: 0,
@@ -165,7 +165,7 @@ export default function BottomNav({
 
   // Build badge map
   const badges: Record<TabKey, number> = {
-    browse: matchCount,
+    feed: matchCount,
     map: 0,
     chat: chatCount,
     modes: challengeAvailable ? 1 : 0,
@@ -224,7 +224,7 @@ export default function BottomNav({
             const active = pathname?.startsWith(tab.href);
             const badgeCount = badges[tab.key];
             const showCountBadge =
-              (tab.key === "chat" || tab.key === "browse") && badgeCount > 0;
+              (tab.key === "chat" || tab.key === "feed") && badgeCount > 0;
             const showDotBadge = tab.key === "modes" && challengeAvailable;
 
             return (

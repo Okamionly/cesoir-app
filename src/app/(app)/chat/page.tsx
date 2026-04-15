@@ -10,6 +10,8 @@ import { MODES } from "@/lib/modes";
 import type { ModeKey } from "@/lib/modes";
 import { springs, ambient } from "@/lib/motion-design";
 import SparkTimer from "@/components/chat/SparkTimer";
+import ExpiryTimer from "@/components/chat/ExpiryTimer";
+import { FlashNoteReceived } from "@/components/chat/FlashNote";
 
 // Mock matched-at times for demo (each convo matched at different times)
 const MOCK_MATCHED_AT: Record<string, string> = {
@@ -27,6 +29,20 @@ const mockChats: ConversationPreview[] = [
   { id: "3", peer: { id: "m3", name: "Marta", avatar_url: null, is_online: false }, lastMessage: "Perfecto ! Hablamos en espanol et francais", lastMessageSenderId: null, lastMessageAt: new Date().toISOString(), unreadCount: 0, mode: "langue", createdAt: new Date().toISOString() },
   { id: "4", peer: { id: "m4", name: "Thomas", avatar_url: null, is_online: false }, lastMessage: "J'ai pris les places, RDV devant le cinema", lastMessageSenderId: null, lastMessageAt: new Date().toISOString(), unreadCount: 0, mode: "plus-one", createdAt: new Date().toISOString() },
 ];
+
+// ---------- Mock FlashNotes ----------
+
+const MOCK_FLASH_NOTES = [
+  {
+    id: "fn-1",
+    senderName: "Lea",
+    message: "J'adore ton profil ! On se prend un verre ce soir ?",
+    time: "Il y a 12 min",
+  },
+];
+
+// IDs of new matches that haven't chatted yet (for ExpiryTimer display)
+const NEW_MATCH_IDS = new Set(["1", "4"]);
 
 // ---------- Helpers ----------
 
@@ -229,6 +245,13 @@ function ConversationRow({
               {convo.peer.name}
             </span>
             <div className="flex items-center gap-1.5">
+              {NEW_MATCH_IDS.has(convo.id) && MOCK_MATCHED_AT[convo.id] && (
+                <ExpiryTimer
+                  matchedAt={MOCK_MATCHED_AT[convo.id]}
+                  compact
+                  conversationStarted={false}
+                />
+              )}
               {MOCK_MATCHED_AT[convo.id] && (
                 <SparkTimer matchedAt={MOCK_MATCHED_AT[convo.id]} compact />
               )}
@@ -388,6 +411,44 @@ export default function ChatPage() {
           </div>
         </div>
       </header>
+
+      {/* FlashNotes recus */}
+      {MOCK_FLASH_NOTES.length > 0 && (
+        <div className="px-4 py-3 border-b border-border">
+          <p className="text-[10px] text-text-muted uppercase tracking-widest font-semibold mb-2">
+            FlashNotes recus
+          </p>
+          {MOCK_FLASH_NOTES.map((fn) => (
+            <FlashNoteReceived
+              key={fn.id}
+              senderName={fn.senderName}
+              message={fn.message}
+              time={fn.time}
+              onReply={() => {
+                // Navigate to chat or open compose — mock for now
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Quick-action row */}
+      <div className="flex gap-2 px-4 py-3 border-b border-border">
+        <Link
+          href="/rooms"
+          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-accent/5 border border-accent/15 text-[13px] font-semibold text-accent hover:bg-accent/10 transition-colors tap-target"
+        >
+          <span aria-hidden="true">📞</span>
+          Salons
+        </Link>
+        <Link
+          href="/speed-dating"
+          className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-accent/5 border border-accent/15 text-[13px] font-semibold text-accent hover:bg-accent/10 transition-colors tap-target"
+        >
+          <span aria-hidden="true">⚡</span>
+          Speed Dating
+        </Link>
+      </div>
 
       {/* Loading skeleton */}
       {loading && (

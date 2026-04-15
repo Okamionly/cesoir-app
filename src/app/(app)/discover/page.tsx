@@ -7,6 +7,8 @@ import { discoverVariants, springs, micro } from "@/lib/motion-design";
 import { ModeKey, MODES, MODE_KEYS } from "@/lib/modes";
 import { MOCK_PROFILES, type Profile } from "@/lib/mock-profiles";
 import { MODE_ICONS, IconSearch, IconX } from "@/components/ui/Icons";
+import CrossLinkCard from "@/components/app/CrossLinkCard";
+import { MOCK_EVENTS, type PopUpEvent } from "@/lib/popup-events";
 
 // ─────────────────────────────────────────
 // Types
@@ -384,6 +386,90 @@ export default function DiscoverPage() {
           )}
         </AnimatePresence>
       </header>
+
+      {/* Trending ce soir */}
+      <section className="px-4 pt-4 pb-2">
+        <div className="flex items-center justify-between mb-2.5">
+          <h2 className="text-[14px] font-bold text-text">Trending ce soir</h2>
+          <Link href="/trending" className="text-[11px] text-accent font-semibold">
+            Voir tout
+          </Link>
+        </div>
+        <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
+          {MOCK_PROFILES.filter(p => p.distance < 3).slice(0, 6).map((p, i) => (
+            <Link key={p.id} href={`/p/${p.id}`} className="shrink-0">
+              <motion.div
+                className="w-[100px] rounded-xl overflow-hidden border border-border/50 bg-card"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ ...springs.snap, delay: i * 0.05 }}
+                whileHover={{ y: -2, boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }}
+                whileTap={{ scale: 0.97 }}
+              >
+                <div className="relative aspect-square overflow-hidden">
+                  {p.photo ? (
+                    <img src={p.photo} alt={p.name} loading="lazy" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className={`w-full h-full bg-gradient-to-br ${getGradient(p.id)}`} />
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute bottom-1.5 left-2">
+                    <span className="text-[11px] font-bold text-white">{p.name}</span>
+                  </div>
+                </div>
+                <div className="px-2 py-1.5">
+                  <span className="text-[9px] text-accent font-semibold">{p.time}</span>
+                </div>
+              </motion.div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* Events pres de toi */}
+      <section className="px-4 pb-2">
+        <div className="flex items-center justify-between mb-2.5">
+          <h2 className="text-[14px] font-bold text-text">Events pres de toi</h2>
+          <Link href="/events" className="text-[11px] text-accent font-semibold">
+            Voir tout
+          </Link>
+        </div>
+        <div className="space-y-2">
+          {MOCK_EVENTS.slice(0, 3).map((event, i) => (
+            <Link key={event.id} href={`/events/${event.id}`} className="block">
+              <motion.div
+                className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border/50"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ ...springs.heavy, delay: i * 0.08 }}
+                whileHover={{ y: -2, boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-[#00FF88] flex items-center justify-center shrink-0">
+                  <span className="text-base">🎉</span>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] font-bold text-text truncate">{event.title}</p>
+                  <p className="text-[10px] text-text-muted">{event.time} · {event.venue}</p>
+                </div>
+                <span className="text-[10px] text-accent font-semibold shrink-0">
+                  {event.currentAttendees}/{event.maxAttendees}
+                </span>
+              </motion.div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* Guide du quartier link */}
+      <div className="px-4 pb-4">
+        <CrossLinkCard
+          emoji="📍"
+          title="Guide du quartier"
+          subtitle="Les meilleurs spots, bars et restos a cote"
+          href="/guide"
+        />
+      </div>
 
       {/* Profile grid */}
       {displayedProfiles.length > 0 ? (

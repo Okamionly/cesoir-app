@@ -18,10 +18,14 @@ import { ReactionWrapper, type Reaction } from "@/components/chat/EmojiReaction"
 import { PlanProposalButton, PlanCard, type PlanData } from "@/components/chat/PlanProposal";
 import { LocationShareButton, LocationCard } from "@/components/chat/LocationShare";
 import { IceBreakerButton, GameCard, type GameData } from "@/components/chat/IceBreakerGame";
-import { PlaylistShareButton, MusicCard, type SongData } from "@/components/chat/PlaylistShare";
+import { PlaylistShareButton, SharedPlaylist, MusicCard, MOCK_SHARED_PLAYLIST, type SongData } from "@/components/chat/PlaylistShare";
 import { PlusMenu } from "@/components/chat/PlusMenu";
 import VibeCheck, { VibeCheckButton } from "@/components/chat/VibeCheck";
 import AIWingman from "@/components/chat/AIWingman";
+import QuickReact from "@/components/chat/QuickReact";
+import WeMetFeedback from "@/components/app/WeMetFeedback";
+import { screenMessage } from "@/lib/messageScreening";
+import type { ScreeningResult } from "@/lib/messageScreening";
 
 // ---------- Types for special messages ----------
 
@@ -219,6 +223,21 @@ export default function ConversationPage({
   // Vibe Check state
   const [showVibeCheck, setShowVibeCheck] = useState(false);
 
+  // SharedPlaylist overlay state
+  const [showSharedPlaylist, setShowSharedPlaylist] = useState(false);
+  const [sharedPlaylistSongs, setSharedPlaylistSongs] = useState<SongData[]>(MOCK_SHARED_PLAYLIST);
+
+  // WeMetFeedback state — auto-detect: show if conversation has enough messages (simulating a date happened)
+  const [showWeMetFeedback, setShowWeMetFeedback] = useState(false);
+  const weMetDetected = messages.length >= 6; // heuristic: 6+ messages = likely met
+
+  // Message screening state
+  const [screeningResult, setScreeningResult] = useState<ScreeningResult | null>(null);
+  const [pendingMessage, setPendingMessage] = useState<string | null>(null);
+
+  // QuickReact per-message reactions (single reaction per message for QuickReact)
+  const [quickReactions, setQuickReactions] = useState<Record<string, { emoji: string; byMe: boolean } | null>>({});
+
   // fetch conversation metadata + peer profile
   useEffect(() => {
     if (!conversationId || !user) return;
@@ -260,11 +279,43 @@ export default function ConversationPage({
   const handleSend = useCallback(async () => {
     const text = inputValue.trim();
     if (!text) return;
+
+    // Run message screening
+    const result = screenMessage(text);
+    if (result.severity === "block") {
+      setScreeningResult(result);
+      setPendingMessage(null);
+      return;
+    }
+    if (result.severity === "warning") {
+      setScreeningResult(result);
+      setPendingMessage(text);
+      return;
+    }
+
+    // Clean message — send directly
     setInputValue("");
     stopTyping();
     await sendMessage(text);
     inputRef.current?.focus();
   }, [inputValue, sendMessage, stopTyping]);
+
+  /** Confirm sending a warned message */
+  const handleConfirmSend = useCallback(async () => {
+    if (!pendingMessage) return;
+    setInputValue("");
+    setScreeningResult(null);
+    setPendingMessage(null);
+    stopTyping();
+    await sendMessage(pendingMessage);
+    inputRef.current?.focus();
+  }, [pendingMessage, sendMessage, stopTyping]);
+
+  /** Dismiss screening warning */
+  const handleDismissScreening = useCallback(() => {
+    setScreeningResult(null);
+    setPendingMessage(null);
+  }, []);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -392,6 +443,26 @@ export default function ConversationPage({
     ]);
   }, [playlist]);
 
+  /** QuickReact handler for individual messages */
+  const handleQuickReact = useCallback((messageId: string, emoji: string) => {
+    setQuickReactions((prev) => {
+      const current = prev[messageId];
+      // Toggle off if same emoji
+      if (current && current.emoji === emoji && current.byMe) {
+        return { ...prev, [messageId]: null };
+      }
+      return { ...prev, [messageId]: { emoji, byMe: true } };
+    });
+    // Also feed into existing reaction system
+    handleReact(messageId, emoji);
+  }, [handleReact]);
+
+  /** Add song to shared playlist */
+  const handleSharedPlaylistAdd = useCallback((song: SongData) => {
+    setSharedPlaylistSongs((prev) => [...prev, song]);
+    handleAddSong(song);
+  }, [handleAddSong]);
+
   // ---------- Merge and sort all messages ----------
 
   type TimelineItem =
@@ -463,6 +534,15 @@ export default function ConversationPage({
             ) : null}
           </div>
 
+          {/* Compatibilite button */}
+          <Link
+            href={`/compatibility/${conversationId}`}
+            className="tap-target shrink-0 w-9 h-9 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-[14px] hover:bg-accent/20 transition-colors"
+            aria-label="Voir la compatibilite"
+          >
+            📊
+          </Link>
+
           {/* Vibe Check button */}
           <VibeCheckButton onClick={() => setShowVibeCheck(true)} />
         </div>
@@ -470,6 +550,30 @@ export default function ConversationPage({
 
       {/* Spark Timer */}
       <SparkTimer matchedAt={MOCK_MATCHED_AT} />
+
+      {/* WeMetFeedback prompt — shows when a date likely happened */}
+      {weMetDetected && !showWeMetFeedback && (
+        <motion.div
+          className="mx-4 mt-2 mb-1"
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        >
+          <button
+            onClick={() => setShowWeMetFeedback(true)}
+            className="w-full flex items-center gap-3 py-3 px-4 rounded-xl bg-accent/5 border border-accent/15 hover:bg-accent/10 transition-colors tap-target"
+          >
+            <span className="text-lg" aria-hidden="true">🤝</span>
+            <div className="flex-1 text-left">
+              <p className="text-[13px] font-bold text-text">Vous vous etes vus ?</p>
+              <p className="text-[11px] text-text-muted">Dites-nous comment ca s&apos;est passe</p>
+            </div>
+            <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="text-accent">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
+        </motion.div>
+      )}
 
       {/* Messages area */}
       <div className="flex-1 overflow-y-auto px-4 py-3" role="log" aria-label="Messages" aria-live="polite">
@@ -523,20 +627,26 @@ export default function ConversationPage({
               const msgReactions = reactions[msg.id] ?? [];
 
               return (
-                <ReactionWrapper
+                <QuickReact
                   key={msg.id}
                   isOwn={msg.isOwn}
-                  reactions={msgReactions}
-                  onReact={(emoji) => handleReact(msg.id, emoji)}
+                  reaction={quickReactions[msg.id] ?? null}
+                  onReact={(emoji) => handleQuickReact(msg.id, emoji)}
                 >
-                  <ChatBubble
-                    content={msg.content}
+                  <ReactionWrapper
                     isOwn={msg.isOwn}
-                    time={formatTime(msg.createdAt)}
-                    showTail={showTail}
-                    readAt={msg.isOwn ? msg.readAt : undefined}
-                  />
-                </ReactionWrapper>
+                    reactions={msgReactions}
+                    onReact={(emoji) => handleReact(msg.id, emoji)}
+                  >
+                    <ChatBubble
+                      content={msg.content}
+                      isOwn={msg.isOwn}
+                      time={formatTime(msg.createdAt)}
+                      showTail={showTail}
+                      readAt={msg.isOwn ? msg.readAt : undefined}
+                    />
+                  </ReactionWrapper>
+                </QuickReact>
               );
             }
 
@@ -654,6 +764,23 @@ export default function ConversationPage({
             <LocationShareButton onShare={handleLocationShare} />
             <IceBreakerButton onStartGame={handleStartGame} />
             <PlaylistShareButton onAddSong={handleAddSong} />
+            {/* Shared playlist full view button */}
+            <button
+              type="button"
+              onClick={() => setShowSharedPlaylist(true)}
+              className="tap-target shrink-0 w-11 h-11 rounded-full bg-bg-card border border-border flex items-center justify-center text-text-muted hover:text-accent hover:border-accent/30 transition-colors active:scale-95"
+              aria-label="Playlist commune"
+            >
+              <span className="text-lg">🎵</span>
+            </button>
+            {/* Planifier button */}
+            <Link
+              href={`/plan/${conversationId}`}
+              className="tap-target shrink-0 w-11 h-11 rounded-full bg-bg-card border border-border flex items-center justify-center text-text-muted hover:text-accent hover:border-accent/30 transition-colors active:scale-95"
+              aria-label="Planifier un rendez-vous"
+            >
+              <span className="text-lg">📅</span>
+            </Link>
           </PlusMenu>
 
           {/* Text input */}
@@ -700,6 +827,109 @@ export default function ConversationPage({
           onClose={() => setShowVibeCheck(false)}
         />
       )}
+
+      {/* Message screening warning/block overlay */}
+      <AnimatePresence>
+        {screeningResult && screeningResult.severity !== "clean" && (
+          <motion.div
+            className="fixed inset-0 z-[90] flex items-end justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="absolute inset-0 bg-black/50" onClick={handleDismissScreening} />
+            <motion.div
+              className="relative bg-bg rounded-t-2xl border-t border-border w-full max-w-lg pb-8 pt-3 shadow-xl"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            >
+              <div className="flex justify-center mb-4">
+                <div className="w-10 h-1 rounded-full bg-border" />
+              </div>
+              <div className="px-6 text-center">
+                <div className="text-[40px] mb-3">
+                  {screeningResult.severity === "block" ? "\u26D4" : "\u26A0\uFE0F"}
+                </div>
+                <h3 className="text-[16px] font-bold text-text mb-2">
+                  {screeningResult.severity === "block" ? "Message bloque" : "Attention"}
+                </h3>
+                <p className="text-[13px] text-text-muted mb-5">
+                  {screeningResult.warningMessage}
+                </p>
+
+                {screeningResult.severity === "warning" && pendingMessage ? (
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleDismissScreening}
+                      className="flex-1 py-3 rounded-2xl bg-border/50 border border-border text-text-muted font-bold text-[14px]"
+                    >
+                      Modifier
+                    </button>
+                    <button
+                      onClick={handleConfirmSend}
+                      className="flex-1 py-3 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-500 font-bold text-[14px]"
+                    >
+                      Envoyer quand meme
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleDismissScreening}
+                    className="w-full py-3 rounded-2xl bg-border/50 border border-border text-text font-bold text-[14px]"
+                  >
+                    Compris
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* SharedPlaylist overlay */}
+      <AnimatePresence>
+        {showSharedPlaylist && (
+          <motion.div
+            className="fixed inset-0 z-[85] flex items-end justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="absolute inset-0 bg-black/50" onClick={() => setShowSharedPlaylist(false)} />
+            <motion.div
+              className="relative w-full max-w-lg max-h-[80vh] overflow-y-auto pb-4"
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            >
+              <SharedPlaylist
+                songs={sharedPlaylistSongs}
+                onAddSong={handleSharedPlaylistAdd}
+                partnerName={peer?.name ?? "..."}
+                className="rounded-t-2xl rounded-b-none"
+              />
+              <button
+                onClick={() => setShowSharedPlaylist(false)}
+                className="w-full py-3 bg-bg border-t border-border text-text-muted text-[13px] font-semibold"
+              >
+                Fermer
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* WeMetFeedback sheet */}
+      <WeMetFeedback
+        peerName={peer?.name ?? "..."}
+        peerId={peer?.id ?? ""}
+        checkinId={`checkin-${conversationId}`}
+        isOpen={showWeMetFeedback}
+        onClose={() => setShowWeMetFeedback(false)}
+      />
     </div>
   );
 }

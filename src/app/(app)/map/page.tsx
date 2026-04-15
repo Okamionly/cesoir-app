@@ -12,6 +12,7 @@ import { MODES, ModeKey, MODE_KEYS } from "@/lib/modes";
 import { useHotspots } from "@/lib/useHotspots";
 import HeatmapOverlay, { HeatmapFallback } from "@/components/map/HeatmapOverlay";
 import LiveActivityPanel from "@/components/map/LiveActivityPanel";
+import CrossLinkCard from "@/components/app/CrossLinkCard";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
@@ -213,6 +214,15 @@ export default function MapPage() {
           <div className="flex items-center gap-2">
             <motion.div whileHover={micro.hoverLift} whileTap={micro.tapScale}>
               <Link
+                href="/discover"
+                className="flex items-center gap-1 bg-accent/10 border border-accent/20 px-2.5 py-1 rounded-full tap-target"
+              >
+                <span className="text-[10px]" aria-hidden="true">🔍</span>
+                <span className="text-[10px] text-accent font-semibold">Decouvrir</span>
+              </Link>
+            </motion.div>
+            <motion.div whileHover={micro.hoverLift} whileTap={micro.tapScale}>
+              <Link
                 href="/flash-plans"
                 className="flex items-center gap-1 bg-accent/10 border border-accent/20 px-2.5 py-1 rounded-full tap-target"
               >
@@ -385,6 +395,18 @@ export default function MapPage() {
           </div>
         )}
 
+        {/* Cross-link buttons — Guide + Events */}
+        {!selected && !selectedEvent && (
+          <div className="absolute bottom-28 left-3 right-3 z-[900] flex gap-2">
+            <motion.div className="flex-1" initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ ...springs.heavy, delay: 0.3 }}>
+              <CrossLinkCard emoji="📍" title="Guide du quartier" subtitle="Spots, bars, restos" href="/guide" />
+            </motion.div>
+            <motion.div className="flex-1" initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ ...springs.heavy, delay: 0.4 }}>
+              <CrossLinkCard emoji="🔥" title="Events ce soir" subtitle={`${openEvents.length} events`} href="/events" />
+            </motion.div>
+          </div>
+        )}
+
         {/* Selected profile — bottom sheet with springs.heavy */}
         <AnimatePresence>
           {selected && (
@@ -505,6 +527,32 @@ export default function MapPage() {
                 >
                   Demander a rejoindre
                 </motion.button>
+
+                {/* Nearby events */}
+                {openEvents.filter(ev => ev.id !== selectedEvent.id).length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-border/50">
+                    <p className="text-[10px] text-text-muted font-semibold uppercase tracking-wider mb-2">
+                      Aussi a proximite
+                    </p>
+                    <div className="space-y-1.5">
+                      {openEvents.filter(ev => ev.id !== selectedEvent.id).slice(0, 2).map(ev => (
+                        <motion.button
+                          key={ev.id}
+                          className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg bg-bg-card border border-border/30 text-left"
+                          whileTap={{ scale: 0.97 }}
+                          onClick={() => { setSelectedEvent(ev); }}
+                        >
+                          <span className="text-sm">🎉</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[11px] font-semibold text-text truncate">{ev.title}</p>
+                            <p className="text-[9px] text-text-muted">{ev.time} · {ev.spots}</p>
+                          </div>
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-text-muted shrink-0" aria-hidden="true"><path d="M9 18l6-6-6-6" /></svg>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}

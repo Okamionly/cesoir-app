@@ -31,6 +31,73 @@ export default function ModesPage() {
         animate="visible"
         aria-label="Liste des modes"
       >
+        {/* Mood Match — featured card */}
+        <motion.div
+          variants={cardVariants}
+          custom={0}
+          whileHover={{ y: -6, scale: 1.05, transition: springs.gentle }}
+          whileTap={{ scale: 0.92, transition: springs.micro }}
+        >
+          <Link
+            href="/mood-match"
+            className="block border rounded-2xl p-4 hover:border-accent/40 relative overflow-hidden"
+            style={{ background: "linear-gradient(135deg, rgba(139,92,246,0.08), rgba(0,255,136,0.06))", borderColor: "rgba(139,92,246,0.25)" }}
+          >
+            <div className="flex items-center gap-3">
+              <motion.div
+                className="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center shadow-glow"
+                animate={{ scale: [1, 1.06, 1], rotate: [0, 3, -3, 0] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <span className="text-[18px] text-white" aria-hidden="true">🎯</span>
+              </motion.div>
+              <div className="flex-1">
+                <h2 className="text-[15px] font-bold text-text">Mood Match</h2>
+                <p className="text-[11px] text-text-muted">Trouve un match par mood</p>
+              </div>
+              <div className="flex items-center gap-1">
+                <motion.div className="w-1.5 h-1.5 rounded-full bg-safe" animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }} transition={{ duration: 2, repeat: Infinity }} />
+                <span className="text-[10px] text-accent font-semibold">24 actifs</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-accent" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+              </div>
+            </div>
+          </Link>
+        </motion.div>
+
+        {/* Salons vocaux */}
+        <motion.div
+          variants={cardVariants}
+          custom={0}
+          whileHover={{ y: -6, scale: 1.05, transition: springs.gentle }}
+          whileTap={{ scale: 0.92, transition: springs.micro }}
+        >
+          <Link
+            href="/rooms"
+            className="block border rounded-2xl p-4 hover:border-accent/40"
+            style={{ background: "rgba(0,255,136,0.04)", borderColor: "rgba(0,255,136,0.2)" }}
+          >
+            <div className="flex items-center gap-3">
+              <motion.div
+                className="w-10 h-10 rounded-xl flex items-center justify-center"
+                style={{ background: "rgba(0,255,136,0.12)" }}
+                animate={{ scale: [1, 1.03, 1] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <span className="text-[18px]" aria-hidden="true">🎙️</span>
+              </motion.div>
+              <div className="flex-1">
+                <h2 className="text-[15px] font-bold text-text">Salons vocaux</h2>
+                <p className="text-[11px] text-text-muted">Rejoins une conversation</p>
+              </div>
+              <div className="flex items-center gap-1">
+                <motion.div className="w-1.5 h-1.5 rounded-full bg-safe" animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }} transition={{ duration: 2, repeat: Infinity }} />
+                <span className="text-[10px] font-semibold" style={{ color: "#00FF88" }}>3 salons</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ color: "#00FF88" }} aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+              </div>
+            </div>
+          </Link>
+        </motion.div>
+
         {/* Sorties de groupe link */}
         <motion.div
           variants={cardVariants}

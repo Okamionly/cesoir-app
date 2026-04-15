@@ -340,12 +340,54 @@ export default function ProfilePage() {
         </div>
       </motion.div>
 
+      {/* === MES FEATURES === slide from right (even card) */}
+      <motion.div
+        className="px-5 mt-6"
+        initial={{ opacity: 0, x: 60 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ ...springs.heavy, delay: 1.0 }}
+      >
+        <p className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3">Mon espace</p>
+        <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
+          {([
+            { emoji: "\uD83D\uDCCA", label: "Mes Insights", href: "/insights", from: "#8B5CF6", to: "#6D28D9" },
+            { emoji: "\uD83C\uDFC6", label: "Achievements", href: "/achievements", from: "#F59E0B", to: "#D97706" },
+            { emoji: "\u2B50", label: "Mes Avis", href: "/reviews", from: "#EC4899", to: "#BE185D" },
+            { emoji: "\uD83D\uDCC5", label: "Mon Parcours", href: "/timeline", from: "#3B82F6", to: "#1D4ED8" },
+            { emoji: "\uD83C\uDFB5", label: "Mon Vibe", href: "/vibes", from: "#06B6D4", to: "#0E7490" },
+            { emoji: "\uD83C\uDF9F\uFE0F", label: "Battle Pass", href: "/battle-pass", from: "#EF4444", to: "#B91C1C" },
+            { emoji: "\uD83D\uDED2", label: "Boutique", href: "/shop", from: "#10B981", to: "#047857" },
+            { emoji: "\uD83D\uDC51", label: "Premium", href: "/premium", from: "#8B5CF6", to: "#EC4899" },
+            { emoji: "\uD83D\uDD17", label: "Referral", href: "/referral", from: "#00FF88", to: "#10B981" },
+          ] as const).map((item, i) => (
+            <motion.div
+              key={item.href}
+              initial={{ opacity: 0, scale: 0.7 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{
+                ...springs.heavy,
+                delay: 1.1 + i * 0.05,
+              }}
+            >
+              <Link
+                href={item.href}
+                className="flex flex-col items-center justify-center shrink-0 w-[78px] h-[72px] rounded-2xl text-white shadow-md active:scale-95 transition-transform"
+                style={{ background: `linear-gradient(135deg, ${item.from}, ${item.to})` }}
+              >
+                <span className="text-[20px] leading-none" aria-hidden="true">{item.emoji}</span>
+                <span className="text-[9px] font-bold mt-1 whitespace-nowrap">{item.label}</span>
+              </Link>
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+
       {/* Settings — minimal, slide from right (even card) */}
       <motion.div
         className="px-5 mt-6 mb-4"
         initial={{ opacity: 0, x: 60 }}
         animate={{ opacity: 1, x: 0 }}
-        transition={{ ...springs.heavy, delay: 1.0 }}
+        transition={{ ...springs.heavy, delay: 1.2 }}
       >
         <p className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3">Parametres</p>
         <div className="bg-bg-card border border-border rounded-2xl overflow-hidden divide-y divide-border">
