@@ -1,15 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import Link from "next/link";
-import { motion, AnimatePresence, type TargetAndTransition } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { feedVariants, springs } from "@/lib/motion-design";
 import { MODES, type ModeKey } from "@/lib/modes";
 import { useFeed, type FeedActivity } from "@/lib/useFeed";
-import TutorialOverlay from "@/components/app/TutorialOverlay";
 import StoriesBar from "@/components/app/StoriesBar";
 import EmptyState from "@/components/ui/EmptyState";
-import PageHeader from "@/components/ui/PageHeader";
 
 // --- Types ---
 
@@ -24,7 +21,6 @@ interface FeedItem {
   mode: ModeKey;
   timeAgo: string;
   online: boolean;
-  isNew?: boolean;
 }
 
 // --- Mock Data (fallback for demo mode) ---
@@ -53,7 +49,6 @@ const MOCK_FEED: FeedItem[] = [
 
 // --- Helpers ---
 
-/** Relative timestamp "il y a X min/h" */
 function formatRelativeTime(dateStr: string): string {
   const now = Date.now();
   const then = new Date(dateStr).getTime();
@@ -68,7 +63,6 @@ function formatRelativeTime(dateStr: string): string {
   return `il y a ${diffD}j`;
 }
 
-/** Convert Supabase FeedActivity to the UI FeedItem shape */
 function activityToFeedItem(a: FeedActivity): FeedItem {
   return {
     id: a.id,
@@ -79,82 +73,8 @@ function activityToFeedItem(a: FeedActivity): FeedItem {
     mode: (a.mode ?? "night-owl") as ModeKey,
     timeAgo: formatRelativeTime(a.createdAt),
     online: a.isOnline,
-    isNew: a.isNew,
   };
 }
-
-// --- Card accent config per activity type ---
-
-interface TypeAccent {
-  border: string;
-  bg: string;
-  icon: React.ReactNode;
-}
-
-function getTypeAccent(type: FeedItemType): TypeAccent {
-  switch (type) {
-    case "availability":
-      return {
-        border: "border-[#00FF88]/30",
-        bg: "bg-[#00FF88]/5",
-        icon: (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00FF88" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
-            <circle cx="12" cy="9" r="2.5" />
-          </svg>
-        ),
-      };
-    case "looking":
-      return {
-        border: "border-[#8B5CF6]/30",
-        bg: "bg-gradient-to-r from-[#8B5CF6]/5 to-[#EC4899]/5",
-        icon: (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="#8B5CF6" stroke="none" aria-hidden="true">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-          </svg>
-        ),
-      };
-    case "area":
-      return {
-        border: "border-[#3B82F6]/30",
-        bg: "bg-[#3B82F6]/5",
-        icon: (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
-            <circle cx="12" cy="9" r="2.5" />
-          </svg>
-        ),
-      };
-    case "trending":
-      return {
-        border: "border-[#F59E0B]/30",
-        bg: "bg-[#F59E0B]/5",
-        icon: (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <rect x="3" y="4" width="18" height="18" rx="2" />
-            <line x1="16" y1="2" x2="16" y2="6" />
-            <line x1="8" y1="2" x2="8" y2="6" />
-            <line x1="3" y1="10" x2="21" y2="10" />
-          </svg>
-        ),
-      };
-  }
-}
-
-// --- Animation variants per type ---
-
-const entranceByType: Record<FeedItemType, TargetAndTransition> = {
-  availability: { opacity: 0, y: -40, rotateX: 15, scale: 0.92 },
-  looking: { opacity: 0, x: -60, rotateY: 10, scale: 0.9 },
-  area: { opacity: 0, y: 30, scale: 0.85 },
-  trending: { opacity: 0, x: 60, rotateZ: -3, scale: 0.9 },
-};
-
-const newItemInitial: TargetAndTransition = {
-  scale: 0.8,
-  opacity: 0,
-  y: -20,
-};
 
 // --- Skeleton loader ---
 
@@ -200,23 +120,18 @@ export default function FeedPage() {
   const [timestampTick, setTimestampTick] = useState(0);
   const [demoSeed, setDemoSeed] = useState(0);
 
-  // Derive demo mode from hook state (no effect needed)
   const useDemoMode = supaError != null || (activities.length === 0 && !supaLoading);
 
-  // Convert Supabase activities to feed items, or fall back to mock
   const items = useMemo(() => {
     if (useDemoMode) {
-      // demoSeed triggers a reshuffle in demo mode
       const shuffled = [...MOCK_FEED];
       if (demoSeed > 0) shuffled.sort(() => Math.random() - 0.5);
       return shuffled;
     }
     return activities.map(activityToFeedItem);
-    // timestampTick forces re-computation of relative times
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activities, useDemoMode, timestampTick, demoSeed]);
 
-  // Refresh timestamps every 30s for real-time items
   useEffect(() => {
     if (useDemoMode) return;
     const interval = setInterval(() => {
@@ -246,66 +161,30 @@ export default function FeedPage() {
 
   return (
     <div className="min-h-screen bg-bg pb-24">
-      {/* Guided tutorial for first-time users */}
-      <TutorialOverlay />
-
-      {/* Header */}
-      <PageHeader
-        title="En direct"
-        rightAction={
-          <div className="flex items-center gap-2.5">
-            <span className="relative flex h-2.5 w-2.5">
+      {/* Header — simple, clean */}
+      <header className="sticky top-0 z-30 bg-bg/80 backdrop-blur-xl border-b border-border">
+        <div className="flex items-center gap-3 px-4 py-3">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <h1 className="text-lg font-display font-bold text-text">En direct</h1>
+            <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00FF88] opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#00FF88]" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00FF88]" />
             </span>
-            {useDemoMode && (
-              <span className="text-[10px] font-semibold text-text-muted bg-card border border-border px-2 py-0.5 rounded-full">
-                DEMO
-              </span>
-            )}
           </div>
-        }
-      />
+        </div>
+      </header>
 
       {/* Stories bar */}
       <StoriesBar />
 
-      {/* Quick access cards */}
-      <div className="px-4 pt-3 pb-1">
-        <div className="flex gap-2.5 overflow-x-auto no-scrollbar">
-          {([
-            { emoji: "\uD83C\uDFAF", label: "Ta selection", href: "/queue", from: "#8B5CF6", to: "#6D28D9" },
-            { emoji: "\u2728", label: "Standouts", href: "/standouts", from: "#EC4899", to: "#BE185D" },
-            { emoji: "\uD83D\uDD25", label: "Trending", href: "/trending-profiles", from: "#F59E0B", to: "#D97706" },
-            { emoji: "\uD83D\uDCCD", label: "Croises", href: "/crossed", from: "#3B82F6", to: "#1D4ED8" },
-          ] as const).map((card, i) => (
-            <motion.div
-              key={card.href}
-              initial={{ opacity: 0, scale: 0.85, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{
-                ...springs.snap,
-                delay: 0.1 + i * 0.06,
-              }}
-            >
-              <Link
-                href={card.href}
-                className="flex flex-col items-center justify-center shrink-0 w-[82px] h-[72px] rounded-2xl text-white shadow-md active:scale-95 transition-transform"
-                style={{ background: `linear-gradient(135deg, ${card.from}, ${card.to})` }}
-              >
-                <span className="text-[22px] leading-none" aria-hidden="true">{card.emoji}</span>
-                <span className="text-[10px] font-bold mt-1 whitespace-nowrap">{card.label}</span>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-      </div>
+      {/* Divider */}
+      <div className="border-b border-border" />
 
       {/* Pull to refresh */}
       <button
         onClick={handleRefresh}
         disabled={refreshing}
-        className="w-full py-3 text-center text-xs font-semibold text-text-muted hover:text-accent transition-colors disabled:opacity-50"
+        className="w-full py-3 text-center text-xs font-medium text-text-muted hover:text-accent transition-colors disabled:opacity-50"
         aria-label="Actualiser le fil d'activite"
       >
         {refreshing ? (
@@ -314,7 +193,7 @@ export default function FeedPage() {
             transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
             className="inline-block"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
               <path d="M21 12a9 9 0 1 1-2.64-6.36" />
               <path d="M21 3v6h-6" />
             </svg>
@@ -328,7 +207,6 @@ export default function FeedPage() {
       {isLoading ? (
         <FeedSkeleton />
       ) : items.length === 0 ? (
-        /* Empty state */
         <EmptyState
           emoji="☾"
           title="Rien a signaler pour le moment"
@@ -337,7 +215,6 @@ export default function FeedPage() {
           actionHref="/browse"
         />
       ) : (
-        /* Feed list */
         <>
           <motion.ul
             className="px-4 space-y-2"
@@ -352,89 +229,47 @@ export default function FeedPage() {
               {items.map((item, idx) => {
                 const mode = MODES[item.mode] ?? MODES["night-owl"];
                 const isSystemItem = item.type === "area" || item.type === "trending";
-                const accent = getTypeAccent(item.type);
-                const isNew = item.isNew ?? false;
 
                 return (
                   <motion.li
                     key={item.id}
-                    initial={
-                      isNew
-                        ? newItemInitial
-                        : entranceByType[item.type]
-                    }
-                    animate={{
-                      opacity: 1,
-                      y: 0,
-                      x: 0,
-                      scale: 1,
-                      rotateX: 0,
-                      rotateY: 0,
-                      rotateZ: 0,
-                    }}
-                    exit={{ opacity: 0, y: 30, scale: 0.9, transition: { duration: 0.2 } }}
-                    transition={{ ...springs.heavy, stiffness: 180 }}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, transition: { duration: 0.15 } }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
                     layout
                     aria-setsize={items.length}
                     aria-posinset={idx + 1}
-                    whileHover={{
-                      y: -3,
-                      boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
-                      transition: springs.gentle,
-                    }}
-                    whileTap={{ scale: 0.98, transition: springs.micro }}
-                    className={`relative bg-card border rounded-2xl p-3.5 flex items-start gap-3 ${accent.border} ${accent.bg}`}
+                    className="bg-card border border-border rounded-2xl p-3.5 flex items-start gap-3"
                   >
-                    {/* New-item glow overlay */}
-                    {isNew && (
-                      <motion.div
-                        className="absolute inset-0 rounded-2xl pointer-events-none"
-                        initial={{ boxShadow: "0 0 0px rgba(139,92,246,0)" }}
-                        animate={{
-                          boxShadow: [
-                            "0 0 0px rgba(139,92,246,0)",
-                            "0 0 20px rgba(139,92,246,0.5)",
-                            "0 0 0px rgba(139,92,246,0)",
-                          ],
-                        }}
-                        transition={{ duration: 1.5, repeat: 2 }}
-                      />
-                    )}
-
                     {/* Avatar / icon */}
                     {isSystemItem ? (
                       <div
-                        className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center"
-                        style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)" }}
+                        className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center bg-card border border-border"
                         aria-hidden="true"
                       >
                         {item.type === "area" ? (
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-text-muted">
                             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
                             <circle cx="12" cy="9" r="2.5" />
                           </svg>
                         ) : (
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-text-muted">
                             <path d="M12 22c4.97 0 8-3.03 8-8 0-4-2.5-7-4-8-.5 2.5-2 4-4 5-1-1-2-3.5-1.5-6C8 7 5 10 5 14c0 4.97 3.03 8 7 8z" />
                           </svg>
                         )}
                       </div>
                     ) : (
                       <div className="relative flex-shrink-0">
-                        <div
-                          className="w-10 h-10 rounded-full p-[2px]"
-                          style={{ background: `linear-gradient(135deg, ${mode.color}, #8B5CF6)` }}
-                        >
-                          <img
-                            src={item.photo}
-                            alt={`Photo de ${item.name}`}
-                            loading="lazy"
-                            decoding="async"
-                            className="w-full h-full rounded-full object-cover border-2 border-bg"
-                          />
-                        </div>
+                        <img
+                          src={item.photo}
+                          alt={`Photo de ${item.name}`}
+                          loading="lazy"
+                          decoding="async"
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
                         {item.online && (
-                          <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-[#00FF88] border-2 border-bg" aria-label="En ligne" />
+                          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#00FF88] border-2 border-card" aria-label="En ligne" />
                         )}
                       </div>
                     )}
@@ -442,19 +277,14 @@ export default function FeedPage() {
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-text leading-snug">
-                        <span className="font-bold">{item.name}</span>{" "}
+                        <span className="font-semibold">{item.name}</span>{" "}
                         <span className="text-text-muted">{item.text}</span>
                       </p>
-                      <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                        {/* Type indicator icon */}
-                        <span className="inline-flex items-center gap-0.5 text-[10px] text-text-muted">
-                          {accent.icon}
-                        </span>
-                        {/* Relative time */}
-                        <span className="text-[10px] text-text-muted">{item.timeAgo}</span>
-                        {/* Mode badge */}
+                      <div className="flex items-center gap-2 mt-1.5">
+                        <span className="text-[11px] text-text-muted">{item.timeAgo}</span>
+                        <span className="text-text-muted">·</span>
                         <span
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold text-white"
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium text-white"
                           style={{ backgroundColor: mode.color }}
                         >
                           <span aria-hidden="true">{mode.icon}</span>
@@ -468,16 +298,13 @@ export default function FeedPage() {
             </AnimatePresence>
           </motion.ul>
 
-          {/* Charger plus button */}
+          {/* Load more button */}
           {showLoadMore && (
             <div className="px-4 mt-4 mb-6">
-              <motion.button
+              <button
                 onClick={handleLoadMore}
                 disabled={loadingMore}
-                whileHover={{ y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                transition={springs.snap}
-                className="w-full py-3 text-center text-sm font-semibold text-accent bg-card border border-border rounded-2xl hover:border-accent/30 transition-colors disabled:opacity-50"
+                className="w-full py-3 text-center text-sm font-medium text-text-muted bg-card border border-border rounded-2xl hover:border-accent/30 transition-colors disabled:opacity-50"
               >
                 {loadingMore ? (
                   <motion.span
@@ -485,7 +312,7 @@ export default function FeedPage() {
                     transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
                     className="inline-block"
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                       <path d="M21 12a9 9 0 1 1-2.64-6.36" />
                       <path d="M21 3v6h-6" />
                     </svg>
@@ -493,7 +320,7 @@ export default function FeedPage() {
                 ) : (
                   "Charger plus"
                 )}
-              </motion.button>
+              </button>
             </div>
           )}
         </>

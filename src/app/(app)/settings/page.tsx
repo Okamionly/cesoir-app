@@ -3,13 +3,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { motion } from "motion/react";
-import { springs, micro } from "@/lib/motion-design";
 import { useAuth } from "@/context/AuthContext";
 import { setMuted, isMuted } from "@/lib/sounds";
 import { useDarkMode } from "@/components/ui/DarkModeProvider";
 import { useAccessibility, type FontSize } from "@/components/ui/ReducedMotion";
-import { useTranslation, setLocale as persistLocale, SUPPORTED_LOCALES, type Locale } from "@/lib/i18n";
+import { useTranslation, type Locale } from "@/lib/i18n";
 import { useWomenFirstSettings } from "@/lib/useWomenFirst";
 
 // ── Types ──────────────────────────────────────────
@@ -72,7 +70,7 @@ function saveSettings(s: Settings) {
   }
 }
 
-// ── Toggle Switch ──────────────────────────────────
+// ── Toggle Switch (iOS-style) ─────────────────────
 
 function Toggle({
   value,
@@ -82,51 +80,39 @@ function Toggle({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <motion.button
+    <button
       role="switch"
       aria-checked={value}
       onClick={() => onChange(!value)}
-      className="relative w-[44px] h-[26px] rounded-full shrink-0 tap-target"
-      animate={{
-        backgroundColor: value ? "#8B5CF6" : "var(--color-border)",
-      }}
-      transition={springs.snap}
-      whileTap={{ scale: 0.9 }}
+      className="relative w-[44px] h-[26px] rounded-full shrink-0 tap-target transition-colors duration-200"
+      style={{ backgroundColor: value ? "#34C759" : "var(--color-border)" }}
     >
-      <motion.div
-        className="absolute top-[3px] left-[3px] w-[20px] h-[20px] rounded-full bg-white shadow-md"
-        animate={{ x: value ? 18 : 0 }}
-        transition={springs.snap}
+      <span
+        className="absolute top-[3px] left-[3px] w-[20px] h-[20px] rounded-full bg-white shadow-md transition-transform duration-200"
+        style={{ transform: value ? "translateX(18px)" : "translateX(0)" }}
       />
-    </motion.button>
+    </button>
   );
 }
 
-// ── Section wrapper with staggered entrance ────────
+// ── Section wrapper ───────────────────────────────
 
 function Section({
   title,
-  index,
   children,
 }: {
   title: string;
-  index: number;
   children: React.ReactNode;
 }) {
   return (
-    <motion.div
-      className="px-5 mb-6"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ ...springs.heavy, delay: 0.08 * index }}
-    >
-      <p className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3">
+    <div className="px-5 mb-6">
+      <p className="text-[11px] text-text-muted uppercase tracking-[0.12em] font-semibold mb-2 px-1">
         {title}
       </p>
       <div className="bg-bg-card border border-border rounded-2xl overflow-hidden divide-y divide-border">
         {children}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -193,9 +179,49 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-// ── Accessibility Section ─────────────────────────
+// ── Pill selector ─────────────────────────────────
 
-function AccessibilitySection({ index }: { index: number }) {
+function PillSelector<T extends string>({
+  options,
+  value,
+  onChange,
+}: {
+  options: { value: T; label: string }[];
+  value: T;
+  onChange: (v: T) => void;
+}) {
+  return (
+    <div className="flex gap-2">
+      {options.map((opt) => {
+        const active = value === opt.value;
+        return (
+          <button
+            key={opt.value}
+            onClick={() => onChange(opt.value)}
+            aria-pressed={active}
+            className={`flex-1 py-2.5 rounded-xl text-[12px] font-medium transition-colors tap-target ${
+              active
+                ? "bg-accent text-white"
+                : "border border-border text-text-muted hover:border-accent/30"
+            }`}
+          >
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Main Page ──────────────────────────────────────
+
+const themeToMode = { auto: "auto", clair: "light", sombre: "dark" } as const;
+const modeToTheme = { auto: "auto", light: "clair", dark: "sombre" } as const;
+
+export default function SettingsPage() {
+  const { user } = useAuth();
+  const router = useRouter();
+  const { mode: darkModeValue, setMode: setDarkMode } = useDarkMode();
   const { locale, changeLocale } = useTranslation();
   const {
     fontSize,
@@ -204,150 +230,35 @@ function AccessibilitySection({ index }: { index: number }) {
     reducedMotionOverride,
     setReducedMotionOverride,
   } = useAccessibility();
+  const { settings: wfSettings, toggle: toggleWomenFirst } = useWomenFirstSettings();
 
-  const FONT_LABELS: { value: FontSize; label: string }[] = [
-    { value: "normal", label: "Normal" },
-    { value: "large", label: "Grand" },
-    { value: "xlarge", label: "Tres grand" },
-  ];
-
-  const LOCALE_LABELS: { value: Locale; label: string }[] = [
-    { value: "fr", label: "Francais" },
-    { value: "en", label: "English" },
-  ];
-
-  return (
-    <Section title="Accessibilite" index={index}>
-      {/* Language */}
-      <div className="px-4 py-3.5">
-        <p className="text-[13px] font-semibold text-text mb-3">Langue</p>
-        <div className="flex gap-2">
-          {LOCALE_LABELS.map((l) => {
-            const active = locale === l.value;
-            return (
-              <motion.button
-                key={l.value}
-                onClick={() => changeLocale(l.value)}
-                aria-pressed={active}
-                className={`flex-1 py-2.5 rounded-xl text-[12px] font-medium transition-colors tap-target ${
-                  active
-                    ? "bg-accent text-white"
-                    : "border border-border text-text-muted hover:border-accent/30"
-                }`}
-                whileTap={{ scale: 0.9 }}
-              >
-                {l.label}
-              </motion.button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Font size */}
-      <div className="px-4 py-3.5">
-        <p className="text-[13px] font-semibold text-text mb-3">
-          Taille du texte
-        </p>
-        <div className="flex gap-2">
-          {FONT_LABELS.map((f) => {
-            const active = fontSize === f.value;
-            return (
-              <motion.button
-                key={f.value}
-                onClick={() => setFontSize(f.value)}
-                aria-pressed={active}
-                className={`flex-1 py-2.5 rounded-xl text-[12px] font-medium transition-colors tap-target ${
-                  active
-                    ? "bg-accent text-white"
-                    : "border border-border text-text-muted hover:border-accent/30"
-                }`}
-                whileTap={{ scale: 0.9 }}
-              >
-                {f.label}
-              </motion.button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Reduced motion */}
-      <ToggleRow
-        label="Reduire les animations"
-        value={reducedMotionOverride !== null ? reducedMotionOverride : reducedMotion}
-        onChange={(v) => setReducedMotionOverride(v)}
-      />
-    </Section>
-  );
-}
-
-// ── Women First toggle with description ───────────
-
-function WomenFirstToggleRow() {
-  const { settings: wfSettings, toggle } = useWomenFirstSettings();
-
-  return (
-    <div className="px-4 py-3.5">
-      <div className="flex items-center justify-between">
-        <span className="text-[13px] font-semibold text-text">
-          Les femmes ecrivent d&apos;abord
-        </span>
-        <Toggle value={wfSettings.enabled} onChange={toggle} />
-      </div>
-      <p className="text-[11px] text-text-muted mt-1">
-        Comme Bumble — les femmes initient la conversation
-      </p>
-    </div>
-  );
-}
-
-// ── Main Page ──────────────────────────────────────
-
-// Map between settings French labels and DarkModeProvider values
-const themeToMode = { auto: "auto", clair: "light", sombre: "dark" } as const;
-const modeToTheme = { auto: "auto", light: "clair", dark: "sombre" } as const;
-
-export default function SettingsPage() {
-  const { user } = useAuth();
-  const router = useRouter();
-  const { mode: darkModeValue, setMode: setDarkMode } = useDarkMode();
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [mounted, setMounted] = useState(false);
 
-  // Load from localStorage on mount and sync theme from DarkModeProvider
   useEffect(() => {
     const loaded = loadSettings();
-    // Sync sound mute state from sounds.ts
     loaded.notifications.sons = !isMuted();
-    // Sync theme from DarkModeProvider (source of truth)
     loaded.appearance.theme = modeToTheme[darkModeValue];
     setSettings(loaded);
     setMounted(true);
   }, [darkModeValue]);
 
-  // Persist whenever settings change (skip initial mount)
   useEffect(() => {
     if (!mounted) return;
     saveSettings(settings);
   }, [settings, mounted]);
 
-  const updateNotif = (
-    key: keyof Settings["notifications"],
-    value: boolean,
-  ) => {
+  const updateNotif = (key: keyof Settings["notifications"], value: boolean) => {
     setSettings((prev) => ({
       ...prev,
       notifications: { ...prev.notifications, [key]: value },
     }));
-    // Sync sound toggle with sounds.ts mute state
     if (key === "sons") {
       setMuted(!value);
     }
   };
 
-  const updatePrivacy = (
-    key: keyof Settings["privacy"],
-    value: boolean,
-  ) => {
+  const updatePrivacy = (key: keyof Settings["privacy"], value: boolean) => {
     setSettings((prev) => ({
       ...prev,
       privacy: { ...prev.privacy, [key]: value },
@@ -359,63 +270,44 @@ export default function SettingsPage() {
       ...prev,
       appearance: { ...prev.appearance, theme },
     }));
-    // Sync to DarkModeProvider so the actual theme changes
     setDarkMode(themeToMode[theme]);
   };
 
-  const sectionIdx = { current: 0 };
-  const nextIdx = () => sectionIdx.current++;
-
   return (
     <div className="min-h-screen bg-bg pb-24">
-      {/* Header */}
-      <motion.div
-        className="sticky top-0 z-20 bg-bg/80 backdrop-blur-lg border-b border-border"
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={springs.snap}
-      >
-        <div className="flex items-center gap-3 px-5 py-3">
-          <motion.button
-            onClick={() => router.back()}
-            className="w-9 h-9 rounded-full bg-bg-card border border-border flex items-center justify-center tap-target"
-            whileTap={{ scale: 0.9 }}
+      {/* Header — simple, no blur */}
+      <div className="flex items-center gap-3 px-5 py-3 border-b border-border bg-bg">
+        <button
+          onClick={() => router.back()}
+          className="w-9 h-9 rounded-full bg-bg-card border border-border flex items-center justify-center tap-target"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            className="text-text"
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              className="text-text"
-            >
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </motion.button>
-          <h1 className="text-[16px] font-black text-text tracking-tight">
-            Reglages
-          </h1>
-        </div>
-      </motion.div>
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+        <h1 className="text-[16px] font-black text-text tracking-tight">
+          Reglages
+        </h1>
+      </div>
 
       <div className="pt-5">
         {/* ── 1. Compte ─────────────────────────────── */}
-        <Section title="Compte" index={nextIdx()}>
-          <InfoRow
-            label="Email"
-            value={user?.email ?? "Non connecte"}
-          />
+        <Section title="Compte">
+          <InfoRow label="Email" value={user?.email ?? "Non connecte"} />
           <LinkRow label="Changer le mot de passe" href="/profile/edit" />
-          <LinkRow
-            label="Supprimer mon compte"
-            href="/profile/delete"
-            danger
-          />
+          <LinkRow label="Supprimer mon compte" href="/profile/delete" danger />
         </Section>
 
         {/* ── 2. Notifications ──────────────────────── */}
-        <Section title="Notifications" index={nextIdx()}>
+        <Section title="Notifications">
           <ToggleRow
             label="Nouveaux messages"
             value={settings.notifications.messages}
@@ -444,7 +336,7 @@ export default function SettingsPage() {
         </Section>
 
         {/* ── 3. Confidentialite ────────────────────── */}
-        <Section title="Confidentialite" index={nextIdx()}>
+        <Section title="Confidentialite">
           <ToggleRow
             label="Profil visible"
             value={settings.privacy.profilVisible}
@@ -460,46 +352,69 @@ export default function SettingsPage() {
             value={settings.privacy.modeFantome}
             onChange={(v) => updatePrivacy("modeFantome", v)}
           />
-          <WomenFirstToggleRow />
+          <div className="px-4 py-3.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[13px] font-semibold text-text">
+                Les femmes ecrivent d&apos;abord
+              </span>
+              <Toggle value={wfSettings.enabled} onChange={toggleWomenFirst} />
+            </div>
+            <p className="text-[11px] text-text-muted mt-1">
+              Comme Bumble — les femmes initient la conversation
+            </p>
+          </div>
         </Section>
 
         {/* ── 4. Apparence ──────────────────────────── */}
-        <Section title="Apparence" index={nextIdx()}>
+        <Section title="Apparence">
           <div className="px-4 py-3.5">
             <p className="text-[13px] font-semibold text-text mb-3">Theme</p>
-            <div className="flex gap-2">
-              {(["auto", "clair", "sombre"] as const).map((t) => {
-                const labels = {
-                  auto: "Auto",
-                  clair: "Clair",
-                  sombre: "Sombre",
-                };
-                const active = settings.appearance.theme === t;
-                return (
-                  <motion.button
-                    key={t}
-                    onClick={() => setTheme(t)}
-                    aria-pressed={active}
-                    className={`flex-1 py-2.5 rounded-xl text-[12px] font-medium transition-colors tap-target ${
-                      active
-                        ? "bg-accent text-white"
-                        : "border border-border text-text-muted hover:border-accent/30"
-                    }`}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    {labels[t]}
-                  </motion.button>
-                );
-              })}
-            </div>
+            <PillSelector
+              options={[
+                { value: "auto" as const, label: "Auto" },
+                { value: "clair" as const, label: "Clair" },
+                { value: "sombre" as const, label: "Sombre" },
+              ]}
+              value={settings.appearance.theme}
+              onChange={setTheme}
+            />
           </div>
         </Section>
 
         {/* ── 5. Accessibilite ──────────────────────── */}
-        <AccessibilitySection index={nextIdx()} />
+        <Section title="Accessibilite">
+          <div className="px-4 py-3.5">
+            <p className="text-[13px] font-semibold text-text mb-3">Langue</p>
+            <PillSelector<Locale>
+              options={[
+                { value: "fr", label: "Francais" },
+                { value: "en", label: "English" },
+              ]}
+              value={locale}
+              onChange={changeLocale}
+            />
+          </div>
+          <div className="px-4 py-3.5">
+            <p className="text-[13px] font-semibold text-text mb-3">Taille du texte</p>
+            <PillSelector<FontSize>
+              options={[
+                { value: "normal", label: "Normal" },
+                { value: "large", label: "Grand" },
+                { value: "xlarge", label: "Tres grand" },
+              ]}
+              value={fontSize}
+              onChange={setFontSize}
+            />
+          </div>
+          <ToggleRow
+            label="Reduire les animations"
+            value={reducedMotionOverride !== null ? reducedMotionOverride : reducedMotion}
+            onChange={(v) => setReducedMotionOverride(v)}
+          />
+        </Section>
 
         {/* ── 6. A propos ───────────────────────────── */}
-        <Section title="A propos" index={nextIdx()}>
+        <Section title="A propos">
           <InfoRow label="Version" value="1.0.0" />
           <LinkRow label="Conditions generales" href="/cgu" />
           <LinkRow label="Politique de confidentialite" href="/privacy" />

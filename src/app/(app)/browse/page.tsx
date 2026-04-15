@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { browseVariants, springs, micro } from "@/lib/motion-design";
-import { ModeKey, MODES, MODE_KEYS } from "@/lib/modes";
+import { ModeKey, MODES } from "@/lib/modes";
 import { MOCK_PROFILES, Profile } from "@/lib/mock-profiles";
 import { useSwipe } from "@/lib/useSwipe";
 import { useAuth } from "@/context/AuthContext";
@@ -14,27 +14,16 @@ import { useMatches } from "@/lib/useMatches";
 import { useInteractions } from "@/lib/useInteractions";
 import type { MatchCandidate } from "@/lib/matching";
 import type { ReportReason } from "@/lib/supabase-types";
-import { MODE_ICONS, IconHeart, IconX, IconStar } from "@/components/ui/Icons";
-import PulseClock from "@/components/app/PulseClock";
+import { IconHeart, IconX, IconStar } from "@/components/ui/Icons";
 import SwipeCard from "@/components/app/SwipeCard";
 import ReportSheet from "@/components/app/ReportSheet";
-import StoriesBar from "@/components/app/StoriesBar";
-import ConfirmDispo from "@/components/app/ConfirmDispo";
-import Revanche from "@/components/app/Revanche";
 import NotificationPreview from "@/components/app/NotificationPreview";
 import MidnightReset from "@/components/app/MidnightReset";
-import IntentionBadge, { type Intention, INTENTIONS } from "@/components/app/IntentionBadge";
 import { playSound } from "@/lib/sounds";
 import { haptics } from "@/lib/haptics";
 import { useSwipeUndo } from "@/lib/useSwipeUndo";
 import { useMatchCap } from "@/lib/useMatchCap";
 import { useRoses } from "@/lib/useRoses";
-import { useProfile } from "@/lib/useProfile";
-import BoostButton from "@/components/app/BoostButton";
-import HotStreak from "@/components/app/HotStreak";
-import { FlashNoteButton } from "@/components/chat/FlashNote";
-import GoingTonightBadge from "@/components/app/GoingTonightBadge";
-import ProfileCompletion from "@/components/app/ProfileCompletion";
 import ModeSwitcher from "@/components/app/ModeSwitcher";
 
 /** Map a MatchCandidate from the scoring pipeline to the Profile shape used by SwipeCard */
@@ -60,12 +49,10 @@ export default function BrowsePage() {
   const [filter, setFilter] = useState<ModeKey | "all">(
     modeFromUrl && MODES[modeFromUrl] ? modeFromUrl : "all"
   );
-  const [intentionFilter, setIntentionFilter] = useState<Intention | "all">("all");
   const [idx, setIdx] = useState(0);
   const [info, setInfo] = useState(false);
   const [match, setMatch] = useState<Profile | null>(null);
   const [matchConvoId, setMatchConvoId] = useState<string | null>(null);
-  const [showPulse, setShowPulse] = useState(false);
   const [showReport, setShowReport] = useState(false);
 
   // Real matching pipeline
@@ -76,22 +63,9 @@ export default function BrowsePage() {
   const { like, pass, superlike, report } = useInteractions(user?.id);
 
   // --- Feature hooks ---
-  const { canUndo, freeUndosLeft, isPremium: undoIsPremium, pushSwipe, undo } = useSwipeUndo();
-  const { matchesUsed, matchesRemaining, isAtCap, resetTime, incrementMatch } = useMatchCap();
-  const { roses, useRose, canAfford, isPremium: rosesIsPremium } = useRoses();
-  const { profile: userProfile, loading: profileLoading } = useProfile(user?.id);
-
-  // Profile completion percent (derived from userProfile)
-  const profilePercent = useMemo(() => {
-    if (!userProfile) return 0;
-    let score = 0;
-    if (userProfile.avatar_url) score += 20;
-    if (userProfile.bio && userProfile.bio.length > 0) score += 15;
-    if (userProfile.is_verified) score += 20;
-    // Rough estimate for the rest — modes, prompts, audio aren't on DbProfile yet
-    score += 25; // baseline for existing account
-    return Math.min(score, 100);
-  }, [userProfile]);
+  const { canUndo, pushSwipe, undo } = useSwipeUndo();
+  const { matchesUsed, isAtCap, resetTime, incrementMatch } = useMatchCap();
+  const { roses, useRose, canAfford } = useRoses();
 
   // Convert scored matches to Profile shape for SwipeCard
   const realProfiles: Profile[] = matches.map(candidateToProfile);
@@ -145,7 +119,6 @@ export default function BrowsePage() {
     }
     setIdx(i => Math.min(i + 1, list.length));
     setInfo(false);
-    setShowPulse(false);
   }, [card, currentMatch, list.length, like, pass, pushSwipe, incrementMatch]);
 
   const handleSuperLike = useCallback(async () => {
@@ -169,7 +142,6 @@ export default function BrowsePage() {
     }
     setIdx(i => Math.min(i + 1, list.length));
     setInfo(false);
-    setShowPulse(false);
   }, [card, currentMatch, list.length, superlike, useRose, pushSwipe, incrementMatch]);
 
   const handleUndo = useCallback(() => {
@@ -234,45 +206,18 @@ export default function BrowsePage() {
         </div>
       )}
 
-      {/* Profile completion nudge */}
-      {!profileLoading && profilePercent < 80 && (
-        <Link href="/profile/edit" className="shrink-0">
-          <motion.div
-            className="mx-4 mt-2 px-4 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center gap-3"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <span className="text-[14px]">{"\u270D\uFE0F"}</span>
-            <div className="flex-1 min-w-0">
-              <p className="text-[12px] font-semibold text-amber-400">Complete ton profil pour plus de matchs</p>
-              <p className="text-[10px] text-text-muted">{profilePercent}% — ajoute photo, bio et prompts</p>
-            </div>
-            <span className="text-[10px] text-amber-400 font-bold shrink-0">{profilePercent}%</span>
-          </motion.div>
-        </Link>
-      )}
-
       {/* Header */}
       <header className="shrink-0 px-5 pt-3 pb-2">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <h1 className="text-[18px] font-black tracking-tight text-text">CeSoir</h1>
-            {/* Hot Streak badge next to logo */}
-            <HotStreak badgeOnly />
-          </div>
+          <h1 className="text-[18px] font-black tracking-tight text-text">CeSoir</h1>
           <div className="flex items-center gap-2">
-            {/* Boost button — top right */}
-            <BoostButton />
             <Link
               href="/flash-plans"
-              className="flex items-center gap-1 bg-accent/10 border border-accent/20 px-2.5 py-1 rounded-full tap-target"
+              className="flex items-center justify-center w-8 h-8 rounded-full bg-accent/10 border border-accent/20 tap-target"
+              aria-label="Flash Plans"
             >
-              <span className="text-[10px]" aria-hidden="true">&#x26A1;</span>
-              <span className="text-[10px] text-accent font-semibold">Flash Plans</span>
+              <span className="text-[12px]" aria-hidden="true">&#x26A1;</span>
             </Link>
-            <button onClick={() => setShowPulse(!showPulse)} className="text-[11px] text-accent font-semibold tap-target py-1">
-              {showPulse ? "Masquer" : "Pulse"} &middot; {list.length}
-            </button>
           </div>
         </div>
       </header>
@@ -283,11 +228,8 @@ export default function BrowsePage() {
       {/* Midnight Reset */}
       <MidnightReset />
 
-      {/* Mode switcher pill */}
+      {/* Mode switcher */}
       <ModeSwitcher active={filter} onChange={(m) => { setFilter(m); setIdx(0); }} />
-
-      {/* Intention filter */}
-      <IntentionFilter active={intentionFilter} onChange={(i) => { setIntentionFilter(i); setIdx(0); }} />
 
       {/* Card area — 3D Perspective deck */}
       <main ref={mainRef} className="flex-1 relative px-4 pb-1 overflow-hidden" style={{ perspective: 800 }} role="list" aria-label="Profils a decouvrir">
@@ -368,38 +310,6 @@ export default function BrowsePage() {
                   onPass={swipe.triggerPass}
                   onReport={() => setShowReport(true)}
                 />
-
-                {/* Overlays on card — badges & FlashNote */}
-                <div className="absolute bottom-[42%] left-5 z-20 flex flex-wrap items-center gap-2 pointer-events-auto">
-                  {/* Intention badge — derive from profile id for demo consistency */}
-                  <IntentionBadge
-                    intention={(["serieux", "casual", "verre", "amitie"] as const)[
-                      card.id.charCodeAt(0) % 4
-                    ]}
-                    size="sm"
-                  />
-
-                  {/* Going tonight badge */}
-                  {card.event && (
-                    <GoingTonightBadge
-                      eventName={card.event}
-                      eventTime={card.time}
-                      matchBonus={!!currentMatch?.sharedModes?.length}
-                    />
-                  )}
-                </div>
-
-                {/* FlashNote button — bottom-right of card */}
-                <div className="absolute bottom-[42%] right-5 z-20 pointer-events-auto">
-                  <FlashNoteButton
-                    recipientName={card.name}
-                    onSend={(msg) => {
-                      // FlashNote sent — advance like a like
-                      console.log(`FlashNote to ${card.name}: ${msg}`);
-                      swipe.triggerLike();
-                    }}
-                  />
-                </div>
               </motion.div>
             ) : (
               <EmptyState key="empty" onReset={() => { setIdx(0); setFilter("all"); refresh(); }} />
@@ -449,9 +359,6 @@ export default function BrowsePage() {
           onSuperLike={handleSuperLike}
           onUndo={handleUndo}
           canUndo={canUndo}
-          freeUndosLeft={freeUndosLeft}
-          undoIsPremium={undoIsPremium}
-          roses={roses}
           canAffordRose={canAfford(1)}
         />
       )}
@@ -478,48 +385,12 @@ export default function BrowsePage() {
 
 // --- Extracted Components ---
 
-function ModeFilter({ active, onChange }: { active: ModeKey | "all"; onChange: (m: ModeKey | "all") => void }) {
-  return (
-    <div className="shrink-0 flex gap-3 px-5 pb-3 overflow-x-auto no-scrollbar">
-      <FilterButton active={active === "all"} onClick={() => onChange("all")} label="Tous les modes">
-        <IconStar size={16} />
-      </FilterButton>
-      {MODE_KEYS.map(k => {
-        const Icon = MODE_ICONS[k];
-        return (
-          <FilterButton key={k} active={active === k} onClick={() => onChange(k)} label={MODES[k].name}>
-            {Icon && <Icon size={16} />}
-          </FilterButton>
-        );
-      })}
-    </div>
-  );
-}
-
-function FilterButton({ active, onClick, label, children }: { active: boolean; onClick: () => void; label: string; children: React.ReactNode }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all ${
-        active ? "border-accent bg-accent/10 text-accent" : "border-border text-text-muted hover:text-text-soft"
-      }`}
-      aria-label={label}
-      title={label}
-    >
-      {children}
-    </button>
-  );
-}
-
 function ActionButtons({
   onPass,
   onLike,
   onSuperLike,
   onUndo,
   canUndo,
-  freeUndosLeft,
-  undoIsPremium,
-  roses,
   canAffordRose,
 }: {
   onPass: () => void;
@@ -527,41 +398,49 @@ function ActionButtons({
   onSuperLike: () => void;
   onUndo: () => void;
   canUndo: boolean;
-  freeUndosLeft: number;
-  undoIsPremium: boolean;
-  roses: number;
   canAffordRose: boolean;
 }) {
   return (
     <div className="shrink-0 pt-2 pb-[76px]" role="group" aria-label="Actions">
-      <div className="flex items-center justify-center gap-4">
-        {/* Undo button */}
+      {/* Small undo icon above main row */}
+      <div className="flex justify-center mb-2">
         <motion.button
           onClick={onUndo}
           disabled={!canUndo}
           aria-label="Annuler le dernier swipe"
-          className={`w-[40px] h-[40px] rounded-full border-2 flex items-center justify-center transition-all ${
+          className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
             canUndo
-              ? "bg-bg border-amber-500/40 text-amber-400"
-              : "bg-bg border-border text-text-muted/30 cursor-not-allowed"
+              ? "text-text-muted hover:text-text"
+              : "text-text-muted/20 cursor-not-allowed"
           }`}
           whileTap={canUndo ? micro.tapScale : {}}
-          whileHover={canUndo ? micro.hoverLift : {}}
         >
-          <span className="text-[16px]">{"\u21A9\uFE0F"}</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="1 4 1 10 7 10" />
+            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+          </svg>
         </motion.button>
+      </div>
 
+      {/* 3 clean buttons: Pass, SuperLike, Like */}
+      <div className="flex items-center justify-center gap-5">
         {/* Pass */}
-        <motion.button onClick={onPass} aria-label="Passer" className="w-[54px] h-[54px] rounded-full bg-bg border-2 border-border flex items-center justify-center text-text-muted" whileTap={micro.tapScale} whileHover={micro.hoverLift}>
-          <IconX size={22} />
+        <motion.button
+          onClick={onPass}
+          aria-label="Passer"
+          className="w-[56px] h-[56px] rounded-full bg-bg border-2 border-border flex items-center justify-center text-text-muted"
+          whileTap={micro.tapScale}
+          whileHover={micro.hoverLift}
+        >
+          <IconX size={24} />
         </motion.button>
 
-        {/* Super Like (Rose) */}
+        {/* Super Like */}
         <motion.button
           onClick={onSuperLike}
           disabled={!canAffordRose}
-          aria-label={`Super like (${roses} roses)`}
-          className={`relative w-[44px] h-[44px] rounded-full border-2 flex items-center justify-center ${
+          aria-label="Super like"
+          className={`w-[46px] h-[46px] rounded-full border-2 flex items-center justify-center ${
             canAffordRose
               ? "bg-bg border-pink-500/40 text-pink-400"
               : "bg-bg border-border text-text-muted/30 cursor-not-allowed"
@@ -570,30 +449,19 @@ function ActionButtons({
           whileHover={canAffordRose ? micro.hoverLift : {}}
         >
           <IconStar size={18} />
-          {/* Rose counter badge */}
-          <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-pink-500 text-white text-[9px] font-bold flex items-center justify-center">
-            {roses}
-          </span>
         </motion.button>
 
         {/* Like */}
-        <motion.button onClick={onLike} aria-label="Liker" className="w-[54px] h-[54px] rounded-full gradient-bg flex items-center justify-center text-white shadow-glow" whileTap={micro.tapScale} whileHover={micro.hoverLift}>
-          <IconHeart size={22} />
+        <motion.button
+          onClick={onLike}
+          aria-label="Liker"
+          className="w-[56px] h-[56px] rounded-full gradient-bg flex items-center justify-center text-white shadow-glow"
+          whileTap={micro.tapScale}
+          whileHover={micro.hoverLift}
+        >
+          <IconHeart size={24} />
         </motion.button>
       </div>
-
-      {/* Undo status text */}
-      <p className="text-center text-[10px] text-text-muted mt-1.5">
-        {canUndo
-          ? undoIsPremium
-            ? "Undo illimite"
-            : `${freeUndosLeft} undo restant`
-          : undoIsPremium
-            ? "Rien a annuler"
-            : freeUndosLeft <= 0
-              ? "Premium pour plus d\u2019undos"
-              : "Swipe pour debloquer l\u2019undo"}
-      </p>
     </div>
   );
 }
@@ -609,35 +477,6 @@ function EmptyState({ onReset }: { onReset: () => void }) {
       <button onClick={onReset} className="gradient-bg text-white px-8 py-3 rounded-full text-[14px] font-semibold">
         Recommencer
       </button>
-    </div>
-  );
-}
-
-function IntentionFilter({ active, onChange }: { active: Intention | "all"; onChange: (i: Intention | "all") => void }) {
-  return (
-    <div className="shrink-0 flex gap-2 px-5 pb-2 overflow-x-auto no-scrollbar">
-      <button
-        onClick={() => onChange("all")}
-        className={`shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold border transition-all ${
-          active === "all" ? "border-accent bg-accent/10 text-accent" : "border-border text-text-muted hover:text-text-soft"
-        }`}
-      >
-        Toutes
-      </button>
-      {(Object.keys(INTENTIONS) as Intention[]).map((key) => {
-        const { emoji, label } = INTENTIONS[key];
-        return (
-          <button
-            key={key}
-            onClick={() => onChange(key)}
-            className={`shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold border transition-all ${
-              active === key ? "border-accent bg-accent/10 text-accent" : "border-border text-text-muted hover:text-text-soft"
-            }`}
-          >
-            {emoji} {label}
-          </button>
-        );
-      })}
     </div>
   );
 }
