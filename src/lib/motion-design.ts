@@ -724,6 +724,78 @@ export const ideasVariants = {
   } satisfies Variants,
 };
 
+/**
+ * MOOD MATCH — Radar discovery
+ * Mood cards scale from 0.7 with elastic stagger, radar sweeps infinitely,
+ * profile dots pop in at random delays, match card reveals with rubber spring
+ */
+export const moodMatchVariants = {
+  moodGrid: {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+    },
+  } satisfies Variants,
+  moodCard: {
+    hidden: { opacity: 0, scale: 0.7 },
+    visible: (i: number) => ({
+      opacity: 1,
+      scale: 1,
+      transition: {
+        ...springs.elastic,
+        delay: i * 0.08,
+      },
+    }),
+    selected: {
+      scale: 1.05,
+      transition: springs.snap,
+    },
+    tap: { scale: 0.92, transition: springs.micro },
+  } satisfies Variants,
+  profileDot: {
+    hidden: { scale: 0, opacity: 0 },
+    visible: {
+      scale: 1,
+      opacity: 1,
+      transition: springs.elastic,
+    },
+  } satisfies Variants,
+  matchCard: {
+    hidden: { scale: 0, opacity: 0, rotateZ: -5 },
+    visible: {
+      scale: 1,
+      opacity: 1,
+      rotateZ: 0,
+      transition: { ...springs.rubber, delay: 0.5 },
+    },
+  } satisfies Variants,
+  compatText: {
+    hidden: { opacity: 0, filter: "blur(12px)" },
+    visible: {
+      opacity: 1,
+      filter: "blur(0px)",
+      transition: { ...springs.cinematic, delay: 1 },
+    },
+  } satisfies Variants,
+  pulseRing: {
+    hidden: { scale: 0, opacity: 0.8 },
+    visible: {
+      scale: 2,
+      opacity: 0,
+      transition: { duration: 2, repeat: Infinity, ease: "easeOut" as const },
+    },
+  } satisfies Variants,
+  glowPulse: (color: string) => ({
+    boxShadow: [
+      `0 0 0px ${color}00`,
+      `0 0 20px ${color}60`,
+      `0 0 0px ${color}00`,
+    ],
+    transition: { duration: 1.5, repeat: Infinity, ease: "easeInOut" as const },
+  }),
+};
+
 // ─────────────────────────────────────────
 // MICRO-INTERACTIONS — reusable touches
 // ─────────────────────────────────────────
@@ -781,4 +853,78 @@ export const ambient = {
     backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
     transition: { duration: 8, repeat: Infinity, ease: "linear" as const },
   },
+};
+
+/**
+ * TIMELINE — Vertical chronicle
+ * Line grows top-to-bottom, dots pop on the line, cards alternate left/right
+ */
+export const timelineVariants = {
+  line: {
+    hidden: { scaleY: 0, originY: 0 },
+    visible: {
+      scaleY: 1,
+      transition: springs.cinematic,
+    },
+  } satisfies Variants,
+  dot: {
+    hidden: { scale: 0 },
+    visible: (i: number) => ({
+      scale: 1,
+      transition: { ...springs.elastic, delay: 0.15 + i * 0.08 },
+    }),
+  } satisfies Variants,
+  cardLeft: {
+    hidden: { opacity: 0, x: -60 },
+    visible: (i: number) => ({
+      opacity: 1,
+      x: 0,
+      transition: { ...springs.heavy, delay: 0.2 + i * 0.08 },
+    }),
+  } satisfies Variants,
+  cardRight: {
+    hidden: { opacity: 0, x: 60 },
+    visible: (i: number) => ({
+      opacity: 1,
+      x: 0,
+      transition: { ...springs.heavy, delay: 0.2 + i * 0.08 },
+    }),
+  } satisfies Variants,
+  expand: {
+    hidden: { height: 0, opacity: 0 },
+    visible: {
+      height: "auto",
+      opacity: 1,
+      transition: springs.snap,
+    },
+    exit: {
+      height: 0,
+      opacity: 0,
+      transition: { duration: 0.2 },
+    },
+  } satisfies Variants,
+  summary: {
+    hidden: { opacity: 0, filter: "blur(8px)" },
+    visible: {
+      opacity: 1,
+      filter: "blur(0px)",
+      transition: springs.cinematic,
+    },
+  } satisfies Variants,
+  monthSlide: {
+    enter: (dir: number) => ({
+      x: dir > 0 ? 80 : -80,
+      opacity: 0,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+      transition: springs.heavy,
+    },
+    exit: (dir: number) => ({
+      x: dir > 0 ? -80 : 80,
+      opacity: 0,
+      transition: { duration: 0.25 },
+    }),
+  } satisfies Variants,
 };

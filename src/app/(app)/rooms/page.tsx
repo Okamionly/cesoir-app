@@ -1,0 +1,400 @@
+"use client";
+
+import { useState, useMemo } from "react";
+import { motion, AnimatePresence, type Variants } from "motion/react";
+import { springs } from "@/lib/motion-design";
+import Link from "next/link";
+
+// --- Types ---
+
+type RoomCategory = "tous" | "discussion" | "debat" | "ambiance";
+
+interface RoomSpeaker {
+  name: string;
+  avatar: string;
+}
+
+interface MockRoom {
+  id: string;
+  title: string;
+  host: RoomSpeaker;
+  speakers: RoomSpeaker[];
+  listenerCount: number;
+  category: Exclude<RoomCategory, "tous">;
+  modeLabel: string;
+  modeColor: string;
+  modeIcon: string;
+  startedMinutesAgo: number;
+}
+
+// --- Categories ---
+
+const CATEGORIES: { key: RoomCategory; label: string }[] = [
+  { key: "tous", label: "Tous" },
+  { key: "discussion", label: "Discussion" },
+  { key: "debat", label: "Debat" },
+  { key: "ambiance", label: "Ambiance" },
+];
+
+// --- Mock data ---
+
+const MOCK_ROOMS: MockRoom[] = [
+  {
+    id: "r1",
+    title: "Apero virtuel",
+    host: { name: "Sofia M.", avatar: "https://i.pravatar.cc/150?img=1" },
+    speakers: [
+      { name: "Lucas D.", avatar: "https://i.pravatar.cc/150?img=3" },
+      { name: "Nadia K.", avatar: "https://i.pravatar.cc/150?img=5" },
+    ],
+    listenerCount: 23,
+    category: "discussion",
+    modeLabel: "Night Owl",
+    modeColor: "#6366f1",
+    modeIcon: "\uD83C\uDF19",
+    startedMinutesAgo: 12,
+  },
+  {
+    id: "r2",
+    title: "Debat du soir",
+    host: { name: "Maxime R.", avatar: "https://i.pravatar.cc/150?img=8" },
+    speakers: [
+      { name: "Chloe V.", avatar: "https://i.pravatar.cc/150?img=9" },
+      { name: "Youssef G.", avatar: "https://i.pravatar.cc/150?img=11" },
+      { name: "Lina B.", avatar: "https://i.pravatar.cc/150?img=16" },
+    ],
+    listenerCount: 41,
+    category: "debat",
+    modeLabel: "Culture Club",
+    modeColor: "#7c3aed",
+    modeIcon: "\uD83C\uDFAD",
+    startedMinutesAgo: 34,
+  },
+  {
+    id: "r3",
+    title: "Musique chill",
+    host: { name: "Amira L.", avatar: "https://i.pravatar.cc/150?img=20" },
+    speakers: [
+      { name: "Thomas P.", avatar: "https://i.pravatar.cc/150?img=12" },
+    ],
+    listenerCount: 15,
+    category: "ambiance",
+    modeLabel: "Sober Tonight",
+    modeColor: "#059669",
+    modeIcon: "\uD83C\uDF75",
+    startedMinutesAgo: 8,
+  },
+  {
+    id: "r4",
+    title: "Speed dating vocal",
+    host: { name: "Julien F.", avatar: "https://i.pravatar.cc/150?img=15" },
+    speakers: [
+      { name: "Camille H.", avatar: "https://i.pravatar.cc/150?img=23" },
+      { name: "Robin T.", avatar: "https://i.pravatar.cc/150?img=33" },
+    ],
+    listenerCount: 37,
+    category: "discussion",
+    modeLabel: "Plus-One",
+    modeColor: "#ec4899",
+    modeIcon: "\uD83C\uDFAC",
+    startedMinutesAgo: 19,
+  },
+  {
+    id: "r5",
+    title: "Raconter sa soiree",
+    host: { name: "Ines D.", avatar: "https://i.pravatar.cc/150?img=25" },
+    speakers: [
+      { name: "Nathan W.", avatar: "https://i.pravatar.cc/150?img=53" },
+      { name: "Lea S.", avatar: "https://i.pravatar.cc/150?img=44" },
+      { name: "Omar B.", avatar: "https://i.pravatar.cc/150?img=52" },
+    ],
+    listenerCount: 29,
+    category: "debat",
+    modeLabel: "Solo Diner",
+    modeColor: "#a855f7",
+    modeIcon: "\uD83C\uDF7D\uFE0F",
+    startedMinutesAgo: 45,
+  },
+  {
+    id: "r6",
+    title: "Conseils mode",
+    host: { name: "Clara J.", avatar: "https://i.pravatar.cc/150?img=32" },
+    speakers: [
+      { name: "Hugo M.", avatar: "https://i.pravatar.cc/150?img=57" },
+    ],
+    listenerCount: 11,
+    category: "ambiance",
+    modeLabel: "Foodie Quest",
+    modeColor: "#dc2626",
+    modeIcon: "\uD83D\uDD25",
+    startedMinutesAgo: 5,
+  },
+];
+
+// --- Variants ---
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+  },
+};
+
+const cardVariants: Variants = {
+  hidden: { opacity: 0, y: 40 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: springs.heavy,
+  },
+  exit: { opacity: 0, y: -20, scale: 0.95, transition: { duration: 0.2 } },
+};
+
+// --- Live badge ---
+
+function LiveBadge() {
+  return (
+    <motion.span
+      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white bg-red-500"
+      animate={{ scale: [1, 1.1, 1] }}
+      transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+    >
+      <motion.span
+        className="w-1.5 h-1.5 rounded-full bg-white"
+        animate={{ opacity: [1, 0.4, 1] }}
+        transition={{ duration: 1, repeat: Infinity }}
+      />
+      Live
+    </motion.span>
+  );
+}
+
+// --- Room card ---
+
+function RoomCard({ room }: { room: MockRoom }) {
+  const totalPeople = room.speakers.length + 1 + room.listenerCount;
+
+  return (
+    <Link href={`/rooms/${room.id}`} className="block">
+      <motion.div
+        className="bg-card border border-border rounded-2xl p-4 hover:border-accent/20 transition-colors"
+        whileHover={{
+          y: -3,
+          boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
+          transition: springs.gentle,
+        }}
+        whileTap={{ scale: 0.98, transition: springs.micro }}
+      >
+        {/* Top row: title + live */}
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <h3 className="text-[14px] font-bold text-text leading-tight">
+            {room.title}
+          </h3>
+          <LiveBadge />
+        </div>
+
+        {/* Host */}
+        <div className="flex items-center gap-2 mb-3">
+          <div
+            className="w-8 h-8 rounded-full p-[2px] shrink-0"
+            style={{
+              background: `linear-gradient(135deg, ${room.modeColor}, #8B5CF6)`,
+            }}
+          >
+            <img
+              src={room.host.avatar}
+              alt={room.host.name}
+              loading="lazy"
+              decoding="async"
+              className="w-full h-full rounded-full object-cover border-2 border-card"
+            />
+          </div>
+          <div className="min-w-0">
+            <span className="text-[12px] font-semibold text-text truncate block">
+              {room.host.name}
+            </span>
+            <span className="text-[10px] text-text-muted">Hote</span>
+          </div>
+        </div>
+
+        {/* Speakers avatars */}
+        <div className="flex -space-x-2 mb-3">
+          {room.speakers.map((s, i) => (
+            <motion.img
+              key={s.name}
+              src={s.avatar}
+              alt={s.name}
+              loading="lazy"
+              decoding="async"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ ...springs.elastic, delay: i * 0.05 }}
+              className="w-7 h-7 rounded-full border-2 border-card object-cover shrink-0"
+              style={{ zIndex: 10 - i }}
+            />
+          ))}
+          {room.listenerCount > 0 && (
+            <div
+              className="w-7 h-7 rounded-full border-2 border-card flex items-center justify-center text-[9px] font-semibold text-text-muted bg-bg shrink-0"
+              style={{ zIndex: 0 }}
+            >
+              +{room.listenerCount}
+            </div>
+          )}
+        </div>
+
+        {/* Bottom row: mode badge + listener count + duration */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span
+            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold text-white shrink-0"
+            style={{ backgroundColor: room.modeColor }}
+          >
+            <span aria-hidden="true">{room.modeIcon}</span>
+            {room.modeLabel}
+          </span>
+
+          <span className="text-[10px] text-text-muted font-medium">
+            {totalPeople} personnes
+          </span>
+
+          <div className="flex-1" />
+
+          <span className="text-[10px] text-text-muted">
+            {room.startedMinutesAgo}min
+          </span>
+        </div>
+      </motion.div>
+    </Link>
+  );
+}
+
+// --- Main page ---
+
+export default function RoomsPage() {
+  const [activeCategory, setActiveCategory] = useState<RoomCategory>("tous");
+
+  const filteredRooms = useMemo(() => {
+    if (activeCategory === "tous") return MOCK_ROOMS;
+    return MOCK_ROOMS.filter((r) => r.category === activeCategory);
+  }, [activeCategory]);
+
+  return (
+    <div className="min-h-screen bg-bg pb-28">
+      {/* Header */}
+      <header className="sticky top-0 z-40 bg-bg/95 backdrop-blur-md border-b border-border px-5 pt-3 pb-3">
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <span className="text-lg" aria-hidden="true">
+                {"\uD83C\uDF99\uFE0F"}
+              </span>
+              <h1 className="text-base font-display font-bold text-text">
+                Salons vocaux
+              </h1>
+              <span className="text-[10px] text-accent/70 font-medium ml-1">
+                {MOCK_ROOMS.length} live
+              </span>
+            </div>
+            <motion.button
+              whileHover={{
+                scale: 1.05,
+                boxShadow: "0 0 15px rgba(139,92,246,0.4)",
+              }}
+              whileTap={{ scale: 0.92 }}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full gradient-bg text-white text-[11px] font-bold shadow-glow"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Creer
+            </motion.button>
+          </div>
+        </motion.div>
+
+        {/* Category tabs */}
+        <div className="flex gap-1.5 mt-2">
+          {CATEGORIES.map((cat) => (
+            <motion.button
+              key={cat.key}
+              onClick={() => setActiveCategory(cat.key)}
+              whileTap={{ scale: 0.92 }}
+              className={`px-3 py-1.5 rounded-full text-[11px] font-semibold border tap-target transition-all ${
+                activeCategory === cat.key
+                  ? "border-accent gradient-bg text-white"
+                  : "border-border text-text-muted"
+              }`}
+            >
+              {cat.label}
+            </motion.button>
+          ))}
+        </div>
+      </header>
+
+      {/* Rooms list */}
+      {filteredRooms.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
+          <div className="w-16 h-16 rounded-full bg-card border border-border flex items-center justify-center mb-4">
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              className="text-text-muted"
+              aria-hidden="true"
+            >
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+              <line x1="12" y1="19" x2="12" y2="23" />
+              <line x1="8" y1="23" x2="16" y2="23" />
+            </svg>
+          </div>
+          <p className="text-sm font-semibold text-text-muted">
+            Aucun salon dans cette categorie
+          </p>
+          <p className="text-xs text-text-muted mt-1">
+            Sois le premier a lancer la conversation!
+          </p>
+        </div>
+      ) : (
+        <motion.div
+          className="px-4 pt-3 space-y-3"
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          role="list"
+          aria-label="Liste des salons vocaux"
+        >
+          <AnimatePresence mode="popLayout">
+            {filteredRooms.map((room) => (
+              <motion.div
+                key={room.id}
+                variants={cardVariants}
+                layout
+                role="listitem"
+              >
+                <RoomCard room={room} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </motion.div>
+      )}
+    </div>
+  );
+}

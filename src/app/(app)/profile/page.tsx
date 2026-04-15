@@ -425,6 +425,29 @@ export default function ProfilePage() {
         </button>
       </div>
 
+      {/* Share profile card */}
+      <div className="px-5 mb-4">
+        <Link
+          href="/profile/share"
+          className="flex items-center justify-between bg-bg-card border border-accent/15 rounded-2xl p-4 active:scale-[0.98] transition-transform tap-target"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+                <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8" />
+                <polyline points="16 6 12 2 8 6" />
+                <line x1="12" y1="2" x2="12" y2="15" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-[13px] font-bold text-text">Partager mon profil</p>
+              <p className="text-[10px] text-text-muted">Carte shareable, QR code, reseaux</p>
+            </div>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-muted" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+        </Link>
+      </div>
+
       {/* Leaderboard link */}
       <div className="px-5 mb-4">
         <Link
