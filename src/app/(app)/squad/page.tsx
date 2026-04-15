@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { springs, micro, ambient } from "@/lib/motion-design";
 
 // --- Types ---
 
@@ -126,15 +127,6 @@ const MOCK_SQUADS: Squad[] = [
 
 // --- Component ---
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 24 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.07, duration: 0.4, ease: "easeOut" as const },
-  }),
-};
-
 export default function SquadPage() {
   const [inviteCode] = useState(generateInviteCode);
   const [joinCode, setJoinCode] = useState("");
@@ -183,27 +175,42 @@ export default function SquadPage() {
         <motion.section
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
+          transition={springs.heavy}
           className="bg-card border border-border rounded-2xl p-5"
           aria-label="Creer ton squad"
         >
-          <h2 className="text-base font-display font-bold text-text mb-1">Cree ton squad</h2>
+          {/* 6. Squad name: slide from left with springs.heavy */}
+          <motion.h2
+            initial={{ opacity: 0, x: -40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={springs.heavy}
+            className="text-base font-display font-bold text-text mb-1"
+          >
+            Cree ton squad
+          </motion.h2>
           <p className="text-xs text-text-muted mb-4">Invite jusqu&apos;a 3 amis pour matcher ensemble</p>
 
           {/* My squad members */}
           {mySquad.length > 0 && (
             <div className="flex items-center gap-[-8px] mb-4" aria-label="Membres de ton squad">
               {mySquad.map((member, i) => (
-                <div
+                <motion.div
                   key={member.id}
+                  /* 3. Member avatars: scale from 0 with springs.elastic, stagger 0.06 */
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ ...springs.elastic, delay: i * 0.06 }}
                   className="w-10 h-10 rounded-full border-2 border-bg overflow-hidden"
                   style={{ marginLeft: i > 0 ? "-8px" : 0, zIndex: mySquad.length - i }}
                 >
                   <img src={member.photo} alt={member.name} className="w-full h-full object-cover" />
-                </div>
+                </motion.div>
               ))}
               {mySquad.length < 4 && (
-                <div
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ ...springs.elastic, delay: mySquad.length * 0.06 }}
                   className="w-10 h-10 rounded-full border-2 border-dashed border-text-muted flex items-center justify-center text-text-muted"
                   style={{ marginLeft: "-8px" }}
                   aria-label="Place disponible"
@@ -212,7 +219,7 @@ export default function SquadPage() {
                     <line x1="12" y1="5" x2="12" y2="19" />
                     <line x1="5" y1="12" x2="19" y2="12" />
                   </svg>
-                </div>
+                </motion.div>
               )}
             </div>
           )}
@@ -228,21 +235,34 @@ export default function SquadPage() {
               className="flex-1 px-3 py-2.5 bg-bg border border-border rounded-xl text-sm text-text placeholder:text-text-muted focus:outline-none focus:border-accent font-mono tracking-wider"
               aria-label="Code d'invitation"
             />
-            <button
+            {/* 4. "Rejoindre" button: whileHover scale:1.05 y:-2 with glow, whileTap scale:0.92 */}
+            <motion.button
               onClick={handleJoin}
               disabled={joinCode.length !== 6}
+              whileHover={{ scale: 1.05, y: -2, boxShadow: "0 0 20px rgba(139,92,246,0.4)" }}
+              whileTap={{ scale: 0.92 }}
+              transition={springs.snap}
               className="px-4 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40 transition-opacity"
               style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)" }}
             >
               Rejoindre
-            </button>
+            </motion.button>
           </div>
 
-          {/* Share invite link */}
-          <div className="flex items-center gap-2 bg-bg rounded-xl p-2.5 border border-border">
+          {/* Share invite link — 8. Invite code section: slide from right */}
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={springs.heavy}
+            className="flex items-center gap-2 bg-bg rounded-xl p-2.5 border border-border"
+          >
             <span className="flex-1 text-xs font-mono text-text-muted truncate">{inviteLink}</span>
-            <button
+            {/* 4. Action button: whileHover glow + whileTap */}
+            <motion.button
               onClick={handleCopy}
+              whileHover={{ scale: 1.05, y: -2, boxShadow: "0 0 20px rgba(139,92,246,0.4)" }}
+              whileTap={{ scale: 0.92 }}
+              transition={springs.snap}
               className="flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all"
               style={{ background: copied ? "#00FF88" : "#8B5CF6" }}
               aria-label={copied ? "Lien copie" : "Copier le lien d'invitation"}
@@ -272,42 +292,57 @@ export default function SquadPage() {
                   </motion.span>
                 )}
               </AnimatePresence>
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         </motion.section>
 
         {/* Active squads section */}
         <section aria-label="Squads actifs ce soir">
-          <h2 className="text-base font-display font-bold text-text mb-3">Squads actifs ce soir</h2>
+          {/* 6. Squad name: slide from left with springs.heavy */}
+          <motion.h2
+            initial={{ opacity: 0, x: -40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={springs.heavy}
+            className="text-base font-display font-bold text-text mb-3"
+          >
+            Squads actifs ce soir
+          </motion.h2>
 
           <div className="space-y-3">
             {MOCK_SQUADS.map((squad, i) => (
+              /* 2. Squad cards: initial={opacity:0, y:40, scale:0.9} with springs.heavy + stagger 0.1 */
               <motion.div
                 key={squad.id}
-                custom={i}
-                variants={cardVariants}
-                initial="hidden"
-                animate="visible"
+                initial={{ opacity: 0, y: 40, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ ...springs.heavy, delay: i * 0.1 }}
                 className="bg-card border border-border rounded-2xl p-4 flex items-center gap-3"
               >
                 {/* Overlapping avatars */}
                 <div className="flex flex-shrink-0" aria-label={`${squad.members.length} membres`}>
                   {squad.members.slice(0, 3).map((member, j) => (
-                    <div
+                    /* 3. Member avatars: scale from 0 with springs.elastic, stagger 0.06 */
+                    <motion.div
                       key={member.id}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ ...springs.elastic, delay: i * 0.1 + j * 0.06 }}
                       className="w-9 h-9 rounded-full border-2 border-card overflow-hidden"
                       style={{ marginLeft: j > 0 ? "-10px" : 0, zIndex: squad.members.length - j }}
                     >
                       <img src={member.photo} alt={member.name} className="w-full h-full object-cover" />
-                    </div>
+                    </motion.div>
                   ))}
                   {squad.members.length > 3 && (
-                    <div
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ ...springs.elastic, delay: i * 0.1 + 3 * 0.06 }}
                       className="w-9 h-9 rounded-full bg-accent/20 border-2 border-card flex items-center justify-center text-[10px] font-bold text-accent"
                       style={{ marginLeft: "-10px" }}
                     >
                       +{squad.members.length - 3}
-                    </div>
+                    </motion.div>
                   )}
                 </div>
 
@@ -318,6 +353,11 @@ export default function SquadPage() {
                   </p>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-xs text-text-muted">{squad.activity}</span>
+                    {/* 5. Online indicator dot: ambient.breathe(3) for living pulse */}
+                    <motion.span
+                      animate={ambient.breathe(3)}
+                      className="inline-block w-1.5 h-1.5 rounded-full bg-[#00FF88]"
+                    />
                     <span className="text-[10px] text-text-muted">{squad.distance} km</span>
                   </div>
                   <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-accent/10 text-[10px] font-semibold text-accent">
@@ -325,23 +365,26 @@ export default function SquadPage() {
                   </span>
                 </div>
 
-                {/* Propose button */}
-                <button
+                {/* 4. "Proposer" button: whileHover scale:1.05 y:-2 with glow, whileTap scale:0.92 */}
+                <motion.button
+                  whileHover={{ scale: 1.05, y: -2, boxShadow: "0 0 20px rgba(139,92,246,0.4)" }}
+                  whileTap={{ scale: 0.92 }}
+                  transition={springs.snap}
                   className="flex-shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold text-white"
                   style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)" }}
                   aria-label={`Proposer un plan au squad de ${squad.members[0].name}`}
                 >
                   Proposer
-                </button>
+                </motion.button>
               </motion.div>
             ))}
           </div>
         </section>
 
-        {/* Fallback solo link */}
+        {/* 7. Empty state / Fallback solo link: ambient.float(5) for gentle bobbing */}
         <motion.div
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          animate={{ opacity: 1, ...ambient.float(5) }}
           transition={{ delay: 0.8 }}
           className="text-center pt-2 pb-4"
         >
