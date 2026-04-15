@@ -3,6 +3,7 @@
 import { use, useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
+import { chatVariants, springs, micro } from "@/lib/motion-design";
 import { useAuth } from "@/context/AuthContext";
 import { useChat, useTypingIndicator } from "@/lib/useChat";
 import { supabase } from "@/lib/supabase";
@@ -58,11 +59,14 @@ function SendIcon({ size = 20, className = "" }: { size?: number; className?: st
 function ChatBubble({ content, isOwn, time, showTail, readAt }: { content: string; isOwn: boolean; time: string; showTail: boolean; readAt?: string | null }) {
   const readTime = readAt ? new Date(readAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : null;
 
+  const variants = isOwn ? chatVariants.bubbleSent : chatVariants.bubbleReceived;
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8, scale: 0.96 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.2, ease: "easeOut" }}
+      variants={variants}
+      initial="hidden"
+      animate="visible"
+      style={{ transformOrigin: isOwn ? "bottom right" : "bottom left" }}
       className={`flex ${isOwn ? "justify-end" : "justify-start"} ${showTail ? "mt-3" : "mt-0.5"}`}
     >
       <div className={isOwn ? "flex flex-col items-end max-w-[78%]" : "max-w-[78%]"}>
@@ -100,8 +104,7 @@ function TypingIndicator() {
           <motion.div
             key={i}
             className="w-2 h-2 rounded-full bg-text-muted"
-            animate={{ y: [0, -4, 0] }}
-            transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.15 }}
+            animate={chatVariants.typingDot(i)}
           />
         ))}
       </div>
@@ -570,8 +573,7 @@ export default function ConversationPage({
                 <motion.div
                   key={i}
                   className="w-1.5 h-1.5 rounded-full bg-text-muted"
-                  animate={{ y: [0, -3, 0] }}
-                  transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.12 }}
+                  animate={chatVariants.typingDot(i)}
                 />
               ))}
             </div>
@@ -589,7 +591,13 @@ export default function ConversationPage({
       />
 
       {/* Input bar */}
-      <div className="sticky bottom-0 border-t border-border bg-bg/95 backdrop-blur-md px-3 py-2" style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}>
+      <motion.div
+        className="sticky bottom-0 border-t border-border bg-bg/95 backdrop-blur-md px-3 py-2"
+        style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
+        initial={{ y: 0 }}
+        whileFocus={{ y: -2 }}
+        transition={springs.micro}
+      >
         <div className="flex items-end gap-2">
           {/* Plus menu for secondary actions */}
           <PlusMenu>
@@ -599,16 +607,18 @@ export default function ConversationPage({
           </PlusMenu>
 
           {/* Text input */}
-          <textarea
+          <motion.textarea
             ref={inputRef}
             value={inputValue}
-            onChange={(e) => { setInputValue(e.target.value); sendTyping(); }}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => { setInputValue(e.target.value); sendTyping(); }}
             onKeyDown={handleKeyDown}
             placeholder="Message..."
             rows={1}
             className="flex-1 resize-none bg-bg-card border border-border rounded-2xl px-4 py-2.5 text-[15px] text-text placeholder:text-text-muted focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/15 transition-colors max-h-[120px]"
             aria-label="Ecrire un message"
             style={{ minHeight: 44, lineHeight: "1.4" }}
+            whileFocus={{ y: -2 }}
+            transition={springs.micro}
           />
 
           {/* Plan proposal button (always visible) */}
@@ -618,16 +628,18 @@ export default function ConversationPage({
           <VoiceRecordButton onRecordComplete={handleVoiceRecord} />
 
           {/* Send button */}
-          <button
+          <motion.button
             onClick={handleSend}
             disabled={!inputValue.trim() || sending}
-            className="tap-target shrink-0 w-11 h-11 rounded-full gradient-bg flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
+            className="tap-target shrink-0 w-11 h-11 rounded-full gradient-bg flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label="Envoyer le message"
+            whileTap={{ scale: 0.85 }}
+            transition={springs.micro}
           >
             <SendIcon size={18} className="text-white" />
-          </button>
+          </motion.button>
         </div>
-      </div>
+      </motion.div>
 
       {/* Vibe Check overlay */}
       {showVibeCheck && (

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { motion, type Variants } from "motion/react";
+import { motion } from "motion/react";
 import Link from "next/link";
+import { leaderboardVariants, springs, micro } from "@/lib/motion-design";
 
 interface LeaderEntry {
   rank: number;
@@ -45,14 +46,10 @@ const MEDAL_COLORS: Record<number, string> = {
   3: "#CD7F32",
 };
 
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.04, delayChildren: 0.3 } },
-};
-
-const rowVariants: Variants = {
-  hidden: { opacity: 0, x: -20 },
-  visible: { opacity: 1, x: 0, transition: { type: "spring", stiffness: 400, damping: 30 } },
+const GLOW_SHADOWS: Record<number, string> = {
+  1: "0 0 24px rgba(245,158,11,0.45)",
+  2: "0 0 18px rgba(192,192,192,0.35)",
+  3: "0 0 18px rgba(205,127,50,0.35)",
 };
 
 export default function LeaderboardPage() {
@@ -102,13 +99,19 @@ export default function LeaderboardPage() {
           {/* 2nd place */}
           <motion.div
             className="flex flex-col items-center"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            initial={{ opacity: 0, x: 60 }}
+            animate={{ opacity: 1, x: 0, boxShadow: GLOW_SHADOWS[2] }}
+            transition={{ ...springs.heavy, delay: 2 * 0.06 }}
           >
             <img src={top3[1].photo} alt={top3[1].name} className="w-16 h-16 rounded-full object-cover border-3" style={{ borderColor: MEDAL_COLORS[2], borderWidth: 3 }} />
             <p className="text-[12px] font-bold text-text mt-1.5">{top3[1].name}</p>
-            <p className="text-[10px] text-text-muted">{top3[1].meetups} meetups</p>
+            <motion.p
+              key={`meetups-2-${top3[1].meetups}`}
+              className="text-[10px] text-text-muted"
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={springs.snap}
+            >{top3[1].meetups} meetups</motion.p>
             <div className="w-16 h-16 rounded-t-lg mt-2 flex items-center justify-center" style={{ background: `${MEDAL_COLORS[2]}20` }}>
               <span className="text-[20px] font-black" style={{ color: MEDAL_COLORS[2] }}>2</span>
             </div>
@@ -117,23 +120,28 @@ export default function LeaderboardPage() {
           {/* 1st place */}
           <motion.div
             className="flex flex-col items-center -mt-4"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
+            initial={{ opacity: 0, x: 60, scale: 0.92 }}
+            animate={{ opacity: 1, x: 0, scale: 1, boxShadow: GLOW_SHADOWS[1] }}
+            transition={{ ...springs.heavy, delay: 1 * 0.06 }}
           >
             <div className="relative">
               <img src={top3[0].photo} alt={top3[0].name} className="w-20 h-20 rounded-full object-cover border-3" style={{ borderColor: MEDAL_COLORS[1], borderWidth: 3 }} />
               <motion.span
                 className="absolute -top-2 -right-2 text-[18px]"
-                animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                animate={leaderboardVariants.crown.idle}
                 aria-hidden="true"
               >
                 👑
               </motion.span>
             </div>
             <p className="text-[13px] font-bold text-text mt-1.5">{top3[0].name}</p>
-            <p className="text-[10px] text-accent font-semibold">{top3[0].meetups} meetups</p>
+            <motion.p
+              key={`meetups-1-${top3[0].meetups}`}
+              className="text-[10px] text-accent font-semibold"
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={springs.snap}
+            >{top3[0].meetups} meetups</motion.p>
             <div className="w-20 h-20 rounded-t-lg mt-2 flex items-center justify-center" style={{ background: `${MEDAL_COLORS[1]}20` }}>
               <span className="text-[24px] font-black" style={{ color: MEDAL_COLORS[1] }}>1</span>
             </div>
@@ -142,13 +150,19 @@ export default function LeaderboardPage() {
           {/* 3rd place */}
           <motion.div
             className="flex flex-col items-center"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            initial={{ opacity: 0, x: 60 }}
+            animate={{ opacity: 1, x: 0, boxShadow: GLOW_SHADOWS[3] }}
+            transition={{ ...springs.heavy, delay: 3 * 0.06 }}
           >
             <img src={top3[2].photo} alt={top3[2].name} className="w-16 h-16 rounded-full object-cover border-3" style={{ borderColor: MEDAL_COLORS[3], borderWidth: 3 }} />
             <p className="text-[12px] font-bold text-text mt-1.5">{top3[2].name}</p>
-            <p className="text-[10px] text-text-muted">{top3[2].meetups} meetups</p>
+            <motion.p
+              key={`meetups-3-${top3[2].meetups}`}
+              className="text-[10px] text-text-muted"
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={springs.snap}
+            >{top3[2].meetups} meetups</motion.p>
             <div className="w-16 h-12 rounded-t-lg mt-2 flex items-center justify-center" style={{ background: `${MEDAL_COLORS[3]}20` }}>
               <span className="text-[20px] font-black" style={{ color: MEDAL_COLORS[3] }}>3</span>
             </div>
@@ -159,7 +173,6 @@ export default function LeaderboardPage() {
       {/* Rest of list */}
       <motion.div
         className="px-4 pb-8"
-        variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
@@ -167,8 +180,13 @@ export default function LeaderboardPage() {
           {rest.map(entry => (
             <motion.div
               key={entry.rank}
-              variants={rowVariants}
-              className="flex items-center gap-3 px-4 py-3"
+              variants={leaderboardVariants.row}
+              custom={entry.rank}
+              initial="hidden"
+              animate="visible"
+              whileHover={{ y: -2, boxShadow: "0 4px 16px rgba(0,0,0,0.1)", transition: springs.gentle }}
+              whileTap={{ scale: 0.98, transition: springs.micro }}
+              className="flex items-center gap-3 px-4 py-3 cursor-pointer"
             >
               <span className="w-6 text-[13px] font-bold text-text-muted text-center shrink-0">
                 {entry.rank}
@@ -180,7 +198,15 @@ export default function LeaderboardPage() {
               </div>
               <div className="flex items-center gap-1 shrink-0">
                 <span className="text-[12px]" style={{ color: "#F59E0B" }} aria-hidden="true">★</span>
-                <span className="text-[12px] font-semibold text-text-muted">{entry.karma}</span>
+                <motion.span
+                  key={`karma-${entry.rank}-${entry.karma}`}
+                  className="text-[12px] font-semibold text-text-muted"
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={springs.snap}
+                >
+                  {entry.karma}
+                </motion.span>
               </div>
             </motion.div>
           ))}
@@ -191,9 +217,9 @@ export default function LeaderboardPage() {
       <div className="fixed bottom-[76px] left-0 right-0 z-30 px-4 pb-2">
         <motion.div
           className="bg-bg border border-accent/20 rounded-2xl p-3 shadow-glow"
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.6 }}
+          initial={{ x: 60, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ ...springs.heavy, delay: 0.6 }}
         >
           <div className="flex items-center gap-3">
             <span className="w-6 text-[13px] font-bold text-accent text-center">#47</span>

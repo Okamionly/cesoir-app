@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
+import { browseVariants, springs, micro } from "@/lib/motion-design";
 import { ModeKey, MODES, MODE_KEYS } from "@/lib/modes";
 import { MOCK_PROFILES, Profile } from "@/lib/mock-profiles";
 import { useSwipe } from "@/lib/useSwipe";
@@ -94,32 +95,47 @@ export default function BrowsePage() {
       {/* Mode filter */}
       <ModeFilter active={filter} onChange={(m) => { setFilter(m); setIdx(0); }} />
 
-      {/* Card area */}
-      <main className="flex-1 relative px-4 pb-1 overflow-hidden">
+      {/* Card area — 3D Perspective deck */}
+      <main className="flex-1 relative px-4 pb-1 overflow-hidden" style={{ perspective: 800 }}>
         <AnimatePresence mode="popLayout">
           {card ? (
-            <motion.div key={card.id} className="w-full h-full" initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} transition={{ type: "spring", stiffness: 400, damping: 30 }}>
+            <motion.div
+              key={card.id}
+              className="w-full h-full"
+              variants={browseVariants.card}
+              initial="initial"
+              animate="center"
+              exit="swipeLeft"
+              whileHover={{ rotateY: 3, transition: springs.gentle }}
+              whileTap={{ scale: 0.97, transition: springs.micro }}
+              style={{ transformStyle: "preserve-3d" }}
+            >
+              {/* Stacked card behind — physical depth illusion */}
               {next1 && (
-                <motion.div className="absolute inset-x-5 top-1 bottom-2 rounded-[28px] overflow-hidden z-[1]" style={{ scale: swipe.nextScale }}>
+                <motion.div
+                  className="absolute inset-x-5 top-1 bottom-2 rounded-[28px] overflow-hidden z-[1]"
+                  animate={browseVariants.stack.behind(1)}
+                  style={{ scale: swipe.nextScale }}
+                >
                   <div className="absolute inset-0 bg-[#111]" />
                   <img src={next1.photo} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20 blur-[4px]" />
                 </motion.div>
               )}
               <SwipeCard
-              profile={card}
-              index={idx}
-              total={list.length}
-              expanded={info}
-              onToggleExpand={() => setInfo(!info)}
-              x={swipe.x}
-              rotate={swipe.rotate}
-              likeOpacity={swipe.likeOpacity}
-              nopeOpacity={swipe.nopeOpacity}
-              onDragEnd={swipe.onDragEnd}
-              onLike={swipe.triggerLike}
-              onPass={swipe.triggerPass}
-              onReport={() => setShowReport(true)}
-            />
+                profile={card}
+                index={idx}
+                total={list.length}
+                expanded={info}
+                onToggleExpand={() => setInfo(!info)}
+                x={swipe.x}
+                rotate={swipe.rotate}
+                likeOpacity={swipe.likeOpacity}
+                nopeOpacity={swipe.nopeOpacity}
+                onDragEnd={swipe.onDragEnd}
+                onLike={swipe.triggerLike}
+                onPass={swipe.triggerPass}
+                onReport={() => setShowReport(true)}
+              />
             </motion.div>
           ) : (
             <EmptyState key="empty" onReset={() => { setIdx(0); setFilter("all"); }} />
@@ -188,13 +204,13 @@ function FilterButton({ active, onClick, label, children }: { active: boolean; o
 function ActionButtons({ onPass, onLike, onSuperLike }: { onPass: () => void; onLike: () => void; onSuperLike: () => void }) {
   return (
     <div className="shrink-0 flex items-center justify-center gap-6 pt-2 pb-[76px]" role="group" aria-label="Actions">
-      <motion.button onClick={onPass} aria-label="Passer" className="w-[54px] h-[54px] rounded-full bg-bg border-2 border-border flex items-center justify-center text-text-muted" whileTap={{ scale: 0.8 }}>
+      <motion.button onClick={onPass} aria-label="Passer" className="w-[54px] h-[54px] rounded-full bg-bg border-2 border-border flex items-center justify-center text-text-muted" whileTap={micro.tapScale} whileHover={micro.hoverLift}>
         <IconX size={22} />
       </motion.button>
-      <motion.button onClick={onSuperLike} aria-label="Super like" className="w-[44px] h-[44px] rounded-full bg-bg border-2 border-border flex items-center justify-center text-text-muted" whileTap={{ scale: 0.8 }}>
+      <motion.button onClick={onSuperLike} aria-label="Super like" className="w-[44px] h-[44px] rounded-full bg-bg border-2 border-border flex items-center justify-center text-text-muted" whileTap={micro.tapScale} whileHover={micro.hoverLift}>
         <IconStar size={18} />
       </motion.button>
-      <motion.button onClick={onLike} aria-label="Liker" className="w-[54px] h-[54px] rounded-full gradient-bg flex items-center justify-center text-white shadow-glow" whileTap={{ scale: 0.8 }}>
+      <motion.button onClick={onLike} aria-label="Liker" className="w-[54px] h-[54px] rounded-full gradient-bg flex items-center justify-center text-white shadow-glow" whileTap={micro.tapScale} whileHover={micro.hoverLift}>
         <IconHeart size={22} />
       </motion.button>
     </div>
@@ -223,7 +239,7 @@ function MatchToast({ profile, conversationId, onDismiss }: { profile: Profile; 
       className="fixed bottom-24 left-4 right-4 z-50"
       initial={{ y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+      transition={springs.elastic}
     >
       <div className="bg-bg border border-accent/20 rounded-2xl p-4 shadow-glow">
         <div className="flex items-center gap-3">

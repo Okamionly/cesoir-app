@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { motion, useScroll, useTransform } from "motion/react";
+import { motion, useScroll, useTransform, AnimatePresence } from "motion/react";
+import { profileVariants, springs, micro, ambient } from "@/lib/motion-design";
 import { MODES } from "@/lib/modes";
 import { MODE_ICONS, IconStar } from "@/components/ui/Icons";
 import { useAuth } from "@/context/AuthContext";
@@ -24,6 +25,14 @@ const prompts = [
 const TONIGHT_CHIPS = ["Diner", "Boire un verre", "Cinema", "Balade", "Concert", "Jeux", "Cuisiner", "Sport"];
 const MOOD_EMOJIS = ["😊", "🔥", "🥂", "🌙", "💜", "🎉", "😴", "🤔"];
 const TIME_SLOTS = ["19h-21h", "21h-23h", "23h+", "Flexible"];
+
+const BADGES = [
+  { icon: "🌙", name: "Noctambule" },
+  { icon: "⭐", name: "Top Rated" },
+  { icon: "🔥", name: "7j Streak" },
+  { icon: "🌍", name: "Globe-Trotter" },
+  { icon: "💬", name: "Bavard" },
+];
 
 export default function ProfilePage() {
   const { user, signOut } = useAuth();
@@ -92,7 +101,13 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-bg">
       {/* Parallax photo header */}
-      <div ref={headerRef} className="relative h-72 overflow-hidden">
+      <motion.div
+        ref={headerRef}
+        className="relative h-72 overflow-hidden"
+        variants={profileVariants.hero}
+        initial="hidden"
+        animate="visible"
+      >
         <motion.div
           className="absolute inset-0 w-full h-full"
           style={{ y: bgY, scale: bgScale }}
@@ -114,7 +129,7 @@ export default function ProfilePage() {
             </svg>
           </Link>
         </div>
-      </div>
+      </motion.div>
 
       {/* Avatar + info — overlapping the header */}
       <div className="relative -mt-20 px-5">
@@ -157,51 +172,78 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Audio Intro */}
-      <div className="px-5 mt-5">
+      {/* Audio Intro — slide from left (odd card) */}
+      <motion.div
+        className="px-5 mt-5"
+        initial={{ opacity: 0, x: -60 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ ...springs.heavy, delay: 0.3 }}
+      >
         <AudioIntro />
-      </div>
+      </motion.div>
 
-      {/* Stats — clean horizontal */}
+      {/* Stats — clean horizontal with staggered slide-from-left */}
       <div className="flex gap-1 px-5 mt-5">
         {[
           { n: "12", l: "Rencontres" },
           { n: "28", l: "Matchs" },
           { n: "5", l: "Ce mois" },
-        ].map(s => (
-          <div key={s.l} className="flex-1 bg-bg-card border border-border rounded-xl py-3 text-center">
+        ].map((s, i) => (
+          <motion.div
+            key={s.l}
+            className="flex-1 bg-bg-card border border-border rounded-xl py-3 text-center"
+            variants={profileVariants.statsRow}
+            initial="hidden"
+            animate="visible"
+            custom={i}
+          >
             <p className="text-[20px] font-black gradient-text">{s.n}</p>
             <p className="text-[9px] text-text-muted uppercase tracking-wider font-semibold">{s.l}</p>
-          </div>
+          </motion.div>
         ))}
       </div>
 
-      {/* === CE SOIR JE VEUX === */}
-      <div className="px-5 mt-6">
+      {/* === CE SOIR JE VEUX === slide from right (even card) */}
+      <motion.div
+        className="px-5 mt-6"
+        initial={{ opacity: 0, x: 60 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ ...springs.heavy, delay: 0.4 }}
+      >
         <p className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3">Ce soir je veux...</p>
         <div className="flex flex-wrap gap-2">
-          {TONIGHT_CHIPS.map(chip => {
+          {TONIGHT_CHIPS.map((chip, i) => {
             const on = selectedChips.includes(chip);
             return (
-              <button
+              <motion.button
                 key={chip}
                 onClick={() => toggleChip(chip)}
                 aria-pressed={on}
-                className={`px-3.5 py-2 rounded-full text-[12px] font-medium transition-all tap-target ${
+                variants={profileVariants.chip}
+                initial="hidden"
+                animate="visible"
+                whileTap="tap"
+                custom={i}
+                className={`px-3.5 py-2 rounded-full text-[12px] font-medium transition-colors tap-target ${
                   on
                     ? "border-2 border-accent bg-accent/10 text-accent"
                     : "border border-border text-text-muted hover:border-accent/30"
                 }`}
               >
                 {chip}
-              </button>
+              </motion.button>
             );
           })}
         </div>
-      </div>
+      </motion.div>
 
-      {/* === MON MOOD === */}
-      <div className="px-5 mt-6">
+      {/* === MON MOOD === slide from left (odd card) */}
+      <motion.div
+        className="px-5 mt-6"
+        initial={{ opacity: 0, x: -60 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ ...springs.heavy, delay: 0.5 }}
+      >
         <p className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3">Mon mood</p>
         <div className="flex gap-2 mb-3 overflow-x-auto no-scrollbar">
           {MOOD_EMOJIS.map(emoji => (
@@ -234,10 +276,15 @@ export default function ProfilePage() {
             <span className="text-[9px] text-text-muted shrink-0">{moodText.length}/50</span>
           </div>
         )}
-      </div>
+      </motion.div>
 
-      {/* === MA DISPO === */}
-      <div className="px-5 mt-6">
+      {/* === MA DISPO === slide from right (even card) */}
+      <motion.div
+        className="px-5 mt-6"
+        initial={{ opacity: 0, x: 60 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ ...springs.heavy, delay: 0.6 }}
+      >
         <p className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3">Ma dispo</p>
         <div className="flex gap-2">
           {TIME_SLOTS.map(slot => (
@@ -255,10 +302,15 @@ export default function ProfilePage() {
             </button>
           ))}
         </div>
-      </div>
+      </motion.div>
 
-      {/* === MA ZONE CE SOIR === */}
-      <div className="px-5 mt-6">
+      {/* === MA ZONE CE SOIR === slide from left (odd card) */}
+      <motion.div
+        className="px-5 mt-6"
+        initial={{ opacity: 0, x: -60 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ ...springs.heavy, delay: 0.7 }}
+      >
         <p className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3">Ma zone ce soir</p>
         <input
           type="text"
@@ -268,10 +320,15 @@ export default function ProfilePage() {
           className="w-full px-4 py-3 bg-bg-card border border-border rounded-xl text-[13px] text-text placeholder:text-text-muted outline-none focus:border-accent/30 transition-colors"
           aria-label="Zone pour ce soir"
         />
-      </div>
+      </motion.div>
 
-      {/* Prompts — Hinge style */}
-      <div className="px-5 mt-6">
+      {/* Prompts — Hinge style, slide from right (even card) */}
+      <motion.div
+        className="px-5 mt-6"
+        initial={{ opacity: 0, x: 60 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ ...springs.heavy, delay: 0.8 }}
+      >
         <p className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3">A propos</p>
         <div className="space-y-3">
           {prompts.map((p, i) => (
@@ -281,10 +338,15 @@ export default function ProfilePage() {
             </div>
           ))}
         </div>
-      </div>
+      </motion.div>
 
-      {/* Active modes — with custom icons */}
-      <div className="px-5 mt-6">
+      {/* Active modes — with custom icons, slide from left (odd card) */}
+      <motion.div
+        className="px-5 mt-6"
+        initial={{ opacity: 0, x: -60 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ ...springs.heavy, delay: 0.9 }}
+      >
         <p className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3">Modes actifs ce soir</p>
         <div className="flex gap-2 overflow-x-auto no-scrollbar">
           {activeModes.map((key) => {
@@ -305,10 +367,15 @@ export default function ProfilePage() {
             <span className="text-[12px] font-medium">Ajouter</span>
           </button>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Settings — minimal */}
-      <div className="px-5 mt-6 mb-4">
+      {/* Settings — minimal, slide from right (even card) */}
+      <motion.div
+        className="px-5 mt-6 mb-4"
+        initial={{ opacity: 0, x: 60 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ ...springs.heavy, delay: 1.0 }}
+      >
         <p className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3">Parametres</p>
         <div className="bg-bg-card border border-border rounded-2xl overflow-hidden divide-y divide-border">
           {[
@@ -337,7 +404,7 @@ export default function ProfilePage() {
             )
           ))}
         </div>
-      </div>
+      </motion.div>
 
       {/* Simuler un check-in (demo) */}
       <div className="px-5 mb-4">
@@ -377,8 +444,62 @@ export default function ProfilePage() {
         </Link>
       </div>
 
+      {/* === MES STATS === */}
+      <div className="px-5 mt-6">
+        <p className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3">Mes Stats</p>
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { icon: "🔥", label: "Streak actuel", value: "7" },
+            { icon: "⭐", label: "Karma total", value: "4.8" },
+            { icon: "📊", label: "Taux de reponse", value: "95%" },
+            { icon: "📅", label: "Membre depuis", value: "Avril 2026" },
+          ].map((stat, i) => (
+            <motion.div
+              key={stat.label}
+              className="bg-bg-card border border-border rounded-2xl p-4 flex flex-col items-center gap-2"
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ ...springs.elastic, delay: 0.2 + i * 0.1 }}
+            >
+              <span className="text-[24px]" aria-hidden="true">{stat.icon}</span>
+              {stat.label === "Taux de reponse" ? (
+                <div className="relative w-12 h-12 flex items-center justify-center">
+                  <svg className="absolute inset-0 w-12 h-12 -rotate-90" viewBox="0 0 48 48">
+                    <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" strokeWidth="3" className="text-border" />
+                    <circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" strokeWidth="3" className="text-accent" strokeDasharray={`${0.95 * 2 * Math.PI * 20} ${2 * Math.PI * 20}`} strokeLinecap="round" />
+                  </svg>
+                  <span className="text-[13px] font-black text-text">{stat.value}</span>
+                </div>
+              ) : (
+                <p className="text-[20px] font-black gradient-text">{stat.value}</p>
+              )}
+              <p className="text-[9px] text-text-muted uppercase tracking-wider font-semibold text-center">{stat.label}</p>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* === BADGES === */}
+      <div className="px-5 mt-6">
+        <p className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3">Badges</p>
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+          {BADGES.map((badge, i) => (
+            <motion.div
+              key={badge.name}
+              className="shrink-0 flex flex-col items-center gap-1.5 bg-bg-card border border-border rounded-2xl px-4 py-3 min-w-[80px]"
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ ...springs.elastic, delay: 0.2 + i * 0.06 }}
+            >
+              <span className="text-[24px]">{badge.icon}</span>
+              <span className="text-[10px] font-semibold text-text-muted text-center whitespace-nowrap">{badge.name}</span>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
       {/* Logout */}
-      <div className="px-5 pb-24">
+      <div className="px-5 pb-24 mt-4">
         <button
           onClick={async () => { await signOut(); router.push("/"); }}
           className="w-full text-center text-[13px] text-danger font-semibold py-3 bg-danger/5 border border-danger/10 rounded-xl tap-target"
