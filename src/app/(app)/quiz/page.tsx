@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
+import { quizVariants, springs } from "@/lib/motion-design";
 import Link from "next/link";
 
 interface QuizQuestion {
@@ -127,7 +128,7 @@ export default function QuizPage() {
   if (result) {
     return (
       <div className="min-h-screen bg-bg flex flex-col items-center justify-center px-6 text-center max-w-lg mx-auto pb-safe">
-        <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 200 }}>
+        <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={springs.elastic}>
           <div className="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6" style={{ background: `${result.color}20`, border: `2px solid ${result.color}40` }}>
             <span className="text-5xl">{result.type === "explorer" ? "\u2708\uFE0F" : result.type === "gourmet" ? "\uD83C\uDF7D" : result.type === "noctambule" ? "\uD83C\uDF19" : "\u2764\uFE0F"}</span>
           </div>
@@ -168,13 +169,27 @@ export default function QuizPage() {
       {/* Question */}
       <div className="flex-1 flex flex-col items-center justify-center px-6">
         <AnimatePresence mode="wait">
-          <motion.div key={step} initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }} transition={{ duration: 0.25 }} className="w-full">
+          <motion.div
+            key={step}
+            variants={quizVariants.question}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            className="w-full"
+            style={{ perspective: 800 }}
+          >
             <h2 className="text-[28px] font-black text-text text-center mb-8">{q.question}</h2>
-            <div className="grid grid-cols-2 gap-3">
-              {q.options.map((opt) => (
+            <motion.div
+              className="grid grid-cols-2 gap-3"
+              initial="hidden"
+              animate="visible"
+            >
+              {q.options.map((opt, i) => (
                 <motion.button
                   key={opt.value}
-                  whileTap={{ scale: 0.95 }}
+                  variants={quizVariants.option}
+                  custom={i}
+                  whileTap={{ scale: 0.95, transition: springs.micro }}
                   onClick={() => handleAnswer(opt.value)}
                   className="flex flex-col items-center gap-2 p-5 rounded-2xl border border-border bg-bg-card hover:border-accent/40 hover:bg-accent/5 transition-all"
                 >
@@ -182,7 +197,7 @@ export default function QuizPage() {
                   <span className="text-[14px] font-semibold text-text">{opt.label}</span>
                 </motion.button>
               ))}
-            </div>
+            </motion.div>
           </motion.div>
         </AnimatePresence>
       </div>

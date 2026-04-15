@@ -131,27 +131,30 @@ export function usePushNotifications(): PushNotificationHook {
       }
 
       // 2. Ensure service worker is registered
-      let registration = await navigator.serviceWorker.getRegistration("/");
-      if (!registration) {
-        registration = await registerServiceWorker();
-        if (!registration) {
+      const existingReg = await navigator.serviceWorker.getRegistration("/");
+      if (!existingReg) {
+        const newReg = await registerServiceWorker();
+        if (!newReg) {
           setIsLoading(false);
           return false;
         }
       }
 
       // Wait for SW to be ready
-      registration = await navigator.serviceWorker.ready;
+      const registration = await navigator.serviceWorker.ready;
 
       // 3. Subscribe to push
-      const applicationServerKey = VAPID_PUBLIC_KEY
-        ? urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-        : undefined;
-
-      const subscription = await registration.pushManager.subscribe({
+      const subscribeOptions: PushSubscriptionOptionsInit = {
         userVisibleOnly: true,
-        ...(applicationServerKey ? { applicationServerKey } : {}),
-      });
+      };
+
+      if (VAPID_PUBLIC_KEY) {
+        subscribeOptions.applicationServerKey =
+          urlBase64ToUint8Array(VAPID_PUBLIC_KEY).buffer as ArrayBuffer;
+      }
+
+      const subscription =
+        await registration.pushManager.subscribe(subscribeOptions);
 
       // 4. Send subscription to backend
       await sendSubscriptionToServer(subscription);

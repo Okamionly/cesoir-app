@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { MODES, type ModeKey } from "@/lib/modes";
 
 export interface ModeStatData {

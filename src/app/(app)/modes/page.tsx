@@ -1,28 +1,15 @@
 "use client";
 
-import { motion, type Variants } from "framer-motion";
+import { motion, type Variants } from "motion/react";
 import { MODES, MODE_KEYS } from "@/lib/modes";
 import { MOCK_PROFILES } from "@/lib/mock-profiles";
 import { MODE_ICONS } from "@/components/ui/Icons";
 import Link from "next/link";
+import { modesVariants, springs, ambient } from "@/lib/motion-design";
 
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.06, delayChildren: 0.1 },
-  },
-};
+const containerVariants: Variants = modesVariants.grid;
 
-const cardVariants: Variants = {
-  hidden: { opacity: 0, y: 24, scale: 0.96 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { type: "spring", stiffness: 400, damping: 30 },
-  },
-};
+const cardVariants: Variants = modesVariants.modeCard;
 
 export default function ModesPage() {
   return (
@@ -45,15 +32,24 @@ export default function ModesPage() {
         aria-label="Liste des modes"
       >
         {/* Sorties de groupe link */}
-        <motion.div variants={cardVariants}>
+        <motion.div
+          variants={cardVariants}
+          custom={0}
+          whileHover={{ y: -6, scale: 1.05, transition: springs.gentle }}
+          whileTap={{ scale: 0.92, transition: springs.micro }}
+        >
           <Link
             href="/group"
-            className="block bg-accent/5 border border-accent/20 rounded-2xl p-4 active:scale-[0.98] transition-transform hover:border-accent/40"
+            className="block bg-accent/5 border border-accent/20 rounded-2xl p-4 hover:border-accent/40"
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center shadow-glow">
+              <motion.div
+                className="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center shadow-glow"
+                animate={{ scale: [1, 1.03, 1] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              >
                 <span className="text-[18px] text-white" aria-hidden="true">👥</span>
-              </div>
+              </motion.div>
               <div className="flex-1">
                 <h2 className="text-[15px] font-bold text-text">Sorties de groupe</h2>
                 <p className="text-[11px] text-text-muted">Rejoins une sortie ou cree la tienne</p>
@@ -66,22 +62,34 @@ export default function ModesPage() {
           </Link>
         </motion.div>
 
-        {MODE_KEYS.map((key) => {
+        {MODE_KEYS.map((key, index) => {
           const mode = MODES[key];
           const count = MOCK_PROFILES.filter(p => p.mode === key).length;
           const Icon = MODE_ICONS[key];
 
           return (
-            <motion.div key={key} variants={cardVariants}>
+            <motion.div
+              key={key}
+              variants={cardVariants}
+              custom={index}
+              whileHover={{ y: -6, scale: 1.05, transition: springs.gentle }}
+              whileTap={{ scale: 0.92, transition: springs.micro }}
+              animate={modesVariants.floatLoop(index)}
+            >
               <Link
                 href={`/browse?mode=${key}`}
-                className="block bg-bg-card border border-border rounded-2xl p-4 active:scale-[0.98] transition-transform hover:border-accent/30"
+                className="block bg-bg-card border border-border rounded-2xl p-4 hover:border-accent/30"
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${mode.color}15` }}>
+                    <motion.div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center"
+                      style={{ background: `${mode.color}15` }}
+                      animate={{ scale: [1, 1.03, 1] }}
+                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    >
                       {Icon && <Icon size={20} className="text-accent" />}
-                    </div>
+                    </motion.div>
                     <div>
                       <h2 className="text-[15px] font-bold text-text">{mode.name}</h2>
                       <div className="flex items-center gap-1.5 mt-0.5">

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, type Variants } from "framer-motion";
+import { motion } from "motion/react";
+import { challengeVariants, springs, micro } from "@/lib/motion-design";
 import Link from "next/link";
 
 interface DailyChallenge {
@@ -34,15 +35,7 @@ const WEEKLY_CHALLENGE: WeeklyChallenge = {
   xp: 100,
 };
 
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.2 } },
-};
-
-const cardVariants: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 400, damping: 30 } },
-};
+/* Animation variants imported from @/lib/motion-design (challengeVariants) */
 
 function useCountdown(): string {
   const [label, setLabel] = useState("...");
@@ -121,8 +114,9 @@ export default function ChallengesPage() {
           background: "linear-gradient(135deg, rgba(139,92,246,0.15), rgba(0,255,136,0.1))",
           border: "1px solid rgba(139,92,246,0.3)",
         }}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, x: -30, skewX: -2 }}
+        animate={{ opacity: 1, x: 0, skewX: 0 }}
+        transition={springs.heavy}
         role="status"
         aria-label={`XP gagnes aujourd'hui: ${totalXpToday}`}
       >
@@ -154,17 +148,17 @@ export default function ChallengesPage() {
 
       {/* Daily challenges */}
       <motion.div
-        variants={containerVariants}
         initial="hidden"
         animate="visible"
         className="space-y-3 mb-6"
         role="list"
         aria-label="Defis quotidiens"
       >
-        {challenges.map((challenge) => (
+        {challenges.map((challenge, i) => (
           <motion.div
             key={challenge.id}
-            variants={cardVariants}
+            variants={challengeVariants.card}
+            custom={i}
             className="rounded-xl p-4"
             style={{
               background: "#141414",
@@ -182,7 +176,7 @@ export default function ChallengesPage() {
                     background: challenge.done ? "#00FF88" : "transparent",
                     border: challenge.done ? "none" : "2px solid #444",
                   }}
-                  whileTap={{ scale: 0.85 }}
+                  whileTap={{ scale: 0.85, transition: springs.micro }}
                   aria-label={challenge.done ? `${challenge.title} - termine` : `${challenge.title} - a faire`}
                   aria-checked={challenge.done}
                   role="checkbox"
@@ -213,12 +207,13 @@ export default function ChallengesPage() {
                   >
                     {challenge.title}
                   </p>
-                  <span
-                    className="text-[11px] font-bold px-2 py-0.5 rounded-full"
+                  <motion.span
+                    className="text-[11px] font-bold px-2 py-0.5 rounded-full inline-block"
                     style={{ background: "rgba(139,92,246,0.15)", color: "#8B5CF6" }}
+                    variants={challengeVariants.xpBadge}
                   >
                     +{challenge.xp} XP
-                  </span>
+                  </motion.span>
                 </div>
 
                 {/* Progress bar for progress type */}
@@ -227,10 +222,19 @@ export default function ChallengesPage() {
                     <div className="h-2 rounded-full overflow-hidden" style={{ background: "#222" }}>
                       <motion.div
                         className="h-full rounded-full"
-                        style={{ background: "linear-gradient(90deg, #8B5CF6, #00FF88)" }}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${(challenge.current / challenge.target) * 100}%` }}
-                        transition={{ duration: 0.8, ease: "easeOut" }}
+                        style={{
+                          background: "linear-gradient(90deg, #8B5CF6, #00FF88)",
+                          transformOrigin: "left",
+                        }}
+                        initial={{ scaleX: 0 }}
+                        animate={{ scaleX: challenge.current / challenge.target }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 100,
+                          damping: 20,
+                          mass: 1.5,
+                          delay: 0.3,
+                        }}
                       />
                     </div>
                     <p className="text-[11px] mt-1" style={{ color: "#666" }}>
@@ -259,9 +263,9 @@ export default function ChallengesPage() {
           borderImage: "linear-gradient(135deg, #8B5CF6, #00FF88) 1",
           borderImageSlice: 1,
         }}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
+        initial={{ opacity: 0, x: -30, skewX: -2 }}
+        animate={{ opacity: 1, x: 0, skewX: 0 }}
+        transition={{ ...springs.heavy, delay: 0.4 }}
         role="region"
         aria-label="Defi hebdomadaire"
       >
@@ -278,10 +282,19 @@ export default function ChallengesPage() {
         <div className="h-3 rounded-full overflow-hidden mb-2" style={{ background: "#222" }}>
           <motion.div
             className="h-full rounded-full"
-            style={{ background: "linear-gradient(90deg, #00FF88, #8B5CF6)" }}
-            initial={{ width: 0 }}
-            animate={{ width: `${(WEEKLY_CHALLENGE.current / WEEKLY_CHALLENGE.target) * 100}%` }}
-            transition={{ duration: 1, ease: "easeOut", delay: 0.5 }}
+            style={{
+              background: "linear-gradient(90deg, #00FF88, #8B5CF6)",
+              transformOrigin: "left",
+            }}
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: WEEKLY_CHALLENGE.current / WEEKLY_CHALLENGE.target }}
+            transition={{
+              type: "spring",
+              stiffness: 100,
+              damping: 20,
+              mass: 1.5,
+              delay: 0.5,
+            }}
           />
         </div>
         <p className="text-[12px] text-text-muted">

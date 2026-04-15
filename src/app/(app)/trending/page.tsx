@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
+import { trendingVariants, springs } from "@/lib/motion-design";
 import { ModeKey, MODES } from "@/lib/modes";
 
 // --- Types ---
@@ -43,14 +44,11 @@ const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.06 },
+    transition: { staggerChildren: 0.1, delayChildren: 0.1 },
   },
 };
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" as const } },
-};
+const cardVariants = trendingVariants.spot;
 
 export default function TrendingPage() {
   const [activeMode, setActiveMode] = useState<ModeKey | null>(null);
@@ -163,11 +161,13 @@ export default function TrendingPage() {
         key={`${activeMode}-${sort}`}
       >
         <AnimatePresence mode="popLayout">
-          {filtered.map((venue) => (
+          {filtered.map((venue, index) => (
             <motion.article
               key={venue.id}
               variants={cardVariants}
+              custom={index}
               layout
+              whileHover={{ scale: 1.02, y: -2, boxShadow: "0 10px 30px rgba(0,0,0,0.18)", transition: springs.gentle }}
               className="bg-card border border-border rounded-2xl overflow-hidden"
               aria-label={`${venue.name} - ${venue.type}`}
             >
@@ -192,10 +192,14 @@ export default function TrendingPage() {
                       {venue.type} &middot; {venue.neighborhood} &middot; {venue.distance} km
                     </p>
                   </div>
-                  <div className="flex items-center gap-1 flex-shrink-0 bg-[#00FF88]/10 px-2 py-1 rounded-full">
+                  <motion.div
+                    className="flex items-center gap-1 flex-shrink-0 bg-[#00FF88]/10 px-2 py-1 rounded-full"
+                    animate={{ scale: [1, 1.08, 1] }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                  >
                     <span className="w-1.5 h-1.5 rounded-full bg-[#00FF88]" aria-hidden="true" />
                     <span className="text-[11px] font-bold text-[#00FF88]">{venue.people}</span>
-                  </div>
+                  </motion.div>
                 </div>
 
                 {/* Mode tags */}

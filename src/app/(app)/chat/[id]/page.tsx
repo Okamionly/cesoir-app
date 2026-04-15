@@ -2,7 +2,7 @@
 
 import { use, useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { useAuth } from "@/context/AuthContext";
 import { useChat, useTypingIndicator } from "@/lib/useChat";
 import { supabase } from "@/lib/supabase";

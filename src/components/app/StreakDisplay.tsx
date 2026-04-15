@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
+import { springs, micro, ambient } from "@/lib/motion-design";
 
 interface StreakDisplayProps {
   currentStreak: number;
@@ -95,9 +96,9 @@ export default function StreakDisplay({
     <motion.div
       className="rounded-2xl p-4"
       style={{ background: "#141414", border: "1px solid #222" }}
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+      transition={springs.heavy}
       role="region"
       aria-label={`Streak de ${currentStreak} jours`}
     >
@@ -113,10 +114,10 @@ export default function StreakDisplay({
             className="absolute inset-0 flex items-center justify-center"
             animate={
               highStreak
-                ? { scale: [1, 1.08, 1], rotate: [0, 2, -2, 0] }
-                : { scale: [1, 1.03, 1] }
+                ? { scale: [1, 1.12, 1], rotate: [0, 3, -3, 0] }
+                : { scale: [1, 1.04, 1] }
             }
-            transition={{ repeat: Infinity, duration: highStreak ? 0.8 : 2, ease: "easeInOut" }}
+            transition={{ repeat: Infinity, duration: highStreak ? 0.7 : 2.5, ease: "easeInOut" }}
             aria-hidden="true"
           >
             <svg width={flameSize} height={flameSize} viewBox="0 0 24 24" fill="url(#flameGrad)">
@@ -143,9 +144,9 @@ export default function StreakDisplay({
               WebkitTextFillColor: "transparent",
             }}
             key={currentStreak}
-            initial={{ scale: 1.2 }}
+            initial={{ scale: 1.3 }}
             animate={{ scale: 1 }}
-            transition={{ type: "spring", stiffness: 500, damping: 20 }}
+            transition={springs.rubber}
           >
             {currentStreak}
           </motion.p>
@@ -179,7 +180,7 @@ export default function StreakDisplay({
               }}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              transition={{ delay: i * 0.05, type: "spring", stiffness: 500, damping: 25 }}
+              transition={{ ...springs.elastic, delay: i * 0.06 }}
             >
               {active && (
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="white" aria-hidden="true">
@@ -208,7 +209,7 @@ export default function StreakDisplay({
               }}
               initial={{ width: 0 }}
               animate={{ width: currentStreak >= m ? "100%" : "0%" }}
-              transition={{ duration: 0.6, delay: MILESTONES.indexOf(m) * 0.1 }}
+              transition={{ ...springs.gentle, delay: MILESTONES.indexOf(m) * 0.12 }}
             />
             <span
               className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[9px] font-medium"
@@ -225,8 +226,8 @@ export default function StreakDisplay({
         <motion.div
           className="mt-6 p-2.5 rounded-xl flex items-center gap-2"
           style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)" }}
-          animate={{ opacity: [0.7, 1, 0.7] }}
-          transition={{ repeat: Infinity, duration: 1.5 }}
+          animate={{ opacity: [0.6, 1, 0.6] }}
+          transition={{ repeat: Infinity, duration: 1.8 }}
           role="alert"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="#EF4444" aria-hidden="true">

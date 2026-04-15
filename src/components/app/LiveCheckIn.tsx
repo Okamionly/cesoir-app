@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { haptics } from "@/lib/haptics";
 
 const CHECK_IN_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes

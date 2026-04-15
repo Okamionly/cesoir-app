@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform } from "motion/react";
 import { MODES } from "@/lib/modes";
 import { MODE_ICONS, IconStar } from "@/components/ui/Icons";
 import { useAuth } from "@/context/AuthContext";
@@ -79,7 +79,7 @@ export default function ProfilePage() {
       .select("avatar_url, name")
       .eq("id", user.id)
       .single()
-      .then(({ data }) => {
+      .then(({ data }: { data: { avatar_url?: string; name?: string } | null }) => {
         if (data?.avatar_url) setAvatarUrl(data.avatar_url);
         if (data?.name) setProfileName(data.name);
       });

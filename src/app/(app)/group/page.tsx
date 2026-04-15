@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, type Variants } from "framer-motion";
+import { motion, type Variants } from "motion/react";
 import Link from "next/link";
 import { MODES } from "@/lib/modes";
 import { MODE_ICONS } from "@/components/ui/Icons";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 
 function getTimeUntilMidnight(): { hours: number; minutes: number; totalMs: number } {
   const now = new Date();

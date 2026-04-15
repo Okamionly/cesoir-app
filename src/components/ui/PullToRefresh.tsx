@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect, type ReactNode } from "react";
-import { motion, useMotionValue, useTransform, animate, type MotionValue } from "framer-motion";
+import { motion, useMotionValue, useTransform, animate, type MotionValue } from "motion/react";
 
 // ---------------------------------------------------------------------------
 // Types

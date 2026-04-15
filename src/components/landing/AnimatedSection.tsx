@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, type Variants } from "framer-motion";
+import { motion, type Variants } from "motion/react";
 
 const sectionVariants: Variants = {
   hidden: { opacity: 0, y: 40 },

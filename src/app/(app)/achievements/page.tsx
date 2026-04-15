@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
+import { achievementVariants, springs, micro } from "@/lib/motion-design";
 
 interface Achievement {
   id: string;
@@ -62,9 +63,10 @@ export default function AchievementsPage() {
         <div className="w-full h-2 rounded-full bg-border overflow-hidden">
           <motion.div
             className="h-full rounded-full gradient-bg"
-            initial={{ width: 0 }}
-            animate={{ width: `${(TOTAL_XP / NEXT_LEVEL_XP) * 100}%` }}
-            transition={{ duration: 1, ease: "easeOut" }}
+            style={{ transformOrigin: "left" }}
+            initial={{ scaleX: 0 }}
+            animate={{ scaleX: TOTAL_XP / NEXT_LEVEL_XP }}
+            transition={springs.heavy}
           />
         </div>
         <p className="text-[11px] text-text-muted mt-1.5">{TOTAL_XP}/{NEXT_LEVEL_XP} XP pour le niveau {LEVEL + 1}</p>
@@ -77,11 +79,25 @@ export default function AchievementsPage() {
           {earned.map((a, i) => (
             <motion.button
               key={a.id}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.05 }}
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={{
+                opacity: 1,
+                scale: [0.85, 1.3, 0.95, 1.05, 1],
+                filter: "grayscale(0)",
+                boxShadow: [
+                  "0 0 0px rgba(139,92,246,0)",
+                  "0 0 30px rgba(139,92,246,0.6)",
+                  "0 0 0px rgba(139,92,246,0)",
+                ],
+              }}
+              transition={{
+                scale: { duration: 0.8, times: [0, 0.3, 0.5, 0.7, 1], delay: i * 0.06 },
+                opacity: { duration: 0.3, delay: i * 0.06 },
+                boxShadow: { duration: 1.5, repeat: Infinity, delay: i * 0.06 + 0.8 },
+              }}
               onClick={() => setSelected(a)}
               className="flex flex-col items-center gap-2 p-4 rounded-2xl border border-accent/20 bg-accent/5 hover:bg-accent/10 transition-colors"
+              whileTap={micro.tapScale}
             >
               <span className="text-2xl">{a.icon}</span>
               <span className="text-[11px] font-semibold text-text text-center leading-tight">{a.name}</span>
@@ -97,13 +113,14 @@ export default function AchievementsPage() {
           {locked.map((a, i) => (
             <motion.button
               key={a.id}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.05 + 0.3 }}
+              initial={{ opacity: 0, scale: 0.85, filter: "grayscale(1)" }}
+              animate={{ opacity: 0.4, scale: 0.85, filter: "grayscale(1)" }}
+              transition={{ duration: 0.4, delay: i * 0.06 + 0.3 }}
               onClick={() => setSelected(a)}
-              className="flex flex-col items-center gap-2 p-4 rounded-2xl border border-border bg-bg-card opacity-50 hover:opacity-70 transition-opacity relative"
+              className="flex flex-col items-center gap-2 p-4 rounded-2xl border border-border bg-bg-card hover:opacity-70 transition-opacity relative"
+              whileTap={micro.tapScale}
             >
-              <span className="text-2xl grayscale">{a.icon}</span>
+              <span className="text-2xl">{a.icon}</span>
               <span className="text-[11px] font-semibold text-text-muted text-center leading-tight">{a.name}</span>
               <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-border flex items-center justify-center">
                 <svg width={10} height={10} viewBox="0 0 24 24" fill="none"><path d="M19 11H5V21H19V11Z" stroke="currentColor" strokeWidth="2"/><path d="M17 11V7A5 5 0 007 7V11" stroke="currentColor" strokeWidth="2"/></svg>
@@ -127,6 +144,7 @@ export default function AchievementsPage() {
               initial={{ scale: 0.8, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.8, y: 20 }}
+              transition={springs.elastic}
               className="bg-bg rounded-3xl p-6 max-w-sm w-full border border-border shadow-glow"
               onClick={(e) => e.stopPropagation()}
             >

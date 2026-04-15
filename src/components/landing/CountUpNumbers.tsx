@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView } from "motion/react";
 
 function useCountUp(target: number, duration: number, inView: boolean) {
   const [count, setCount] = useState(0);

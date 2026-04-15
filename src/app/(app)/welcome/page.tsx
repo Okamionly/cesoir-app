@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { useRouter } from "next/navigation";
 import { MODES } from "@/lib/modes";
 import { MeshGradient } from "@/components/ui/MeshGradient";
+import { welcomeVariants, springs } from "@/lib/motion-design";
 
 // ---------------------------------------------------------------------------
 // Slide data
@@ -145,16 +146,21 @@ const slides: Slide[] = [
 
 const slideVariants = {
   enter: (direction: number) => ({
-    x: direction > 0 ? 300 : -300,
     opacity: 0,
+    x: direction > 0 ? 80 : -80,
+    scale: 0.96,
   }),
   center: {
-    x: 0,
     opacity: 1,
+    x: 0,
+    scale: 1,
+    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
   },
   exit: (direction: number) => ({
-    x: direction > 0 ? -300 : 300,
     opacity: 0,
+    x: direction > 0 ? -80 : 80,
+    scale: 0.96,
+    transition: { duration: 0.35, ease: [0.76, 0, 0.24, 1] as [number, number, number, number] },
   }),
 };
 
@@ -225,7 +231,6 @@ export default function OnboardingPage() {
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.3}
@@ -235,11 +240,23 @@ export default function OnboardingPage() {
             }}
             className="flex w-full max-w-sm flex-col items-center gap-6 text-center"
           >
-            <h1 className="font-display text-3xl font-bold gradient-text">
+            <motion.h1
+              className="font-display text-3xl font-bold gradient-text"
+              variants={welcomeVariants.illustration}
+              initial="hidden"
+              animate="visible"
+            >
               {slide.title}
-            </h1>
+            </motion.h1>
             <p className="text-base text-text-muted">{slide.subtitle}</p>
-            <div className="mt-4 w-full">{slide.content}</div>
+            <motion.div
+              className="mt-4 w-full"
+              variants={welcomeVariants.illustration}
+              initial="hidden"
+              animate="visible"
+            >
+              {slide.content}
+            </motion.div>
           </motion.div>
         </AnimatePresence>
       </div>
@@ -249,8 +266,11 @@ export default function OnboardingPage() {
         {/* Dot indicators */}
         <div className="flex gap-2">
           {slides.map((_, i) => (
-            <button
+            <motion.button
               key={i}
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ ...springs.snap, delay: i * 0.05 }}
               onClick={() => {
                 setDirection(i > currentSlide ? 1 : -1);
                 setCurrentSlide(i);
@@ -266,12 +286,15 @@ export default function OnboardingPage() {
         </div>
 
         {/* CTA button */}
-        <button
+        <motion.button
           onClick={goNext}
-          className="w-full max-w-xs rounded-2xl py-4 text-center text-base font-semibold text-white shadow-lg gradient-bg transition-transform active:scale-95"
+          whileHover={{ y: -2 }}
+          whileTap={{ scale: 0.95 }}
+          transition={springs.snap}
+          className="w-full max-w-xs rounded-2xl py-4 text-center text-base font-semibold text-white shadow-lg gradient-bg"
         >
           {isLast ? "Commencer" : "Suivant"}
-        </button>
+        </motion.button>
       </div>
     </div>
   );

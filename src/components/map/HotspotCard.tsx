@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import type { Hotspot } from "@/lib/hotspots";
 import { getHotspotColor, getHotspotLabel } from "@/lib/hotspots";
 

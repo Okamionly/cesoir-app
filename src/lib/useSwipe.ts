@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { useMotionValue, useTransform, animate, MotionValue } from "framer-motion";
+import { useMotionValue, useTransform, animate, MotionValue } from "motion/react";
 
 interface SwipeResult {
   x: MotionValue<number>;

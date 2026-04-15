@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 
 function getTodayKey(): string {
   return `cesoir-dispo-${new Date().toISOString().split("T")[0]}`;

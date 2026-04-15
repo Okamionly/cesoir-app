@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
+import { feedVariants, springs } from "@/lib/motion-design";
 import { MODES, ModeKey } from "@/lib/modes";
 
 // --- Types ---
@@ -56,17 +57,18 @@ function getTypeIcon(type: FeedItemType): string {
 
 // --- Component ---
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.06 },
-  },
-};
+const containerVariants = feedVariants.container;
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20, scale: 0.97 },
-  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35, ease: "easeOut" as const } },
+  hidden: { opacity: 0, y: -40, rotateX: 15, scale: 0.92 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    rotateX: 0,
+    scale: 1,
+    transition: { ...springs.heavy, stiffness: 180 },
+  },
+  exit: { opacity: 0, y: 30, scale: 0.9, transition: { duration: 0.2 } },
 };
 
 export default function FeedPage() {
@@ -151,7 +153,10 @@ export default function FeedPage() {
                 <motion.li
                   key={item.id}
                   variants={itemVariants}
+                  exit="exit"
                   layout
+                  whileHover={{ y: -3, boxShadow: "0 8px 25px rgba(0,0,0,0.15)", transition: springs.gentle }}
+                  whileTap={{ scale: 0.98, transition: springs.micro }}
                   className="bg-card border border-border rounded-2xl p-3.5 flex items-start gap-3"
                 >
                   {/* Avatar / icon */}

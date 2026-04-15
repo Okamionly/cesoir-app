@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
+import { memoriesVariants, springs } from "@/lib/motion-design";
 import Link from "next/link";
 
 interface Memory {
@@ -25,15 +26,6 @@ const MOCK_MEMORIES: Memory[] = [
   { id: "m8", gradient: "linear-gradient(135deg, #f97316, #facc15)", date: "25 Mar 2026", withName: "Gabriel", withPhoto: "https://randomuser.me/api/portraits/men/73.jpg", mode: "Flash", modeColor: "#EF4444" },
 ];
 
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { staggerChildren: 0.06, delayChildren: 0.2 } },
-};
-
-const itemVariants: Variants = {
-  hidden: { opacity: 0, scale: 0.85 },
-  visible: { opacity: 1, scale: 1, transition: { type: "spring", stiffness: 400, damping: 30 } },
-};
 
 export default function MemoriesPage() {
   const [selected, setSelected] = useState<Memory | null>(null);
@@ -82,21 +74,22 @@ export default function MemoriesPage() {
       {MOCK_MEMORIES.length > 0 ? (
         <motion.div
           className="grid grid-cols-3 gap-2"
-          variants={containerVariants}
+          variants={memoriesVariants.container}
           initial="hidden"
           animate="visible"
           role="list"
           aria-label="Galerie de souvenirs"
         >
-          {MOCK_MEMORIES.map((memory) => (
+          {MOCK_MEMORIES.map((memory, i) => (
             <motion.button
               key={memory.id}
-              variants={itemVariants}
+              variants={memoriesVariants.photo}
+              custom={i}
               className="relative aspect-square rounded-xl overflow-hidden"
               style={{ background: memory.gradient }}
               onClick={() => setSelected(memory)}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
+              whileHover={{ scale: 1.08, rotate: 0, zIndex: 10, transition: springs.snap }}
+              whileTap={{ scale: 0.95, transition: springs.micro }}
               role="listitem"
               aria-label={`Souvenir avec ${memory.withName}, ${memory.date}`}
             >
@@ -155,10 +148,10 @@ export default function MemoriesPage() {
           >
             <motion.div
               className="w-full max-w-sm rounded-2xl overflow-hidden bg-bg-card"
-              initial={{ scale: 0.8, y: 20 }}
+              initial={{ scale: 0.7, y: 40 }}
               animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.8, y: 20 }}
-              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+              exit={{ scale: 0.7, y: 40 }}
+              transition={springs.heavy}
               onClick={(e) => e.stopPropagation()}
             >
               {/* Photo area */}

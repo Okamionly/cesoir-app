@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import type { Badge } from "@/lib/badges";
 
 function BadgePill({ badge, onTap }: { badge: Badge; onTap: () => void }) {

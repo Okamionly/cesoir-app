@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { motion, AnimatePresence, type Variants } from "motion/react";
+import { springs, micro, ambient } from "@/lib/motion-design";
 
 interface KarmaTransaction {
   id: string;
@@ -51,8 +52,8 @@ const DEFAULT_TRANSACTIONS: KarmaTransaction[] = [
 ];
 
 const shopItemVariants: Variants = {
-  hidden: { opacity: 0, x: -10 },
-  visible: { opacity: 1, x: 0, transition: { type: "spring", stiffness: 400, damping: 30 } },
+  hidden: { opacity: 0, x: -20 },
+  visible: { opacity: 1, x: 0, transition: springs.heavy },
 };
 
 export default function KarmaDisplay({
@@ -78,9 +79,9 @@ export default function KarmaDisplay({
             WebkitTextFillColor: "transparent",
           }}
           key={karma}
-          initial={{ scale: 0.9 }}
+          initial={{ scale: 1.2 }}
           animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 500, damping: 20 }}
+          transition={springs.elastic}
           aria-live="polite"
         >
           {karma}
@@ -92,8 +93,8 @@ export default function KarmaDisplay({
         onClick={() => setShowShop(true)}
         className="w-full py-3.5 rounded-xl font-semibold text-[14px] text-white mb-4"
         style={{ background: "#8B5CF6" }}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
+        whileHover={{ scale: 1.03, transition: springs.snap }}
+        whileTap={{ scale: 0.97, transition: springs.snap }}
         aria-label="Ouvrir la boutique karma"
       >
         Depenser
@@ -162,7 +163,7 @@ export default function KarmaDisplay({
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              transition={springs.heavy}
               role="dialog"
               aria-label="Boutique Karma"
             >
@@ -194,19 +195,22 @@ export default function KarmaDisplay({
                   { key: "gagner" as const, label: "Comment gagner" },
                   { key: "historique" as const, label: "Historique" },
                 ]).map((t) => (
-                  <button
+                  <motion.button
                     key={t.key}
                     onClick={() => setTab(t.key)}
-                    className="px-3 py-1.5 rounded-full text-[12px] font-medium transition-colors"
+                    className="px-3 py-1.5 rounded-full text-[12px] font-medium"
                     style={{
                       background: tab === t.key ? "#8B5CF6" : "#222",
                       color: tab === t.key ? "#FFF" : "#999",
                     }}
+                    animate={{ scale: tab === t.key ? 1 : 0.95, opacity: tab === t.key ? 1 : 0.7 }}
+                    transition={springs.micro}
+                    whileTap={{ scale: 0.9, transition: springs.micro }}
                     role="tab"
                     aria-selected={tab === t.key}
                   >
                     {t.label}
-                  </button>
+                  </motion.button>
                 ))}
               </div>
 
@@ -217,7 +221,7 @@ export default function KarmaDisplay({
                     className="space-y-3"
                     initial="hidden"
                     animate="visible"
-                    variants={{ visible: { transition: { staggerChildren: 0.06 } } }}
+                    variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
                     role="list"
                     aria-label="Articles de la boutique"
                   >
@@ -272,7 +276,7 @@ export default function KarmaDisplay({
                         style={{ background: "#1a1a1a", border: "1px solid #222" }}
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.06 }}
+                        transition={{ ...springs.heavy, delay: i * 0.06 }}
                         role="listitem"
                       >
                         <span className="text-white text-[14px]">{rule.label}</span>

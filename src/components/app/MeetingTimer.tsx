@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { haptics } from "@/lib/haptics";
 
 type TimerColor = "#22c55e" | "#fbbf24" | "#ef4444";

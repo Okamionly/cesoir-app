@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 const DAILY_PROMPTS = [
   "Si tu pouvais diner avec n'importe qui ce soir, ce serait qui ?",

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { MOCK_PROFILES } from "@/lib/mock-profiles";
 import { MODES, ModeKey } from "@/lib/modes";
 

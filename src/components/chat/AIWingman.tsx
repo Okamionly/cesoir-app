@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import type { ModeKey } from "@/lib/modes";
 
 const SUGGESTIONS: Record<string, string[]> = {

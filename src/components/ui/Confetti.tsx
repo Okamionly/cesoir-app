@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 
 const COLORS = ["#8B5CF6", "#00FF88", "#FFFFFF"];
 const PARTICLE_COUNT = 35;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { motion, MotionValue } from "framer-motion";
+import { motion, MotionValue } from "motion/react";
 import { Profile } from "@/lib/mock-profiles";
 import { MODES, ModeKey } from "@/lib/modes";
 import { MODE_ICONS } from "@/components/ui/Icons";
