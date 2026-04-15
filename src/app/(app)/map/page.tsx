@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo, useRef, useCallback } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { mapVariants, springs, micro, ambient } from "@/lib/motion-design";
 import Link from "next/link";
@@ -9,6 +9,9 @@ import { useAuth } from "@/context/AuthContext";
 import { useProfiles } from "@/lib/useProfiles";
 import { MOCK_PROFILES, Profile } from "@/lib/mock-profiles";
 import { MODES, ModeKey, MODE_KEYS } from "@/lib/modes";
+import { useHotspots } from "@/lib/useHotspots";
+import HeatmapOverlay, { HeatmapFallback } from "@/components/map/HeatmapOverlay";
+import LiveActivityPanel from "@/components/map/LiveActivityPanel";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
@@ -34,13 +37,6 @@ interface OpenEvent {
   lng: number;
 }
 
-interface HeatZone {
-  lat: number;
-  lng: number;
-  intensity: "low" | "medium" | "high";
-  radius: number;
-}
-
 export default function MapPage() {
   const { user } = useAuth();
   const { latitude, longitude, error, loading } = useGeolocation();
@@ -54,10 +50,9 @@ export default function MapPage() {
   const mapRef = useRef<maplibregl.Map | null>(null);
   const markersRef = useRef<maplibregl.Marker[]>([]);
   const eventMarkersRef = useRef<maplibregl.Marker[]>([]);
-  const heatMarkersRef = useRef<HTMLDivElement[]>([]);
-
   const center = latitude && longitude ? { lat: latitude, lng: longitude } : { lat: 48.8566, lng: 2.3522 };
   const { profiles: realProfiles } = useProfiles(latitude ?? undefined, longitude ?? undefined, filter === "all" ? undefined : filter);
+  const { hotspots: liveHotspots, loading: hotspotsLoading, refresh: refreshHotspots, lastUpdated } = useHotspots();
 
   const profilesWithPos = useMemo(() => {
     if (realProfiles.length > 0) {
@@ -74,18 +69,6 @@ export default function MapPage() {
     { id: "ev2", title: "Soiree jeux Oberkampf", time: "19h30", spots: "5/10 places", lat: center.lat - 0.004, lng: center.lng + 0.003 },
     { id: "ev3", title: "Concert rooftop", time: "21h", spots: "12/20 places", lat: center.lat + 0.007, lng: center.lng - 0.006 },
     { id: "ev4", title: "Diner partage Belleville", time: "20h30", spots: "4/6 places", lat: center.lat - 0.006, lng: center.lng - 0.004 },
-  ], [center.lat, center.lng]);
-
-  // Mock heat zones
-  const heatZones = useMemo<HeatZone[]>(() => [
-    { lat: center.lat + 0.003, lng: center.lng + 0.005, intensity: "high", radius: 120 },
-    { lat: center.lat - 0.005, lng: center.lng + 0.002, intensity: "medium", radius: 90 },
-    { lat: center.lat + 0.008, lng: center.lng - 0.003, intensity: "high", radius: 100 },
-    { lat: center.lat - 0.002, lng: center.lng - 0.007, intensity: "low", radius: 80 },
-    { lat: center.lat + 0.001, lng: center.lng + 0.009, intensity: "medium", radius: 110 },
-    { lat: center.lat - 0.007, lng: center.lng + 0.006, intensity: "low", radius: 70 },
-    { lat: center.lat + 0.006, lng: center.lng + 0.001, intensity: "high", radius: 130 },
-    { lat: center.lat - 0.003, lng: center.lng - 0.002, intensity: "medium", radius: 85 },
   ], [center.lat, center.lng]);
 
   useEffect(() => { setMounted(true); }, []);
@@ -212,56 +195,6 @@ export default function MapPage() {
     });
   }, [openEvents]);
 
-  // Heat map overlay
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    // Remove old heat markers
-    heatMarkersRef.current.forEach(el => el.remove());
-    heatMarkersRef.current = [];
-
-    if (!showHeatMap) return;
-
-    heatZones.forEach(zone => {
-      const colors: Record<string, { bg: string; border: string; glow: string }> = {
-        low: { bg: "rgba(59,130,246,0.12)", border: "rgba(59,130,246,0.25)", glow: "0 0 20px rgba(59,130,246,0.15)" },
-        medium: { bg: "rgba(139,92,246,0.18)", border: "rgba(139,92,246,0.35)", glow: "0 0 30px rgba(139,92,246,0.25)" },
-        high: { bg: "rgba(236,72,153,0.22)", border: "rgba(139,92,246,0.45)", glow: "0 0 40px rgba(236,72,153,0.35)" },
-      };
-      const style = colors[zone.intensity];
-
-      const el = document.createElement("div");
-      el.style.cssText = `
-        width: ${zone.radius * 2}px; height: ${zone.radius * 2}px;
-        border-radius: 50%; pointer-events: none;
-        background: radial-gradient(circle, ${style.bg} 0%, transparent 70%);
-        border: 1px solid ${style.border};
-        box-shadow: ${style.glow};
-        ${zone.intensity === "high" ? "animation: heat-pulse 3s ease-in-out infinite;" : ""}
-      `;
-
-      if (zone.intensity === "high" && !document.getElementById("heat-pulse-styles")) {
-        const styleTag = document.createElement("style");
-        styleTag.id = "heat-pulse-styles";
-        styleTag.textContent = `
-          @keyframes heat-pulse {
-            0%, 100% { opacity: 0.7; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.05); }
-          }
-        `;
-        document.head.appendChild(styleTag);
-      }
-
-      const marker = new maplibregl.Marker({ element: el, anchor: "center" })
-        .setLngLat([zone.lng, zone.lat])
-        .addTo(map);
-
-      heatMarkersRef.current.push(el);
-      markersRef.current.push(marker);
-    });
-  }, [showHeatMap, heatZones]);
-
   if (!mounted) return (
     <div className="h-screen bg-bg flex items-center justify-center">
       <span className="text-3xl text-accent animate-pulse">☾</span>
@@ -350,6 +283,26 @@ export default function MapPage() {
           />
         )}
 
+        {/* Live heatmap overlay on MapLibre */}
+        <HeatmapOverlay
+          hotspots={liveHotspots}
+          map={mapRef.current}
+          visible={showHeatMap}
+          onToggle={() => setShowHeatMap(!showHeatMap)}
+        />
+
+        {/* Live activity panel */}
+        {!selected && !selectedEvent && (
+          <LiveActivityPanel
+            hotspots={liveHotspots}
+            loading={hotspotsLoading}
+            lastUpdated={lastUpdated}
+            onRefresh={refreshHotspots}
+            userLat={latitude ?? undefined}
+            userLng={longitude ?? undefined}
+          />
+        )}
+
         {/* Offline fallback map */}
         {mapFailed && (
           <div className="w-full h-full relative overflow-hidden" style={{ background: "#1a1a2e" }}>
@@ -364,29 +317,8 @@ export default function MapPage() {
               backgroundSize: "300px 300px",
             }} />
 
-            {/* Heat zones */}
-            {showHeatMap && heatZones.map((zone, i) => {
-              const colors = {
-                low: "rgba(59,130,246,0.15)",
-                medium: "rgba(139,92,246,0.22)",
-                high: "rgba(236,72,153,0.28)",
-              };
-              return (
-                <div
-                  key={`heat-${i}`}
-                  className="absolute rounded-full"
-                  style={{
-                    width: zone.radius * 2,
-                    height: zone.radius * 2,
-                    background: `radial-gradient(circle, ${colors[zone.intensity]} 0%, transparent 70%)`,
-                    top: `${30 + (zone.lat - center.lat) * 5000}%`,
-                    left: `${50 + (zone.lng - center.lng) * 5000}%`,
-                    transform: "translate(-50%, -50%)",
-                    animation: zone.intensity === "high" ? "pulse-dot 3s ease-in-out infinite" : undefined,
-                  }}
-                />
-              );
-            })}
+            {/* Heatmap fallback layer */}
+            <HeatmapFallback hotspots={liveHotspots} visible={showHeatMap} center={center} />
 
             {/* Profile markers on fallback — radial burst */}
             {filtered.slice(0, 12).map((p, i) => {
