@@ -72,7 +72,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-full bg-bg text-text font-sans">
+      <body className="min-h-full text-text font-sans" style={{ backgroundColor: "var(--color-bg, #FFFFFF)" }}>
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:rounded-full focus:gradient-bg focus:text-white focus:text-sm focus:font-semibold">
           Aller au contenu principal
         </a>
