@@ -1,0 +1,293 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { motion, type Variants } from "framer-motion";
+import Link from "next/link";
+
+interface DailyChallenge {
+  id: string;
+  title: string;
+  type: "progress" | "checkbox";
+  current: number;
+  target: number;
+  xp: number;
+  done: boolean;
+}
+
+interface WeeklyChallenge {
+  title: string;
+  current: number;
+  target: number;
+  xp: number;
+}
+
+const DAILY_CHALLENGES: DailyChallenge[] = [
+  { id: "d1", title: "Dis oui a 3 plans", type: "progress", current: 1, target: 3, xp: 30, done: false },
+  { id: "d2", title: "Envoie le premier message", type: "checkbox", current: 0, target: 1, xp: 20, done: false },
+  { id: "d3", title: "Explore un nouveau mode", type: "checkbox", current: 0, target: 1, xp: 25, done: false },
+];
+
+const WEEKLY_CHALLENGE: WeeklyChallenge = {
+  title: "5 soirees cette semaine",
+  current: 2,
+  target: 5,
+  xp: 100,
+};
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.2 } },
+};
+
+const cardVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 400, damping: 30 } },
+};
+
+function useCountdown(): string {
+  const [label, setLabel] = useState("...");
+
+  useEffect(() => {
+    function compute() {
+      const now = new Date();
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+      const diff = Math.max(0, tomorrow.getTime() - now.getTime());
+      const h = Math.floor(diff / 3_600_000);
+      const m = Math.floor((diff % 3_600_000) / 60_000);
+      setLabel(`${h}h${m.toString().padStart(2, "0")}`);
+    }
+    compute();
+    const interval = setInterval(compute, 60_000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return label;
+}
+
+export default function ChallengesPage() {
+  const [challenges, setChallenges] = useState(DAILY_CHALLENGES);
+  const countdown = useCountdown();
+
+  const totalXpToday = challenges.filter((c) => c.done).reduce((sum, c) => sum + c.xp, 0) + 45; // 45 bonus mock
+
+  const toggleChallenge = (id: string) => {
+    setChallenges((prev) =>
+      prev.map((c) =>
+        c.id === id && c.type === "checkbox"
+          ? { ...c, done: !c.done, current: c.done ? 0 : 1 }
+          : c
+      )
+    );
+  };
+
+  return (
+    <div className="max-w-lg mx-auto px-4 pt-6 pb-24">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-6">
+        <Link
+          href="/feed"
+          className="w-9 h-9 rounded-full flex items-center justify-center bg-bg-card"
+          aria-label="Retour"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="white" aria-hidden="true">
+            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+          </svg>
+        </Link>
+        <div className="flex items-center gap-2">
+          <h1
+            className="text-white font-bold text-[22px]"
+            style={{ fontFamily: "var(--font-display, 'Space Grotesk')" }}
+          >
+            Defis du jour
+          </h1>
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center"
+            style={{ background: "rgba(239,68,68,0.2)" }}
+            aria-hidden="true"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#EF4444">
+              <path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      {/* XP today */}
+      <motion.div
+        className="rounded-2xl p-4 mb-6"
+        style={{
+          background: "linear-gradient(135deg, rgba(139,92,246,0.15), rgba(0,255,136,0.1))",
+          border: "1px solid rgba(139,92,246,0.3)",
+        }}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        role="status"
+        aria-label={`XP gagnes aujourd'hui: ${totalXpToday}`}
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[12px] font-medium text-text-muted">
+              XP gagnes aujourd&apos;hui
+            </p>
+            <p
+              className="font-bold text-[28px] leading-none mt-1"
+              style={{
+                fontFamily: "var(--font-display, 'Space Grotesk')",
+                background: "linear-gradient(135deg, #8B5CF6, #00FF88)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              {totalXpToday}
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-[11px]" style={{ color: "#666" }}>
+              Renouvellement dans
+            </p>
+            <p className="text-white font-semibold text-[14px]">{countdown}</p>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Daily challenges */}
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="space-y-3 mb-6"
+        role="list"
+        aria-label="Defis quotidiens"
+      >
+        {challenges.map((challenge) => (
+          <motion.div
+            key={challenge.id}
+            variants={cardVariants}
+            className="rounded-xl p-4"
+            style={{
+              background: "#141414",
+              border: challenge.done ? "1px solid rgba(0,255,136,0.3)" : "1px solid #222",
+            }}
+            role="listitem"
+          >
+            <div className="flex items-start gap-3">
+              {/* Checkbox or progress indicator */}
+              {challenge.type === "checkbox" ? (
+                <motion.button
+                  onClick={() => toggleChallenge(challenge.id)}
+                  className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5"
+                  style={{
+                    background: challenge.done ? "#00FF88" : "transparent",
+                    border: challenge.done ? "none" : "2px solid #444",
+                  }}
+                  whileTap={{ scale: 0.85 }}
+                  aria-label={challenge.done ? `${challenge.title} - termine` : `${challenge.title} - a faire`}
+                  aria-checked={challenge.done}
+                  role="checkbox"
+                >
+                  {challenge.done && (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="#111" aria-hidden="true">
+                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
+                    </svg>
+                  )}
+                </motion.button>
+              ) : (
+                <div
+                  className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 mt-0.5"
+                  style={{ background: "rgba(139,92,246,0.2)" }}
+                  aria-hidden="true"
+                >
+                  <span className="text-[10px] font-bold" style={{ color: "#8B5CF6" }}>
+                    {challenge.current}/{challenge.target}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-1">
+                  <p
+                    className="text-white font-semibold text-[14px]"
+                    style={{ textDecoration: challenge.done ? "line-through" : "none", opacity: challenge.done ? 0.6 : 1 }}
+                  >
+                    {challenge.title}
+                  </p>
+                  <span
+                    className="text-[11px] font-bold px-2 py-0.5 rounded-full"
+                    style={{ background: "rgba(139,92,246,0.15)", color: "#8B5CF6" }}
+                  >
+                    +{challenge.xp} XP
+                  </span>
+                </div>
+
+                {/* Progress bar for progress type */}
+                {challenge.type === "progress" && (
+                  <div className="mt-2">
+                    <div className="h-2 rounded-full overflow-hidden" style={{ background: "#222" }}>
+                      <motion.div
+                        className="h-full rounded-full"
+                        style={{ background: "linear-gradient(90deg, #8B5CF6, #00FF88)" }}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${(challenge.current / challenge.target) * 100}%` }}
+                        transition={{ duration: 0.8, ease: "easeOut" }}
+                      />
+                    </div>
+                    <p className="text-[11px] mt-1" style={{ color: "#666" }}>
+                      {challenge.current}/{challenge.target}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </motion.div>
+
+      {/* Weekly challenge */}
+      <h2
+        className="text-white font-bold text-[16px] mb-3"
+        style={{ fontFamily: "var(--font-display, 'Space Grotesk')" }}
+      >
+        Defi de la semaine
+      </h2>
+      <motion.div
+        className="rounded-xl p-4 mb-6"
+        style={{
+          background: "#141414",
+          border: "1px solid #222",
+          borderImage: "linear-gradient(135deg, #8B5CF6, #00FF88) 1",
+          borderImageSlice: 1,
+        }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        role="region"
+        aria-label="Defi hebdomadaire"
+      >
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-white font-semibold text-[15px]">{WEEKLY_CHALLENGE.title}</p>
+          <span
+            className="text-[11px] font-bold px-2 py-0.5 rounded-full"
+            style={{ background: "rgba(0,255,136,0.15)", color: "#00FF88" }}
+          >
+            +{WEEKLY_CHALLENGE.xp} XP
+          </span>
+        </div>
+
+        <div className="h-3 rounded-full overflow-hidden mb-2" style={{ background: "#222" }}>
+          <motion.div
+            className="h-full rounded-full"
+            style={{ background: "linear-gradient(90deg, #00FF88, #8B5CF6)" }}
+            initial={{ width: 0 }}
+            animate={{ width: `${(WEEKLY_CHALLENGE.current / WEEKLY_CHALLENGE.target) * 100}%` }}
+            transition={{ duration: 1, ease: "easeOut", delay: 0.5 }}
+          />
+        </div>
+        <p className="text-[12px] text-text-muted">
+          {WEEKLY_CHALLENGE.current}/{WEEKLY_CHALLENGE.target} soirees
+        </p>
+      </motion.div>
+    </div>
+  );
+}

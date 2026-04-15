@@ -140,3 +140,74 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 
 /* === SWIPE AREA === */
 .swipe-area { touch-action: pan-y; }
+
+/* === GLASSMORPHISM CARDS === */
+.glass-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+}
+.dark .glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+.glass-card-light {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 20px;
+}
+
+/* === GRADIENT MESH ANIMATION === */
+@keyframes mesh-move {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(30px, -20px) scale(1.1); }
+  50% { transform: translate(-20px, 30px) scale(0.9); }
+  75% { transform: translate(20px, 20px) scale(1.05); }
+}
+
+/* === CARD FLIP === */
+.perspective { perspective: 1000px; }
+.backface-hidden { backface-visibility: hidden; }
+
+/* === GRADIENT BORDER === */
+.gradient-border {
+  position: relative;
+  border-radius: 20px;
+}
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, #8B5CF6, #00FF88);
+  z-index: -1;
+  opacity: 0.3;
+}
+
+/* === SMOOTH LIST ENTRANCE === */
+@keyframes list-in {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.animate-list-in {
+  animation: list-in 0.3s ease both;
+}
+
+/* === SPRING BOUNCE === */
+@keyframes spring-in {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-spring-in {
+  animation: spring-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* === RIPPLE === */
+@keyframes ripple {
+  to { transform: scale(4); opacity: 0; }
+}
