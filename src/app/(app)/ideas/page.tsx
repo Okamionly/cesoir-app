@@ -248,7 +248,7 @@ export default function IdeasPage() {
         </div>
 
         {/* Category chips */}
-        <div className="flex gap-2 px-5 pb-3 overflow-x-auto no-scrollbar">
+        <div className="flex gap-2 px-5 pb-3 overflow-x-auto no-scrollbar" role="group" aria-label="Filtres par categorie">
           <motion.button
             variants={ideasVariants.chip}
             custom={0}
@@ -256,6 +256,8 @@ export default function IdeasPage() {
             animate="visible"
             whileTap="tap"
             onClick={() => setSelectedCategory("all")}
+            aria-pressed={selectedCategory === "all"}
+            aria-label="Toutes les categories"
             className={`shrink-0 px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${
               selectedCategory === "all"
                 ? "border-accent bg-accent/10 text-accent"
@@ -277,6 +279,8 @@ export default function IdeasPage() {
                 onClick={() =>
                   setSelectedCategory(selectedCategory === cat ? "all" : cat)
                 }
+                aria-pressed={selectedCategory === cat}
+                aria-label={`Categorie ${meta.label}`}
                 className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${
                   selectedCategory === cat
                     ? "border-accent bg-accent/10 text-accent"
@@ -292,11 +296,13 @@ export default function IdeasPage() {
         {/* Price + Duration filters */}
         <div className="flex gap-4 px-5 pb-3">
           {/* Price */}
-          <div className="flex gap-1.5">
+          <div className="flex gap-1.5" role="group" aria-label="Filtre par prix">
             {PRICE_OPTIONS.map((opt) => (
               <button
                 key={opt.value}
                 onClick={() => setSelectedPrice(opt.value)}
+                aria-pressed={selectedPrice === opt.value}
+                aria-label={`Prix: ${opt.label}`}
                 className={`px-2.5 py-1 rounded-full text-[10px] font-semibold transition-all ${
                   selectedPrice === opt.value
                     ? "gradient-bg text-white"
@@ -308,14 +314,16 @@ export default function IdeasPage() {
             ))}
           </div>
 
-          <div className="w-px bg-border/50" />
+          <div className="w-px bg-border/50" aria-hidden="true" />
 
           {/* Duration */}
-          <div className="flex gap-1.5">
+          <div className="flex gap-1.5" role="group" aria-label="Filtre par duree">
             {DURATION_OPTIONS.map((opt) => (
               <button
                 key={opt.label}
                 onClick={() => setSelectedDuration(opt.maxMinutes)}
+                aria-pressed={selectedDuration === opt.maxMinutes}
+                aria-label={`Duree: ${opt.label}`}
                 className={`px-2.5 py-1 rounded-full text-[10px] font-semibold transition-all ${
                   selectedDuration === opt.maxMinutes
                     ? "gradient-bg text-white"

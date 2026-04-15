@@ -5,6 +5,7 @@ import { motion, AnimatePresence, type TargetAndTransition } from "motion/react"
 import { feedVariants, springs } from "@/lib/motion-design";
 import { MODES, type ModeKey } from "@/lib/modes";
 import { useFeed, type FeedActivity } from "@/lib/useFeed";
+import TutorialOverlay from "@/components/app/TutorialOverlay";
 
 // --- Types ---
 
@@ -241,6 +242,9 @@ export default function FeedPage() {
 
   return (
     <div className="min-h-screen bg-bg pb-24">
+      {/* Guided tutorial for first-time users */}
+      <TutorialOverlay />
+
       {/* Header */}
       <header className="sticky top-0 z-30 bg-bg/80 backdrop-blur-xl border-b border-border px-4 py-3">
         <div className="flex items-center gap-2.5">

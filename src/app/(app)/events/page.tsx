@@ -378,11 +378,12 @@ export default function EventsPage() {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
+          role="list"
           aria-label="Liste des events"
         >
           <AnimatePresence mode="popLayout">
             {filteredEvents.map((event) => (
-              <motion.div key={event.id} variants={cardVariants} layout>
+              <motion.div key={event.id} variants={cardVariants} layout role="listitem">
                 <EventCard
                   event={event}
                   distance={activeTab === "pres" ? DISTANCES[event.id] : undefined}

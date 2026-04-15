@@ -263,6 +263,8 @@ export default function VibesPage() {
         </p>
         <motion.div
           className="grid grid-cols-2 gap-3"
+          role="group"
+          aria-label="Selection de l'humeur musicale"
           initial="hidden"
           animate="visible"
           variants={{
@@ -377,6 +379,7 @@ export default function VibesPage() {
               onClick={() => setShowShareCard(true)}
               className="w-full py-3.5 rounded-2xl gradient-bg text-white text-[14px] font-bold shadow-glow"
               whileTap={micro.tapScale}
+              aria-label="Partager mon vibe musical"
             >
               Partager mon vibe
             </motion.button>

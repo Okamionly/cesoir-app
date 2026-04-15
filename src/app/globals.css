@@ -212,3 +212,18 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 @keyframes ripple {
   to { transform: scale(4); opacity: 0; }
 }
+
+/* === ACCESSIBILITY: Font size overrides === */
+.cesoir-font-normal { font-size: 100%; }
+.cesoir-font-large { font-size: 112.5%; }
+.cesoir-font-xlarge { font-size: 125%; }
+
+/* === ACCESSIBILITY: Reduced motion (user toggle) === */
+.cesoir-reduced-motion *,
+.cesoir-reduced-motion *::before,
+.cesoir-reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}

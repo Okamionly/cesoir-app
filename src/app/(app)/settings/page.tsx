@@ -8,6 +8,8 @@ import { springs, micro } from "@/lib/motion-design";
 import { useAuth } from "@/context/AuthContext";
 import { setMuted, isMuted } from "@/lib/sounds";
 import { useDarkMode } from "@/components/ui/DarkModeProvider";
+import { useAccessibility, type FontSize } from "@/components/ui/ReducedMotion";
+import { useTranslation, setLocale as persistLocale, SUPPORTED_LOCALES, type Locale } from "@/lib/i18n";
 
 // ── Types ──────────────────────────────────────────
 
@@ -187,6 +189,93 @@ function InfoRow({ label, value }: { label: string; value: string }) {
       <span className="text-[13px] font-semibold text-text">{label}</span>
       <span className="text-[13px] text-text-muted">{value}</span>
     </div>
+  );
+}
+
+// ── Accessibility Section ─────────────────────────
+
+function AccessibilitySection({ index }: { index: number }) {
+  const { locale, changeLocale } = useTranslation();
+  const {
+    fontSize,
+    setFontSize,
+    reducedMotion,
+    reducedMotionOverride,
+    setReducedMotionOverride,
+  } = useAccessibility();
+
+  const FONT_LABELS: { value: FontSize; label: string }[] = [
+    { value: "normal", label: "Normal" },
+    { value: "large", label: "Grand" },
+    { value: "xlarge", label: "Tres grand" },
+  ];
+
+  const LOCALE_LABELS: { value: Locale; label: string }[] = [
+    { value: "fr", label: "Francais" },
+    { value: "en", label: "English" },
+  ];
+
+  return (
+    <Section title="Accessibilite" index={index}>
+      {/* Language */}
+      <div className="px-4 py-3.5">
+        <p className="text-[13px] font-semibold text-text mb-3">Langue</p>
+        <div className="flex gap-2">
+          {LOCALE_LABELS.map((l) => {
+            const active = locale === l.value;
+            return (
+              <motion.button
+                key={l.value}
+                onClick={() => changeLocale(l.value)}
+                aria-pressed={active}
+                className={`flex-1 py-2.5 rounded-xl text-[12px] font-medium transition-colors tap-target ${
+                  active
+                    ? "bg-accent text-white"
+                    : "border border-border text-text-muted hover:border-accent/30"
+                }`}
+                whileTap={{ scale: 0.9 }}
+              >
+                {l.label}
+              </motion.button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Font size */}
+      <div className="px-4 py-3.5">
+        <p className="text-[13px] font-semibold text-text mb-3">
+          Taille du texte
+        </p>
+        <div className="flex gap-2">
+          {FONT_LABELS.map((f) => {
+            const active = fontSize === f.value;
+            return (
+              <motion.button
+                key={f.value}
+                onClick={() => setFontSize(f.value)}
+                aria-pressed={active}
+                className={`flex-1 py-2.5 rounded-xl text-[12px] font-medium transition-colors tap-target ${
+                  active
+                    ? "bg-accent text-white"
+                    : "border border-border text-text-muted hover:border-accent/30"
+                }`}
+                whileTap={{ scale: 0.9 }}
+              >
+                {f.label}
+              </motion.button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Reduced motion */}
+      <ToggleRow
+        label="Reduire les animations"
+        value={reducedMotionOverride !== null ? reducedMotionOverride : reducedMotion}
+        onChange={(v) => setReducedMotionOverride(v)}
+      />
+    </Section>
   );
 }
 
@@ -384,7 +473,10 @@ export default function SettingsPage() {
           </div>
         </Section>
 
-        {/* ── 5. A propos ───────────────────────────── */}
+        {/* ── 5. Accessibilite ──────────────────────── */}
+        <AccessibilitySection index={nextIdx()} />
+
+        {/* ── 6. A propos ───────────────────────────── */}
         <Section title="A propos" index={nextIdx()}>
           <InfoRow label="Version" value="1.0.0" />
           <LinkRow label="Conditions generales" href="/cgu" />
