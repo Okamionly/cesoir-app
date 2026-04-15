@@ -498,6 +498,63 @@ export const leaderboardVariants = {
   } satisfies Variants,
 };
 
+/**
+ * STORIES — Instagram-style stories
+ * Horizontal slide between stories, elastic reactions
+ */
+export const storiesVariants = {
+  storySlide: {
+    enter: (dir: number) => ({
+      x: dir > 0 ? 80 : -80,
+      opacity: 0,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+      transition: springs.heavy,
+    },
+    exit: (dir: number) => ({
+      x: dir > 0 ? -80 : 80,
+      opacity: 0,
+      transition: { duration: 0.25 },
+    }),
+  } satisfies Variants,
+  storyEntrance: {
+    hidden: { scale: 0.9, opacity: 0 },
+    visible: {
+      scale: 1,
+      opacity: 1,
+      transition: springs.elastic,
+    },
+  } satisfies Variants,
+  reaction: {
+    hidden: { y: 40, scale: 0.3, opacity: 0 },
+    visible: {
+      y: 0,
+      scale: 1,
+      opacity: 1,
+      transition: springs.elastic,
+    },
+    exit: { y: -60, scale: 0.5, opacity: 0, transition: { duration: 0.3 } },
+  } satisfies Variants,
+  creatorSheet: {
+    hidden: { y: "100%" },
+    visible: {
+      y: 0,
+      transition: springs.heavy,
+    },
+    exit: { y: "100%", transition: { duration: 0.3 } },
+  } satisfies Variants,
+  barItem: {
+    hidden: { opacity: 0, scale: 0.5 },
+    visible: (i: number) => ({
+      opacity: 1,
+      scale: 1,
+      transition: { ...springs.snap, delay: i * 0.05 },
+    }),
+  } satisfies Variants,
+};
+
 // ─────────────────────────────────────────
 // MICRO-INTERACTIONS — reusable touches
 // ─────────────────────────────────────────

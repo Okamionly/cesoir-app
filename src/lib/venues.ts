@@ -1,87 +1,356 @@
 import type { ModeKey } from "./modes";
 
+// ─────────────────────────────────────────
+// Venue types & interface
+// ─────────────────────────────────────────
+
+export type VenueCategory =
+  | "restaurant"
+  | "bar"
+  | "concert"
+  | "cinema"
+  | "balade"
+  | "cafe"
+  | "musee"
+  | "sport";
+
 export interface Venue {
+  id: string;
   name: string;
+  type: VenueCategory;
   address: string;
-  type: "restaurant" | "bar" | "parc" | "musee" | "salle-de-sport" | "cafe" | "cinema" | "autre";
-  compatible_modes: ModeKey[];
+  arrondissement: string;
   lat: number;
   lng: number;
+  rating: number;
+  priceRange: 1 | 2 | 3;
+  popular: boolean;
+  compatible_modes: ModeKey[];
 }
 
+// ─────────────────────────────────────────
+// 40 Paris venues across 8 categories
+// ─────────────────────────────────────────
+
 const VENUES: Venue[] = [
-  // Restaurants
-  { name: "Le Bouillon Chartier", address: "7 Rue du Faubourg Montmartre, 75009", type: "restaurant", compatible_modes: ["solo-diner", "tourist", "foodie-quest"], lat: 48.8736, lng: 2.3441 },
-  { name: "Pink Mamma", address: "20bis Rue de Douai, 75009", type: "restaurant", compatible_modes: ["solo-diner", "plus-one", "foodie-quest"], lat: 48.8819, lng: 2.3338 },
-  { name: "Chez Janou", address: "2 Rue Roger Verlomme, 75003", type: "restaurant", compatible_modes: ["solo-diner", "breakup", "foodie-quest"], lat: 48.8554, lng: 2.3656 },
-  { name: "Le Relais de l'Entrecote", address: "15 Rue Marbeuf, 75008", type: "restaurant", compatible_modes: ["solo-diner", "tourist"], lat: 48.8689, lng: 2.3026 },
-  { name: "Pho Tai", address: "13 Rue de Belleville, 75019", type: "restaurant", compatible_modes: ["solo-diner", "foodie-quest", "sober-tonight"], lat: 48.8717, lng: 2.3765 },
-  { name: "Ober Mamma", address: "107 Boulevard Richard-Lenoir, 75011", type: "restaurant", compatible_modes: ["solo-diner", "plus-one", "foodie-quest"], lat: 48.8618, lng: 2.3729 },
-  { name: "Le Petit Cler", address: "29 Rue Cler, 75007", type: "restaurant", compatible_modes: ["solo-diner", "tourist", "new-in-town"], lat: 48.8573, lng: 2.3070 },
-  { name: "Chez Gladines", address: "30 Rue des 5 Diamants, 75013", type: "restaurant", compatible_modes: ["solo-diner", "foodie-quest", "new-in-town"], lat: 48.8293, lng: 2.3495 },
+  // ── Restaurants (8) ──
+  {
+    id: "r1", name: "Le Bouillon Chartier", type: "restaurant",
+    address: "7 Rue du Faubourg Montmartre", arrondissement: "9e",
+    lat: 48.8736, lng: 2.3441, rating: 4.3, priceRange: 1, popular: true,
+    compatible_modes: ["solo-diner", "tourist", "foodie-quest"],
+  },
+  {
+    id: "r2", name: "Chez Janou", type: "restaurant",
+    address: "2 Rue Roger Verlomme", arrondissement: "3e",
+    lat: 48.8554, lng: 2.3656, rating: 4.5, priceRange: 2, popular: false,
+    compatible_modes: ["solo-diner", "breakup", "foodie-quest"],
+  },
+  {
+    id: "r3", name: "Pink Mamma", type: "restaurant",
+    address: "20bis Rue de Douai", arrondissement: "9e",
+    lat: 48.8819, lng: 2.3338, rating: 4.4, priceRange: 2, popular: true,
+    compatible_modes: ["solo-diner", "plus-one", "foodie-quest"],
+  },
+  {
+    id: "r4", name: "Big Mamma", type: "restaurant",
+    address: "176 Rue du Temple", arrondissement: "3e",
+    lat: 48.8638, lng: 2.3580, rating: 4.2, priceRange: 2, popular: true,
+    compatible_modes: ["solo-diner", "plus-one", "foodie-quest", "new-in-town"],
+  },
+  {
+    id: "r5", name: "Le Relais de l'Entrecote", type: "restaurant",
+    address: "15 Rue Marbeuf", arrondissement: "8e",
+    lat: 48.8689, lng: 2.3026, rating: 4.1, priceRange: 2, popular: false,
+    compatible_modes: ["solo-diner", "tourist"],
+  },
+  {
+    id: "r6", name: "Pho Tai", type: "restaurant",
+    address: "13 Rue de Belleville", arrondissement: "19e",
+    lat: 48.8717, lng: 2.3765, rating: 4.0, priceRange: 1, popular: false,
+    compatible_modes: ["solo-diner", "foodie-quest", "sober-tonight"],
+  },
+  {
+    id: "r7", name: "Ober Mamma", type: "restaurant",
+    address: "107 Boulevard Richard-Lenoir", arrondissement: "11e",
+    lat: 48.8618, lng: 2.3729, rating: 4.3, priceRange: 2, popular: true,
+    compatible_modes: ["solo-diner", "plus-one", "foodie-quest"],
+  },
+  {
+    id: "r8", name: "Chez Gladines", type: "restaurant",
+    address: "30 Rue des 5 Diamants", arrondissement: "13e",
+    lat: 48.8293, lng: 2.3495, rating: 4.2, priceRange: 1, popular: false,
+    compatible_modes: ["solo-diner", "foodie-quest", "new-in-town"],
+  },
 
-  // Bars
-  { name: "Le Perchoir Marais", address: "33 Rue de la Verrerie, 75004", type: "bar", compatible_modes: ["plus-one", "night-owl", "new-in-town"], lat: 48.8562, lng: 2.3525 },
-  { name: "Candelaria", address: "52 Rue de Saintonge, 75003", type: "bar", compatible_modes: ["night-owl", "plus-one", "tourist"], lat: 48.8632, lng: 2.3616 },
-  { name: "Le Syndicat", address: "51 Rue du Faubourg Saint-Denis, 75010", type: "bar", compatible_modes: ["night-owl", "foodie-quest"], lat: 48.8720, lng: 2.3549 },
-  { name: "Le Comptoir General", address: "80 Quai de Jemmapes, 75010", type: "bar", compatible_modes: ["night-owl", "plus-one", "culture-club"], lat: 48.8712, lng: 2.3645 },
-  { name: "Little Red Door", address: "60 Rue Charlot, 75003", type: "bar", compatible_modes: ["night-owl", "plus-one"], lat: 48.8636, lng: 2.3623 },
-  { name: "Le Baron Rouge", address: "1 Rue Theophile Roussel, 75012", type: "bar", compatible_modes: ["night-owl", "solo-diner", "new-in-town"], lat: 48.8487, lng: 2.3784 },
-  { name: "Prescription Cocktail Club", address: "23 Rue Mazarine, 75006", type: "bar", compatible_modes: ["night-owl", "plus-one"], lat: 48.8543, lng: 2.3385 },
+  // ── Bars (8) ──
+  {
+    id: "b1", name: "Le Perchoir Marais", type: "bar",
+    address: "33 Rue de la Verrerie", arrondissement: "4e",
+    lat: 48.8562, lng: 2.3525, rating: 4.4, priceRange: 2, popular: true,
+    compatible_modes: ["plus-one", "night-owl", "new-in-town"],
+  },
+  {
+    id: "b2", name: "Candelaria", type: "bar",
+    address: "52 Rue de Saintonge", arrondissement: "3e",
+    lat: 48.8632, lng: 2.3616, rating: 4.6, priceRange: 3, popular: true,
+    compatible_modes: ["night-owl", "plus-one", "tourist"],
+  },
+  {
+    id: "b3", name: "Little Red Door", type: "bar",
+    address: "60 Rue Charlot", arrondissement: "3e",
+    lat: 48.8636, lng: 2.3623, rating: 4.5, priceRange: 3, popular: true,
+    compatible_modes: ["night-owl", "plus-one"],
+  },
+  {
+    id: "b4", name: "Le Syndicat", type: "bar",
+    address: "51 Rue du Faubourg Saint-Denis", arrondissement: "10e",
+    lat: 48.8720, lng: 2.3549, rating: 4.5, priceRange: 2, popular: false,
+    compatible_modes: ["night-owl", "foodie-quest"],
+  },
+  {
+    id: "b5", name: "Le Comptoir General", type: "bar",
+    address: "80 Quai de Jemmapes", arrondissement: "10e",
+    lat: 48.8712, lng: 2.3645, rating: 4.3, priceRange: 2, popular: true,
+    compatible_modes: ["night-owl", "plus-one", "culture-club"],
+  },
+  {
+    id: "b6", name: "Le Baron Rouge", type: "bar",
+    address: "1 Rue Theophile Roussel", arrondissement: "12e",
+    lat: 48.8487, lng: 2.3784, rating: 4.4, priceRange: 1, popular: false,
+    compatible_modes: ["night-owl", "solo-diner", "new-in-town"],
+  },
+  {
+    id: "b7", name: "Prescription Cocktail Club", type: "bar",
+    address: "23 Rue Mazarine", arrondissement: "6e",
+    lat: 48.8543, lng: 2.3385, rating: 4.3, priceRange: 3, popular: false,
+    compatible_modes: ["night-owl", "plus-one"],
+  },
+  {
+    id: "b8", name: "Meltdown Paris", type: "bar",
+    address: "12 Rue Crespin du Gast", arrondissement: "11e",
+    lat: 48.8647, lng: 2.3788, rating: 4.1, priceRange: 1, popular: false,
+    compatible_modes: ["gamer-night", "plus-one", "night-owl"],
+  },
 
-  // Cafes
-  { name: "Cafe de Flore", address: "172 Boulevard Saint-Germain, 75006", type: "cafe", compatible_modes: ["langue", "sober-tonight", "tourist", "breakup"], lat: 48.8541, lng: 2.3328 },
-  { name: "Boot Cafe", address: "19 Rue du Pont aux Choux, 75003", type: "cafe", compatible_modes: ["langue", "sober-tonight", "new-in-town"], lat: 48.8608, lng: 2.3626 },
-  { name: "Nuage Cafe", address: "14 Rue des Abbesses, 75018", type: "cafe", compatible_modes: ["sober-tonight", "langue", "breakup"], lat: 48.8844, lng: 2.3369 },
-  { name: "Ten Belles", address: "10 Rue de la Grange aux Belles, 75010", type: "cafe", compatible_modes: ["sober-tonight", "langue", "new-in-town"], lat: 48.8715, lng: 2.3654 },
-  { name: "Treize au Jardin", address: "5 Rue de Medicis, 75006", type: "cafe", compatible_modes: ["sober-tonight", "breakup", "culture-club"], lat: 48.8499, lng: 2.3375 },
+  // ── Concerts (4) ──
+  {
+    id: "c1", name: "Le Bataclan", type: "concert",
+    address: "50 Boulevard Voltaire", arrondissement: "11e",
+    lat: 48.8632, lng: 2.3701, rating: 4.5, priceRange: 2, popular: true,
+    compatible_modes: ["plus-one", "night-owl", "culture-club"],
+  },
+  {
+    id: "c2", name: "L'Olympia", type: "concert",
+    address: "28 Boulevard des Capucines", arrondissement: "9e",
+    lat: 48.8710, lng: 2.3306, rating: 4.7, priceRange: 3, popular: true,
+    compatible_modes: ["plus-one", "culture-club", "tourist"],
+  },
+  {
+    id: "c3", name: "Le Baiser Sale", type: "concert",
+    address: "58 Rue des Lombards", arrondissement: "1er",
+    lat: 48.8596, lng: 2.3485, rating: 4.3, priceRange: 2, popular: false,
+    compatible_modes: ["night-owl", "culture-club", "plus-one"],
+  },
+  {
+    id: "c4", name: "L'International", type: "concert",
+    address: "5 Rue Moret", arrondissement: "11e",
+    lat: 48.8660, lng: 2.3794, rating: 4.0, priceRange: 1, popular: false,
+    compatible_modes: ["night-owl", "culture-club", "new-in-town"],
+  },
 
-  // Parcs
-  { name: "Parc des Buttes-Chaumont", address: "1 Rue Botzaris, 75019", type: "parc", compatible_modes: ["dog-date", "fit-date", "sober-tonight", "breakup"], lat: 48.8809, lng: 2.3828 },
-  { name: "Jardin du Luxembourg", address: "75006 Paris", type: "parc", compatible_modes: ["dog-date", "fit-date", "tourist", "sober-tonight"], lat: 48.8462, lng: 2.3372 },
-  { name: "Parc Monceau", address: "35 Boulevard de Courcelles, 75008", type: "parc", compatible_modes: ["dog-date", "fit-date", "sober-tonight"], lat: 48.8794, lng: 2.3089 },
-  { name: "Bois de Vincennes", address: "Route de la Pyramide, 75012", type: "parc", compatible_modes: ["dog-date", "fit-date", "tourist"], lat: 48.8328, lng: 2.4253 },
-  { name: "Jardin des Tuileries", address: "75001 Paris", type: "parc", compatible_modes: ["tourist", "sober-tonight", "dog-date"], lat: 48.8634, lng: 2.3275 },
-  { name: "Parc de la Villette", address: "211 Avenue Jean Jaures, 75019", type: "parc", compatible_modes: ["dog-date", "fit-date", "culture-club"], lat: 48.8938, lng: 2.3903 },
-  { name: "Promenade Plantee", address: "1 Coulée Verte René-Dumont, 75012", type: "parc", compatible_modes: ["fit-date", "sober-tonight", "tourist"], lat: 48.8487, lng: 2.3737 },
+  // ── Cinema (4) ──
+  {
+    id: "ci1", name: "MK2 Bibliotheque", type: "cinema",
+    address: "128-162 Avenue de France", arrondissement: "13e",
+    lat: 48.8333, lng: 2.3758, rating: 4.3, priceRange: 2, popular: true,
+    compatible_modes: ["plus-one", "culture-club", "breakup"],
+  },
+  {
+    id: "ci2", name: "UGC Cine Cite Les Halles", type: "cinema",
+    address: "7 Place de la Rotonde", arrondissement: "1er",
+    lat: 48.8622, lng: 2.3470, rating: 4.0, priceRange: 2, popular: false,
+    compatible_modes: ["plus-one", "culture-club"],
+  },
+  {
+    id: "ci3", name: "Le Grand Rex", type: "cinema",
+    address: "1 Boulevard Poissonniere", arrondissement: "2e",
+    lat: 48.8711, lng: 2.3474, rating: 4.6, priceRange: 2, popular: true,
+    compatible_modes: ["plus-one", "culture-club", "tourist"],
+  },
+  {
+    id: "ci4", name: "Studio 28", type: "cinema",
+    address: "10 Rue Tholoze", arrondissement: "18e",
+    lat: 48.8849, lng: 2.3361, rating: 4.4, priceRange: 1, popular: false,
+    compatible_modes: ["culture-club", "plus-one", "breakup"],
+  },
 
-  // Musees
-  { name: "Palais de Tokyo", address: "13 Avenue du President Wilson, 75116", type: "musee", compatible_modes: ["culture-club", "plus-one", "tourist"], lat: 48.8640, lng: 2.2973 },
-  { name: "Musee d'Orsay", address: "1 Rue de la Legion d'Honneur, 75007", type: "musee", compatible_modes: ["culture-club", "tourist", "plus-one"], lat: 48.8600, lng: 2.3266 },
-  { name: "Centre Pompidou", address: "Place Georges-Pompidou, 75004", type: "musee", compatible_modes: ["culture-club", "tourist", "langue"], lat: 48.8607, lng: 2.3522 },
-  { name: "Musee Picasso", address: "5 Rue de Thorigny, 75003", type: "musee", compatible_modes: ["culture-club", "tourist"], lat: 48.8597, lng: 2.3625 },
-  { name: "Fondation Louis Vuitton", address: "8 Avenue du Mahatma Gandhi, 75116", type: "musee", compatible_modes: ["culture-club", "plus-one", "tourist"], lat: 48.8810, lng: 2.2651 },
-  { name: "Jeu de Paume", address: "1 Place de la Concorde, 75008", type: "musee", compatible_modes: ["culture-club", "tourist"], lat: 48.8658, lng: 2.3227 },
-  { name: "Musee Rodin", address: "77 Rue de Varenne, 75007", type: "musee", compatible_modes: ["culture-club", "tourist", "sober-tonight"], lat: 48.8553, lng: 2.3157 },
+  // ── Balades (4) ──
+  {
+    id: "bl1", name: "Canal Saint-Martin", type: "balade",
+    address: "Quai de Valmy", arrondissement: "10e",
+    lat: 48.8712, lng: 2.3653, rating: 4.6, priceRange: 1, popular: true,
+    compatible_modes: ["dog-date", "sober-tonight", "breakup", "new-in-town"],
+  },
+  {
+    id: "bl2", name: "Buttes-Chaumont", type: "balade",
+    address: "1 Rue Botzaris", arrondissement: "19e",
+    lat: 48.8809, lng: 2.3828, rating: 4.7, priceRange: 1, popular: true,
+    compatible_modes: ["dog-date", "fit-date", "sober-tonight", "breakup"],
+  },
+  {
+    id: "bl3", name: "Promenade Plantee", type: "balade",
+    address: "1 Coulee Verte Rene-Dumont", arrondissement: "12e",
+    lat: 48.8487, lng: 2.3737, rating: 4.5, priceRange: 1, popular: false,
+    compatible_modes: ["fit-date", "sober-tonight", "tourist"],
+  },
+  {
+    id: "bl4", name: "Jardin du Luxembourg", type: "balade",
+    address: "Rue de Medicis", arrondissement: "6e",
+    lat: 48.8462, lng: 2.3372, rating: 4.8, priceRange: 1, popular: true,
+    compatible_modes: ["dog-date", "fit-date", "tourist", "sober-tonight"],
+  },
 
-  // Salles de sport
-  { name: "Arkose Nation", address: "55 Rue de l'Ourcq, 75019", type: "salle-de-sport", compatible_modes: ["fit-date"], lat: 48.8864, lng: 2.3808 },
-  { name: "CMG One Chatelet", address: "8 Rue de la Cossonnerie, 75001", type: "salle-de-sport", compatible_modes: ["fit-date"], lat: 48.8605, lng: 2.3489 },
-  { name: "Climb Up Pantin", address: "46 Rue Cartier Bresson, 93500", type: "salle-de-sport", compatible_modes: ["fit-date"], lat: 48.8931, lng: 2.4039 },
-  { name: "Yoga Village", address: "6 Rue Beaurepaire, 75010", type: "salle-de-sport", compatible_modes: ["fit-date", "sober-tonight"], lat: 48.8706, lng: 2.3601 },
-  { name: "CrossFit Louvre", address: "16 Rue du Louvre, 75001", type: "salle-de-sport", compatible_modes: ["fit-date"], lat: 48.8610, lng: 2.3415 },
+  // ── Cafes (4) ──
+  {
+    id: "ca1", name: "Cafe de Flore", type: "cafe",
+    address: "172 Boulevard Saint-Germain", arrondissement: "6e",
+    lat: 48.8541, lng: 2.3328, rating: 4.2, priceRange: 3, popular: true,
+    compatible_modes: ["langue", "sober-tonight", "tourist", "breakup"],
+  },
+  {
+    id: "ca2", name: "Boot Cafe", type: "cafe",
+    address: "19 Rue du Pont aux Choux", arrondissement: "3e",
+    lat: 48.8608, lng: 2.3626, rating: 4.5, priceRange: 1, popular: false,
+    compatible_modes: ["langue", "sober-tonight", "new-in-town"],
+  },
+  {
+    id: "ca3", name: "Ten Belles", type: "cafe",
+    address: "10 Rue de la Grange aux Belles", arrondissement: "10e",
+    lat: 48.8715, lng: 2.3654, rating: 4.4, priceRange: 1, popular: false,
+    compatible_modes: ["sober-tonight", "langue", "new-in-town"],
+  },
+  {
+    id: "ca4", name: "Treize au Jardin", type: "cafe",
+    address: "5 Rue de Medicis", arrondissement: "6e",
+    lat: 48.8499, lng: 2.3375, rating: 4.3, priceRange: 2, popular: false,
+    compatible_modes: ["sober-tonight", "breakup", "culture-club"],
+  },
 
-  // Gaming
-  { name: "Meltdown Paris", address: "12 Rue Crespin du Gast, 75011", type: "bar", compatible_modes: ["gamer-night", "plus-one"], lat: 48.8647, lng: 2.3788 },
-  { name: "Loading Bar", address: "98 Quai de la Loire, 75019", type: "bar", compatible_modes: ["gamer-night", "night-owl"], lat: 48.8852, lng: 2.3771 },
-  { name: "Reset Bar", address: "17 Rue de Pontoise, 75005", type: "bar", compatible_modes: ["gamer-night", "sober-tonight"], lat: 48.8506, lng: 2.3487 },
+  // ── Musees (4) ──
+  {
+    id: "m1", name: "Palais de Tokyo", type: "musee",
+    address: "13 Avenue du President Wilson", arrondissement: "16e",
+    lat: 48.8640, lng: 2.2973, rating: 4.4, priceRange: 2, popular: true,
+    compatible_modes: ["culture-club", "plus-one", "tourist"],
+  },
+  {
+    id: "m2", name: "Musee d'Orsay", type: "musee",
+    address: "1 Rue de la Legion d'Honneur", arrondissement: "7e",
+    lat: 48.8600, lng: 2.3266, rating: 4.8, priceRange: 2, popular: true,
+    compatible_modes: ["culture-club", "tourist", "plus-one"],
+  },
+  {
+    id: "m3", name: "Centre Pompidou", type: "musee",
+    address: "Place Georges-Pompidou", arrondissement: "4e",
+    lat: 48.8607, lng: 2.3522, rating: 4.5, priceRange: 2, popular: true,
+    compatible_modes: ["culture-club", "tourist", "langue"],
+  },
+  {
+    id: "m4", name: "Fondation Louis Vuitton", type: "musee",
+    address: "8 Avenue du Mahatma Gandhi", arrondissement: "16e",
+    lat: 48.8810, lng: 2.2651, rating: 4.6, priceRange: 3, popular: false,
+    compatible_modes: ["culture-club", "plus-one", "tourist"],
+  },
 
-  // Cinema
-  { name: "MK2 Bibliotheque", address: "128-162 Avenue de France, 75013", type: "cinema", compatible_modes: ["plus-one", "culture-club", "breakup"], lat: 48.8333, lng: 2.3758 },
-  { name: "Le Grand Rex", address: "1 Boulevard Poissonniere, 75002", type: "cinema", compatible_modes: ["plus-one", "culture-club", "tourist"], lat: 48.8711, lng: 2.3474 },
-  { name: "Studio 28", address: "10 Rue Tholoze, 75018", type: "cinema", compatible_modes: ["culture-club", "plus-one"], lat: 48.8849, lng: 2.3361 },
-
-  // Seasonal / special
-  { name: "Patinoire de l'Hotel de Ville", address: "Place de l'Hotel de Ville, 75004", type: "autre", compatible_modes: ["seasonal", "plus-one", "tourist"], lat: 48.8566, lng: 2.3522 },
-  { name: "Marche de Noel Tuileries", address: "Jardin des Tuileries, 75001", type: "autre", compatible_modes: ["seasonal", "tourist", "sober-tonight"], lat: 48.8634, lng: 2.3275 },
-  { name: "Plages de Paris (ete)", address: "Quai de la Loire / Voie Pompidou", type: "autre", compatible_modes: ["seasonal", "fit-date", "dog-date"], lat: 48.8566, lng: 2.3522 },
+  // ── Sport (4) ──
+  {
+    id: "s1", name: "Arkose Nation", type: "sport",
+    address: "55 Rue de l'Ourcq", arrondissement: "19e",
+    lat: 48.8864, lng: 2.3808, rating: 4.5, priceRange: 2, popular: true,
+    compatible_modes: ["fit-date"],
+  },
+  {
+    id: "s2", name: "CMG One Chatelet", type: "sport",
+    address: "8 Rue de la Cossonnerie", arrondissement: "1er",
+    lat: 48.8605, lng: 2.3489, rating: 4.0, priceRange: 2, popular: false,
+    compatible_modes: ["fit-date"],
+  },
+  {
+    id: "s3", name: "Climb Up Pantin", type: "sport",
+    address: "46 Rue Cartier Bresson", arrondissement: "Pantin",
+    lat: 48.8931, lng: 2.4039, rating: 4.4, priceRange: 2, popular: false,
+    compatible_modes: ["fit-date"],
+  },
+  {
+    id: "s4", name: "Yoga Village", type: "sport",
+    address: "6 Rue Beaurepaire", arrondissement: "10e",
+    lat: 48.8706, lng: 2.3601, rating: 4.6, priceRange: 2, popular: false,
+    compatible_modes: ["fit-date", "sober-tonight"],
+  },
 ];
 
+// ─────────────────────────────────────────
+// Activity-to-venue category mapping
+// ─────────────────────────────────────────
+
+export const ACTIVITY_VENUE_MAP: Record<string, VenueCategory[]> = {
+  diner: ["restaurant"],
+  verre: ["bar"],
+  concert: ["concert"],
+  balade: ["balade"],
+  cinema: ["cinema"],
+  cafe: ["cafe"],
+  musee: ["musee"],
+  sport: ["sport"],
+};
+
+// ─────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────
+
+/** Approximate distance in km (good enough for sorting within a city) */
+function quickDist(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const dx = (lat2 - lat1) * 111;
+  const dy = (lng2 - lng1) * 111 * Math.cos((lat1 * Math.PI) / 180);
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+/** Format distance as human-readable string */
+export function formatDistance(km: number): string {
+  if (km < 1) return `${Math.round(km * 1000)}m`;
+  return `${km.toFixed(1)}km`;
+}
+
+/** Price range as euro signs */
+export function formatPrice(range: 1 | 2 | 3): string {
+  return "\u20AC".repeat(range);
+}
+
 /**
- * Suggest venues that match the given mode, sorted by distance from user's position.
- * Returns up to 10 results.
+ * Suggest venues matching an activity type, sorted by distance from user.
+ * Returns up to `limit` results.
  */
-export function suggestVenue(mode: ModeKey, lat: number, lng: number): Venue[] {
+export function suggestVenuesByActivity(
+  activity: string,
+  lat: number,
+  lng: number,
+  limit = 4,
+): (Venue & { distance: number })[] {
+  const categories = ACTIVITY_VENUE_MAP[activity] ?? [];
+  const matching = VENUES.filter(v => categories.includes(v.type));
+
+  return matching
+    .map(v => ({ ...v, distance: quickDist(lat, lng, v.lat, v.lng) }))
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, limit);
+}
+
+/**
+ * Suggest venues that match the given mode, sorted by distance.
+ * Returns up to `limit` results.
+ */
+export function suggestVenue(mode: ModeKey, lat: number, lng: number, limit = 10): Venue[] {
   const matching = VENUES.filter(v => v.compatible_modes.includes(mode));
 
   matching.sort((a, b) => {
@@ -90,12 +359,7 @@ export function suggestVenue(mode: ModeKey, lat: number, lng: number): Venue[] {
     return distA - distB;
   });
 
-  return matching.slice(0, 10);
+  return matching.slice(0, limit);
 }
 
-/** Approximate distance (good enough for sorting within a city) */
-function quickDist(lat1: number, lng1: number, lat2: number, lng2: number): number {
-  const dx = (lat2 - lat1) * 111;
-  const dy = (lng2 - lng1) * 111 * Math.cos((lat1 * Math.PI) / 180);
-  return Math.sqrt(dx * dx + dy * dy);
-}
+export { VENUES };
