@@ -3,9 +3,10 @@
 import { useState, useCallback } from "react";
 import { motion, MotionValue } from "motion/react";
 import { Profile } from "@/lib/mock-profiles";
-import { MODES, ModeKey } from "@/lib/modes";
+import { MODES } from "@/lib/modes";
 import { MODE_ICONS } from "@/components/ui/Icons";
 import SmartQueueBadge from "@/components/app/SmartQueueBadge";
+import PhotoGallery from "@/components/app/PhotoGallery";
 
 interface SwipeCardProps {
   profile: Profile;
@@ -21,6 +22,8 @@ interface SwipeCardProps {
   onLike: () => void;
   onReport?: () => void;
   onPass: () => void;
+  /** Whether this profile is matched (unlocks blurred photos) */
+  isMatched?: boolean;
 }
 
 export default function SwipeCard({
@@ -37,52 +40,29 @@ export default function SwipeCard({
   onLike,
   onPass,
   onReport,
+  isMatched = false,
 }: SwipeCardProps) {
   const ModeIcon = MODE_ICONS[p.mode];
 
-  // Multi-photo carousel state
-  // photos array: profile photos + one "info" slide at the end
+  // Photo list for the gallery
   const photoList = p.photos && p.photos.length > 0 ? p.photos : [p.photo];
-  const totalSlides = photoList.length + 1; // +1 for info slide
-  const [photoIdx, setPhotoIdx] = useState(0);
-  const isInfoSlide = photoIdx === photoList.length;
 
-  const goNextPhoto = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    e.stopPropagation();
-    if (photoIdx < totalSlides - 1) {
-      setPhotoIdx(photoIdx + 1);
-    }
-  }, [photoIdx, totalSlides]);
-
-  const goPrevPhoto = useCallback((e: React.MouseEvent | React.TouchEvent) => {
-    e.stopPropagation();
-    if (photoIdx > 0) {
-      setPhotoIdx(photoIdx - 1);
-    }
-  }, [photoIdx]);
+  // Track whether user is swiping within the gallery (prevent card drag conflict)
+  const [galleryActive, setGalleryActive] = useState(false);
 
   const handleCardClick = useCallback((e: React.MouseEvent) => {
-    // Get click position relative to the card
+    // Don't interfere if the gallery handled the click
+    if (galleryActive) return;
+
     const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const cardWidth = rect.width;
+    const clickY = e.clientY - rect.top;
+    const cardHeight = rect.height;
 
-    // Left third = prev photo, right third = next photo, middle = toggle expand
-    if (clickX < cardWidth * 0.33) {
-      if (photoIdx > 0) {
-        setPhotoIdx(photoIdx - 1);
-        return;
-      }
-    } else if (clickX > cardWidth * 0.67) {
-      if (photoIdx < totalSlides - 1) {
-        setPhotoIdx(photoIdx + 1);
-        return;
-      }
+    // Only toggle expand when tapping the bottom info area
+    if (clickY > cardHeight * 0.6) {
+      onToggleExpand();
     }
-
-    // Middle area or no navigation possible: toggle expand
-    onToggleExpand();
-  }, [photoIdx, totalSlides, onToggleExpand]);
+  }, [galleryActive, onToggleExpand]);
 
   return (
     <motion.div
@@ -101,47 +81,19 @@ export default function SwipeCard({
       onKeyDown={(e) => {
         if (e.key === "ArrowRight") onLike();
         else if (e.key === "ArrowLeft") onPass();
-        else if (e.key === "ArrowUp") { e.preventDefault(); goNextPhoto(e as unknown as React.MouseEvent); }
-        else if (e.key === "ArrowDown") { e.preventDefault(); goPrevPhoto(e as unknown as React.MouseEvent); }
         else if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onToggleExpand(); }
       }}
     >
-      {/* Photo slides */}
-      {isInfoSlide ? (
-        /* Last slide: info/bio on dark background */
-        <div className="absolute inset-0 bg-[#111] flex flex-col justify-center p-8">
-          <h2 className="text-[32px] font-black text-white mb-2">{p.name}</h2>
-          <p className="text-[15px] text-white/50 mb-4">
-            {p.age} ans · {p.distance} km · <span className="text-[#00FF88] font-medium">{p.time}</span>
-          </p>
-          <p className="text-[15px] text-white/70 leading-relaxed mb-5">{p.bio}</p>
-          <ProfileTags profile={p} />
-          <ExpandedDetails profile={p} />
-        </div>
-      ) : (
-        <>
-          {/* Full-bleed photo */}
-          <img
-            src={photoList[photoIdx]}
-            alt={`Photo ${photoIdx + 1} de ${p.name}`}
-            className="absolute inset-0 w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-        </>
-      )}
+      {/* Photo Gallery — replaces single photo */}
+      <PhotoGallery
+        photos={photoList}
+        name={p.name}
+        isMatched={isMatched}
+        onGallerySwipe={() => setGalleryActive(true)}
+      />
 
-      {/* Dot indicators at top */}
-      <div className="absolute top-3 left-12 right-12 z-10 flex gap-1">
-        {Array.from({ length: totalSlides }).map((_, i) => (
-          <div
-            key={i}
-            className="flex-1 h-[3px] rounded-full transition-all duration-200"
-            style={{
-              backgroundColor: i === photoIdx ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.25)",
-            }}
-          />
-        ))}
-      </div>
+      {/* Gradient overlay for text readability */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none z-[5]" />
 
       {/* Swipe indicators */}
       <motion.div className="absolute top-8 left-6 z-10" style={{ opacity: likeOpacity }}>
@@ -182,34 +134,32 @@ export default function SwipeCard({
         <SmartQueueBadge profile={p} />
       </div>
 
-      {/* Info panel (not shown on info slide) */}
-      {!isInfoSlide && (
-        <div className={`absolute bottom-0 left-0 right-0 transition-all duration-300 ${expanded ? "h-[65%]" : "h-[38%]"}`}>
-          <div className={`relative h-full flex flex-col justify-end p-6 ${expanded ? "overflow-y-auto" : ""}`}>
-            {p.time === "Dispo maintenant" && (
-              <div className="flex items-center gap-1.5 mb-3">
-                <span className="w-2 h-2 rounded-full bg-[#00FF88]" />
-                <span className="text-[11px] text-[#00FF88] font-bold uppercase tracking-widest">Maintenant</span>
-              </div>
-            )}
-
-            <h2 className="text-[38px] font-black leading-[0.95] tracking-tight text-white mb-1">{p.name}</h2>
-            <p className="text-[15px] text-white/50 font-light mb-3">
-              {p.age} ans · {p.distance} km · <span className="text-[#00FF88] font-medium">{p.time}</span>
-            </p>
-
-            <p className={`text-[14px] text-white/70 leading-relaxed ${expanded ? "" : "line-clamp-2"}`}>{p.bio}</p>
-
-            <ProfileTags profile={p} />
-
-            {expanded && <ExpandedDetails profile={p} />}
-
-            <div className="flex justify-center mt-3">
-              <div className={`w-8 h-[3px] rounded-full bg-white/20 transition-transform ${expanded ? "rotate-180" : ""}`} />
+      {/* Info panel */}
+      <div className={`absolute bottom-0 left-0 right-0 transition-all duration-300 z-[6] ${expanded ? "h-[65%]" : "h-[38%]"}`}>
+        <div className={`relative h-full flex flex-col justify-end p-6 ${expanded ? "overflow-y-auto" : ""}`}>
+          {p.time === "Dispo maintenant" && (
+            <div className="flex items-center gap-1.5 mb-3">
+              <span className="w-2 h-2 rounded-full bg-[#00FF88]" />
+              <span className="text-[11px] text-[#00FF88] font-bold uppercase tracking-widest">Maintenant</span>
             </div>
+          )}
+
+          <h2 className="text-[38px] font-black leading-[0.95] tracking-tight text-white mb-1">{p.name}</h2>
+          <p className="text-[15px] text-white/50 font-light mb-3">
+            {p.age} ans · {p.distance} km · <span className="text-[#00FF88] font-medium">{p.time}</span>
+          </p>
+
+          <p className={`text-[14px] text-white/70 leading-relaxed ${expanded ? "" : "line-clamp-2"}`}>{p.bio}</p>
+
+          <ProfileTags profile={p} />
+
+          {expanded && <ExpandedDetails profile={p} />}
+
+          <div className="flex justify-center mt-3">
+            <div className={`w-8 h-[3px] rounded-full bg-white/20 transition-transform ${expanded ? "rotate-180" : ""}`} />
           </div>
         </div>
-      )}
+      </div>
     </motion.div>
   );
 }

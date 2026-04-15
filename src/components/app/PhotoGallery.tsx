@@ -1,0 +1,409 @@
+"use client";
+
+import { useState, useCallback, useRef } from "react";
+import { motion, AnimatePresence, useMotionValue, PanInfo } from "motion/react";
+import { springs } from "@/lib/motion-design";
+
+// ─────────────────────────────────────────
+// Mock gradient photos for profiles without real photos
+// ─────────────────────────────────────────
+
+const GRADIENT_SETS: string[][] = [
+  ["linear-gradient(135deg, #667eea 0%, #764ba2 100%)", "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)", "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)", "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"],
+  ["linear-gradient(135deg, #fa709a 0%, #fee140 100%)", "linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)", "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)", "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)"],
+  ["linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)", "linear-gradient(135deg, #c471f5 0%, #fa71cd 100%)", "linear-gradient(135deg, #48c6ef 0%, #6f86d6 100%)", "linear-gradient(135deg, #feada6 0%, #f5efef 100%)"],
+];
+
+export function getMockGradients(profileId: string): string[] {
+  const hash = profileId.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  return GRADIENT_SETS[hash % GRADIENT_SETS.length];
+}
+
+// ─────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────
+
+interface PhotoGalleryProps {
+  /** Array of photo URLs (1-6) */
+  photos: string[];
+  /** Whether the viewer is matched with this profile */
+  isMatched?: boolean;
+  /** Profile name for alt text */
+  name: string;
+  /** Optional: use gradient mocks instead of real images */
+  gradients?: string[];
+  /** Called when gallery is swiped (prevents parent card drag conflict) */
+  onGallerySwipe?: () => void;
+}
+
+// ─────────────────────────────────────────
+// Component
+// ─────────────────────────────────────────
+
+export default function PhotoGallery({
+  photos,
+  isMatched = false,
+  name,
+  gradients,
+  onGallerySwipe,
+}: PhotoGalleryProps) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [fullscreen, setFullscreen] = useState(false);
+  const [fullscreenOrigin, setFullscreenOrigin] = useState({ x: 0, y: 0 });
+  const galleryRef = useRef<HTMLDivElement>(null);
+  const dragX = useMotionValue(0);
+
+  const total = photos.length;
+  const isBlurred = useCallback(
+    (index: number) => !isMatched && index > 0,
+    [isMatched]
+  );
+
+  // ── Navigation ──
+
+  const goTo = useCallback(
+    (index: number) => {
+      if (index >= 0 && index < total) {
+        setCurrentIndex(index);
+      }
+    },
+    [total]
+  );
+
+  const goNext = useCallback(
+    (e?: React.MouseEvent | React.TouchEvent) => {
+      e?.stopPropagation();
+      if (currentIndex < total - 1) setCurrentIndex(currentIndex + 1);
+    },
+    [currentIndex, total]
+  );
+
+  const goPrev = useCallback(
+    (e?: React.MouseEvent | React.TouchEvent) => {
+      e?.stopPropagation();
+      if (currentIndex > 0) setCurrentIndex(currentIndex - 1);
+    },
+    [currentIndex]
+  );
+
+  // ── Swipe handling ──
+
+  const handleDragEnd = useCallback(
+    (_: unknown, info: PanInfo) => {
+      const threshold = 50;
+      const velocity = info.velocity.x;
+      const offset = info.offset.x;
+
+      if (offset < -threshold || velocity < -500) {
+        goNext();
+        onGallerySwipe?.();
+      } else if (offset > threshold || velocity > 500) {
+        goPrev();
+        onGallerySwipe?.();
+      }
+    },
+    [goNext, goPrev, onGallerySwipe]
+  );
+
+  // ── Tap handling ──
+
+  const handleTap = useCallback(
+    (e: React.MouseEvent) => {
+      if (isBlurred(currentIndex)) return;
+
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const cardWidth = rect.width;
+
+      // Left third = prev, right third = next, center = fullscreen
+      if (clickX < cardWidth * 0.3) {
+        goPrev(e);
+      } else if (clickX > cardWidth * 0.7) {
+        goNext(e);
+      } else {
+        // Open fullscreen from tap position
+        setFullscreenOrigin({ x: e.clientX, y: e.clientY });
+        setFullscreen(true);
+      }
+    },
+    [currentIndex, isBlurred, goNext, goPrev]
+  );
+
+  // ── Render photo or gradient ──
+
+  const renderPhoto = (index: number, className?: string) => {
+    const gradient = gradients?.[index];
+    if (gradient && !photos[index]?.startsWith("http")) {
+      return (
+        <div
+          className={`absolute inset-0 ${className || ""}`}
+          style={{ background: gradient }}
+        />
+      );
+    }
+    return (
+      <img
+        src={photos[index]}
+        alt={`Photo ${index + 1} de ${name}`}
+        className={`absolute inset-0 w-full h-full object-cover ${className || ""}`}
+        loading={index === 0 ? "eager" : "lazy"}
+        decoding="async"
+      />
+    );
+  };
+
+  return (
+    <>
+      {/* Gallery container */}
+      <div
+        ref={galleryRef}
+        className="absolute inset-0 overflow-hidden"
+        role="region"
+        aria-label={`Photos de ${name}`}
+        aria-roledescription="carousel"
+      >
+        {/* Photo slides */}
+        <AnimatePresence mode="popLayout" initial={false}>
+          <motion.div
+            key={currentIndex}
+            className="absolute inset-0"
+            initial={{ x: 80, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -80, opacity: 0 }}
+            transition={springs.rubber}
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.3}
+            onDragEnd={handleDragEnd}
+            style={{ x: dragX }}
+            onClick={handleTap}
+          >
+            {/* The photo */}
+            {renderPhoto(currentIndex)}
+
+            {/* Blur overlay for non-matched photos 2-6 */}
+            {isBlurred(currentIndex) && (
+              <motion.div
+                className="absolute inset-0 backdrop-blur-[20px] bg-black/20 flex flex-col items-center justify-center z-10"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center mb-3 border border-white/20">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                </div>
+                <p className="text-[14px] font-bold text-white">
+                  Match pour voir
+                </p>
+                <p className="text-[11px] text-white/60 mt-1">
+                  Les autres photos sont deverrouillees apres un match
+                </p>
+              </motion.div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+
+        {/* Dot indicators at bottom */}
+        {total > 1 && (
+          <div className="absolute bottom-4 left-0 right-0 z-20 flex justify-center gap-1.5">
+            {Array.from({ length: total }).map((_, i) => (
+              <button
+                key={i}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goTo(i);
+                }}
+                className="relative w-2 h-2 rounded-full"
+                aria-label={`Photo ${i + 1}`}
+                aria-current={i === currentIndex ? "true" : undefined}
+              >
+                <div
+                  className="w-full h-full rounded-full transition-all duration-200"
+                  style={{
+                    backgroundColor:
+                      i === currentIndex
+                        ? "rgba(255,255,255,0.95)"
+                        : "rgba(255,255,255,0.35)",
+                    transform: i === currentIndex ? "scale(1.3)" : "scale(1)",
+                  }}
+                />
+                {/* Smooth sliding indicator via layoutId */}
+                {i === currentIndex && (
+                  <motion.div
+                    layoutId="photo-dot-active"
+                    className="absolute inset-[-1px] rounded-full border border-white/60"
+                    transition={springs.snap}
+                  />
+                )}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Photo counter top-right */}
+        {total > 1 && (
+          <div className="absolute top-3 right-3 z-20 bg-black/40 backdrop-blur-md rounded-full px-2.5 py-1">
+            <span className="text-[11px] text-white/80 font-semibold tabular-nums">
+              {currentIndex + 1}/{total}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Fullscreen overlay */}
+      <AnimatePresence>
+        {fullscreen && !isBlurred(currentIndex) && (
+          <motion.div
+            className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setFullscreen(false)}
+          >
+            {/* Close button */}
+            <button
+              onClick={() => setFullscreen(false)}
+              className="absolute top-12 right-5 z-10 w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center"
+              aria-label="Fermer"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="white"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+
+            {/* Fullscreen photo with zoom */}
+            <motion.div
+              className="w-full h-full flex items-center justify-center"
+              initial={{
+                scale: 0.5,
+                originX: `${(fullscreenOrigin.x / window.innerWidth) * 100}%`,
+                originY: `${(fullscreenOrigin.y / window.innerHeight) * 100}%`,
+              }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.5, opacity: 0 }}
+              transition={springs.heavy}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <FullscreenPhoto
+                src={photos[currentIndex]}
+                gradient={gradients?.[currentIndex]}
+                alt={`Photo ${currentIndex + 1} de ${name}`}
+                onClose={() => setFullscreen(false)}
+              />
+            </motion.div>
+
+            {/* Fullscreen counter */}
+            <div className="absolute bottom-12 left-0 right-0 flex justify-center">
+              <div className="bg-white/10 backdrop-blur-md rounded-full px-4 py-2">
+                <span className="text-[13px] text-white/80 font-semibold tabular-nums">
+                  {currentIndex + 1} / {total}
+                </span>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+// ─────────────────────────────────────────
+// Fullscreen photo with pinch-to-zoom
+// ─────────────────────────────────────────
+
+function FullscreenPhoto({
+  src,
+  gradient,
+  alt,
+  onClose,
+}: {
+  src: string;
+  gradient?: string;
+  alt: string;
+  onClose: () => void;
+}) {
+  const [scale, setScale] = useState(1);
+  const lastTap = useRef(0);
+
+  const handleDoubleTap = useCallback(() => {
+    const now = Date.now();
+    if (now - lastTap.current < 300) {
+      setScale((s) => (s > 1 ? 1 : 2.5));
+    }
+    lastTap.current = now;
+  }, []);
+
+  if (gradient && !src?.startsWith("http")) {
+    return (
+      <motion.div
+        className="w-full h-full"
+        style={{ background: gradient }}
+        animate={{ scale }}
+        transition={springs.heavy}
+        onClick={handleDoubleTap}
+      />
+    );
+  }
+
+  return (
+    <motion.img
+      src={src}
+      alt={alt}
+      className="max-w-full max-h-full object-contain select-none"
+      animate={{ scale }}
+      transition={springs.heavy}
+      onClick={handleDoubleTap}
+      draggable={false}
+    />
+  );
+}
+
+// ─────────────────────────────────────────
+// Blur reveal animation (used when match happens)
+// ─────────────────────────────────────────
+
+export function BlurRevealOverlay({
+  revealing,
+  onComplete,
+}: {
+  revealing: boolean;
+  onComplete?: () => void;
+}) {
+  return (
+    <AnimatePresence>
+      {revealing && (
+        <motion.div
+          className="absolute inset-0 z-30 pointer-events-none"
+          initial={{ backdropFilter: "blur(20px)" }}
+          animate={{ backdropFilter: "blur(0px)" }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.5, ease: "easeOut" }}
+          onAnimationComplete={onComplete}
+        />
+      )}
+    </AnimatePresence>
+  );
+}

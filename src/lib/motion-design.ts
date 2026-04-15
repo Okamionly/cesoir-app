@@ -555,6 +555,54 @@ export const storiesVariants = {
   } satisfies Variants,
 };
 
+/**
+ * DISCOVER — Staggered grid
+ * Profile cards scale up with elastic springs, staggered per card
+ */
+export const discoverVariants = {
+  grid: {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: { staggerChildren: 0.04, delayChildren: 0.1 },
+    },
+  } satisfies Variants,
+  card: {
+    hidden: { opacity: 0, scale: 0.85, y: 30 },
+    visible: (i: number) => ({
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: {
+        ...springs.elastic,
+        delay: i * 0.04,
+      },
+    }),
+    hover: {
+      y: -4,
+      boxShadow: "0 12px 30px rgba(0,0,0,0.18)",
+      transition: springs.gentle,
+    },
+    tap: { scale: 0.97, transition: springs.micro },
+  } satisfies Variants,
+  filterChip: {
+    hidden: { opacity: 0, x: -20 },
+    visible: (i: number) => ({
+      opacity: 1,
+      x: 0,
+      transition: { ...springs.snap, delay: i * 0.03 },
+    }),
+  } satisfies Variants,
+  loadMore: {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: springs.gentle,
+    },
+  } satisfies Variants,
+};
+
 // ─────────────────────────────────────────
 // MICRO-INTERACTIONS — reusable touches
 // ─────────────────────────────────────────

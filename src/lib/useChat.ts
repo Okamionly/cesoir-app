@@ -445,7 +445,7 @@ export function useChat(conversationId: string | undefined, userId: string | und
   return { messages, loading, loadingMore, hasMore, sending, sendMessage, markAsRead, loadMore };
 }
 
-// ---------- Hook : typing indicator via Presence ----------
+// ---------- Hook : typing indicator via Realtime Broadcast ----------
 
 export function useTypingIndicator(
   conversationId: string | undefined,
@@ -455,32 +455,119 @@ export function useTypingIndicator(
   const [peerTyping, setPeerTyping] = useState<string | null>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const peerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!conversationId || !userId) return;
 
-    const channel = supabase.channel(`typing-${conversationId}`, {
+    const channel = supabase.channel(`typing-${conversationId}`);
+
+    channel
+      .on("broadcast", { event: "typing" }, (payload) => {
+        const data = payload.payload as { user_id: string; name: string };
+        if (data.user_id === userId) return; // ignore own typing
+
+        setPeerTyping(data.name ?? "...");
+
+        // Auto-clear peer typing after 3 seconds of no broadcast
+        if (peerTimeoutRef.current) clearTimeout(peerTimeoutRef.current);
+        peerTimeoutRef.current = setTimeout(() => {
+          setPeerTyping(null);
+        }, 3000);
+      })
+      .on("broadcast", { event: "stop_typing" }, (payload) => {
+        const data = payload.payload as { user_id: string };
+        if (data.user_id === userId) return;
+        if (peerTimeoutRef.current) clearTimeout(peerTimeoutRef.current);
+        setPeerTyping(null);
+      })
+      .subscribe();
+
+    channelRef.current = channel;
+
+    return () => {
+      channel.unsubscribe();
+      channelRef.current = null;
+      if (peerTimeoutRef.current) clearTimeout(peerTimeoutRef.current);
+    };
+  }, [conversationId, userId]);
+
+  const sendTyping = useCallback(() => {
+    const channel = channelRef.current;
+    if (!channel) return;
+
+    channel.send({
+      type: "broadcast",
+      event: "typing",
+      payload: { user_id: userId, name: userName ?? "Utilisateur" },
+    });
+
+    // Auto-send stop_typing after 3 seconds of inactivity
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      channel.send({
+        type: "broadcast",
+        event: "stop_typing",
+        payload: { user_id: userId },
+      });
+    }, 3000);
+  }, [userId, userName]);
+
+  const stopTyping = useCallback(() => {
+    const channel = channelRef.current;
+    if (!channel) return;
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    channel.send({
+      type: "broadcast",
+      event: "stop_typing",
+      payload: { user_id: userId },
+    });
+  }, [userId]);
+
+  return { peerTyping, sendTyping, stopTyping };
+}
+
+// ---------- Hook : online presence per conversation ----------
+
+export interface PeerPresence {
+  isOnline: boolean;
+  lastSeen: string | null;
+}
+
+export function useConversationPresence(
+  conversationId: string | undefined,
+  userId: string | undefined,
+  peerId: string | undefined,
+): PeerPresence {
+  const [presence, setPresence] = useState<PeerPresence>({
+    isOnline: false,
+    lastSeen: null,
+  });
+  const channelRef = useRef<RealtimeChannel | null>(null);
+
+  useEffect(() => {
+    if (!conversationId || !userId || !peerId) return;
+
+    const channel = supabase.channel(`presence-${conversationId}`, {
       config: { presence: { key: userId } },
     });
 
     channel
       .on("presence", { event: "sync" }, () => {
         const state = channel.presenceState();
-        let typing: string | null = null;
-        for (const key of Object.keys(state)) {
-          if (key !== userId) {
-            const presences = state[key] as Array<{ is_typing?: boolean; name?: string }>;
-            const active = presences.find((p) => p.is_typing);
-            if (active) {
-              typing = active.name ?? "...";
-            }
-          }
+        const peerPresences = state[peerId] as Array<{ online_at?: string }> | undefined;
+        if (peerPresences && peerPresences.length > 0) {
+          setPresence({ isOnline: true, lastSeen: new Date().toISOString() });
+        } else {
+          setPresence((prev) => ({
+            isOnline: false,
+            lastSeen: prev.isOnline ? new Date().toISOString() : prev.lastSeen,
+          }));
         }
-        setPeerTyping(typing);
       })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
-          await channel.track({ is_typing: false, name: userName ?? "Utilisateur" });
+          await channel.track({ online_at: new Date().toISOString() });
         }
       });
 
@@ -490,29 +577,9 @@ export function useTypingIndicator(
       channel.unsubscribe();
       channelRef.current = null;
     };
-  }, [conversationId, userId, userName]);
+  }, [conversationId, userId, peerId]);
 
-  const sendTyping = useCallback(() => {
-    const channel = channelRef.current;
-    if (!channel) return;
-
-    channel.track({ is_typing: true, name: userName ?? "Utilisateur" });
-
-    // Auto-clear typing after 3 seconds of inactivity
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => {
-      channel.track({ is_typing: false, name: userName ?? "Utilisateur" });
-    }, 3000);
-  }, [userName]);
-
-  const stopTyping = useCallback(() => {
-    const channel = channelRef.current;
-    if (!channel) return;
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    channel.track({ is_typing: false, name: userName ?? "Utilisateur" });
-  }, [userName]);
-
-  return { peerTyping, sendTyping, stopTyping };
+  return presence;
 }
 
 // ---------- Helper : create conversation + send first message ----------

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import { chatVariants, springs, micro } from "@/lib/motion-design";
 import { useAuth } from "@/context/AuthContext";
-import { useChat, useTypingIndicator } from "@/lib/useChat";
+import { useChat, useTypingIndicator, useConversationPresence } from "@/lib/useChat";
 import { supabase } from "@/lib/supabase";
 import type { DbProfile, DbConversation } from "@/lib/supabase";
 import { MODES } from "@/lib/modes";
@@ -56,9 +56,38 @@ function SendIcon({ size = 20, className = "" }: { size?: number; className?: st
   );
 }
 
-function ChatBubble({ content, isOwn, time, showTail, readAt }: { content: string; isOwn: boolean; time: string; showTail: boolean; readAt?: string | null }) {
-  const readTime = readAt ? new Date(readAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) : null;
+/** Single gray checkmark = delivered but unread */
+function CheckSingle({ className = "" }: { className?: string }) {
+  return (
+    <svg width={14} height={14} viewBox="0 0 16 16" fill="none" className={className}>
+      <path d="M3.5 8.5L6.5 11.5L12.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
+/** Double blue checkmark = read */
+function CheckDouble({ className = "" }: { className?: string }) {
+  return (
+    <svg width={18} height={14} viewBox="0 0 20 16" fill="none" className={className}>
+      <path d="M1.5 8.5L4.5 11.5L10.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M6.5 8.5L9.5 11.5L15.5 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/** Format "Vu il y a X min" from an ISO date */
+function formatLastSeen(iso: string | null): string {
+  if (!iso) return "";
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "Vu a l'instant";
+  if (mins < 60) return `Vu il y a ${mins} min`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `Vu il y a ${hours}h`;
+  return `Vu il y a ${Math.floor(hours / 24)}j`;
+}
+
+function ChatBubble({ content, isOwn, time, showTail, readAt }: { content: string; isOwn: boolean; time: string; showTail: boolean; readAt?: string | null }) {
   const variants = isOwn ? chatVariants.bubbleSent : chatVariants.bubbleReceived;
 
   return (
@@ -79,18 +108,18 @@ function ChatBubble({ content, isOwn, time, showTail, readAt }: { content: strin
         >
           <p className="whitespace-pre-wrap break-words">{content}</p>
           <span
-            className={`block text-[10px] mt-1 ${
-              isOwn ? "text-white/60 text-right" : "text-text-muted text-right"
+            className={`flex items-center justify-end gap-1 text-[10px] mt-1 ${
+              isOwn ? "text-white/60" : "text-text-muted"
             }`}
           >
             {time}
+            {isOwn && (
+              readAt
+                ? <CheckDouble className="text-[#34B7F1] ml-0.5" />
+                : <CheckSingle className="text-white/50 ml-0.5" />
+            )}
           </span>
         </div>
-        {isOwn && readTime && (
-          <span className="text-[10px] text-text-muted mt-0.5 mr-1">
-            Vu a {readTime}
-          </span>
-        )}
       </div>
     </motion.div>
   );
@@ -168,11 +197,18 @@ export default function ConversationPage({
   const messagesTopRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Typing indicator
+  // Typing indicator (broadcast-based)
   const { peerTyping, sendTyping, stopTyping } = useTypingIndicator(
     conversationId,
     user?.id,
     user?.user_metadata?.name,
+  );
+
+  // Peer presence (online / last seen)
+  const peerPresence = useConversationPresence(
+    conversationId,
+    user?.id,
+    peer?.id,
   );
 
   // State for special messages
@@ -402,7 +438,7 @@ export default function ConversationPage({
                 {peer?.name?.[0] ?? "?"}
               </div>
             )}
-            {peer?.is_online && (
+            {(peerPresence.isOnline || peer?.is_online) && (
               <div
                 className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-safe border-2 border-bg"
                 aria-label="En ligne"
@@ -410,7 +446,7 @@ export default function ConversationPage({
             )}
           </div>
 
-          {/* Name + mode */}
+          {/* Name + mode + presence */}
           <div className="flex-1 min-w-0">
             <p className="font-bold text-[15px] truncate">{peer?.name ?? "..."}</p>
             {modeInfo && (
@@ -418,9 +454,13 @@ export default function ConversationPage({
                 {modeInfo.icon} {modeInfo.name}
               </p>
             )}
-            {!modeInfo && peer?.is_online && (
+            {peerPresence.isOnline ? (
               <p className="text-[11px] text-safe">En ligne</p>
-            )}
+            ) : peerPresence.lastSeen ? (
+              <p className="text-[11px] text-text-muted">{formatLastSeen(peerPresence.lastSeen)}</p>
+            ) : !modeInfo && peer?.is_online ? (
+              <p className="text-[11px] text-safe">En ligne</p>
+            ) : null}
           </div>
 
           {/* Vibe Check button */}
