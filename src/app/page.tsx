@@ -9,18 +9,18 @@ export default function LandingPage() {
       <section className="relative h-screen flex flex-col items-center justify-center">
         {/* Animated orbs */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute w-[500px] h-[500px] rounded-full bg-[#a855f7] opacity-30 blur-[120px] -top-32 -right-32" style={{ animation: "float 8s ease-in-out infinite" }} />
-          <div className="absolute w-[400px] h-[400px] rounded-full bg-[#ec4899] opacity-25 blur-[120px] -bottom-20 -left-32" style={{ animation: "float 10s ease-in-out infinite reverse" }} />
-          <div className="absolute w-[250px] h-[250px] rounded-full bg-[#6366f1] opacity-20 blur-[100px] top-1/3 left-1/3" style={{ animation: "float 14s ease-in-out infinite" }} />
+          <div className="absolute w-[500px] h-[500px] rounded-full bg-[#8B5CF6] opacity-30 blur-[120px] -top-32 -right-32" style={{ animation: "float 8s ease-in-out infinite" }} />
+          <div className="absolute w-[400px] h-[400px] rounded-full bg-[#00FF88] opacity-20 blur-[120px] -bottom-20 -left-32" style={{ animation: "float 10s ease-in-out infinite reverse" }} />
+          <div className="absolute w-[250px] h-[250px] rounded-full bg-[#8B5CF6] opacity-20 blur-[100px] top-1/3 left-1/3" style={{ animation: "float 14s ease-in-out infinite" }} />
         </div>
 
         {/* Content */}
         <div className="relative z-10 flex flex-col items-center">
           {/* Moon logo */}
-          <span className="text-6xl text-[#a855f7] mb-6 drop-shadow-[0_0_30px_rgba(168,85,247,0.5)]" style={{ animation: "float 6s ease-in-out infinite" }}>☾</span>
+          <span className="text-6xl text-[#8B5CF6] mb-6 drop-shadow-[0_0_30px_rgba(139,92,246,0.5)]" style={{ animation: "float 6s ease-in-out infinite" }}>☾</span>
 
           {/* App name — massive */}
-          <h1 className="text-[80px] sm:text-[120px] font-black tracking-tighter leading-none mb-4" style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+          <h1 className="text-[80px] sm:text-[120px] font-black tracking-tighter leading-none mb-4" style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
             CeSoir
           </h1>
 
@@ -33,19 +33,19 @@ export default function LandingPage() {
           <div className="mb-8" style={{ animation: "float 6s ease-in-out infinite" }}>
             <div className="relative mx-auto" style={{ width: 220, height: 440 }}>
               {/* iPhone frame */}
-              <div className="absolute inset-0 rounded-[36px] border-[3px] border-white/20 bg-black/80 backdrop-blur-sm overflow-hidden shadow-[0_0_60px_rgba(168,85,247,0.2)]">
+              <div className="absolute inset-0 rounded-[36px] border-[3px] border-white/20 bg-black/80 backdrop-blur-sm overflow-hidden shadow-[0_0_60px_rgba(139,92,246,0.2)]">
                 {/* Notch */}
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[90px] h-[26px] bg-black rounded-b-2xl z-10" />
                 {/* Screen content — mini browse preview */}
                 <div className="absolute inset-[3px] rounded-[33px] overflow-hidden bg-[#0A0A0A]">
                   {/* Mini header */}
                   <div className="px-4 pt-8 pb-2 flex items-center gap-2">
-                    <span className="text-[10px] text-[#a855f7]">☾</span>
+                    <span className="text-[10px] text-[#8B5CF6]">☾</span>
                     <span className="text-[9px] font-bold text-white/90">CeSoir</span>
                   </div>
                   {/* Mini mode pills */}
                   <div className="px-3 flex gap-1 mb-2">
-                    <span className="px-2 py-0.5 rounded-full text-[6px] font-semibold bg-[#a855f7]/20 text-[#a855f7] border border-[#a855f7]/30">Solo Diner</span>
+                    <span className="px-2 py-0.5 rounded-full text-[6px] font-semibold bg-[#8B5CF6]/20 text-[#8B5CF6] border border-[#a855f7]/30">Solo Diner</span>
                     <span className="px-2 py-0.5 rounded-full text-[6px] font-semibold bg-white/5 text-white/40 border border-white/10">Night Owl</span>
                     <span className="px-2 py-0.5 rounded-full text-[6px] font-semibold bg-white/5 text-white/40 border border-white/10">Langues</span>
                   </div>
@@ -62,7 +62,7 @@ export default function LandingPage() {
                           <p className="text-[8px] font-bold text-white/90 truncate">{p.name}</p>
                           <p className="text-[6px] text-white/40">{p.mode} - {p.dist}</p>
                         </div>
-                        <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px]" style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)" }}>
+                        <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px]" style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)" }}>
                           ♥
                         </div>
                       </div>
@@ -71,7 +71,7 @@ export default function LandingPage() {
                   {/* Mini bottom nav */}
                   <div className="absolute bottom-0 left-0 right-0 px-4 py-2 border-t border-white/5 bg-black/80 flex justify-around">
                     {["☾", "🔍", "💬", "👤"].map((icon, i) => (
-                      <span key={i} className={`text-[10px] ${i === 0 ? "text-[#a855f7]" : "text-white/30"}`}>{icon}</span>
+                      <span key={i} className={`text-[10px] ${i === 0 ? "text-[#8B5CF6]" : "text-white/30"}`}>{icon}</span>
                     ))}
                   </div>
                 </div>
@@ -83,7 +83,7 @@ export default function LandingPage() {
           <Link
             href="/register"
             className="px-10 py-4 rounded-full text-[16px] font-semibold text-white transition-all active:scale-95"
-            style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)", boxShadow: "0 0 40px rgba(168,85,247,0.3)" }}
+            style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)", boxShadow: "0 0 40px rgba(139,92,246,0.3)" }}
           >
             Commencer
           </Link>
@@ -104,9 +104,9 @@ export default function LandingPage() {
       {/* Second screen — the promise */}
       <section className="min-h-screen flex flex-col items-center justify-center px-6 text-center relative">
         <FadeInSection>
-        <p className="text-[14px] text-[#a855f7] uppercase tracking-[0.3em] font-bold mb-6">Le concept</p>
+        <p className="text-[14px] text-[#8B5CF6] uppercase tracking-[0.3em] font-bold mb-6">Le concept</p>
         <h2 className="text-[36px] sm:text-[48px] font-black leading-tight mb-6 max-w-lg">
-          Pas demain.<br />Pas la semaine prochaine.<br /><span style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Maintenant.</span>
+          Pas demain.<br />Pas la semaine prochaine.<br /><span style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Maintenant.</span>
         </h2>
         <p className="text-[16px] text-white/50 max-w-md leading-relaxed mb-10">
           CeSoir te connecte avec des gens pres de toi, disponibles ce soir. 14 modes de rencontre. 100% gratuit. Zero bullshit.
@@ -115,15 +115,15 @@ export default function LandingPage() {
         {/* Stats */}
         <div className="flex gap-8">
           <div className="text-center">
-            <p className="text-[32px] font-black" style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>14</p>
+            <p className="text-[32px] font-black" style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>14</p>
             <p className="text-[11px] text-white/60 uppercase tracking-wider">Modes</p>
           </div>
           <div className="text-center">
-            <p className="text-[32px] font-black" style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>0€</p>
+            <p className="text-[32px] font-black" style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>0€</p>
             <p className="text-[11px] text-white/60 uppercase tracking-wider">Pour toujours</p>
           </div>
           <div className="text-center">
-            <p className="text-[32px] font-black" style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>2h</p>
+            <p className="text-[32px] font-black" style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>2h</p>
             <p className="text-[11px] text-white/60 uppercase tracking-wider">Moy. avant RDV</p>
           </div>
         </div>
@@ -133,9 +133,9 @@ export default function LandingPage() {
       {/* Third screen — modes carousel */}
       <section className="py-20 px-6 relative">
         <FadeInSection>
-          <p className="text-[14px] text-[#ec4899] uppercase tracking-[0.3em] font-bold mb-4 text-center">14 modes</p>
+          <p className="text-[14px] text-[#00FF88] uppercase tracking-[0.3em] font-bold mb-4 text-center">14 modes</p>
           <h2 className="text-[32px] font-black text-center mb-12">
-            Choisis ton <span style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>ambiance</span>
+            Choisis ton <span style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>ambiance</span>
           </h2>
         </FadeInSection>
 
@@ -177,9 +177,9 @@ export default function LandingPage() {
       {/* Temoignages */}
       <section className="py-20 px-6 relative">
         <FadeInSection>
-          <p className="text-[14px] text-[#a855f7] uppercase tracking-[0.3em] font-bold mb-4 text-center">Temoignages</p>
+          <p className="text-[14px] text-[#8B5CF6] uppercase tracking-[0.3em] font-bold mb-4 text-center">Temoignages</p>
           <h2 className="text-[32px] font-black text-center mb-12">
-            Ils ont ose. <span style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Ils racontent.</span>
+            Ils ont ose. <span style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Ils racontent.</span>
           </h2>
         </FadeInSection>
 
@@ -207,7 +207,7 @@ export default function LandingPage() {
             <StaggerItem key={t.name}>
               <div className="p-5 rounded-2xl border border-[#a855f7]/15 bg-white/[0.02] backdrop-blur-sm relative">
                 {/* Quote marks */}
-                <span className="absolute top-3 left-4 text-[32px] text-[#a855f7]/20 leading-none font-serif">&ldquo;</span>
+                <span className="absolute top-3 left-4 text-[32px] text-[#8B5CF6]/20 leading-none font-serif">&ldquo;</span>
                 <div className="pt-6 pb-3">
                   <p className="text-[14px] text-white/80 leading-relaxed italic mb-4">&ldquo;{t.quote}&rdquo;</p>
                   {/* Stars */}
@@ -256,17 +256,17 @@ export default function LandingPage() {
       {/* Final CTA */}
       <section className="py-24 px-6 text-center relative">
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full opacity-15 blur-[100px]" style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)" }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full opacity-15 blur-[100px]" style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)" }} />
         </div>
         <ScaleIn className="relative z-10">
           <h2 className="text-[40px] font-black mb-4">
-            Ce soir, c&apos;est<br /><span style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>ton</span> soir.
+            Ce soir, c&apos;est<br /><span style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>ton</span> soir.
           </h2>
           <p className="text-white/60 text-[15px] mb-10">Gratuit. Sans pub. Sans paywall.</p>
           <Link
             href="/register"
             className="inline-block px-10 py-4 rounded-full text-[17px] font-bold text-white active:scale-95 transition-transform"
-            style={{ background: "linear-gradient(135deg, #a855f7, #ec4899)", boxShadow: "0 0 40px rgba(168,85,247,0.3)" }}
+            style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)", boxShadow: "0 0 40px rgba(139,92,246,0.3)" }}
           >
             Commencer maintenant
           </Link>
@@ -276,7 +276,7 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-white/5 py-8 px-6 text-center">
         <div className="flex items-center justify-center gap-2 mb-3">
-          <span className="text-lg text-[#a855f7]">☾</span>
+          <span className="text-lg text-[#8B5CF6]">☾</span>
           <span className="text-base font-bold">CeSoir</span>
         </div>
         <div className="flex justify-center gap-5 mb-4">

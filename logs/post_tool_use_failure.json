@@ -437,5 +437,106 @@
       "is_interrupt": false,
       "logged_at": "2026-04-14T17:56:40.682181"
     }
+  },
+  {
+    "timestamp": "2026-04-15T00:49:06.118126",
+    "session_id": "a3d7f8b8-1d18-4e3a-8bd5-08b8c593c887",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01BLQNF7TmaT5oVMvBdtaTCq",
+    "tool_input": {
+      "command": "cd \"C:/Users/mrgue/CLAUDE CODE/cesoir-app\" && gh repo create cesoir-app --private --source=. --push 2>&1",
+      "timeout": 60000,
+      "description": "Create GitHub repo and push"
+    },
+    "error": "Exit code 127\n/usr/bin/bash: line 1: gh: command not found",
+    "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+    "permission_mode": "default",
+    "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a3d7f8b8-1d18-4e3a-8bd5-08b8c593c887.jsonl",
+    "raw_input": {
+      "session_id": "a3d7f8b8-1d18-4e3a-8bd5-08b8c593c887",
+      "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a3d7f8b8-1d18-4e3a-8bd5-08b8c593c887.jsonl",
+      "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+      "permission_mode": "default",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "cd \"C:/Users/mrgue/CLAUDE CODE/cesoir-app\" && gh repo create cesoir-app --private --source=. --push 2>&1",
+        "timeout": 60000,
+        "description": "Create GitHub repo and push"
+      },
+      "tool_use_id": "toolu_01BLQNF7TmaT5oVMvBdtaTCq",
+      "error": "Exit code 127\n/usr/bin/bash: line 1: gh: command not found",
+      "is_interrupt": false,
+      "logged_at": "2026-04-15T00:49:06.118126"
+    }
+  },
+  {
+    "timestamp": "2026-04-15T00:52:47.775927",
+    "session_id": "a3d7f8b8-1d18-4e3a-8bd5-08b8c593c887",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01RyYP3N1ZhqFvMYfNXagKtq",
+    "tool_input": {
+      "command": "cd \"C:/Users/mrgue/CLAUDE CODE/cesoir-app\" && powershell.exe -Command \"gh repo create cesoir-app --private --source=. --push 2>&1\"",
+      "timeout": 60000,
+      "description": "Create GitHub repo via PowerShell"
+    },
+    "error": "Exit code 1\ngh : Le terme \u00ef\u00bf\u00bdgh\u00ef\u00bf\u00bd n'est pas reconnu comme nom d'applet de commande, fonction, fichier de script ou programme \r\nex\u00ef\u00bf\u00bdcutable. V\u00ef\u00bf\u00bdrifiez l'orthographe du nom, ou si un chemin d'acc\u00ef\u00bf\u00bds existe, v\u00ef\u00bf\u00bdrifiez que le chemin d'acc\u00ef\u00bf\u00bds est correct \r\net r\u00ef\u00bf\u00bdessayez.\r\nAu caract\u00ef\u00bf\u00bdre Ligne:1 : 1\r\n+ gh repo create cesoir-app --private --source=. --push 2>&1\r\n+ ~~\r\n    + CategoryInfo          : ObjectNotFound: (gh:String) [], CommandNotFoundException\r\n    + FullyQualifiedErrorId : CommandNotFoundException",
+    "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+    "permission_mode": "default",
+    "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a3d7f8b8-1d18-4e3a-8bd5-08b8c593c887.jsonl",
+    "raw_input": {
+      "session_id": "a3d7f8b8-1d18-4e3a-8bd5-08b8c593c887",
+      "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a3d7f8b8-1d18-4e3a-8bd5-08b8c593c887.jsonl",
+      "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+      "permission_mode": "default",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "cd \"C:/Users/mrgue/CLAUDE CODE/cesoir-app\" && powershell.exe -Command \"gh repo create cesoir-app --private --source=. --push 2>&1\"",
+        "timeout": 60000,
+        "description": "Create GitHub repo via PowerShell"
+      },
+      "tool_use_id": "toolu_01RyYP3N1ZhqFvMYfNXagKtq",
+      "error": "Exit code 1\ngh : Le terme \u00ef\u00bf\u00bdgh\u00ef\u00bf\u00bd n'est pas reconnu comme nom d'applet de commande, fonction, fichier de script ou programme \r\nex\u00ef\u00bf\u00bdcutable. V\u00ef\u00bf\u00bdrifiez l'orthographe du nom, ou si un chemin d'acc\u00ef\u00bf\u00bds existe, v\u00ef\u00bf\u00bdrifiez que le chemin d'acc\u00ef\u00bf\u00bds est correct \r\net r\u00ef\u00bf\u00bdessayez.\r\nAu caract\u00ef\u00bf\u00bdre Ligne:1 : 1\r\n+ gh repo create cesoir-app --private --source=. --push 2>&1\r\n+ ~~\r\n    + CategoryInfo          : ObjectNotFound: (gh:String) [], CommandNotFoundException\r\n    + FullyQualifiedErrorId : CommandNotFoundException",
+      "is_interrupt": false,
+      "logged_at": "2026-04-15T00:52:47.775927"
+    }
+  },
+  {
+    "timestamp": "2026-04-15T00:55:17.465082",
+    "session_id": "a3d7f8b8-1d18-4e3a-8bd5-08b8c593c887",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "mcp__github__create_repository",
+    "tool_use_id": "toolu_01N7XkSeSYXuXh1Vceeetd76",
+    "tool_input": {
+      "name": "cesoir-app",
+      "description": "CeSoir \u00e2\u20ac\u201d Dating app for tonight. Next.js 16 + Tailwind v4 + Supabase + Vercel",
+      "private": true,
+      "autoInit": false
+    },
+    "error": "MCP error -32603: Authentication Failed: Requires authentication",
+    "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+    "permission_mode": "default",
+    "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a3d7f8b8-1d18-4e3a-8bd5-08b8c593c887.jsonl",
+    "raw_input": {
+      "session_id": "a3d7f8b8-1d18-4e3a-8bd5-08b8c593c887",
+      "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a3d7f8b8-1d18-4e3a-8bd5-08b8c593c887.jsonl",
+      "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+      "permission_mode": "default",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "mcp__github__create_repository",
+      "tool_input": {
+        "name": "cesoir-app",
+        "description": "CeSoir \u00e2\u20ac\u201d Dating app for tonight. Next.js 16 + Tailwind v4 + Supabase + Vercel",
+        "private": true,
+        "autoInit": false
+      },
+      "tool_use_id": "toolu_01N7XkSeSYXuXh1Vceeetd76",
+      "error": "MCP error -32603: Authentication Failed: Requires authentication",
+      "is_interrupt": false,
+      "logged_at": "2026-04-15T00:55:17.465082"
+    }
   }
 ]
