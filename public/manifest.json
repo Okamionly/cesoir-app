@@ -1,0 +1,16 @@
+{
+  "name": "CeSoir",
+  "short_name": "CeSoir",
+  "description": "Trouve quelqu'un ce soir. 14 modes de rencontre.",
+  "start_url": "/browse",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#8B5CF6",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "categories": ["social", "lifestyle"]
+}
