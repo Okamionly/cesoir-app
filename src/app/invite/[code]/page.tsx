@@ -1,126 +1,296 @@
-import Link from "next/link";
-import type { Metadata } from "next";
-import { MODES } from "@/lib/modes";
+"use client";
 
-interface PageProps {
-  params: Promise<{ code: string }>;
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "motion/react";
+import { supabase } from "@/lib/supabase";
+import { springs, ambient } from "@/lib/motion-design";
+import type { DbSquadInvite } from "@/lib/supabase-types";
+
+// ─── Types ───────────────────────────────
+
+interface InviteData {
+  code: string;
+  inviterName: string;
+  inviterInitial: string;
+  squadName: string | null;
+  type: "squad" | "friend";
 }
 
-// Demo: resolve referral code to inviter info
-// In production, this would query Supabase
-async function getInviter(code: string) {
+type PageState = "loading" | "found" | "invalid";
+
+// ─── Helpers ─────────────────────────────
+
+async function fetchInviteData(code: string): Promise<InviteData | null> {
+  // Look up the invite code in squad_invites
+  const { data: invite, error } = await supabase
+    .from("squad_invites")
+    .select("*")
+    .eq("code", code.toUpperCase())
+    .is("used_by", null)
+    .single();
+
+  if (error || !invite) return null;
+
+  const typedInvite = invite as DbSquadInvite;
+
+  // Fetch inviter profile
+  const { data: inviter } = await supabase
+    .from("profiles")
+    .select("name")
+    .eq("id", typedInvite.inviter_id)
+    .single();
+
+  const inviterName = inviter?.name ?? "Quelqu'un";
+
+  // Fetch squad name if squad invite
+  let squadName: string | null = null;
+  if (typedInvite.squad_id) {
+    const { data: squad } = await supabase
+      .from("squads")
+      .select("name")
+      .eq("id", typedInvite.squad_id)
+      .single();
+    squadName = squad?.name ?? null;
+  }
+
   return {
-    code,
-    name: "Youssef",
-    city: "Paris",
-    modesCount: 3,
+    code: typedInvite.code,
+    inviterName,
+    inviterInitial: inviterName.charAt(0).toUpperCase(),
+    squadName,
+    type: squadName ? "squad" : "friend",
   };
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { code } = await params;
-  const inviter = await getInviter(code);
-  return {
-    title: `${inviter.name} t'invite sur CeSoir`,
-    description: `Rejoins CeSoir gratuitement et decouvre 14 modes de rencontre. Invite par ${inviter.name}.`,
-    openGraph: {
-      title: `${inviter.name} t'invite sur CeSoir`,
-      description: "14 modes de rencontre pour ne plus etre seul(e) ce soir. 100% gratuit.",
-      url: `https://cesoir-app.vercel.app/invite/${code}`,
-      siteName: "CeSoir",
-      locale: "fr_FR",
-      type: "website",
-    },
-  };
-}
+// ─── Component ───────────────────────────
 
-const PREVIEW_MODES = ["solo-diner", "plus-one", "night-owl", "dog-date", "culture-club", "gamer-night"] as const;
+export default function InvitePage() {
+  const params = useParams<{ code: string }>();
+  const router = useRouter();
+  const [state, setState] = useState<PageState>("loading");
+  const [invite, setInvite] = useState<InviteData | null>(null);
 
-export default async function InvitePage({ params }: PageProps) {
-  const { code } = await params;
-  const inviter = await getInviter(code);
+  useEffect(() => {
+    if (!params.code) {
+      setState("invalid");
+      return;
+    }
+
+    fetchInviteData(params.code).then((data) => {
+      if (data) {
+        setInvite(data);
+        setState("found");
+      } else {
+        setState("invalid");
+      }
+    });
+  }, [params.code]);
+
+  function handleJoin() {
+    if (!invite) return;
+    router.push(`/register?invite=${invite.code}`);
+  }
 
   return (
-    <div className="min-h-screen bg-bg flex flex-col">
-      {/* Hero */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 gradient-bg opacity-10" />
-        <div className="relative px-5 pt-12 pb-8 text-center max-w-md mx-auto">
-          {/* Inviter avatar */}
-          <div className="mx-auto w-20 h-20 rounded-full gradient-bg p-[3px] shadow-glow mb-4">
-            <div className="w-full h-full rounded-full bg-bg flex items-center justify-center text-[28px] font-black text-accent">
-              {inviter.name.charAt(0).toUpperCase()}
-            </div>
-          </div>
-
-          <p className="text-[13px] text-text-muted mb-1">
-            {inviter.name} de {inviter.city} t&apos;invite sur
-          </p>
-          <h1 className="text-[36px] font-black tracking-tight">
-            <span className="gradient-text">CeSoir</span>
-          </h1>
-          <p className="text-[14px] text-text-muted mt-3 max-w-[300px] mx-auto">
-            L&apos;app qui te connecte avec des gens pres de toi, disponibles ce soir.
-          </p>
-        </div>
+    <div className="min-h-screen bg-bg-dark flex flex-col items-center justify-center px-5 py-10 overflow-hidden relative">
+      {/* Ambient gradient background */}
+      <div className="absolute inset-0 pointer-events-none">
+        <motion.div
+          className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] rounded-full opacity-[0.06]"
+          style={{ background: "radial-gradient(circle, #8B5CF6 0%, transparent 70%)" }}
+          animate={ambient.float(8)}
+        />
+        <motion.div
+          className="absolute bottom-[-15%] right-[-10%] w-[50vw] h-[50vw] rounded-full opacity-[0.04]"
+          style={{ background: "radial-gradient(circle, #00FF88 0%, transparent 70%)" }}
+          animate={ambient.float(10)}
+        />
       </div>
 
-      {/* App preview - mode cards */}
-      <div className="px-5 py-6 max-w-md mx-auto w-full">
-        <p className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3">14 modes de rencontre</p>
-        <div className="grid grid-cols-2 gap-2">
-          {PREVIEW_MODES.map((key) => {
-            const mode = MODES[key];
-            return (
-              <div
-                key={key}
-                className="bg-bg-card border border-border rounded-xl p-3 flex items-center gap-2.5"
+      <AnimatePresence mode="wait">
+        {/* ─── Loading ─── */}
+        {state === "loading" && (
+          <motion.div
+            key="loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex flex-col items-center gap-4"
+          >
+            <motion.span
+              className="text-[48px] text-accent"
+              animate={ambient.float(3)}
+              aria-hidden="true"
+            >
+              ☾
+            </motion.span>
+            <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+          </motion.div>
+        )}
+
+        {/* ─── Invalid code ─── */}
+        {state === "invalid" && (
+          <motion.div
+            key="invalid"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={springs.elastic}
+            className="text-center max-w-sm"
+          >
+            <motion.span
+              className="block text-[56px] mb-4"
+              animate={ambient.float(5)}
+              aria-hidden="true"
+            >
+              ☾
+            </motion.span>
+            <h1 className="text-2xl font-bold text-text-inv mb-2">
+              Lien invalide
+            </h1>
+            <p className="text-sm text-text-muted mb-8">
+              Ce lien d&apos;invitation a expire ou n&apos;existe pas.
+            </p>
+            <motion.a
+              href="/"
+              className="inline-block px-8 py-3.5 rounded-full gradient-bg text-white text-sm font-semibold shadow-glow"
+              whileTap={{ scale: 0.95, transition: springs.micro }}
+            >
+              Decouvrir CeSoir
+            </motion.a>
+          </motion.div>
+        )}
+
+        {/* ─── Invite found ─── */}
+        {state === "found" && invite && (
+          <motion.div
+            key="found"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            className="w-full max-w-sm flex flex-col items-center"
+          >
+            {/* Moon logo with ambient float */}
+            <motion.span
+              className="text-[56px] text-accent mb-6"
+              animate={ambient.float(6)}
+              aria-hidden="true"
+            >
+              ☾
+            </motion.span>
+
+            {/* Invite card -- cinematic entrance, scale from 0.8 */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.8, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={springs.elastic}
+              className="w-full bg-bg-card border border-border rounded-2xl p-6 text-center shadow-glow"
+            >
+              {/* Inviter avatar */}
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ ...springs.elastic, delay: 0.15 }}
+                className="mx-auto w-20 h-20 rounded-full gradient-bg p-[3px] mb-4"
               >
-                <div
-                  className="w-9 h-9 rounded-lg flex items-center justify-center text-[18px] shrink-0"
-                  style={{ background: `${mode.color}15` }}
-                >
-                  {mode.icon}
+                <div className="w-full h-full rounded-full bg-bg flex items-center justify-center text-[28px] font-black text-accent">
+                  {invite.inviterInitial}
                 </div>
-                <div className="min-w-0">
-                  <p className="text-[12px] font-bold text-text truncate">{mode.name}</p>
-                  <p className="text-[10px] text-text-muted truncate">{mode.tags[0]}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+              </motion.div>
 
-      {/* Value props */}
-      <div className="px-5 py-4 max-w-md mx-auto w-full">
-        <div className="space-y-3">
-          {[
-            { icon: "💯", text: "100% gratuit, pas de paywall" },
-            { icon: "🔒", text: "Securise, verifie, respectueux" },
-            { icon: "📍", text: "Trouve des gens pres de toi, ce soir" },
-          ].map((item) => (
-            <div key={item.text} className="flex items-center gap-3">
-              <span className="text-[18px]" aria-hidden="true">{item.icon}</span>
-              <span className="text-[13px] text-text font-medium">{item.text}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+              {/* Inviter message */}
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ ...springs.cinematic, delay: 0.25 }}
+              >
+                <h1 className="text-xl font-bold text-text mb-1">
+                  {invite.inviterName}
+                </h1>
+                <p className="text-sm text-text-muted mb-4">
+                  {invite.type === "squad" && invite.squadName
+                    ? `t'invite a rejoindre "${invite.squadName}"`
+                    : "t'invite sur CeSoir"}
+                </p>
+              </motion.div>
 
-      {/* CTA */}
-      <div className="flex-1" />
-      <div className="sticky bottom-0 px-5 py-6 bg-gradient-to-t from-bg via-bg to-transparent max-w-md mx-auto w-full">
-        <Link
-          href={`/signup?ref=${code}`}
-          className="block w-full py-4 rounded-2xl gradient-bg text-white text-center text-[15px] font-bold shadow-glow active:scale-[0.97] transition-transform tap-target"
-        >
-          S&apos;inscrire avec l&apos;invitation
-        </Link>
-        <p className="text-center text-[11px] text-text-muted mt-3">
-          Code d&apos;invitation : <span className="font-mono font-bold text-accent">{code}</span>
-        </p>
-      </div>
+              {/* Headline */}
+              <motion.p
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ ...springs.cinematic, delay: 0.35 }}
+                className="text-lg font-display font-bold gradient-text mb-6"
+              >
+                Rejoins-moi sur CeSoir
+              </motion.p>
+
+              {/* Value props */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4, delay: 0.45 }}
+                className="space-y-2.5 mb-6"
+              >
+                {[
+                  { icon: "🌙", text: "14 modes de rencontre" },
+                  { icon: "📍", text: "Trouve des gens pres de toi, ce soir" },
+                  { icon: "💯", text: "100% gratuit, zero paywall" },
+                ].map((item, i) => (
+                  <motion.div
+                    key={item.text}
+                    initial={{ opacity: 0, x: -15 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ ...springs.heavy, delay: 0.5 + i * 0.08 }}
+                    className="flex items-center gap-2.5 text-left"
+                  >
+                    <span className="text-base shrink-0" aria-hidden="true">
+                      {item.icon}
+                    </span>
+                    <span className="text-[13px] text-text font-medium">
+                      {item.text}
+                    </span>
+                  </motion.div>
+                ))}
+              </motion.div>
+
+              {/* CTA Button */}
+              <motion.button
+                onClick={handleJoin}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ ...springs.elastic, delay: 0.6 }}
+                whileTap={{ scale: 0.95, transition: springs.micro }}
+                className="w-full py-4 rounded-2xl gradient-bg text-white text-[15px] font-bold shadow-glow active:scale-[0.97] transition-transform tap-target"
+              >
+                Rejoindre
+              </motion.button>
+
+              {/* Invite code display */}
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: 0.7 }}
+                className="text-[11px] text-text-muted mt-3"
+              >
+                Code : <span className="font-mono font-bold text-accent">{invite.code}</span>
+              </motion.p>
+            </motion.div>
+
+            {/* Already have an account? */}
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.8 }}
+              className="text-sm text-text-muted mt-6"
+            >
+              Deja inscrit ?{" "}
+              <a href="/login" className="text-accent font-semibold">
+                Se connecter
+              </a>
+            </motion.p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

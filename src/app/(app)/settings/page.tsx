@@ -7,6 +7,7 @@ import { motion } from "motion/react";
 import { springs, micro } from "@/lib/motion-design";
 import { useAuth } from "@/context/AuthContext";
 import { setMuted, isMuted } from "@/lib/sounds";
+import { useDarkMode } from "@/components/ui/DarkModeProvider";
 
 // ── Types ──────────────────────────────────────────
 
@@ -84,7 +85,7 @@ function Toggle({
       onClick={() => onChange(!value)}
       className="relative w-[44px] h-[26px] rounded-full shrink-0 tap-target"
       animate={{
-        backgroundColor: value ? "#8B5CF6" : "#333333",
+        backgroundColor: value ? "#8B5CF6" : "var(--color-border)",
       }}
       transition={springs.snap}
       whileTap={{ scale: 0.9 }}
@@ -191,20 +192,27 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 
 // ── Main Page ──────────────────────────────────────
 
+// Map between settings French labels and DarkModeProvider values
+const themeToMode = { auto: "auto", clair: "light", sombre: "dark" } as const;
+const modeToTheme = { auto: "auto", light: "clair", dark: "sombre" } as const;
+
 export default function SettingsPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const { mode: darkModeValue, setMode: setDarkMode } = useDarkMode();
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [mounted, setMounted] = useState(false);
 
-  // Load from localStorage on mount
+  // Load from localStorage on mount and sync theme from DarkModeProvider
   useEffect(() => {
     const loaded = loadSettings();
     // Sync sound mute state from sounds.ts
     loaded.notifications.sons = !isMuted();
+    // Sync theme from DarkModeProvider (source of truth)
+    loaded.appearance.theme = modeToTheme[darkModeValue];
     setSettings(loaded);
     setMounted(true);
-  }, []);
+  }, [darkModeValue]);
 
   // Persist whenever settings change (skip initial mount)
   useEffect(() => {
@@ -241,6 +249,8 @@ export default function SettingsPage() {
       ...prev,
       appearance: { ...prev.appearance, theme },
     }));
+    // Sync to DarkModeProvider so the actual theme changes
+    setDarkMode(themeToMode[theme]);
   };
 
   const sectionIdx = { current: 0 };

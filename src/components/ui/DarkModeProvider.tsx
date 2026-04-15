@@ -43,7 +43,7 @@ export function DarkModeProvider({ children }: { children: React.ReactNode }) {
   const setMode = useCallback(
     (newMode: DarkMode) => {
       setModeState(newMode);
-      localStorage.setItem("cesoir-dark-mode", newMode);
+      localStorage.setItem("cesoir_theme", newMode);
       if (newMode === "auto") {
         applyDark(isNightTime());
       } else {
@@ -64,7 +64,7 @@ export function DarkModeProvider({ children }: { children: React.ReactNode }) {
   }, [mode, isDark, setMode]);
 
   useEffect(() => {
-    const stored = localStorage.getItem("cesoir-dark-mode") as DarkMode | null;
+    const stored = localStorage.getItem("cesoir_theme") as DarkMode | null;
     const initial = stored || "auto";
     setModeState(initial);
     if (initial === "auto") {
@@ -75,7 +75,7 @@ export function DarkModeProvider({ children }: { children: React.ReactNode }) {
 
     // Re-check every minute when in auto mode
     const interval = setInterval(() => {
-      if ((localStorage.getItem("cesoir-dark-mode") || "auto") === "auto") {
+      if ((localStorage.getItem("cesoir_theme") || "auto") === "auto") {
         applyDark(isNightTime());
       }
     }, 60_000);
