@@ -928,3 +928,160 @@ export const timelineVariants = {
     }),
   } satisfies Variants,
 };
+
+/**
+ * STANDOUTS — Spotlight reveal
+ * Cards emerge from darkness with cinematic fade, ring draws itself
+ */
+export const standoutsVariants = {
+  card: {
+    hidden: { opacity: 0, scale: 0.88, y: 40 },
+    visible: (i: number) => ({
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      transition: {
+        type: "spring" as const,
+        stiffness: 90,
+        damping: 22,
+        mass: 2.2,
+        delay: i * 0.15,
+      },
+    }),
+    hover: {
+      y: -4,
+      transition: { type: "spring" as const, stiffness: 200, damping: 20 },
+    },
+  } satisfies Variants,
+  ring: {
+    hidden: { pathLength: 0 },
+    visible: {
+      pathLength: 1,
+      transition: {
+        type: "spring" as const,
+        stiffness: 60,
+        damping: 30,
+        mass: 1.8,
+      },
+    },
+  } satisfies Variants,
+  badge: {
+    hidden: { opacity: 0, x: -20 },
+    visible: (i: number) => ({
+      opacity: 1,
+      x: 0,
+      transition: {
+        type: "spring" as const,
+        stiffness: 450,
+        damping: 28,
+        mass: 0.5,
+        delay: 0.2 + i * 0.15,
+      },
+    }),
+  } satisfies Variants,
+};
+
+/**
+ * CROSSED PATHS — Path trace
+ * Cards slide along a curved path, pins drop with rubber bounce
+ */
+export const crossedVariants = {
+  card: {
+    hidden: { opacity: 0, x: -30, y: 20 },
+    visible: (i: number) => ({
+      opacity: 1,
+      x: 0,
+      y: 0,
+      transition: {
+        type: "spring" as const,
+        stiffness: 160,
+        damping: 24,
+        mass: 1.3,
+        delay: 0.2 + i * 0.12,
+      },
+    }),
+  } satisfies Variants,
+  pin: {
+    hidden: { scale: 0 },
+    visible: (i: number) => ({
+      scale: 1,
+      transition: {
+        type: "spring" as const,
+        stiffness: 380,
+        damping: 15,
+        mass: 0.7,
+        delay: 0.3 + i * 0.12,
+      },
+    }),
+  } satisfies Variants,
+  timeBadge: {
+    hidden: { opacity: 0, filter: "blur(8px)" },
+    visible: (i: number) => ({
+      opacity: 1,
+      filter: "blur(0px)",
+      transition: {
+        type: "spring" as const,
+        stiffness: 100,
+        damping: 25,
+        mass: 1.5,
+        delay: 0.4 + i * 0.12,
+      },
+    }),
+  } satisfies Variants,
+};
+
+/**
+ * DOUBLE MATCH — Collision merge
+ * Squads slide from opposite sides, VS pulses, celebration bursts
+ */
+export const doubleMatchVariants = {
+  squadLeft: {
+    hidden: { x: -60, opacity: 0 },
+    visible: {
+      x: 0,
+      opacity: 1,
+      transition: {
+        type: "spring" as const,
+        stiffness: 180,
+        damping: 22,
+        mass: 1.6,
+        delay: 0.1,
+      },
+    },
+  } satisfies Variants,
+  squadRight: {
+    hidden: { x: 60, opacity: 0 },
+    visible: {
+      x: 0,
+      opacity: 1,
+      transition: {
+        type: "spring" as const,
+        stiffness: 180,
+        damping: 22,
+        mass: 1.6,
+        delay: 0.2,
+      },
+    },
+  } satisfies Variants,
+  vs: {
+    hidden: { scale: 0 },
+    visible: {
+      scale: 1,
+      transition: {
+        type: "spring" as const,
+        stiffness: 500,
+        damping: 12,
+        mass: 0.5,
+        delay: 0.3,
+      },
+    },
+  } satisfies Variants,
+  celebrate: {
+    hidden: { scale: 0, rotate: -20 },
+    visible: {
+      scale: [0, 1.5, 0.9, 1.15, 1],
+      rotate: [-20, 15, -8, 5, 0],
+      transition: { duration: 0.8, times: [0, 0.25, 0.45, 0.65, 1] },
+    },
+  } satisfies Variants,
+};

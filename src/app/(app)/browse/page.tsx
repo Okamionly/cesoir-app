@@ -22,6 +22,7 @@ import ConfirmDispo from "@/components/app/ConfirmDispo";
 import Revanche from "@/components/app/Revanche";
 import NotificationPreview from "@/components/app/NotificationPreview";
 import MidnightReset from "@/components/app/MidnightReset";
+import IntentionBadge, { type Intention, INTENTIONS } from "@/components/app/IntentionBadge";
 
 /** Map a MatchCandidate from the scoring pipeline to the Profile shape used by SwipeCard */
 function candidateToProfile(c: MatchCandidate): Profile {
@@ -42,6 +43,7 @@ export default function BrowsePage() {
   const { user } = useAuth();
   const { latitude, longitude } = useGeolocation();
   const [filter, setFilter] = useState<ModeKey | "all">("all");
+  const [intentionFilter, setIntentionFilter] = useState<Intention | "all">("all");
   const [idx, setIdx] = useState(0);
   const [info, setInfo] = useState(false);
   const [match, setMatch] = useState<Profile | null>(null);
@@ -197,6 +199,9 @@ export default function BrowsePage() {
 
       {/* Mode filter */}
       <ModeFilter active={filter} onChange={(m) => { setFilter(m); setIdx(0); }} />
+
+      {/* Intention filter */}
+      <IntentionFilter active={intentionFilter} onChange={(i) => { setIntentionFilter(i); setIdx(0); }} />
 
       {/* Card area — 3D Perspective deck */}
       <main ref={mainRef} className="flex-1 relative px-4 pb-1 overflow-hidden" style={{ perspective: 800 }} role="list" aria-label="Profils a decouvrir">
@@ -370,6 +375,35 @@ function EmptyState({ onReset }: { onReset: () => void }) {
       <button onClick={onReset} className="gradient-bg text-white px-8 py-3 rounded-full text-[14px] font-semibold">
         Recommencer
       </button>
+    </div>
+  );
+}
+
+function IntentionFilter({ active, onChange }: { active: Intention | "all"; onChange: (i: Intention | "all") => void }) {
+  return (
+    <div className="shrink-0 flex gap-2 px-5 pb-2 overflow-x-auto no-scrollbar">
+      <button
+        onClick={() => onChange("all")}
+        className={`shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold border transition-all ${
+          active === "all" ? "border-accent bg-accent/10 text-accent" : "border-border text-text-muted hover:text-text-soft"
+        }`}
+      >
+        Toutes
+      </button>
+      {(Object.keys(INTENTIONS) as Intention[]).map((key) => {
+        const { emoji, label } = INTENTIONS[key];
+        return (
+          <button
+            key={key}
+            onClick={() => onChange(key)}
+            className={`shrink-0 px-3 py-1 rounded-full text-[11px] font-semibold border transition-all ${
+              active === key ? "border-accent bg-accent/10 text-accent" : "border-border text-text-muted hover:text-text-soft"
+            }`}
+          >
+            {emoji} {label}
+          </button>
+        );
+      })}
     </div>
   );
 }
