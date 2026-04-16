@@ -110,9 +110,12 @@ export default function LiveActivityPanel({
     >
       <div className="bg-bg border border-border rounded-2xl overflow-hidden shadow-glow">
         {/* Collapsed header -- always visible */}
-        <button
-          className="w-full px-4 py-3 flex items-center justify-between tap-target"
+        <div
+          role="button"
+          tabIndex={0}
+          className="w-full px-4 py-3 flex items-center justify-between tap-target cursor-pointer"
           onClick={() => setExpanded(!expanded)}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setExpanded(!expanded); } }}
           aria-expanded={expanded}
           aria-label="Activite en direct"
         >
@@ -179,7 +182,7 @@ export default function LiveActivityPanel({
               ▲
             </motion.span>
           </div>
-        </button>
+        </div>
 
         {/* Expanded content */}
         <AnimatePresence>

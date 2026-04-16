@@ -1,56 +1,65 @@
-import { createClient } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const protectedRoutes = ["/browse", "/map", "/chat", "/modes", "/profile"];
+const protectedRoutes = ["/browse", "/map", "/chat", "/modes", "/profile", "/app"];
 const authRoutes = ["/login", "/register"];
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  let supabaseResponse = NextResponse.next({ request });
 
-  // Check if route needs protection
-  const isProtected = protectedRoutes.some(r => pathname.startsWith(r));
-  const isAuthRoute = authRoutes.some(r => pathname.startsWith(r));
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://ycyxmvzilzkusecpgvbi.supabase.co";
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljeXhtdnppbHprdXNlY3BndmJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxODQwNjksImV4cCI6MjA5MTc2MDA2OX0.as76sOhSW3Mgj2lWHoLantQUSHvWJA2nZmMn70YnJCY";
 
-  if (!isProtected && !isAuthRoute) return NextResponse.next();
+  // Skip middleware if env vars missing (defensive fallback)
+  if (!supabaseUrl || !supabaseKey) {
+    return supabaseResponse;
+  }
 
-  // Check for Supabase session via cookie
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!supabaseUrl || !supabaseKey) return NextResponse.next();
-
-  // Look for auth token in cookies
-  const authCookie = request.cookies.getAll().find(c =>
-    c.name.startsWith("sb-") && c.name.endsWith("-auth-token")
+  const supabase = createServerClient(
+    supabaseUrl,
+    supabaseKey,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          );
+          supabaseResponse = NextResponse.next({ request });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          );
+        },
+      },
+    }
   );
 
-  const hasSession = !!authCookie?.value;
+  // IMPORTANT: always call getUser() to refresh session tokens
+  const { data: { user } } = await supabase.auth.getUser();
 
-  // Protected route without session → redirect to login
-  if (isProtected && !hasSession) {
+  const { pathname } = request.nextUrl;
+  const isProtected = protectedRoutes.some((r) => pathname.startsWith(r));
+  const isAuthRoute = authRoutes.some((r) => pathname.startsWith(r));
+
+  if (isProtected && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  // Auth route with session → redirect to browse
-  if (isAuthRoute && hasSession) {
+  if (isAuthRoute && user) {
     const url = request.nextUrl.clone();
     url.pathname = "/browse";
     return NextResponse.redirect(url);
   }
 
-  return NextResponse.next();
+  return supabaseResponse;
 }
 
 export const config = {
   matcher: [
-    "/browse/:path*",
-    "/map/:path*",
-    "/chat/:path*",
-    "/modes/:path*",
-    "/profile/:path*",
-    "/login",
-    "/register",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
