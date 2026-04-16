@@ -44,3 +44,8 @@ logs/
 .env.sample
 
 .vercel
+
+# octogent
+.octogent/
+
+.octogent
