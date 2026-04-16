@@ -211,6 +211,11 @@ export default function ProfilePage() {
         <p className="text-[11px] text-text-muted uppercase tracking-[0.15em] font-semibold mb-3">Plus</p>
         <div className="bg-bg-card border border-border rounded-2xl overflow-hidden divide-y divide-border">
           {[
+            { icon: "🎉", label: "Mes soirees", href: "/soiree" },
+            { icon: "🤖", label: "Assistant", href: "/assistant" },
+            { icon: "🛡️", label: "Confiance", href: "/trust" },
+            { icon: "✨", label: "Pour toi", href: "/pour-toi" },
+            { icon: "📂", label: "Toutes les features", href: "/all" },
             { icon: "📊", label: "Mes Insights", href: "/insights" },
             { icon: "🏆", label: "Achievements", href: "/achievements" },
             { icon: "⭐", label: "Mes Avis", href: "/reviews" },
