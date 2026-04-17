@@ -171,10 +171,6 @@ export default function PhotoGallery({
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -80, opacity: 0 }}
             transition={springs.rubber}
-            drag="x"
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.3}
-            onDragEnd={handleDragEnd}
             style={{ x: dragX }}
             onClick={handleTap}
           >
