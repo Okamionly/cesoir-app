@@ -11,8 +11,11 @@ export async function POST(request: Request) {
     const token = authHeader.split(" ")[1];
 
     // Use anon client to verify the token
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://ycyxmvzilzkusecpgvbi.supabase.co";
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
+    }
 
     const supabase = createClient(supabaseUrl, supabaseKey, {
       global: { headers: { Authorization: `Bearer ${token}` } },

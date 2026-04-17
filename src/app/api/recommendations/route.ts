@@ -4,7 +4,7 @@ import { findMatches } from "@/lib/matching";
 import type { ModeKey } from "@/lib/modes";
 import type { RecommendationsResponse } from "@/types/matching";
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://ycyxmvzilzkusecpgvbi.supabase.co";
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 
 export async function GET(request: Request) {

@@ -7,10 +7,10 @@ const authRoutes = ["/login", "/register"];
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://ycyxmvzilzkusecpgvbi.supabase.co";
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InljeXhtdnppbHprdXNlY3BndmJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxODQwNjksImV4cCI6MjA5MTc2MDA2OX0.as76sOhSW3Mgj2lWHoLantQUSHvWJA2nZmMn70YnJCY";
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // Skip middleware if env vars missing (defensive fallback)
+  // Skip middleware if env vars missing (defensive fallback — prevents build crash)
   if (!supabaseUrl || !supabaseKey) {
     return supabaseResponse;
   }

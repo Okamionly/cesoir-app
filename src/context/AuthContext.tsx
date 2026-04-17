@@ -51,9 +51,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Mark offline when user closes tab
     const handleUnload = () => {
       const uid = _currentUserId;
-      if (uid) {
+      const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      if (uid && url) {
         navigator.sendBeacon(
-          `https://ycyxmvzilzkusecpgvbi.supabase.co/rest/v1/profiles?id=eq.${uid}`,
+          `${url}/rest/v1/profiles?id=eq.${uid}`,
           JSON.stringify({ is_online: false, last_seen: new Date().toISOString() })
         );
       }
