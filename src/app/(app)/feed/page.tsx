@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import { feedVariants, springs } from "@/lib/motion-design";
 import { MODES, type ModeKey } from "@/lib/modes";
@@ -172,12 +171,6 @@ export default function FeedPage() {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00FF88]" />
             </span>
           </div>
-          <Link
-            href="/all"
-            className="text-[12px] font-medium text-text-muted hover:text-accent transition-colors shrink-0"
-          >
-            Decouvrir tout
-          </Link>
         </div>
       </header>
 
@@ -209,17 +202,6 @@ export default function FeedPage() {
           "Actualiser"
         )}
       </button>
-
-      {/* Discreet AI helper link */}
-      <div className="px-4 pb-2 -mt-1 flex justify-center">
-        <Link
-          href="/assistant"
-          className="inline-flex items-center gap-1.5 text-[11px] font-medium text-text-muted hover:text-accent transition-colors"
-        >
-          <span aria-hidden="true">🤖</span>
-          Aide-moi a decider
-        </Link>
-      </div>
 
       {/* Loading skeleton */}
       {isLoading ? (
