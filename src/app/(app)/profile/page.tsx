@@ -6,27 +6,43 @@ import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
-import PhotoUpload from "@/components/app/PhotoUpload";
-import AudioIntro from "@/components/app/AudioIntro";
 
-const TONIGHT_CHIPS = ["Diner", "Boire un verre", "Cinema", "Balade", "Concert", "Jeux", "Cuisiner", "Sport"];
-const MOOD_EMOJIS = ["😊", "🔥", "🥂", "🌙", "💜", "🎉", "😴", "🤔"];
+const TONIGHT_CHIPS = ["Diner", "Boire un verre", "Cinema", "Balade", "Concert", "Sport"];
 
-/* Subtle fade + slight rise — calm, uniform entrance */
 const ease = [0.16, 1, 0.3, 1] as [number, number, number, number];
 const fade = (delay = 0) => ({
-  initial: { opacity: 0, y: 10 },
+  initial: { opacity: 0, y: 6 },
   animate: { opacity: 1, y: 0 },
   transition: { duration: 0.4, ease, delay },
 });
+
+// ────────────────────────────────────────────────
+// Inline icons — clean strokes, consistent size
+// ────────────────────────────────────────────────
+function ChevronRight() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M9 18l6-6-6-6" />
+    </svg>
+  );
+}
+
+function SettingsIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+    </svg>
+  );
+}
 
 export default function ProfilePage() {
   const { user, signOut } = useAuth();
   const router = useRouter();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [profileName, setProfileName] = useState("Youssef");
+  const [age, setAge] = useState<number>(28);
 
-  // Ce soir state
   const [selectedChips, setSelectedChips] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("cesoir-tonight-chips");
@@ -34,30 +50,22 @@ export default function ProfilePage() {
     }
     return [];
   });
-  const [moodEmoji, setMoodEmoji] = useState<string>(() => {
-    if (typeof window !== "undefined") return localStorage.getItem("cesoir-mood-emoji") || "";
-    return "";
-  });
-  const [moodText, setMoodText] = useState<string>(() => {
-    if (typeof window !== "undefined") return localStorage.getItem("cesoir-mood-text") || "";
-    return "";
-  });
 
-  // Persist
-  useEffect(() => { localStorage.setItem("cesoir-tonight-chips", JSON.stringify(selectedChips)); }, [selectedChips]);
-  useEffect(() => { localStorage.setItem("cesoir-mood-emoji", moodEmoji); }, [moodEmoji]);
-  useEffect(() => { localStorage.setItem("cesoir-mood-text", moodText); }, [moodText]);
+  useEffect(() => {
+    localStorage.setItem("cesoir-tonight-chips", JSON.stringify(selectedChips));
+  }, [selectedChips]);
 
   useEffect(() => {
     if (!user) return;
     supabase
       .from("profiles")
-      .select("avatar_url, name")
+      .select("avatar_url, name, age")
       .eq("id", user.id)
       .single()
-      .then(({ data }: { data: { avatar_url?: string; name?: string } | null }) => {
+      .then(({ data }: { data: { avatar_url?: string; name?: string; age?: number } | null }) => {
         if (data?.avatar_url) setAvatarUrl(data.avatar_url);
         if (data?.name) setProfileName(data.name);
+        if (data?.age) setAge(data.age);
       });
   }, [user]);
 
@@ -65,60 +73,105 @@ export default function ProfilePage() {
     setSelectedChips(prev => prev.includes(chip) ? prev.filter(c => c !== chip) : [...prev, chip]);
   };
 
-  const Chevron = () => (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-muted shrink-0" aria-hidden="true">
-      <path d="M9 18l6-6-6-6" />
-    </svg>
-  );
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+    await signOut();
+    router.push("/login");
+  }
 
   return (
-    <div className="min-h-screen bg-bg">
+    <div className="min-h-screen bg-bg pb-28">
+      {/* ── HEADER ── */}
+      <motion.header
+        className="px-6 pt-7 pb-2 flex items-center justify-between"
+        {...fade(0)}
+      >
+        <h1 className="text-[15px] font-semibold tracking-tight text-text">Profil</h1>
+        <Link
+          href="/settings"
+          aria-label="Parametres"
+          className="-mr-2 w-10 h-10 rounded-full flex items-center justify-center text-text-muted hover:text-text hover:bg-bg-card transition-colors tap-target focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+        >
+          <SettingsIcon />
+        </Link>
+      </motion.header>
 
-      {/* ── 1. Avatar + Name + City ── centered, large, breathing */}
-      <motion.div className="pt-14 pb-8 px-5 flex flex-col items-center" {...fade(0)}>
-        <div className="mb-5">
-          {user ? (
-            <PhotoUpload
-              userId={user.id}
-              currentAvatarUrl={avatarUrl}
-              onUploadComplete={(url) => setAvatarUrl(url)}
-              variant="compact"
-              fallbackLetter={profileName.charAt(0).toUpperCase()}
-            />
-          ) : (
-            <div className="w-28 h-28 rounded-full bg-bg-card border border-border flex items-center justify-center text-[36px] font-black text-accent">
-              {profileName.charAt(0).toUpperCase()}
+      {/* ── HERO ── Avatar + Name + Edit button ── */}
+      <motion.section
+        className="px-6 pt-8 pb-10 flex flex-col items-center text-center"
+        {...fade(0.05)}
+      >
+        {/* Avatar with subtle gradient ring */}
+        <div className="relative mb-6">
+          <div
+            className="w-32 h-32 rounded-full p-[3px]"
+            style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)" }}
+          >
+            <div className="w-full h-full rounded-full bg-bg overflow-hidden">
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={`Photo de ${profileName}`}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-bg-card">
+                  <span
+                    className="text-[52px] font-bold tracking-tight"
+                    style={{
+                      background: "linear-gradient(135deg, #8B5CF6, #00FF88)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                    }}
+                  >
+                    {profileName[0]?.toUpperCase()}
+                  </span>
+                </div>
+              )}
             </div>
-          )}
+          </div>
+          {/* Online indicator */}
+          <span
+            className="absolute bottom-1.5 right-1.5 block w-4 h-4 rounded-full ring-[3px] ring-bg"
+            style={{ background: "#00FF88" }}
+            aria-label="En ligne ce soir"
+          />
         </div>
-        <h1 className="text-[26px] font-black tracking-tight text-text">{profileName}, <span className="font-light text-text-muted">28</span></h1>
-        <p className="text-[13px] text-text-muted mt-1">Paris, France</p>
-        <div className="flex items-center gap-1.5 mt-2">
-          <span className="w-2 h-2 rounded-full bg-safe" />
-          <span className="text-[11px] text-safe font-semibold">Dispo ce soir</span>
-        </div>
-      </motion.div>
 
-      {/* ── 2. Quick stats ── 3 numbers, subtle */}
-      <motion.div className="px-5 mb-8" {...fade(0.05)}>
-        <div className="flex items-center justify-center gap-8">
-          {[
-            { n: "12", label: "Rencontres" },
-            { n: "8", label: "Matchs" },
-            { n: "3", label: "Ce mois" },
-          ].map(s => (
-            <div key={s.label} className="flex flex-col items-center">
-              <span className="text-[20px] font-black text-text">{s.n}</span>
-              <span className="text-[10px] text-text-muted uppercase tracking-widest mt-0.5">{s.label}</span>
-            </div>
-          ))}
-        </div>
-      </motion.div>
+        {/* Name */}
+        <h2 className="text-[28px] font-bold tracking-tight text-text leading-none">
+          {profileName}, <span className="font-normal text-text-muted">{age}</span>
+        </h2>
+        <p className="text-[13px] text-text-muted mt-2 tracking-wide">Paris, France</p>
 
-      {/* ── 3. Ce soir je veux ── chips */}
-      <motion.div className="px-5 mb-8" {...fade(0.1)}>
-        <p className="text-[11px] text-text-muted uppercase tracking-[0.15em] font-semibold mb-3">Ce soir je veux...</p>
-        <div className="flex flex-wrap gap-2">
+        {/* Status pill */}
+        <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-bg-card border border-border">
+          <span className="block w-1.5 h-1.5 rounded-full" style={{ background: "#00FF88" }} aria-hidden="true" />
+          <span className="text-[12px] font-medium text-text">Disponible ce soir</span>
+        </div>
+
+        {/* Edit profile — primary action button */}
+        <Link
+          href="/profile/edit"
+          className="mt-7 inline-flex items-center justify-center px-7 py-3 rounded-full bg-text text-bg text-[14px] font-semibold tracking-tight hover:opacity-90 active:scale-[0.98] transition-all tap-target focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg focus-visible:outline-none"
+        >
+          Modifier le profil
+        </Link>
+      </motion.section>
+
+      {/* ── INTENT: What do you want tonight? ── */}
+      <motion.section
+        className="px-6 mb-8"
+        {...fade(0.1)}
+        aria-labelledby="tonight-label"
+      >
+        <h3
+          id="tonight-label"
+          className="text-[11px] font-semibold text-text-muted uppercase tracking-[0.12em] mb-3.5"
+        >
+          Mes envies ce soir
+        </h3>
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Selection des envies de ce soir">
           {TONIGHT_CHIPS.map(chip => {
             const on = selectedChips.includes(chip);
             return (
@@ -126,10 +179,10 @@ export default function ProfilePage() {
                 key={chip}
                 onClick={() => toggleChip(chip)}
                 aria-pressed={on}
-                className={`px-3.5 py-2 rounded-full text-[12px] font-medium transition-colors ${
+                className={`px-4 py-2 rounded-full text-[13px] font-medium transition-all tap-target focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg focus-visible:outline-none ${
                   on
-                    ? "border-2 border-accent bg-accent/10 text-accent"
-                    : "border border-border text-text-muted hover:border-accent/30"
+                    ? "bg-text text-bg border border-text"
+                    : "bg-bg-card text-text border border-border hover:border-text/30"
                 }`}
               >
                 {chip}
@@ -137,103 +190,77 @@ export default function ProfilePage() {
             );
           })}
         </div>
-      </motion.div>
+      </motion.section>
 
-      {/* ── 4. Mon mood ── emoji + text, simple */}
-      <motion.div className="px-5 mb-8" {...fade(0.15)}>
-        <p className="text-[11px] text-text-muted uppercase tracking-[0.15em] font-semibold mb-3">Mon mood</p>
-        <div className="flex items-center gap-3">
-          <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
-            {MOOD_EMOJIS.map(emoji => (
-              <button
-                key={emoji}
-                onClick={() => setMoodEmoji(emoji === moodEmoji ? "" : emoji)}
-                aria-pressed={moodEmoji === emoji}
-                className={`w-9 h-9 rounded-full flex items-center justify-center text-[18px] shrink-0 transition-all ${
-                  moodEmoji === emoji
-                    ? "border-2 border-accent bg-accent/10 scale-110"
-                    : "border border-border hover:border-accent/30"
-                }`}
-              >
-                {emoji}
-              </button>
-            ))}
-          </div>
-        </div>
-        {moodEmoji && (
-          <div className="mt-3 bg-bg-card border border-border rounded-xl px-3 py-2.5 flex items-center gap-2">
-            <span className="text-[18px]">{moodEmoji}</span>
-            <input
-              type="text"
-              value={moodText}
-              onChange={e => setMoodText(e.target.value.slice(0, 50))}
-              placeholder="Un mot sur ton mood..."
-              maxLength={50}
-              className="flex-1 bg-transparent text-[13px] text-text placeholder:text-text-muted outline-none"
-              aria-label="Texte de mood"
-            />
-            <span className="text-[9px] text-text-muted shrink-0">{moodText.length}/50</span>
-          </div>
-        )}
-      </motion.div>
-
-      {/* ── 5. Audio intro ── */}
-      <motion.div className="px-5 mb-8" {...fade(0.2)}>
-        <p className="text-[11px] text-text-muted uppercase tracking-[0.15em] font-semibold mb-3">Intro audio</p>
-        <AudioIntro />
-      </motion.div>
-
-      {/* ── 6. Parametres ── clean rows with chevrons */}
-      <motion.div className="px-5 mb-4" {...fade(0.25)}>
-        <p className="text-[11px] text-text-muted uppercase tracking-[0.15em] font-semibold mb-3">Parametres</p>
-        <div className="bg-bg-card border border-border rounded-2xl overflow-hidden divide-y divide-border">
+      {/* ── ESSENTIALS ── 3 main destinations ── */}
+      <motion.nav
+        className="px-6 mb-8"
+        {...fade(0.15)}
+        aria-label="Navigation principale"
+      >
+        <h3 className="text-[11px] font-semibold text-text-muted uppercase tracking-[0.12em] mb-3.5">
+          Decouvrir
+        </h3>
+        <div className="bg-bg-card border border-border rounded-2xl overflow-hidden">
           {[
-            { icon: "✏️", label: "Modifier mon profil", sub: "Photos, bio, prompts", href: "/profile/edit" },
-            { icon: "✅", label: "Verification", sub: "Badge via selfie ou SMS", href: "/profile/verify" },
-            { icon: "⚙️", label: "Preferences", sub: "Age, distance, genre", href: "/settings" },
-            { icon: "🔔", label: "Notifications", sub: "Matchs, messages, rappels", href: "/settings" },
-            { icon: "🛡️", label: "Securite", sub: "Mot de passe, blocage", href: "/safety" },
-          ].map(item => (
-            <Link key={item.label} href={item.href} className="flex items-center gap-3 px-4 py-3.5 active:bg-border/10 transition-colors">
-              <span className="text-[16px] shrink-0">{item.icon}</span>
+            { label: "Recommandations", desc: "Profils selectionnes pour toi", href: "/pour-toi" },
+            { label: "Soirees", desc: "Organiser ou rejoindre", href: "/soiree" },
+            { label: "Confiance", desc: "Verification et securite", href: "/trust" },
+          ].map((item, i, arr) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex items-center gap-4 px-5 py-4 hover:bg-bg transition-colors tap-target focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset focus-visible:outline-none ${
+                i < arr.length - 1 ? "border-b border-border" : ""
+              }`}
+            >
               <div className="flex-1 min-w-0">
-                <span className="text-[14px] font-semibold text-text block">{item.label}</span>
-                <span className="text-[11px] text-text-muted">{item.sub}</span>
+                <div className="text-[15px] font-semibold tracking-tight text-text">{item.label}</div>
+                <div className="text-[12px] text-text-muted mt-0.5">{item.desc}</div>
               </div>
-              <Chevron />
+              <span className="text-text-muted shrink-0"><ChevronRight /></span>
             </Link>
           ))}
         </div>
-      </motion.div>
+      </motion.nav>
 
-      {/* ── 7. Plus ── simple text rows for features that were gradient cards */}
-      <motion.div className="px-5 mb-4" {...fade(0.3)}>
-        <p className="text-[11px] text-text-muted uppercase tracking-[0.15em] font-semibold mb-3">Plus</p>
-        <div className="bg-bg-card border border-border rounded-2xl overflow-hidden divide-y divide-border">
+      {/* ── SETTINGS ── */}
+      <motion.div
+        className="px-6 mb-8"
+        {...fade(0.2)}
+      >
+        <h3 className="text-[11px] font-semibold text-text-muted uppercase tracking-[0.12em] mb-3.5">
+          Reglages
+        </h3>
+        <div className="bg-bg-card border border-border rounded-2xl overflow-hidden">
           {[
-            { icon: "📊", label: "Mes Insights", href: "/insights" },
-            { icon: "🏆", label: "Achievements", href: "/achievements" },
-            { icon: "⭐", label: "Mes Avis", href: "/reviews" },
-            { icon: "📅", label: "Mon Parcours", href: "/timeline" },
-            { icon: "🎵", label: "Mon Vibe", href: "/vibes" },
-            { icon: "🛒", label: "Boutique", href: "/shop" },
-            { icon: "👑", label: "Premium", href: "/premium" },
-            { icon: "🔗", label: "Partager mon profil", href: "/profile/share" },
-          ].map(item => (
-            <Link key={item.href} href={item.href} className="flex items-center gap-3 px-4 py-3.5 active:bg-border/10 transition-colors">
-              <span className="text-[16px] shrink-0">{item.icon}</span>
-              <span className="text-[14px] font-medium text-text flex-1">{item.label}</span>
-              <Chevron />
+            { label: "Notifications", href: "/profile/notifications" },
+            { label: "Confidentialite", href: "/profile/privacy" },
+            { label: "Verification du compte", href: "/profile/verify" },
+            { label: "A propos", href: "/about" },
+          ].map((item, i, arr) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex items-center justify-between px-5 py-3.5 hover:bg-bg transition-colors tap-target focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset focus-visible:outline-none ${
+                i < arr.length - 1 ? "border-b border-border" : ""
+              }`}
+            >
+              <span className="text-[14px] text-text">{item.label}</span>
+              <span className="text-text-muted"><ChevronRight /></span>
             </Link>
           ))}
         </div>
       </motion.div>
 
-      {/* ── Logout ── */}
-      <motion.div className="px-5 pb-28 mt-6" {...fade(0.35)}>
+      {/* ── LOGOUT ── */}
+      <motion.div
+        className="px-6"
+        {...fade(0.25)}
+      >
         <button
-          onClick={async () => { await signOut(); router.push("/"); }}
-          className="w-full text-center text-[13px] text-danger font-semibold py-3 bg-danger/5 border border-danger/10 rounded-xl"
+          onClick={handleLogout}
+          className="w-full py-3.5 rounded-2xl bg-bg-card border border-border text-[14px] font-medium text-text-muted hover:text-text hover:border-text/20 transition-all tap-target focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg focus-visible:outline-none"
         >
           Se deconnecter
         </button>
