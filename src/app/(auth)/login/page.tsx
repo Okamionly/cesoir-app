@@ -7,20 +7,45 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { signIn, loading, error: authError } = useAuth();
+  const { signIn, error: authError } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
-    const user = await signIn(email, password);
-    if (user) {
-      router.push("/browse");
-    } else {
-      setError(authError || "Email ou mot de passe incorrect");
+    try {
+      // Use server-side login API to set proper SSR cookies
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.ok) {
+        setError(data.error || "Email ou mot de passe incorrect");
+        setLoading(false);
+        return;
+      }
+
+      // Also sync the client-side auth context (for components that use useAuth)
+      try {
+        await signIn(email.trim().toLowerCase(), password);
+      } catch {
+        // Non-blocking — server cookie is what matters
+      }
+
+      // Hard reload to /feed so middleware sees the fresh cookies
+      window.location.href = "/feed";
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erreur de connexion");
+      setLoading(false);
     }
   }
 
