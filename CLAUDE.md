@@ -1,95 +1,95 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Ce fichier fournit des consignes à Claude Code (claude.ai/code) pour travailler sur ce dépôt.
 
 @AGENTS.md
 
-## Critical: Next.js version
+## Important : version de Next.js
 
-This project uses **Next.js 16.2.3** with **React 19.2.4**. APIs, conventions, and file structure differ from older releases. Before writing any Next.js-specific code (route handlers, `cookies()`, metadata, middleware, fonts, etc.), read the relevant guide in `node_modules/next/dist/docs/` and respect deprecation notices. Do not rely on training-data memory for Next.js behavior.
+Ce projet utilise **Next.js 16.2.3** avec **React 19.2.4**. Les API, conventions et structure de fichiers diffèrent des versions plus anciennes. Avant d'écrire du code spécifique à Next.js (route handlers, `cookies()`, metadata, middleware, fonts, etc.), consulte le guide pertinent dans `node_modules/next/dist/docs/` et respecte les avis de dépréciation. Ne te fie pas à ta mémoire d'entraînement pour le comportement de Next.js.
 
-## Commands
+## Commandes
 
 ```bash
 npm run dev           # next dev
 npm run build         # next build
 npm run start         # next start
-npm run lint          # eslint (flat config: eslint.config.mjs)
+npm run lint          # eslint (config plate : eslint.config.mjs)
 
-npm run db:check      # verify NEXT_PUBLIC_SUPABASE_URL / ANON_KEY / SERVICE_ROLE_KEY in .env.local
-npm run db:types      # regenerate src/lib/supabase-types.ts from project ycyxmvzilzkusecpgvbi
-npm run db:start      # supabase start (local stack)
+npm run db:check      # vérifie NEXT_PUBLIC_SUPABASE_URL / ANON_KEY / SERVICE_ROLE_KEY dans .env.local
+npm run db:types      # régénère src/lib/supabase-types.ts depuis le projet ycyxmvzilzkusecpgvbi
+npm run db:start      # supabase start (stack locale)
 npm run db:stop
-npm run db:reset      # supabase db reset — applies supabase/migrations/*
+npm run db:reset      # supabase db reset — applique supabase/migrations/*
 npm run db:push       # supabase db push
 ```
 
-No test runner is configured. Don't invent `npm test`.
+Aucun runner de tests n'est configuré. N'invente pas `npm test`.
 
-TypeScript path alias: `@/*` → `./src/*`.
+Alias de chemin TypeScript : `@/*` → `./src/*`.
 
 ## Architecture
 
-### App Router layout with route groups
+### App Router avec groupes de routes
 
-`src/app/` splits into two route groups with different providers:
+`src/app/` est divisé en deux groupes de routes avec des providers différents :
 
-- **`(app)/`** — authenticated shell. `layout.tsx` wraps children in `AuthProvider` → `DarkModeProvider` → `AccessibilityProvider` → `ToastProvider`, plus `OfflineBanner`, `BottomNav`, `FABMenu`, `SOSButton`, `ErrorBoundary`, and `PageTransition`. Any new authenticated page goes here and inherits all of that.
-- **`(auth)/`** — login / register / onboarding / forgot-password / reset-password. Separate layout, no nav chrome.
-- `src/app/page.tsx` is the public landing page (no group).
-- `src/app/api/` holds route handlers (`account/delete`, `auth/login`, `auth/logout`, `recommendations`, `swipe`).
+- **`(app)/`** — shell authentifié. Le `layout.tsx` enveloppe les enfants dans `AuthProvider` → `DarkModeProvider` → `AccessibilityProvider` → `ToastProvider`, plus `OfflineBanner`, `BottomNav`, `FABMenu`, `SOSButton`, `ErrorBoundary` et `PageTransition`. Toute nouvelle page authentifiée va ici et hérite de tout ça.
+- **`(auth)/`** — login / register / onboarding / forgot-password / reset-password. Layout séparé, sans chrome de navigation.
+- `src/app/page.tsx` est la landing page publique (hors groupe).
+- `src/app/api/` contient les route handlers (`account/delete`, `auth/login`, `auth/logout`, `recommendations`, `swipe`).
 
-Route-group parentheses do not affect URLs — `(app)/browse/page.tsx` is served at `/browse`.
+Les parenthèses des groupes de routes n'affectent pas les URL — `(app)/browse/page.tsx` est servi sur `/browse`.
 
-### Auth: three layers that must stay consistent
+### Auth : trois couches qui doivent rester cohérentes
 
-1. **`src/middleware.ts`** — runs on every non-static request. Uses `@supabase/ssr` `createServerClient` to refresh the session cookie and redirects: protected prefixes (`/browse`, `/map`, `/chat`, `/modes`, `/profile`, `/app`) require a user; auth routes (`/login`, `/register`) redirect to `/browse` when already signed in. If env vars are missing it silently no-ops so builds don't crash.
-2. **`src/lib/supabase/{client,server,helpers}.ts`** — the *canonical* SSR clients. Use `createClient()` from `server.ts` in Server Components / route handlers, and `createClient()` from `client.ts` in Client Components that need SSR-aware cookies. `helpers.ts` exposes `getUser()`, `getProfile(id)`, `getCurrentProfile()` for server code.
-3. **`src/context/AuthContext.tsx`** (`"use client"`) — provides `useAuth()` with `user`, `signIn`, `signUp`, `signOut`. Mounted once by `(app)/layout.tsx`. It uses the legacy `src/lib/supabase.ts` singleton (a lazy `Proxy` around `createClient` from `@supabase/supabase-js`) for realtime auth state + cross-tab sync. Also refreshes the session every 50 minutes and uses `navigator.sendBeacon` on `beforeunload` to mark the profile offline.
+1. **`src/middleware.ts`** — s'exécute sur chaque requête non-statique. Utilise `createServerClient` de `@supabase/ssr` pour rafraîchir le cookie de session et redirige : les préfixes protégés (`/browse`, `/map`, `/chat`, `/modes`, `/profile`, `/app`) exigent un user ; les routes d'auth (`/login`, `/register`) redirigent vers `/browse` si déjà connecté. Si les variables d'env manquent, no-op silencieux pour ne pas casser le build.
+2. **`src/lib/supabase/{client,server,helpers}.ts`** — les clients SSR *canoniques*. Utilise `createClient()` de `server.ts` dans les Server Components / route handlers, et `createClient()` de `client.ts` dans les Client Components qui ont besoin de cookies SSR-aware. `helpers.ts` expose `getUser()`, `getProfile(id)`, `getCurrentProfile()` pour le code serveur.
+3. **`src/context/AuthContext.tsx`** (`"use client"`) — fournit `useAuth()` avec `user`, `signIn`, `signUp`, `signOut`. Monté une seule fois par `(app)/layout.tsx`. Il utilise le singleton legacy `src/lib/supabase.ts` (un `Proxy` paresseux autour de `createClient` de `@supabase/supabase-js`) pour l'état d'auth en temps réel + la sync cross-tab. Rafraîchit aussi la session toutes les 50 minutes et utilise `navigator.sendBeacon` sur `beforeunload` pour marquer le profil hors-ligne.
 
-`src/lib/useAuth.ts` is a deprecated shim that re-exports `useAuth` from the context — prefer `@/context/AuthContext` directly.
+`src/lib/useAuth.ts` est un shim déprécié qui ré-exporte `useAuth` depuis le contexte — préfère `@/context/AuthContext` directement.
 
-Profiles are auto-created by a Supabase DB trigger (`handle_new_user`, `SECURITY DEFINER`) on `auth.users` INSERT; do not insert into `profiles` manually after signup.
+Les profils sont créés automatiquement par un trigger Supabase (`handle_new_user`, `SECURITY DEFINER`) sur l'INSERT dans `auth.users` ; n'insère pas dans `profiles` manuellement après l'inscription.
 
-### API routes: Bearer-token pattern
+### Routes API : pattern Bearer token
 
-`src/app/api/recommendations/route.ts` and `src/app/api/swipe/route.ts` do *not* use the SSR cookie flow. They expect `Authorization: Bearer <access_token>`, instantiate a per-request `createClient(URL, ANON_KEY, { global: { headers: { Authorization } } })`, and call `db.auth.getUser()` to authenticate. Follow this pattern for any new client-called API route that needs the user's RLS context. In contrast, `api/auth/login/route.ts` and `api/auth/logout/route.ts` use the SSR `createClient` from `@/lib/supabase/server` to set/clear cookies.
+`src/app/api/recommendations/route.ts` et `src/app/api/swipe/route.ts` n'utilisent *pas* le flux cookie SSR. Ils attendent `Authorization: Bearer <access_token>`, instancient un `createClient(URL, ANON_KEY, { global: { headers: { Authorization } } })` par requête, puis appellent `db.auth.getUser()` pour authentifier. Suis ce pattern pour toute nouvelle route API appelée côté client qui a besoin du contexte RLS de l'utilisateur. À l'inverse, `api/auth/login/route.ts` et `api/auth/logout/route.ts` utilisent le `createClient` SSR de `@/lib/supabase/server` pour poser/supprimer les cookies.
 
-### Matching pipeline
+### Pipeline de matching
 
-`src/lib/matching.ts` → `findMatches(userId, lat, lng, opts)` is the core scoring function exposed via `GET /api/recommendations`. Score is 0–100: **mode compatibility 40 / distance 25 / timing 20 / social proof 15**. The 14 supported modes live in `src/lib/modes.ts` as `MODES` / `ModeKey` and are the source of truth — DB `mode_activations.mode` and `interactions.mode` must match these keys.
+`src/lib/matching.ts` → `findMatches(userId, lat, lng, opts)` est la fonction de scoring exposée via `GET /api/recommendations`. Score 0–100 : **compatibilité de mode 40 / distance 25 / timing 20 / preuve sociale 15**. Les 14 modes supportés vivent dans `src/lib/modes.ts` (`MODES` / `ModeKey`) et font foi — les colonnes DB `mode_activations.mode` et `interactions.mode` doivent matcher ces clés.
 
-`POST /api/swipe` enforces a 100-swipe daily limit (resets at midnight UTC), records to `interactions`, and on mutual like/superlike upserts a `conversations` row with deterministic `(user_a, user_b)` ordering to avoid duplicates.
+`POST /api/swipe` applique une limite de 100 swipes/jour (reset à minuit UTC), enregistre dans `interactions`, et sur un like/superlike mutuel upsert une ligne `conversations` avec un ordre déterministe `(user_a, user_b)` pour éviter les doublons.
 
-Shared request/response types for these routes live in `src/types/matching.ts` — import them on both sides.
+Les types de requête/réponse partagés pour ces routes vivent dans `src/types/matching.ts` — importe-les des deux côtés.
 
-### Database
+### Base de données
 
-- Main schema: `supabase-schema.sql` (PostGIS-enabled). Migrations: `supabase/migrations/*.sql`.
-- Generated types: `src/lib/supabase-types.ts` — regenerate with `npm run db:types` after schema changes.
-- `src/lib/supabase.ts` re-exports `Database` plus `Db*` row types (e.g. `DbProfile`, `DbInteraction`, `DbConversation`). Import table row types from `@/lib/supabase` rather than reaching into `supabase-types` directly.
-- `profiles.location` is a PostGIS `GEOGRAPHY(POINT, 4326)`.
+- Schéma principal : `supabase-schema.sql` (PostGIS activé). Migrations : `supabase/migrations/*.sql`.
+- Types générés : `src/lib/supabase-types.ts` — régénère avec `npm run db:types` après un changement de schéma.
+- `src/lib/supabase.ts` ré-exporte `Database` et les types de ligne `Db*` (ex. `DbProfile`, `DbInteraction`, `DbConversation`). Importe les types de ligne depuis `@/lib/supabase` plutôt que d'aller chercher directement dans `supabase-types`.
+- `profiles.location` est un `GEOGRAPHY(POINT, 4326)` PostGIS.
 
-### Client-side domain logic
+### Logique métier côté client
 
-Most feature state lives in `src/lib/use*.ts` hooks (swipe, chat, conversations, matches, notifications, badges, gamification, geolocation, safety, etc.). They call through the legacy `supabase` singleton from `@/lib/supabase`. Components under `src/components/{app,chat,landing,map,ui}/` consume these hooks — business logic belongs in the hook, not in the component.
+La plupart de l'état des features vit dans les hooks `src/lib/use*.ts` (swipe, chat, conversations, matches, notifications, badges, gamification, geolocation, safety, etc.). Ils passent par le singleton legacy `supabase` de `@/lib/supabase`. Les composants sous `src/components/{app,chat,landing,map,ui}/` consomment ces hooks — la logique métier appartient au hook, pas au composant.
 
-`src/lib/motion-design.ts` is the shared Motion (Framer) tokens file (springs, easings, ambient animations). Reuse its exports rather than hand-rolling transitions.
+`src/lib/motion-design.ts` est le fichier partagé de tokens Motion (Framer) (springs, easings, animations ambiantes). Réutilise ses exports plutôt que de bricoler des transitions à la main.
 
 ### i18n
 
-`src/lib/i18n.ts` is a zero-dependency translation layer, default locale `fr`, also supports `en`. The whole UI is French-first (see user-facing strings like `"Non authentifie"` in API routes).
+`src/lib/i18n.ts` est une couche de traduction zéro-dépendance, locale par défaut `fr`, supporte aussi `en`. Toute l'UI est en français d'abord (voir les chaînes user-facing comme `"Non authentifie"` dans les routes API).
 
 ### PWA
 
-`public/manifest.json` + `public/sw.js` + `src/lib/registerSW.ts` + `src/lib/offline-queue.ts` provide offline support. `OfflineBanner` in `(app)/layout.tsx` surfaces connectivity.
+`public/manifest.json` + `public/sw.js` + `src/lib/registerSW.ts` + `src/lib/offline-queue.ts` fournissent le support offline. `OfflineBanner` dans `(app)/layout.tsx` expose la connectivité.
 
-### Security headers
+### Headers de sécurité
 
-`next.config.ts` sets `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, and a `Permissions-Policy` allowing only self geolocation + camera. Also allow-lists image remote patterns for `api.dicebear.com`, the Supabase project bucket, and `randomuser.me` — add new image hosts there.
+`next.config.ts` pose `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, et un `Permissions-Policy` n'autorisant que geolocation + camera en self. Whiteliste aussi les `remotePatterns` d'images pour `api.dicebear.com`, le bucket Supabase du projet et `randomuser.me` — ajoute-y tout nouvel host d'images.
 
 ## Conventions
 
-- Components that use hooks, browser APIs, or motion must start with `"use client"`. Everything under `src/app/(app)/` and `src/app/(auth)/` is a client-leaning feature area, but page files should stay server components when possible and delegate to client children.
-- API routes return French error messages (e.g. `"Non authentifie"`, `"Session invalide"`) — match the existing tone.
-- Don't commit `.env.local`; `db:check` validates it before dev work.
+- Les composants qui utilisent des hooks, des API navigateur ou Motion doivent commencer par `"use client"`. Tout ce qui est sous `src/app/(app)/` et `src/app/(auth)/` est une zone feature orientée client, mais les fichiers `page` doivent rester Server Components quand c'est possible et déléguer à des enfants client.
+- Les routes API renvoient des messages d'erreur en français (ex. `"Non authentifie"`, `"Session invalide"`) — garde ce ton.
+- Ne commit pas `.env.local` ; `db:check` le valide avant de dev.
