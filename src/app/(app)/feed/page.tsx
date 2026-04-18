@@ -166,9 +166,9 @@ export default function FeedPage() {
         <div className="flex items-center gap-3 px-4 py-3">
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <h1 className="text-lg font-display font-bold text-text">En direct</h1>
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00FF88] opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00FF88]" />
+            <span className="relative flex h-2 w-2" aria-label="Activité en direct">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-2 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-accent-2" />
             </span>
           </div>
         </div>
@@ -269,7 +269,7 @@ export default function FeedPage() {
                           className="w-10 h-10 rounded-full object-cover"
                         />
                         {item.online && (
-                          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#00FF88] border-2 border-card" aria-label="En ligne" />
+                          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-accent-2 border-2 border-card" aria-label="En ligne" />
                         )}
                       </div>
                     )}
