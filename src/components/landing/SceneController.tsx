@@ -1,11 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import {
+  motion,
+  AnimatePresence,
+  useMotionValue,
+  useSpring,
+  useReducedMotion,
+} from "motion/react";
 import Link from "next/link";
 import PlasmaOcean from "@/components/landing/PlasmaOcean";
 import MoonHero from "@/components/landing/MoonHero";
 import PhoneVideo from "@/components/landing/PhoneVideo";
+import StarField from "@/components/landing/StarField";
 import { springs, easings } from "@/lib/motion-design";
 import { usePausableInterval } from "@/lib/usePausableInterval";
 
@@ -23,6 +30,15 @@ import { usePausableInterval } from "@/lib/usePausableInterval";
  *   - Mouse wheel: scroll down = next, scroll up = prev (throttled 600ms)
  *   - Touch swipe: left/right on mobile
  *   - Click on scrubber dots = jump to scene
+ *
+ * Cinematic polish layered in:
+ *   - Ambient StarField particles above plasma
+ *   - Top gradient progress bar tied to auto-play clock
+ *   - Magnetic CTA on Scene 0
+ *   - Rack-focus scene transitions (blur + scale)
+ *   - First-visit "scroll to navigate" hint
+ *   - Radial pulse on keyboard input
+ *   - Premium spotlight + floor reflection behind PhoneVideo
  */
 
 const SCENE_DURATION_MS = 9000;
@@ -57,12 +73,29 @@ const gradientText: React.CSSProperties = {
   fontStyle: "italic",
 };
 
+// Rack-focus scene transitions: camera refocus feel
+const rackFocus = {
+  initial: { opacity: 0, scale: 0.96, filter: "blur(8px)" },
+  animate: { opacity: 1, scale: 1, filter: "blur(0px)" },
+  exit: { opacity: 0, scale: 1.04, filter: "blur(6px)" },
+};
+
+const rackTransition = {
+  duration: 0.8,
+  ease: [0.22, 1, 0.36, 1] as [number, number, number, number],
+};
+
 export default function SceneController() {
   const [scene, setScene] = useState<SceneIndex>(0);
   const [paused, setPaused] = useState(false);
+  const [progress, setProgress] = useState(0); // 0..1 progress in current scene
+  const [hintVisible, setHintVisible] = useState(false);
+  const [pulseKey, setPulseKey] = useState(0); // triggers keyboard pulse flash
   const manualPauseTimeoutRef = useRef<number | null>(null);
   const lastWheelRef = useRef<number>(0);
   const touchStartXRef = useRef<number | null>(null);
+  const sceneStartRef = useRef<number>(performance.now());
+  const reducedMotion = useReducedMotion();
 
   const clearManualPauseTimer = useCallback(() => {
     if (manualPauseTimeoutRef.current !== null) {
@@ -105,11 +138,35 @@ export default function SceneController() {
     setPaused((p) => !p);
   }, [clearManualPauseTimer]);
 
+  // Trigger a screen pulse when keyboard navigation fires
+  const flashPulse = useCallback(() => {
+    setPulseKey((k) => k + 1);
+  }, []);
+
   // Auto-play
   usePausableInterval(
     () => setScene((s) => ((s + 1) % SCENE_COUNT) as SceneIndex),
     paused ? null : SCENE_DURATION_MS
   );
+
+  // Reset progress clock on scene change
+  useEffect(() => {
+    sceneStartRef.current = performance.now();
+    setProgress(0);
+  }, [scene]);
+
+  // Drive progress bar via rAF. Pauses freeze the bar (fade handled in render).
+  useEffect(() => {
+    if (paused) return;
+    let raf = 0;
+    const tick = () => {
+      const elapsed = performance.now() - sceneStartRef.current;
+      setProgress(Math.min(elapsed / SCENE_DURATION_MS, 1));
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [paused, scene]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -117,17 +174,20 @@ export default function SceneController() {
       if (e.key === "ArrowRight" || e.key === "ArrowDown") {
         e.preventDefault();
         next();
+        flashPulse();
       } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
         e.preventDefault();
         prev();
+        flashPulse();
       } else if (e.key === " " || e.code === "Space") {
         e.preventDefault();
         togglePause();
+        flashPulse();
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [next, prev, togglePause]);
+  }, [next, prev, togglePause, flashPulse]);
 
   // Mouse wheel navigation (throttled) — hijacks page scroll for scene nav
   useEffect(() => {
@@ -168,6 +228,17 @@ export default function SceneController() {
     };
   }, [next, prev]);
 
+  // First-visit scroll hint (once per session)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const seen = window.sessionStorage.getItem("cesoir:landing-hint");
+    if (seen) return;
+    setHintVisible(true);
+    const t = window.setTimeout(() => setHintVisible(false), 5000);
+    window.sessionStorage.setItem("cesoir:landing-hint", "1");
+    return () => window.clearTimeout(t);
+  }, []);
+
   // Cleanup on unmount
   useEffect(() => {
     return () => clearManualPauseTimer();
@@ -177,6 +248,19 @@ export default function SceneController() {
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-[#0A0A0D] text-white overscroll-none">
+      {/* Top progress bar — auto-play clock */}
+      <motion.div
+        className="absolute top-0 left-0 right-0 z-40 h-[2px] pointer-events-none origin-left"
+        style={{
+          background:
+            "linear-gradient(90deg, #8B5CF6 0%, #EC4899 50%, #00FF88 100%)",
+          scaleX: progress,
+          boxShadow: "0 0 12px rgba(139,92,246,0.5)",
+        }}
+        animate={{ opacity: paused ? 0 : 1 }}
+        transition={{ duration: 0.3, ease: easings.out }}
+      />
+
       {/* PlasmaOcean background (animates opacity across scenes) */}
       <motion.div
         className="absolute inset-0 pointer-events-none"
@@ -186,14 +270,37 @@ export default function SceneController() {
         <PlasmaOcean palette="cesoir" speed={plasma.speed} opacity={1} />
       </motion.div>
 
+      {/* Ambient StarField — above plasma, below text */}
+      <div className="absolute inset-0 z-[1] pointer-events-none">
+        <StarField />
+      </div>
+
       {/* Vignette for text legibility */}
       <div
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-0 z-[2] pointer-events-none"
         style={{
           background:
             "radial-gradient(ellipse at center, rgba(10,10,13,0.1) 0%, rgba(10,10,13,0.72) 100%)",
         }}
       />
+
+      {/* Keyboard pulse flash (radial glow) */}
+      <AnimatePresence>
+        {pulseKey > 0 && (
+          <motion.div
+            key={pulseKey}
+            className="absolute inset-0 z-[3] pointer-events-none"
+            initial={{ opacity: 0.55 }}
+            animate={{ opacity: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.4, ease: easings.out }}
+            style={{
+              background:
+                "radial-gradient(circle at center, rgba(139,92,246,0.35) 0%, rgba(139,92,246,0) 55%)",
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Top nav — minimal */}
       <nav className="relative z-20 flex items-center justify-between px-6 sm:px-10 pt-6">
@@ -248,6 +355,63 @@ export default function SceneController() {
       {/* Scrubber + legal links (bottom zone) */}
       <div className="absolute bottom-0 left-0 right-0 z-30 pb-6 pt-4 pointer-events-none">
         <div className="flex flex-col items-center gap-2.5 pointer-events-auto">
+          {/* First-visit scroll hint (above scene name) */}
+          <AnimatePresence>
+            {hintVisible && !reducedMotion && (
+              <motion.div
+                key="hint"
+                className="flex flex-col items-center gap-1 mb-2"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 0.5, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.6, ease: easings.out }}
+                aria-hidden="true"
+              >
+                <motion.svg
+                  width="18"
+                  height="24"
+                  viewBox="0 0 18 24"
+                  fill="none"
+                  animate={{ y: [0, 4, 0] }}
+                  transition={{
+                    duration: 1.6,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                  }}
+                >
+                  <rect
+                    x="1"
+                    y="1"
+                    width="16"
+                    height="22"
+                    rx="8"
+                    stroke="currentColor"
+                    strokeOpacity="0.7"
+                    strokeWidth="1.2"
+                    fill="none"
+                  />
+                  <motion.rect
+                    x="8"
+                    y="6"
+                    width="2"
+                    height="4"
+                    rx="1"
+                    fill="currentColor"
+                    animate={{ y: [6, 10, 6], opacity: [1, 0.4, 1] }}
+                    transition={{
+                      duration: 1.6,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                    }}
+                  />
+                </motion.svg>
+                <span className="text-[8px] uppercase tracking-[0.3em] text-white/55">
+                  Scroll
+                </span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Scene name */}
           <div className="h-4 flex items-center justify-center">
             <AnimatePresence mode="wait">
@@ -350,19 +514,15 @@ export default function SceneController() {
 // SCENES
 // ═══════════════════════════════════════════════════════════════════
 
-const sceneFade = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -20 },
-};
-
 // ──────────────────── Scene 0: INTRO + CTA (merged) ────────────────────
 function SceneIntroCTA() {
   return (
     <motion.div
       className="relative flex flex-col items-center justify-center text-center max-w-4xl"
-      {...sceneFade}
-      transition={{ duration: 0.8, ease: easings.out }}
+      initial={rackFocus.initial}
+      animate={rackFocus.animate}
+      exit={rackFocus.exit}
+      transition={rackTransition}
     >
       {/* Reserve space for Moon above (size 180, offset y=-18vh) */}
       <div className="h-[140px] sm:h-[160px]" aria-hidden />
@@ -386,29 +546,7 @@ function SceneIntroCTA() {
         transition={{ ...springs.cinematic, delay: 0.55 }}
         className="flex flex-col items-center gap-3"
       >
-        <Link href="/register">
-          <motion.span
-            className="inline-flex items-center gap-3 px-10 sm:px-12 py-4 sm:py-5 rounded-2xl font-display text-[18px] sm:text-[22px] font-black text-white cursor-pointer tracking-tight"
-            style={{
-              background: "linear-gradient(135deg, #8B5CF6, #EC4899, #00FF88)",
-              boxShadow: "0 0 60px rgba(139,92,246,0.4)",
-            }}
-            whileHover={{
-              y: -4,
-              boxShadow: "0 12px 80px rgba(0,255,136,0.5)",
-            }}
-            whileTap={{ scale: 0.97 }}
-            transition={springs.snap}
-          >
-            Rejoindre
-            <motion.span
-              animate={{ x: [0, 4, 0] }}
-              transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-            >
-              →
-            </motion.span>
-          </motion.span>
-        </Link>
+        <MagneticCTA />
 
         <motion.p
           className="text-[11px] sm:text-[12px] text-white/45 uppercase tracking-[0.3em]"
@@ -424,13 +562,97 @@ function SceneIntroCTA() {
   );
 }
 
+/**
+ * MagneticCTA — Rejoindre button with a magnetic hover effect.
+ *
+ * When the cursor is within ~80px of the button centre, the button glides
+ * toward the cursor (max 8px) via a spring. Disabled on touch/coarse
+ * pointers and for prefers-reduced-motion users — then the button is a
+ * plain motion element with its existing hover/tap reactions.
+ */
+function MagneticCTA() {
+  const ref = useRef<HTMLAnchorElement | null>(null);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const springX = useSpring(x, { stiffness: 260, damping: 22, mass: 0.6 });
+  const springY = useSpring(y, { stiffness: 260, damping: 22, mass: 0.6 });
+  const reducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    if (reducedMotion) return;
+    // Only enable magnetism on fine pointers (mouse). Touch gets nothing.
+    const mq = window.matchMedia("(pointer: fine)");
+    if (!mq.matches) return;
+
+    const onMove = (e: MouseEvent) => {
+      const el = ref.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = e.clientX - cx;
+      const dy = e.clientY - cy;
+      const dist = Math.hypot(dx, dy);
+
+      if (dist < 80) {
+        const strength = 1 - dist / 80;
+        x.set(dx * strength * 0.12); // ~8px max at centre overlap
+        y.set(dy * strength * 0.12);
+      } else {
+        x.set(0);
+        y.set(0);
+      }
+    };
+    const onLeave = () => {
+      x.set(0);
+      y.set(0);
+    };
+
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseleave", onLeave);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseleave", onLeave);
+    };
+  }, [reducedMotion, x, y]);
+
+  return (
+    <Link href="/register" ref={ref} className="inline-block">
+      <motion.span
+        className="inline-flex items-center gap-3 px-10 sm:px-12 py-4 sm:py-5 rounded-2xl font-display text-[18px] sm:text-[22px] font-black text-white cursor-pointer tracking-tight"
+        style={{
+          background: "linear-gradient(135deg, #8B5CF6, #EC4899, #00FF88)",
+          boxShadow: "0 0 60px rgba(139,92,246,0.4)",
+          x: springX,
+          y: springY,
+        }}
+        whileHover={{
+          boxShadow: "0 12px 80px rgba(0,255,136,0.5)",
+        }}
+        whileTap={{ scale: 0.97 }}
+        transition={springs.snap}
+      >
+        Rejoindre
+        <motion.span
+          animate={{ x: [0, 4, 0] }}
+          transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+        >
+          →
+        </motion.span>
+      </motion.span>
+    </Link>
+  );
+}
+
 // ──────────────────── Scene 1: LE CONCEPT ────────────────────
 function SceneConcept() {
   return (
     <motion.div
       className="relative flex flex-col items-center justify-center text-center max-w-3xl"
-      {...sceneFade}
-      transition={{ duration: 0.8, ease: easings.out }}
+      initial={rackFocus.initial}
+      animate={rackFocus.animate}
+      exit={rackFocus.exit}
+      transition={rackTransition}
     >
       <motion.p
         className="text-[11px] sm:text-[12px] text-[#8B5CF6] uppercase tracking-[0.4em] font-bold mb-6 sm:mb-8"
@@ -475,8 +697,10 @@ function SceneApp() {
   return (
     <motion.div
       className="relative flex flex-col items-center justify-center text-center"
-      {...sceneFade}
-      transition={{ duration: 0.8, ease: easings.out }}
+      initial={rackFocus.initial}
+      animate={rackFocus.animate}
+      exit={rackFocus.exit}
+      transition={rackTransition}
     >
       <motion.h2
         className="font-display text-[28px] sm:text-[40px] md:text-[52px] font-black leading-[1] tracking-tight mb-6 sm:mb-8"
@@ -488,15 +712,66 @@ function SceneApp() {
         L&apos;<span style={gradientText}>expérience</span>
       </motion.h2>
 
+      {/* Premium frame: spotlight + phone + floor reflection */}
       <motion.div
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.6, opacity: 0 }}
         transition={{ ...springs.cinematic, delay: 0.2 }}
-        className="origin-center"
+        className="origin-center relative"
       >
-        <div className="scale-[0.55] sm:scale-[0.7] md:scale-[0.85] lg:scale-100 origin-center">
+        {/* Dramatic spotlight (behind phone) */}
+        <div
+          className="absolute inset-0 pointer-events-none -z-[1]"
+          aria-hidden="true"
+          style={{
+            background:
+              "radial-gradient(ellipse 60% 55% at 50% 40%, rgba(139,92,246,0.38) 0%, rgba(236,72,153,0.18) 45%, rgba(10,10,13,0) 75%)",
+            transform: "scale(1.8)",
+            filter: "blur(12px)",
+          }}
+        />
+
+        <div className="scale-[0.55] sm:scale-[0.7] md:scale-[0.85] lg:scale-100 origin-center relative">
           <PhoneVideo />
+
+          {/* Ground shadow under phone */}
+          <div
+            className="absolute left-1/2 -translate-x-1/2 pointer-events-none"
+            aria-hidden="true"
+            style={{
+              bottom: -28,
+              width: 220,
+              height: 26,
+              background:
+                "radial-gradient(ellipse at center, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 70%)",
+              filter: "blur(6px)",
+            }}
+          />
+
+          {/* Floor reflection — mirrored phone silhouette fading out */}
+          <motion.div
+            className="absolute left-1/2 pointer-events-none"
+            aria-hidden="true"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.25 }}
+            transition={{ duration: 1.1, delay: 0.5, ease: easings.out }}
+            style={{
+              top: "100%",
+              width: 280,
+              height: 160,
+              transform: "translateX(-50%) scaleY(-1) skewX(-4deg)",
+              transformOrigin: "top",
+              background:
+                "linear-gradient(to bottom, rgba(139,92,246,0.35) 0%, rgba(236,72,153,0.12) 35%, rgba(10,10,13,0) 100%)",
+              borderRadius: "44px 44px 0 0",
+              filter: "blur(10px)",
+              maskImage:
+                "linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 80%)",
+              WebkitMaskImage:
+                "linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0) 80%)",
+            }}
+          />
         </div>
       </motion.div>
     </motion.div>
