@@ -237,9 +237,16 @@ export default function LandingPage() {
 // HERO COMPONENT — extracted for clarity
 // ═══════════════════════════════════════════
 function Hero() {
-  const [time, setTime] = useState(getTimeUntil20h());
+  const [mounted, setMounted] = useState(false);
+  const [time, setTime] = useState<ReturnType<typeof getTimeUntil20h>>(null);
   const [liveCount, setLiveCount] = useState(23);
   const mentionsThisMonth = useSlowlyIncrementingCount(2847, 9000);
+
+  // Compute time only on client to avoid hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+    setTime(getTimeUntil20h());
+  }, []);
 
   usePausableInterval(() => setTime(getTimeUntil20h()), 1000);
   usePausableInterval(
@@ -385,13 +392,15 @@ function Hero() {
           14 modes pour trouver quelqu&apos;un. Sans profil, sans swipe, sans paywall.
         </motion.p>
 
-        {/* Countdown or "C'est maintenant" */}
-        {time ? (
+        {/* Countdown or "C'est maintenant" — placeholder until mounted to avoid hydration mismatch */}
+        {!mounted ? (
+          <div className="h-[130px] sm:h-[155px] mb-10" aria-hidden="true" />
+        ) : time ? (
           <motion.div
             className="flex flex-col gap-2 mb-10"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.5, ease: easings.out }}
+            transition={{ duration: 0.7, delay: 0.1, ease: easings.out }}
           >
             <div className="flex items-center gap-3 sm:gap-4">
               <CountdownBlock value={time.hours} label="HEURES" />
