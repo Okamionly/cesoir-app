@@ -12,72 +12,43 @@ import { usePausableInterval } from "@/lib/usePausableInterval";
 /**
  * SceneController — single-page morphic cinematic landing.
  *
- * 4 scenes morph on ONE screen (no vertical scroll between them):
- *   0. INTRO        — Plasma sobre + Moon centered + "Ce soir, c'est *ton* soir."
- *   1. LE CONCEPT   — Moon shrinks to top-right, "Pas demain... *Maintenant*."
- *   2. L'APP        — PhoneVideo centered, Moon tiny corner
- *   3. REJOINDRE    — Moon back center, giant gradient CTA, then loops
+ * 3 scenes morph on ONE screen (no vertical scroll):
+ *   0. INTRO + CTA   — Moon + "Ce soir, c'est ton soir." + "Rejoindre" CTA
+ *   1. LE CONCEPT    — Moon top-right, "Pas demain... Maintenant."
+ *   2. L'APP         — Moon tiny corner, PhoneVideo centered
  *
  * Advancement:
- *   - Auto-play every 8s (pausable with Space, auto-pauses 10s after manual nav)
+ *   - Auto-play every 9s (pausable with Space, auto-pauses 10s after manual nav)
  *   - Keyboard: ArrowRight/Down = next, ArrowLeft/Up = prev, Space = pause
+ *   - Mouse wheel: scroll down = next, scroll up = prev (throttled 600ms)
+ *   - Touch swipe: left/right on mobile
  *   - Click on scrubber dots = jump to scene
  */
 
-const SCENE_DURATION_MS = 8000;
+const SCENE_DURATION_MS = 9000;
 const MANUAL_PAUSE_MS = 10000;
-const SCENE_COUNT = 4;
+const SCENE_COUNT = 3;
+const WHEEL_THROTTLE_MS = 600;
+const SWIPE_THRESHOLD_PX = 50;
 
-const SCENE_NAMES = ["INTRO", "LE CONCEPT", "L'APP", "REJOINDRE"] as const;
+const SCENE_NAMES = ["INTRO", "LE CONCEPT", "L'APP"] as const;
 
-type SceneIndex = 0 | 1 | 2 | 3;
+type SceneIndex = 0 | 1 | 2;
 
-// ────────────────────────────────────────────────
 // Moon layout variants per scene (position + size)
-// ────────────────────────────────────────────────
 const moonVariants = {
-  0: {
-    size: 220,
-    x: 0,
-    y: 0,
-    rotate: 0,
-    opacity: 1,
-  },
-  1: {
-    size: 100,
-    // top-right corner: positive x, negative y from center
-    x: "38vw",
-    y: "-36vh",
-    rotate: 18,
-    opacity: 1,
-  },
-  2: {
-    size: 70,
-    x: "42vw",
-    y: "-38vh",
-    rotate: 28,
-    opacity: 0.85,
-  },
-  3: {
-    size: 180,
-    x: 0,
-    y: 0,
-    rotate: 0,
-    opacity: 1,
-  },
+  0: { size: 180, x: 0, y: "-18vh", rotate: 0, opacity: 1 },
+  1: { size: 90, x: "38vw", y: "-36vh", rotate: 18, opacity: 1 },
+  2: { size: 60, x: "42vw", y: "-38vh", rotate: 28, opacity: 0.8 },
 } as const;
 
-// Plasma params per scene (speed influences palette flow feel)
+// Plasma params per scene
 const plasmaParams: Record<SceneIndex, { speed: number; opacity: number }> = {
-  0: { speed: 0.5, opacity: 0.45 },
-  1: { speed: 0.7, opacity: 0.55 },
-  2: { speed: 0.55, opacity: 0.35 },
-  3: { speed: 0.9, opacity: 0.6 },
+  0: { speed: 0.55, opacity: 0.5 },
+  1: { speed: 0.75, opacity: 0.55 },
+  2: { speed: 0.6, opacity: 0.4 },
 };
 
-// ────────────────────────────────────────────────
-// Gradient text helper
-// ────────────────────────────────────────────────
 const gradientText: React.CSSProperties = {
   background: "linear-gradient(135deg, #8B5CF6, #EC4899, #00FF88)",
   WebkitBackgroundClip: "text",
@@ -90,8 +61,9 @@ export default function SceneController() {
   const [scene, setScene] = useState<SceneIndex>(0);
   const [paused, setPaused] = useState(false);
   const manualPauseTimeoutRef = useRef<number | null>(null);
+  const lastWheelRef = useRef<number>(0);
+  const touchStartXRef = useRef<number | null>(null);
 
-  // Clear any pending manual-pause resume timer
   const clearManualPauseTimer = useCallback(() => {
     if (manualPauseTimeoutRef.current !== null) {
       window.clearTimeout(manualPauseTimeoutRef.current);
@@ -99,7 +71,6 @@ export default function SceneController() {
     }
   }, []);
 
-  // Schedule auto-resume after manual interaction
   const scheduleManualResume = useCallback(() => {
     clearManualPauseTimer();
     manualPauseTimeoutRef.current = window.setTimeout(() => {
@@ -134,7 +105,7 @@ export default function SceneController() {
     setPaused((p) => !p);
   }, [clearManualPauseTimer]);
 
-  // Auto-play (pausable, battery-saver aware)
+  // Auto-play
   usePausableInterval(
     () => setScene((s) => ((s + 1) % SCENE_COUNT) as SceneIndex),
     paused ? null : SCENE_DURATION_MS
@@ -158,7 +129,46 @@ export default function SceneController() {
     return () => window.removeEventListener("keydown", onKey);
   }, [next, prev, togglePause]);
 
-  // Cleanup pause timer on unmount
+  // Mouse wheel navigation (throttled) — hijacks page scroll for scene nav
+  useEffect(() => {
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) < 18) return; // ignore tiny scrolls (trackpad noise)
+      const now = Date.now();
+      if (now - lastWheelRef.current < WHEEL_THROTTLE_MS) {
+        e.preventDefault();
+        return;
+      }
+      lastWheelRef.current = now;
+      e.preventDefault();
+      if (e.deltaY > 0) next();
+      else prev();
+    };
+    window.addEventListener("wheel", onWheel, { passive: false });
+    return () => window.removeEventListener("wheel", onWheel);
+  }, [next, prev]);
+
+  // Touch swipe (mobile)
+  useEffect(() => {
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartXRef.current = e.touches[0].clientX;
+    };
+    const onTouchEnd = (e: TouchEvent) => {
+      if (touchStartXRef.current === null) return;
+      const dx = e.changedTouches[0].clientX - touchStartXRef.current;
+      touchStartXRef.current = null;
+      if (Math.abs(dx) < SWIPE_THRESHOLD_PX) return;
+      if (dx < 0) next();
+      else prev();
+    };
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchend", onTouchEnd, { passive: true });
+    return () => {
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchend", onTouchEnd);
+    };
+  }, [next, prev]);
+
+  // Cleanup on unmount
   useEffect(() => {
     return () => clearManualPauseTimer();
   }, [clearManualPauseTimer]);
@@ -166,10 +176,8 @@ export default function SceneController() {
   const plasma = plasmaParams[scene];
 
   return (
-    <div className="relative w-full h-screen overflow-hidden bg-[#0A0A0D] text-white">
-      {/* ────────────────────────────────
-          PlasmaOcean background (animates opacity across scenes)
-          ──────────────────────────────── */}
+    <div className="relative w-full h-screen overflow-hidden bg-[#0A0A0D] text-white overscroll-none">
+      {/* PlasmaOcean background (animates opacity across scenes) */}
       <motion.div
         className="absolute inset-0 pointer-events-none"
         animate={{ opacity: plasma.opacity }}
@@ -178,18 +186,16 @@ export default function SceneController() {
         <PlasmaOcean palette="cesoir" speed={plasma.speed} opacity={1} />
       </motion.div>
 
-      {/* Vignette to keep text legible */}
+      {/* Vignette for text legibility */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse at center, rgba(10,10,13,0.15) 0%, rgba(10,10,13,0.7) 100%)",
+            "radial-gradient(ellipse at center, rgba(10,10,13,0.1) 0%, rgba(10,10,13,0.72) 100%)",
         }}
       />
 
-      {/* ────────────────────────────────
-          Top nav — minimal, always visible
-          ──────────────────────────────── */}
+      {/* Top nav — minimal */}
       <nav className="relative z-20 flex items-center justify-between px-6 sm:px-10 pt-6">
         <div className="flex items-center gap-2">
           <span className="text-[22px] text-[#8B5CF6] drop-shadow-[0_0_16px_rgba(139,92,246,0.7)]">
@@ -206,9 +212,7 @@ export default function SceneController() {
         </Link>
       </nav>
 
-      {/* ────────────────────────────────
-          Moon — morphs position + size across scenes
-          ──────────────────────────────── */}
+      {/* Moon — morphs position + size across scenes */}
       <motion.div
         className="absolute top-1/2 left-1/2 z-10 pointer-events-none"
         style={{ translateX: "-50%", translateY: "-50%" }}
@@ -232,29 +236,24 @@ export default function SceneController() {
         </motion.div>
       </motion.div>
 
-      {/* ────────────────────────────────
-          Scene content — AnimatePresence for crossfades
-          ──────────────────────────────── */}
+      {/* Scene content */}
       <div className="absolute inset-0 z-10 flex items-center justify-center px-6">
         <AnimatePresence mode="wait">
-          {scene === 0 && <SceneIntro key="scene-0" />}
+          {scene === 0 && <SceneIntroCTA key="scene-0" />}
           {scene === 1 && <SceneConcept key="scene-1" />}
           {scene === 2 && <SceneApp key="scene-2" />}
-          {scene === 3 && <SceneCTA key="scene-3" />}
         </AnimatePresence>
       </div>
 
-      {/* ────────────────────────────────
-          Scrubber — bottom dots + current name
-          ──────────────────────────────── */}
-      <div className="absolute bottom-0 left-0 right-0 z-30 pb-8 pt-4 pointer-events-none">
-        <div className="flex flex-col items-center gap-3 pointer-events-auto">
-          {/* Scene name (morphs) */}
-          <div className="h-5 flex items-center justify-center">
+      {/* Scrubber + legal links (bottom zone) */}
+      <div className="absolute bottom-0 left-0 right-0 z-30 pb-6 pt-4 pointer-events-none">
+        <div className="flex flex-col items-center gap-2.5 pointer-events-auto">
+          {/* Scene name */}
+          <div className="h-4 flex items-center justify-center">
             <AnimatePresence mode="wait">
               <motion.span
                 key={scene}
-                className="text-[11px] text-white/60 uppercase tracking-[0.4em] font-semibold"
+                className="text-[10px] text-white/55 uppercase tracking-[0.4em] font-semibold"
                 initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -4 }}
@@ -280,8 +279,8 @@ export default function SceneController() {
                   <motion.span
                     className="block h-1.5 rounded-full"
                     animate={{
-                      width: active ? 20 : 6,
-                      opacity: active ? 1 : 0.4,
+                      width: active ? 22 : 6,
+                      opacity: active ? 1 : 0.35,
                     }}
                     transition={springs.snap}
                     style={{
@@ -295,19 +294,52 @@ export default function SceneController() {
             })}
           </div>
 
-          {/* Pause state hint */}
-          <AnimatePresence>
-            {paused && (
-              <motion.span
-                className="text-[9px] text-white/30 uppercase tracking-[0.3em]"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                en pause — espace pour reprendre
-              </motion.span>
-            )}
+          {/* Hint: scroll / swipe / pause */}
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={paused ? "paused" : "hint"}
+              className="text-[9px] text-white/30 uppercase tracking-[0.3em]"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              {paused
+                ? "en pause — espace pour reprendre"
+                : "molette · flèches · espace"}
+            </motion.span>
           </AnimatePresence>
+
+          {/* Micro legal links — subtle */}
+          <div className="flex items-center gap-4 mt-1.5 opacity-40 hover:opacity-70 transition-opacity">
+            <Link
+              href="/about"
+              className="text-[9px] text-white/60 hover:text-white/90 transition-colors tracking-wide"
+            >
+              À propos
+            </Link>
+            <span className="text-white/20 text-[8px]">·</span>
+            <Link
+              href="/safety"
+              className="text-[9px] text-white/60 hover:text-white/90 transition-colors tracking-wide"
+            >
+              Sécurité
+            </Link>
+            <span className="text-white/20 text-[8px]">·</span>
+            <Link
+              href="/cgu"
+              className="text-[9px] text-white/60 hover:text-white/90 transition-colors tracking-wide"
+            >
+              CGU
+            </Link>
+            <span className="text-white/20 text-[8px]">·</span>
+            <Link
+              href="/privacy"
+              className="text-[9px] text-white/60 hover:text-white/90 transition-colors tracking-wide"
+            >
+              Confidentialité
+            </Link>
+          </div>
         </div>
       </div>
     </div>
@@ -324,18 +356,19 @@ const sceneFade = {
   exit: { opacity: 0, y: -20 },
 };
 
-// ──────────────────── Scene 0: INTRO ────────────────────
-function SceneIntro() {
+// ──────────────────── Scene 0: INTRO + CTA (merged) ────────────────────
+function SceneIntroCTA() {
   return (
     <motion.div
       className="relative flex flex-col items-center justify-center text-center max-w-4xl"
       {...sceneFade}
       transition={{ duration: 0.8, ease: easings.out }}
     >
-      {/* Moon is rendered outside; reserve space so title sits below */}
-      <div className="h-[260px] sm:h-[280px]" aria-hidden />
+      {/* Reserve space for Moon above (size 180, offset y=-18vh) */}
+      <div className="h-[140px] sm:h-[160px]" aria-hidden />
+
       <motion.h1
-        className="font-display text-[44px] sm:text-[64px] md:text-[80px] lg:text-[92px] font-black leading-[0.95] tracking-tight"
+        className="font-display text-[44px] sm:text-[64px] md:text-[80px] lg:text-[92px] font-black leading-[0.95] tracking-tight mb-10 sm:mb-12"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
@@ -345,6 +378,48 @@ function SceneIntro() {
         <br />
         c&apos;est <span style={gradientText}>ton</span> soir.
       </motion.h1>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20, scale: 0.9 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ ...springs.cinematic, delay: 0.55 }}
+        className="flex flex-col items-center gap-3"
+      >
+        <Link href="/register">
+          <motion.span
+            className="inline-flex items-center gap-3 px-10 sm:px-12 py-4 sm:py-5 rounded-2xl font-display text-[18px] sm:text-[22px] font-black text-white cursor-pointer tracking-tight"
+            style={{
+              background: "linear-gradient(135deg, #8B5CF6, #EC4899, #00FF88)",
+              boxShadow: "0 0 60px rgba(139,92,246,0.4)",
+            }}
+            whileHover={{
+              y: -4,
+              boxShadow: "0 12px 80px rgba(0,255,136,0.5)",
+            }}
+            whileTap={{ scale: 0.97 }}
+            transition={springs.snap}
+          >
+            Rejoindre
+            <motion.span
+              animate={{ x: [0, 4, 0] }}
+              transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+            >
+              →
+            </motion.span>
+          </motion.span>
+        </Link>
+
+        <motion.p
+          className="text-[11px] sm:text-[12px] text-white/45 uppercase tracking-[0.3em]"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.5, delay: 0.85 }}
+        >
+          Gratuit <span className="mx-2">·</span> 30 secondes
+        </motion.p>
+      </motion.div>
     </motion.div>
   );
 }
@@ -419,70 +494,10 @@ function SceneApp() {
         exit={{ scale: 0.6, opacity: 0 }}
         transition={{ ...springs.cinematic, delay: 0.2 }}
         className="origin-center"
-        style={{
-          transform: "scale(var(--phone-scale, 1))",
-        }}
       >
-        {/* Phone scales down on small screens via wrapper */}
-        <div className="scale-[0.65] sm:scale-75 md:scale-90 lg:scale-100 origin-center">
+        <div className="scale-[0.55] sm:scale-[0.7] md:scale-[0.85] lg:scale-100 origin-center">
           <PhoneVideo />
         </div>
-      </motion.div>
-    </motion.div>
-  );
-}
-
-// ──────────────────── Scene 3: CTA ────────────────────
-function SceneCTA() {
-  return (
-    <motion.div
-      className="relative flex flex-col items-center justify-center text-center"
-      {...sceneFade}
-      transition={{ duration: 0.8, ease: easings.out }}
-    >
-      {/* Reserve vertical space for Moon (centered, size 180) */}
-      <div className="h-[220px] sm:h-[240px]" aria-hidden />
-
-      <motion.div
-        initial={{ opacity: 0, y: 30, scale: 0.9 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        transition={{ ...springs.cinematic, delay: 0.15 }}
-        className="flex flex-col items-center gap-5"
-      >
-        <Link href="/register">
-          <motion.span
-            className="inline-flex items-center gap-4 px-10 sm:px-14 py-5 sm:py-6 rounded-2xl font-display text-[22px] sm:text-[28px] md:text-[32px] font-black text-white cursor-pointer tracking-tight"
-            style={{
-              background: "linear-gradient(135deg, #8B5CF6, #EC4899, #00FF88)",
-              boxShadow: "0 0 80px rgba(139,92,246,0.5)",
-            }}
-            whileHover={{
-              y: -4,
-              boxShadow: "0 16px 100px rgba(0,255,136,0.55)",
-            }}
-            whileTap={{ scale: 0.97 }}
-            transition={springs.snap}
-          >
-            Rejoindre
-            <motion.span
-              animate={{ x: [0, 4, 0] }}
-              transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-            >
-              →
-            </motion.span>
-          </motion.span>
-        </Link>
-
-        <motion.p
-          className="text-[12px] sm:text-[13px] text-white/50 uppercase tracking-[0.3em]"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.6, delay: 0.5 }}
-        >
-          Gratuit <span className="mx-2">·</span> 30 secondes
-        </motion.p>
       </motion.div>
     </motion.div>
   );
