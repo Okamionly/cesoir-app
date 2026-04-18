@@ -5,6 +5,7 @@ import { motion } from "motion/react";
 import { useState, useEffect } from "react";
 import { springs, ambient, easings } from "@/lib/motion-design";
 import { usePausableInterval } from "@/lib/usePausableInterval";
+import PlasmaOcean from "@/components/landing/PlasmaOcean";
 
 // ─────────────────────────────────────────
 // Hero-local helpers (countdown + social)
@@ -256,64 +257,16 @@ function Hero() {
 
   return (
     <section className="relative min-h-screen flex flex-col px-6 sm:px-10">
-      {/* ═══ 3 AMBIENT BLOBS — mix-blend-mode: screen for dark mode ═══ */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <motion.div
-          className="absolute rounded-full"
+      {/* ═══ PLASMA OCEAN — live WebGL shader background ═══ */}
+      <div className="absolute inset-0 overflow-hidden">
+        <PlasmaOcean palette="cesoir" speed={0.6} opacity={0.55} />
+        {/* Subtle dark overlay for text legibility */}
+        <div
+          className="absolute inset-0 pointer-events-none"
           style={{
-            width: 600,
-            height: 600,
-            top: "-10%",
-            right: "-10%",
-            background: "radial-gradient(circle, #8B5CF6 0%, transparent 70%)",
-            opacity: 0.5,
-            mixBlendMode: "screen",
-            filter: "blur(80px)",
+            background:
+              "radial-gradient(ellipse at center, rgba(10,10,13,0.15) 0%, rgba(10,10,13,0.55) 100%)",
           }}
-          animate={{
-            x: [0, 20, -10, 0],
-            y: [0, -15, 10, 0],
-            scale: [1, 1.05, 0.95, 1],
-          }}
-          transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute rounded-full"
-          style={{
-            width: 500,
-            height: 500,
-            bottom: "-15%",
-            left: "-10%",
-            background: "radial-gradient(circle, #00FF88 0%, transparent 70%)",
-            opacity: 0.45,
-            mixBlendMode: "screen",
-            filter: "blur(90px)",
-          }}
-          animate={{
-            x: [0, -15, 20, 0],
-            y: [0, 10, -15, 0],
-            scale: [1, 0.95, 1.08, 1],
-          }}
-          transition={{ duration: 26, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <motion.div
-          className="absolute rounded-full"
-          style={{
-            width: 350,
-            height: 350,
-            top: "40%",
-            right: "20%",
-            background: "radial-gradient(circle, #EC4899 0%, transparent 70%)",
-            opacity: 0.3,
-            mixBlendMode: "screen",
-            filter: "blur(70px)",
-          }}
-          animate={{
-            x: [0, 15, -20, 0],
-            y: [0, -10, 15, 0],
-            scale: [1, 1.1, 0.9, 1],
-          }}
-          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
         />
       </div>
 
