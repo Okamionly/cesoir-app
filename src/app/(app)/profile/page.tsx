@@ -74,7 +74,10 @@ export default function ProfilePage() {
   };
 
   async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+    await fetch("/api/auth/logout", { method: "POST" }).catch((err) => {
+      // Client sign-out still proceeds; surface the server-side issue for observability
+      console.error("[profile] logout API call failed:", err);
+    });
     await signOut();
     router.push("/login");
   }

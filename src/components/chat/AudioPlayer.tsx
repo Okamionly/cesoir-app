@@ -76,7 +76,12 @@ export default function AudioPlayer({ src, duration: initialDuration }: AudioPla
     if (playing) {
       audio.pause();
     } else {
-      audio.play().catch(() => {});
+      audio.play().catch((err) => {
+        // Autoplay policies can reject play() until user gestures — expected
+        if (process.env.NODE_ENV !== "production") {
+          console.debug("[AudioPlayer] play() rejected:", err?.name ?? err);
+        }
+      });
     }
     setPlaying(!playing);
   }, [playing]);

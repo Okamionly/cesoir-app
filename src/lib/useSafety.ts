@@ -250,7 +250,9 @@ export function useSafety(): UseSafetyResult {
               started_at: new Date().toISOString(),
               last_checkin_at: new Date().toISOString(),
             }),
-        ).catch(() => {});
+        ).catch((err) => {
+          console.error("[useSafety] Failed to create check-in record:", err);
+        });
       }
 
       // Tick every second
@@ -277,7 +279,9 @@ export function useSafety(): UseSafetyResult {
                 .update({ status: "alert" as const })
                 .eq("user_id", userId)
                 .eq("status", "active"),
-            ).catch(() => {});
+            ).catch((err) => {
+              console.error("[useSafety] Failed to mark check-in as alert:", err);
+            });
 
             // Trigger SOS-like notification for missed check-in
             getCurrentPosition().then((pos) => {
@@ -299,7 +303,12 @@ export function useSafety(): UseSafetyResult {
                         ].join("\n"),
                       },
                     }),
-                  ).catch(() => {});
+                  ).catch((err) => {
+                    console.error(
+                      `[useSafety] Failed to send check-in alert SMS to ${contact.name}:`,
+                      err,
+                    );
+                  });
                 }
               }
             });
@@ -338,7 +347,9 @@ export function useSafety(): UseSafetyResult {
           })
           .eq("user_id", userId)
           .eq("status", "active"),
-      ).catch(() => {});
+      ).catch((err) => {
+        console.error("[useSafety] Failed to update check-in to safe:", err);
+      });
     }
 
     addAction(setRecentActions, "checkin", "Check-in confirme - tout va bien");
@@ -366,7 +377,9 @@ export function useSafety(): UseSafetyResult {
           .update({ status: "safe" as const })
           .eq("user_id", userId)
           .eq("status", "active"),
-      ).catch(() => {});
+      ).catch((err) => {
+        console.error("[useSafety] Failed to cancel check-in record:", err);
+      });
     }
 
     addAction(setRecentActions, "checkin", "Check-in desactive");

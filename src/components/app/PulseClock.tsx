@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { MODES, ModeKey, MODE_KEYS } from "@/lib/modes";
 import { MOCK_PROFILES } from "@/lib/mock-profiles";
+import { usePausableInterval } from "@/lib/usePausableInterval";
 
 // Simulates real-time pulse data (will be Supabase RPC in production)
 function generatePulse() {
@@ -24,9 +25,9 @@ export default function PulseClock() {
   useEffect(() => {
     setMounted(true);
     setPulse(generatePulse());
-    const timer = setInterval(() => setPulse(generatePulse()), 15000);
-    return () => clearInterval(timer);
   }, []);
+
+  usePausableInterval(() => setPulse(generatePulse()), 15000);
 
   useEffect(() => {
     setTotal(pulse.reduce((s, p) => s + p.count, 0));

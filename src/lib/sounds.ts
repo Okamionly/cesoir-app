@@ -151,7 +151,12 @@ export function playSound(type: SoundType): void {
 
   // Resume suspended context (browser autoplay policy)
   if (ctx.state === "suspended") {
-    ctx.resume().then(() => SOUNDS[type](ctx)).catch(() => {});
+    ctx.resume().then(() => SOUNDS[type](ctx)).catch((err) => {
+      // AudioContext.resume() can fail before a user gesture — expected
+      if (process.env.NODE_ENV !== "production") {
+        console.debug("[sounds] AudioContext.resume() failed:", err?.name ?? err);
+      }
+    });
     return;
   }
 

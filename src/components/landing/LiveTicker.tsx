@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { usePausableInterval } from "@/lib/usePausableInterval";
 
 const events = [
   "Sarah et Marc se sont retrouves en Solo Diner il y a 12 min",
@@ -19,16 +20,13 @@ export default function LiveTicker() {
   const [current, setCurrent] = useState(0);
   const [visible, setVisible] = useState(true);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setVisible(false);
-      setTimeout(() => {
-        setCurrent(c => (c + 1) % events.length);
-        setVisible(true);
-      }, 300);
-    }, 4000);
-    return () => clearInterval(timer);
-  }, []);
+  usePausableInterval(() => {
+    setVisible(false);
+    setTimeout(() => {
+      setCurrent(c => (c + 1) % events.length);
+      setVisible(true);
+    }, 300);
+  }, 4000);
 
   return (
     <div className="w-full max-w-lg mx-auto px-6 py-4">

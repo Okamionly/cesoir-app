@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { usePausableInterval } from "@/lib/usePausableInterval";
 
 function getTimeUntil20h() {
   const now = new Date();
@@ -22,10 +23,7 @@ function getTimeUntil20h() {
 export default function Countdown() {
   const [time, setTime] = useState(getTimeUntil20h());
 
-  useEffect(() => {
-    const timer = setInterval(() => setTime(getTimeUntil20h()), 1000);
-    return () => clearInterval(timer);
-  }, []);
+  usePausableInterval(() => setTime(getTimeUntil20h()), 1000);
 
   if (!time) {
     return (
