@@ -6,6 +6,7 @@ import { springs, micro } from "@/lib/motion-design";
 import { MODES, type ModeKey } from "@/lib/modes";
 import { MOCK_EVENTS, type PopUpEvent } from "@/lib/popup-events";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import CrossLinkCard from "@/components/app/CrossLinkCard";
 import { Magnetic } from "@/components/motion/Magnetic";
 import { RackFocus } from "@/components/motion/RackFocus";
@@ -96,16 +97,31 @@ function EventCard({
   isJoined: boolean;
   onToggleJoin: () => void;
 }) {
+  const router = useRouter();
   const mode = MODES[event.mode] ?? MODES["night-owl"];
   const isFull = event.maxAttendees > 0 && event.currentAttendees >= event.maxAttendees;
 
+  // Outer card is a div+role="link" instead of <Link> to allow nested
+  // <Link href="/map?...">Carte</Link> inside (audit C3 — nested <a> in <a>
+  // throws hydration error in React 19 / Next 16).
+  const goToEvent = () => router.push(`/events/${event.id}`);
+
   return (
-    <Link href={`/events/${event.id}`} className="block">
-      <motion.div
-        className="bg-card border border-border rounded-2xl p-4 hover:border-accent/20 transition-colors"
-        whileHover={{ y: -3, boxShadow: "0 8px 25px rgba(0,0,0,0.15)", transition: springs.gentle }}
-        whileTap={{ scale: 0.98, transition: springs.micro }}
-      >
+    <motion.div
+      role="link"
+      tabIndex={0}
+      onClick={goToEvent}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          goToEvent();
+        }
+      }}
+      aria-label={`Voir l'event ${event.title}`}
+      className="bg-card border border-border rounded-2xl p-4 hover:border-accent/20 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent/40"
+      whileHover={{ y: -3, boxShadow: "0 8px 25px rgba(0,0,0,0.15)", transition: springs.gentle }}
+      whileTap={{ scale: 0.98, transition: springs.micro }}
+    >
         <div className="flex items-start gap-3">
           {/* Creator avatar */}
           <div className="relative flex-shrink-0">
@@ -213,8 +229,7 @@ function EventCard({
             </div>
           </div>
         </div>
-      </motion.div>
-    </Link>
+    </motion.div>
   );
 }
 

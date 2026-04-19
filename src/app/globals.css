@@ -1,6 +1,14 @@
 @import "tailwindcss";
 
-@theme inline {
+/*
+ * Use `@theme` (not `@theme inline`) so Tailwind v4 generates CSS
+ * variables in the output — this lets `.dark { --color-bg: ... }`
+ * overrides take effect at runtime. With `@theme inline`, the values
+ * are hardcoded at build time and dark mode CSS overrides are silently
+ * ignored (bug caught by UI audit 2026-04-19 — white-on-white on
+ * /modes/[slug] when auto-dark-at-night kicked in).
+ */
+@theme {
   /* WHITE FLUO MINIMAL palette */
   --color-bg: #FFFFFF;
   --color-bg-card: #F8F8F8;
@@ -71,7 +79,10 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 /* === UTILITY === */
 .no-scrollbar::-webkit-scrollbar { display:none; }
 .no-scrollbar { scrollbar-width:none; }
+/* Reserve space for the mobile-only BottomNav. Desktop has no nav so
+   no padding is needed (BottomNav is md:hidden as of QA UI audit fix). */
 .pb-safe { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+@media (min-width: 768px) { .pb-safe { padding-bottom: 0; } }
 .font-display { font-family: var(--font-display); }
 .tap-target { min-height: 44px; min-width: 44px; }
 

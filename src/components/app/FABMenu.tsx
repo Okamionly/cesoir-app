@@ -104,7 +104,9 @@ export function FABMenu() {
   }, [router]);
 
   return (
-    <div className="fixed bottom-[90px] right-4 z-[800]">
+    // md:hidden — FAB is a mobile interaction. On desktop it overlapped CTAs
+    // (Save, Join, etc.) per QA UI audit 2026-04-19.
+    <div className="fixed bottom-[90px] right-4 z-[800] md:hidden">
       {/* Backdrop when open */}
       <AnimatePresence>
         {isOpen && (

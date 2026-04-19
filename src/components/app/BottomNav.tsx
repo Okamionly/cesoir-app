@@ -142,7 +142,9 @@ export default function BottomNav({
   return (
     <nav
       aria-label="Navigation principale"
-      className="fixed bottom-0 left-0 right-0 z-50"
+      // md:hidden — this is a mobile-only nav. Desktop has no nav for now
+      // (was leaking onto desktop pages and overlapping content per QA UI audit).
+      className="fixed bottom-0 left-0 right-0 z-50 md:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       {/* Subtle top border */}

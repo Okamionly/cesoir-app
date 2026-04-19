@@ -22,9 +22,14 @@ export function useDarkMode() {
   return useContext(DarkModeContext);
 }
 
-function isNightTime(): boolean {
-  const hour = new Date().getHours();
-  return hour >= 21 || hour < 6;
+/**
+ * `auto` mode respects the user's OS / browser preference instead of
+ * flipping on the clock. Nighttime auto-dark was too aggressive and
+ * exposed unfixed dark-mode styling bugs (QA UI audit 2026-04-19).
+ */
+function prefersDark(): boolean {
+  if (typeof window === "undefined") return false;
+  return window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
 export function DarkModeProvider({ children }: { children: React.ReactNode }) {
@@ -45,7 +50,7 @@ export function DarkModeProvider({ children }: { children: React.ReactNode }) {
       setModeState(newMode);
       localStorage.setItem("cesoir_theme", newMode);
       if (newMode === "auto") {
-        applyDark(isNightTime());
+        applyDark(prefersDark());
       } else {
         applyDark(newMode === "dark");
       }
@@ -68,7 +73,7 @@ export function DarkModeProvider({ children }: { children: React.ReactNode }) {
     const initial = stored || "auto";
     setModeState(initial);
     if (initial === "auto") {
-      applyDark(isNightTime());
+      applyDark(prefersDark());
     } else {
       applyDark(initial === "dark");
     }
@@ -76,7 +81,7 @@ export function DarkModeProvider({ children }: { children: React.ReactNode }) {
     // Re-check every minute when in auto mode
     const interval = setInterval(() => {
       if ((localStorage.getItem("cesoir_theme") || "auto") === "auto") {
-        applyDark(isNightTime());
+        applyDark(prefersDark());
       }
     }, 60_000);
 
