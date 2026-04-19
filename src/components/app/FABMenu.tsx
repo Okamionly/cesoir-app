@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { haptics } from "@/lib/haptics";
+import { Clock } from "@/components/ui/lucide";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -17,12 +18,16 @@ interface FABAction {
 }
 
 // ---------------------------------------------------------------------------
-// Icons (inline SVG to avoid external deps)
+// Icons
 // ---------------------------------------------------------------------------
 
+/**
+ * Bespoke radar glyph — lucide has no exact equivalent (the built-in Radar
+ * icon ships a sweep beam that doesn't read well at 18px). Kept inline.
+ */
 function RadarIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <circle cx="10" cy="10" r="8" />
       <circle cx="10" cy="10" r="4" />
       <circle cx="10" cy="10" r="1" />
@@ -32,18 +37,17 @@ function RadarIcon() {
 }
 
 function TimerIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="10" cy="11" r="7" />
-      <path d="M10 7v4l2.5 2.5" />
-      <path d="M8 2h4" />
-    </svg>
-  );
+  return <Clock size={18} strokeWidth={2} aria-hidden="true" />;
 }
 
+/**
+ * Calendar-with-plus glyph. Lucide's `CalendarPlus` exists but its composition
+ * doesn't match the existing 20x20 optical weight used across the FAB; a
+ * trimmed inline SVG looks sharper alongside the other 18px glyphs.
+ */
 function CalendarPlusIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <rect x="2" y="4" width="16" height="14" rx="2" />
       <path d="M6 2v4M14 2v4M2 9h16" />
       <path d="M10 12v4M8 14h4" />

@@ -16,7 +16,7 @@ export default function PageLoader() {
         style={{
           display: "inline-block",
           fontSize: 28,
-          color: "#8B5CF6",
+          color: "var(--color-accent)",
           textShadow: "0 0 16px rgba(139,92,246,0.4)",
         }}
       >

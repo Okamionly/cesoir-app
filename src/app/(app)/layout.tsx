@@ -5,6 +5,7 @@ import OfflineBanner from "@/components/app/OfflineBanner";
 import PageLoader from "@/components/app/PageLoader";
 import { DarkModeProvider } from "@/components/ui/DarkModeProvider";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
+import LazyMotionProvider from "@/components/ui/LazyMotionProvider";
 import { ToastProvider } from "@/components/ui/Toast";
 import { AccessibilityProvider } from "@/components/ui/ReducedMotion";
 import { AuthProvider } from "@/context/AuthContext";
@@ -44,21 +45,23 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             (opacity:1), and CSS keeps the accessibility contract.
           */}
           <MotionConfig reducedMotion="never">
-            <ToastProvider>
-              <div className="min-h-screen bg-bg">
-                <OfflineBanner />
-                <main id="main-content" className="pb-safe">
-                  <ErrorBoundary>
-                    <PageTransition>
-                      <Suspense fallback={<PageLoader />}>
-                        {children}
-                      </Suspense>
-                    </PageTransition>
-                  </ErrorBoundary>
-                </main>
-                <AppChrome />
-              </div>
-            </ToastProvider>
+            <LazyMotionProvider>
+              <ToastProvider>
+                <div className="min-h-screen bg-bg">
+                  <OfflineBanner />
+                  <main id="main-content" className="pb-safe">
+                    <ErrorBoundary>
+                      <PageTransition>
+                        <Suspense fallback={<PageLoader />}>
+                          {children}
+                        </Suspense>
+                      </PageTransition>
+                    </ErrorBoundary>
+                  </main>
+                  <AppChrome />
+                </div>
+              </ToastProvider>
+            </LazyMotionProvider>
           </MotionConfig>
         </AccessibilityProvider>
       </DarkModeProvider>

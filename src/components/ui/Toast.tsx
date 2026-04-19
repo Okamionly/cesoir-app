@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { motion, AnimatePresence, useMotionValue, useTransform } from "motion/react";
+import { X } from "@/components/ui/lucide";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -104,9 +105,7 @@ function ToastCard({
           className="shrink-0 rounded-full p-1 hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
           aria-label="Fermer"
         >
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <path d="M1 1l12 12M13 1L1 13" />
-          </svg>
+          <X size={14} strokeWidth={2} aria-hidden="true" />
         </button>
       </div>
 

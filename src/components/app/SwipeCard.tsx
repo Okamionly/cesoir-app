@@ -217,7 +217,7 @@ function ExpandedDetails({ profile: p }: { profile: Profile }) {
 function DetailSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="text-[9px] text-white/30 uppercase tracking-[0.2em] font-bold mb-1">{title}</p>
+      <p className="text-[9px] text-white/60 uppercase tracking-[0.2em] font-bold mb-1">{title}</p>
       {children}
     </div>
   );

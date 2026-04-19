@@ -2,6 +2,7 @@
 
 import { motion } from "motion/react";
 import { springs } from "@/lib/motion-design";
+import { MessageSquare } from "@/components/ui/lucide";
 
 // ─────────────────────────────────────────
 // 8 curated prompt questions
@@ -58,14 +59,12 @@ export function PromptCard({ prompt, index, onReact }: PromptCardProps) {
       {onReact && (
         <motion.button
           onClick={() => onReact(prompt.question)}
-          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-[#8B5CF6] hover:border-[#8B5CF6]/30 transition-colors"
+          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 hover:text-accent hover:border-accent/30 transition-colors"
           whileTap={{ scale: 0.85 }}
           transition={springs.micro}
           aria-label={`Reagir a: ${prompt.question}`}
         >
-          <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-          </svg>
+          <MessageSquare size={14} strokeWidth={2} aria-hidden="true" />
         </motion.button>
       )}
     </motion.div>
@@ -152,7 +151,7 @@ export default function ProfilePrompts({
             {onReactToPhoto && (
               <motion.button
                 onClick={() => onReactToPhoto(item.photoIndex)}
-                className="absolute bottom-3 right-3 w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/60 hover:text-[#8B5CF6] hover:border-[#8B5CF6]/30 transition-colors"
+                className="absolute bottom-3 right-3 w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 flex items-center justify-center text-white/60 hover:text-accent hover:border-accent/30 transition-colors"
                 whileTap={{ scale: 0.85 }}
                 transition={springs.micro}
                 aria-label={`Reagir a la photo ${item.photoIndex + 1}`}

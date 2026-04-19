@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import { MOCK_PROFILES } from "@/lib/mock-profiles";
 import { ModeKey } from "@/lib/modes";
+import { Plus } from "@/components/ui/lucide";
 import StoryCreator from "./StoryCreator";
 
 // ─── Types ───────────────────────────────────────
@@ -84,10 +85,7 @@ export default function StoriesBar() {
             className="relative w-[56px] h-[56px] rounded-full border-2 border-dashed border-border flex items-center justify-center text-text-muted hover:border-accent hover:text-accent transition-colors"
             aria-label="Ajouter une story"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
+            <Plus size={20} strokeWidth={2.5} aria-hidden="true" />
           </button>
           <span className="text-[11px] text-text-muted font-medium">Ma story</span>
         </motion.div>

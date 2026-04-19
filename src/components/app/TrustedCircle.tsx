@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { haptics } from "@/lib/haptics";
+import { TRUST_COLORS } from "@/lib/trust-colors";
+import { Plus } from "@/components/ui/lucide";
 
 interface TrustedContact {
   id: string;
@@ -96,10 +98,10 @@ export default function TrustedCircle() {
       aria-label="Cercle de confiance"
     >
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-sm font-semibold" style={{ color: "#111111" }}>
+        <h3 className="text-sm font-semibold" style={{ color: "var(--color-text)" }}>
           Cercle de confiance
         </h3>
-        <span className="text-xs" style={{ color: "#22c55e" }}>
+        <span className="text-xs" style={{ color: TRUST_COLORS.trusted }}>
           {contacts.length}/{MAX_CONTACTS}
         </span>
       </div>
@@ -116,12 +118,12 @@ export default function TrustedCircle() {
           >
             <div
               className="flex h-16 w-16 items-center justify-center rounded-full text-lg font-bold text-white"
-              style={{ backgroundColor: "#22c55e" }}
+              style={{ backgroundColor: TRUST_COLORS.trusted }}
               aria-label={contact.name}
             >
               {contact.name.charAt(0).toUpperCase()}
             </div>
-            <p className="mt-1 max-w-[70px] truncate text-xs" style={{ color: "#111111" }}>
+            <p className="mt-1 max-w-[70px] truncate text-xs" style={{ color: "var(--color-text)" }}>
               {contact.name}
             </p>
           </motion.div>
@@ -139,20 +141,7 @@ export default function TrustedCircle() {
             style={{ border: "2px dashed rgba(0,0,0,0.15)" }}
             aria-label="Ajouter un contact de confiance"
           >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#999999"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
+            <Plus size={20} strokeWidth={2} color="var(--color-text-muted)" aria-hidden="true" />
           </button>
         ))}
       </div>
@@ -173,7 +162,7 @@ export default function TrustedCircle() {
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="Prenom"
                 className="w-full rounded-lg border px-3 py-2 text-sm outline-none"
-                style={{ borderColor: "rgba(0,0,0,0.1)", color: "#111111" }}
+                style={{ borderColor: "rgba(0,0,0,0.1)", color: "var(--color-text)" }}
                 aria-label="Prenom du contact"
               />
               <input
@@ -182,7 +171,7 @@ export default function TrustedCircle() {
                 onChange={(e) => setNewPhone(e.target.value)}
                 placeholder="Numero de telephone"
                 className="w-full rounded-lg border px-3 py-2 text-sm outline-none"
-                style={{ borderColor: "rgba(0,0,0,0.1)", color: "#111111" }}
+                style={{ borderColor: "rgba(0,0,0,0.1)", color: "var(--color-text)" }}
                 aria-label="Telephone du contact"
               />
               <div className="flex gap-2">
@@ -190,7 +179,7 @@ export default function TrustedCircle() {
                   type="button"
                   onClick={() => setAdding(false)}
                   className="flex-1 rounded-lg py-2 text-sm font-medium"
-                  style={{ backgroundColor: "rgba(0,0,0,0.05)", color: "#666666" }}
+                  style={{ backgroundColor: "rgba(0,0,0,0.05)", color: "var(--color-text-soft)" }}
                 >
                   Annuler
                 </button>
@@ -199,7 +188,7 @@ export default function TrustedCircle() {
                   onClick={addContact}
                   disabled={!newName.trim() || !newPhone.trim()}
                   className="flex-1 rounded-lg py-2 text-sm font-medium text-white disabled:opacity-50"
-                  style={{ backgroundColor: "#22c55e" }}
+                  style={{ backgroundColor: TRUST_COLORS.trusted }}
                 >
                   Ajouter
                 </button>
@@ -217,14 +206,14 @@ export default function TrustedCircle() {
           style={{ backgroundColor: "rgba(255,255,255,0.6)", border: "1px solid rgba(0,0,0,0.05)" }}
         >
           <div className="mb-2 flex items-center justify-between">
-            <p className="text-sm font-medium" style={{ color: "#111111" }}>
+            <p className="text-sm font-medium" style={{ color: "var(--color-text)" }}>
               {contact.name}
             </p>
             <button
               type="button"
               onClick={() => removeContact(contact.id)}
               className="text-xs"
-              style={{ color: "#ef4444" }}
+              style={{ color: "var(--color-danger)" }}
               aria-label={`Retirer ${contact.name}`}
             >
               Retirer
@@ -239,7 +228,7 @@ export default function TrustedCircle() {
             ] as const
           ).map((opt) => (
             <div key={opt.key} className="flex items-center justify-between py-1.5">
-              <span className="text-xs" style={{ color: "#666666" }}>
+              <span className="text-xs" style={{ color: "var(--color-text-soft)" }}>
                 {opt.label}
               </span>
               <button
@@ -248,7 +237,7 @@ export default function TrustedCircle() {
                 className="relative h-5 w-9 rounded-full transition-colors"
                 style={{
                   backgroundColor: contact[opt.key]
-                    ? "#22c55e"
+                    ? TRUST_COLORS.trusted
                     : "rgba(0,0,0,0.12)",
                 }}
                 role="switch"
@@ -257,7 +246,7 @@ export default function TrustedCircle() {
               >
                 <motion.span
                   className="absolute top-0.5 left-0.5 h-4 w-4 rounded-full"
-                  style={{ backgroundColor: "#FFFFFF" }}
+                  style={{ backgroundColor: "white" }}
                   animate={{ x: contact[opt.key] ? 16 : 0 }}
                   transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 />
@@ -268,7 +257,7 @@ export default function TrustedCircle() {
       ))}
 
       {/* Privacy notice */}
-      <p className="text-center text-xs" style={{ color: "#999999" }}>
+      <p className="text-center text-xs" style={{ color: "var(--color-text-muted)" }}>
         Tes contacts ne voient ta position que quand tu l&apos;actives
       </p>
     </div>

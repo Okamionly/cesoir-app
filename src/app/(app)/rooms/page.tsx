@@ -9,6 +9,7 @@ import { useRooms, type Room } from "@/lib/useRooms";
 import { modeMeta, ROOM_MODE_COLORS } from "@/lib/rooms-meta";
 import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
+import MotionImage from "@/components/motion/MotionImage";
 
 // --- Helpers ---
 function minutesSince(iso: string): number {
@@ -231,12 +232,12 @@ function RoomCard({ room }: { room: MockRoom }) {
         {/* Speakers avatars */}
         <div className="flex -space-x-2 mb-3">
           {room.speakers.map((s, i) => (
-            <motion.img
+            <MotionImage
               key={s.name}
               src={s.avatar}
               alt={s.name}
-              loading="lazy"
-              decoding="async"
+              width={28}
+              height={28}
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ ...springs.elastic, delay: i * 0.05 }}

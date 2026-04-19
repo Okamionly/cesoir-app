@@ -99,6 +99,9 @@ export {
   Upload,
   Download,
 
+  // Connectivity
+  WifiOff,
+
   // Misc product
   RotateCcw,
   Flame,

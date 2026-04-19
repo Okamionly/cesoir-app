@@ -10,6 +10,7 @@
  * `useRealtimeChannel` : wraps a RealtimeChannel subscription with guaranteed
  * cleanup (unsubscribe + ref reset) on unmount or dep change.
  */
+import type { RefObject } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import type {
@@ -84,12 +85,24 @@ export function useSupabaseQuery<T>(
  * `factory` receives the supabase client and must return an unsubscribed
  * RealtimeChannel. The hook calls `.subscribe()` and handles cleanup:
  * channel.unsubscribe() + ref nulled on unmount/dep-change.
+ *
+ * Returns `{ channelRef }` — a stable React ref pointing to the active
+ * channel (or `null` when unsubscribed/pending). Consumers that need to
+ * `.send()` broadcast events or track presence state can read the ref
+ * inside callbacks without re-subscribing.
+ *
+ * Note: the legacy signature returned the ref directly. Existing callers
+ * that ignored the return value remain compatible.
  */
+export interface RealtimeChannelHandle {
+  channelRef: RefObject<RealtimeChannel | null>;
+}
+
 export function useRealtimeChannel(
   factory: (client: typeof supabase) => RealtimeChannel | null,
   deps: readonly unknown[],
   options: { enabled?: boolean } = {},
-) {
+): RealtimeChannelHandle {
   const { enabled = true } = options;
   const channelRef = useRef<RealtimeChannel | null>(null);
   const factoryRef = useRef(factory);
@@ -114,5 +127,5 @@ export function useRealtimeChannel(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, ...deps]);
 
-  return channelRef;
+  return { channelRef };
 }

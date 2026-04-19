@@ -3,18 +3,18 @@
 import { useState, useEffect } from "react";
 import { motion, useMotionValue, useTransform, animate } from "motion/react";
 import { springs } from "@/lib/motion-design";
+import {
+  DEFAULT_TRUST_BREAKDOWN,
+  getTrustScoreColor,
+  getTrustScoreGradient,
+  type TrustBreakdownItem,
+} from "@/lib/trust-colors";
 
 // ─────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────
 
-interface BreakdownItem {
-  label: string;
-  points: number;
-  maxPoints: number;
-  color: string;
-  tip: string;
-}
+type BreakdownItem = TrustBreakdownItem;
 
 interface TrustGaugeProps {
   /** Trust score 0-100 */
@@ -25,63 +25,9 @@ interface TrustGaugeProps {
   size?: number;
 }
 
-// ─────────────────────────────────────────
-// Default breakdown categories
-// ─────────────────────────────────────────
-
-const DEFAULT_BREAKDOWN: BreakdownItem[] = [
-  {
-    label: "Verification",
-    points: 0,
-    maxPoints: 25,
-    color: "#3B82F6",
-    tip: "Verifie ton profil par selfie, telephone et video",
-  },
-  {
-    label: "Avis",
-    points: 0,
-    maxPoints: 25,
-    color: "#8B5CF6",
-    tip: "Recois des avis positifs apres tes rencontres",
-  },
-  {
-    label: "Activite",
-    points: 0,
-    maxPoints: 20,
-    color: "#00FF88",
-    tip: "Sois actif regulierement sur l'app",
-  },
-  {
-    label: "Profil",
-    points: 0,
-    maxPoints: 15,
-    color: "#F59E0B",
-    tip: "Complete toutes les sections de ton profil",
-  },
-  {
-    label: "Communaute",
-    points: 0,
-    maxPoints: 15,
-    color: "#EC4899",
-    tip: "Participe aux evenements et invite des garants",
-  },
-];
-
-// ─────────────────────────────────────────
-// Score color
-// ─────────────────────────────────────────
-
-function getScoreColor(score: number): string {
-  if (score >= 70) return "#00FF88";
-  if (score >= 40) return "#F59E0B";
-  return "#EF4444";
-}
-
-function getScoreGradient(score: number): [string, string] {
-  if (score >= 70) return ["#00FF88", "#10B981"];
-  if (score >= 40) return ["#F59E0B", "#F97316"];
-  return ["#EF4444", "#DC2626"];
-}
+const DEFAULT_BREAKDOWN = DEFAULT_TRUST_BREAKDOWN;
+const getScoreColor = getTrustScoreColor;
+const getScoreGradient = getTrustScoreGradient;
 
 // ─────────────────────────────────────────
 // Animated counter hook

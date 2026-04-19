@@ -14,23 +14,25 @@ import nextTs from "eslint-config-next/typescript";
  *  - `src/lib/design-tokens.ts` owns the canonical hex values.
  *  - `src/components/landing/**` and `src/app/(landing)/**` use an
  *    intentional dark-cinematic palette isolated from the app shell.
- *  - `src/lib/modes.ts`, `src/lib/mock-profiles.ts`, `src/lib/seasons.ts`,
- *    `src/lib/badges.ts`, `src/lib/dateIdeas.ts`, `src/lib/hotspots.ts`,
- *    `src/lib/motion-design.ts` own domain-specific hex values that
- *    encode product semantics (per-mode brand colors, seasonal
- *    gradients, badge tiers, motion variants). They are not UI surface
- *    tokens and must not be mapped to the W&B palette.
+ *  - Per-feature domain-meta lib files (modes, seasons, badges, dateIdeas,
+ *    hotspots, motion-design, mode-colors, rooms-meta, notification-config,
+ *    premium-benefits, story-presets, share-card-presets,
+ *    photo-gallery-gradients, trust-colors, verification-status,
+ *    fab-actions) own domain-specific hex values that encode product
+ *    semantics (per-mode brand colors, seasonal gradients, badge tiers,
+ *    trust tiers, verification statuses, FAB action colors, motion
+ *    variants). They are not UI surface tokens and must not be mapped
+ *    to the W&B palette.
  *  - `tailwind.config.*` / `postcss.config.*` / `globals.css` live outside
  *    ESLint's `.tsx` scope — no override needed.
  *
- * Hex rule is escalated to "error" on src/app/(app)/** (D4 landed —
- * all domain-meta arrays extracted to src/lib/, remaining out-of-palette
- * surfaces route through design-tokens imports) and on the explicit
- * allowlist of clean components. The rest of src/components/** and
- * src/app/** stays at "warn" until phase 2 migrates the remaining
- * per-component severity / brand hexes. The Tailwind palette rule stays
- * at "warn" for now since some legitimate gradients still compose
- * palette utilities.
+ * Hex rule is escalated to "error" on src/app/(app)/** and
+ * src/components/** (E2 landed — brand-metier arrays extracted to
+ * src/lib/, remaining out-of-palette surfaces route through
+ * design-tokens imports or are scoped in the component allowlist below
+ * with a justified brand-metier exception). The Tailwind palette rule
+ * stays at "warn" app-wide until phase 2 since some legitimate gradients
+ * still compose palette utilities.
  */
 
 const BAN_HEX_REGEX = String.raw`/#([0-9A-Fa-f]{3}){1,2}\b/`;
@@ -173,6 +175,41 @@ const eslintConfig = defineConfig([
     rules: strictHexOnlyRules,
   },
   {
+    // E2 landed — hex promoted to "error" on src/components/**. Brand-
+    // metier hex arrays were extracted to src/lib/ (story-presets,
+    // share-card-presets, photo-gallery-gradients, trust-colors,
+    // verification-status, fab-actions). Any new raw hex in components/
+    // is a hard error. Tailwind palette rule stays at "warn".
+    files: ["src/components/**/*.{ts,tsx}"],
+    rules: strictHexOnlyRules,
+  },
+  {
+    // Brand-metier-heavy components whose hex values encode product
+    // semantics (per-tier karma medals, per-mode gradient rings,
+    // per-badge smart-queue colors, per-status feedback colors,
+    // celebration/animation star hues). These are out-of-palette by
+    // design — they are NOT UI surface tokens and cannot route through
+    // the W&B theme without diluting semantic meaning. Scoped "off"
+    // with the same rationale as src/lib/modes.ts, src/lib/badges.ts,
+    // src/lib/seasons.ts, etc.
+    files: [
+      "src/components/app/SwipeCard.tsx",
+      "src/components/app/MidnightReset.tsx",
+      "src/components/app/VerificationChecklist.tsx",
+      "src/components/app/KarmaBadge.tsx",
+      "src/components/app/ModeSwitcher.tsx",
+      "src/components/app/SmartQueueBadge.tsx",
+      "src/components/app/FABMenu.tsx",
+      "src/components/app/WeMetFeedback.tsx",
+      "src/components/chat/PlaylistShare.tsx",
+      "src/components/chat/VoiceNote.tsx",
+      "src/components/chat/LocationShare.tsx",
+    ],
+    rules: {
+      "no-restricted-syntax": "off",
+    },
+  },
+  {
     // Design tokens file owns the hex literals.
     files: ["src/lib/design-tokens.ts"],
     rules: {
@@ -196,6 +233,12 @@ const eslintConfig = defineConfig([
       "src/lib/rooms-meta.ts",
       "src/lib/notification-config.ts",
       "src/lib/premium-benefits.ts",
+      "src/lib/story-presets.ts",
+      "src/lib/share-card-presets.ts",
+      "src/lib/photo-gallery-gradients.ts",
+      "src/lib/trust-colors.ts",
+      "src/lib/verification-status.ts",
+      "src/lib/fab-actions.ts",
     ],
     rules: {
       "no-restricted-syntax": "off",

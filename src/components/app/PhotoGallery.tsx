@@ -3,21 +3,10 @@
 import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence, useMotionValue, PanInfo } from "motion/react";
 import { springs } from "@/lib/motion-design";
+import { X } from "@/components/ui/lucide";
 
-// ─────────────────────────────────────────
-// Mock gradient photos for profiles without real photos
-// ─────────────────────────────────────────
-
-const GRADIENT_SETS: string[][] = [
-  ["linear-gradient(135deg, #667eea 0%, #764ba2 100%)", "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)", "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)", "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"],
-  ["linear-gradient(135deg, #fa709a 0%, #fee140 100%)", "linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)", "linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)", "linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)"],
-  ["linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)", "linear-gradient(135deg, #c471f5 0%, #fa71cd 100%)", "linear-gradient(135deg, #48c6ef 0%, #6f86d6 100%)", "linear-gradient(135deg, #feada6 0%, #f5efef 100%)"],
-];
-
-export function getMockGradients(profileId: string): string[] {
-  const hash = profileId.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
-  return GRADIENT_SETS[hash % GRADIENT_SETS.length];
-}
+// Re-export for backwards compatibility with imports that used to live here.
+export { getMockGradients } from "@/lib/photo-gallery-gradients";
 
 // ─────────────────────────────────────────
 // Types
@@ -275,19 +264,7 @@ export default function PhotoGallery({
               className="absolute top-12 right-5 z-10 w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center"
               aria-label="Fermer"
             >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="white"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
+              <X size={20} strokeWidth={2} color="white" aria-hidden="true" />
             </button>
 
             {/* Fullscreen photo with zoom */}

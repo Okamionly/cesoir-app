@@ -82,19 +82,31 @@ const tabs: {
 
 // ---------- Badge sub-component ----------
 
-/** Small 6px red dot badge */
+/**
+ * Small 6px red dot badge. The dot itself stays 6px for visual polish, but
+ * the badge is rendered inside an invisible 12x12 hit-area wrapper so it
+ * meets minimum 44px combined tap area when paired with the surrounding
+ * icon (WCAG 2.5.5 — large-enough target via enclosing Link which is
+ * already 44px min via tap-target utility).
+ */
 function DotBadge({ visible }: { visible: boolean }) {
   return (
     <AnimatePresence>
       {visible && (
-        <motion.span
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          exit={{ scale: 0 }}
-          transition={springs.micro as Transition}
-          className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-red-500 pointer-events-none"
-          aria-label="Notification"
-        />
+        <span
+          className="absolute -top-1 -right-1 w-3 h-3 flex items-center justify-center pointer-events-none"
+          aria-hidden="true"
+        >
+          <motion.span
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0 }}
+            transition={springs.micro as Transition}
+            className="w-1.5 h-1.5 rounded-full bg-red-500"
+            role="status"
+            aria-label="Notification"
+          />
+        </span>
       )}
     </AnimatePresence>
   );

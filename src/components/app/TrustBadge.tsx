@@ -2,23 +2,7 @@
 
 import { motion } from "motion/react";
 import { springs } from "@/lib/motion-design";
-
-// ─────────────────────────────────────────
-// Trust tier definitions
-// ─────────────────────────────────────────
-
-interface TrustTier {
-  label: string;
-  bg: string;
-  text: string;
-  border: string;
-}
-
-function getTier(score: number): TrustTier {
-  if (score >= 80) return { label: "Fiable", bg: "rgba(0,255,136,0.12)", text: "#00FF88", border: "rgba(0,255,136,0.3)" };
-  if (score >= 60) return { label: "Moyen", bg: "rgba(245,158,11,0.12)", text: "#F59E0B", border: "rgba(245,158,11,0.3)" };
-  return { label: "Nouveau", bg: "rgba(239,68,68,0.12)", text: "#EF4444", border: "rgba(239,68,68,0.3)" };
-}
+import { getTrustTierStyle } from "@/lib/trust-colors";
 
 // ─────────────────────────────────────────
 // Props
@@ -38,7 +22,7 @@ interface TrustBadgeProps {
 // ─────────────────────────────────────────
 
 export default function TrustBadge({ trustScore, isVerified = false, compact = false }: TrustBadgeProps) {
-  const tier = getTier(trustScore);
+  const tier = getTrustTierStyle(trustScore);
 
   return (
     <motion.div
@@ -85,10 +69,10 @@ export default function TrustBadge({ trustScore, isVerified = false, compact = f
           fill="none"
           aria-hidden="true"
         >
-          <circle cx="12" cy="12" r="10" fill="#8B5CF6" />
+          <circle cx="12" cy="12" r="10" fill="var(--color-accent)" />
           <path
             d="M8 12l3 3 5-5"
-            stroke="#FFFFFF"
+            stroke="white"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"

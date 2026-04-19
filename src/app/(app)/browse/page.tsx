@@ -18,6 +18,7 @@ import type { MatchCandidate } from "@/lib/matching";
 import type { ReportReason } from "@/lib/supabase-types";
 import { IconHeart, IconX, IconStar } from "@/components/ui/Icons";
 import SwipeCard from "@/components/app/SwipeCard";
+import MotionImage from "@/components/motion/MotionImage";
 import ReportSheet from "@/components/app/ReportSheet";
 import NotificationPreview from "@/components/app/NotificationPreview";
 import MidnightReset from "@/components/app/MidnightReset";
@@ -548,11 +549,11 @@ function MatchToast({ profile, conversationId, onDismiss }: { profile: Profile; 
             >
               <div className="w-full h-full rounded-full bg-bg flex items-center justify-center text-[14px] font-bold text-accent">Y</div>
             </motion.div>
-            <motion.img
+            <MotionImage
               src={profile.photo}
               alt={profile.name}
-              loading="lazy"
-              decoding="async"
+              width={48}
+              height={48}
               className="w-12 h-12 rounded-full object-cover border-2 border-bg"
               initial={{ scale: 0, rotate: 90 }}
               animate={{ scale: 1, rotate: 0 }}

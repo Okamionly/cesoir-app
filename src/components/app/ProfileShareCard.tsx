@@ -4,23 +4,18 @@ import { forwardRef } from "react";
 import Image from "next/image";
 import { motion } from "motion/react";
 import { springs } from "@/lib/motion-design";
+import {
+  SHARE_CARD_GRADIENT_PRESETS,
+  SHARE_CARD_NEON_BG,
+  type ShareCardGradientPreset,
+} from "@/lib/share-card-presets";
 import MockQR from "./MockQR";
 
 export type CardStyle = "minimal" | "gradient" | "neon";
 
-export interface GradientPreset {
-  id: string;
-  name: string;
-  from: string;
-  to: string;
-}
+export type GradientPreset = ShareCardGradientPreset;
 
-export const GRADIENT_PRESETS: GradientPreset[] = [
-  { id: "violet-green", name: "CeSoir", from: "#8B5CF6", to: "#00FF88" },
-  { id: "pink-orange", name: "Sunset", from: "#EC4899", to: "#F97316" },
-  { id: "blue-cyan", name: "Ocean", from: "#3B82F6", to: "#06B6D4" },
-  { id: "amber-rose", name: "Dusk", from: "#F59E0B", to: "#F43F5E" },
-];
+export const GRADIENT_PRESETS = SHARE_CARD_GRADIENT_PRESETS;
 
 export interface ShareCardData {
   name: string;
@@ -58,7 +53,7 @@ function MinimalCard({
   showQR,
 }: Omit<ProfileShareCardProps, "style" | "aspectRatio">) {
   return (
-    <div className="w-full h-full bg-white rounded-3xl border border-[#EBEBEB] flex flex-col items-center justify-center gap-4 p-6 relative overflow-hidden">
+    <div className="w-full h-full bg-white rounded-3xl border border-border flex flex-col items-center justify-center gap-4 p-6 relative overflow-hidden">
       {/* Subtle corner accent */}
       <div
         className="absolute top-0 right-0 w-32 h-32 opacity-10 rounded-bl-full"
@@ -68,7 +63,7 @@ function MinimalCard({
       {/* Logo */}
       <div className="flex items-center gap-1.5 absolute top-4 left-5">
         <span className="text-[16px]" style={{ color: gradient.from }}>&#9790;</span>
-        <span className="text-[11px] font-black tracking-tight text-[#111]">CeSoir</span>
+        <span className="text-[11px] font-black tracking-tight text-text">CeSoir</span>
       </div>
 
       {/* Avatar */}
@@ -89,8 +84,8 @@ function MinimalCard({
 
       {/* Name + info */}
       <div className="text-center">
-        <h3 className="text-[22px] font-black text-[#111] tracking-tight">{data.name}</h3>
-        <p className="text-[13px] text-[#767676]">{data.age} ans &middot; {data.city}</p>
+        <h3 className="text-[22px] font-black text-text tracking-tight">{data.name}</h3>
+        <p className="text-[13px] text-text-soft">{data.age} ans &middot; {data.city}</p>
       </div>
 
       {/* Mode badge */}
@@ -116,14 +111,14 @@ function MinimalCard({
           ].map((s) => (
             <div key={s.l}>
               <p className="text-[18px] font-black" style={{ color: gradient.from }}>{s.n}</p>
-              <p className="text-[9px] text-[#767676] uppercase tracking-wider font-semibold">{s.l}</p>
+              <p className="text-[9px] text-text-soft uppercase tracking-wider font-semibold">{s.l}</p>
             </div>
           ))}
         </div>
       )}
 
       {/* Tagline */}
-      <p className="text-[11px] text-[#767676] italic">Retrouve-moi sur CeSoir</p>
+      <p className="text-[11px] text-text-soft italic">Retrouve-moi sur CeSoir</p>
 
       {/* QR */}
       {showQR && (
@@ -211,7 +206,7 @@ function GradientCard({
       {/* QR */}
       {showQR && (
         <div className="mt-auto">
-          <MockQR userId={data.userId} size={64} color="#FFFFFF" showLabel={false} />
+          <MockQR userId={data.userId} size={64} color="white" showLabel={false} />
         </div>
       )}
     </div>
@@ -251,7 +246,10 @@ function NeonCard({
   showQR,
 }: Omit<ProfileShareCardProps, "style" | "aspectRatio">) {
   return (
-    <div className="w-full h-full bg-[#0A0A0A] rounded-3xl flex flex-col items-center justify-center gap-4 p-6 relative overflow-hidden">
+    <div
+      className="w-full h-full rounded-3xl flex flex-col items-center justify-center gap-4 p-6 relative overflow-hidden"
+      style={{ background: SHARE_CARD_NEON_BG }}
+    >
       {/* Neon glow border via pseudo-like inner div */}
       <div
         className="absolute inset-0 rounded-3xl opacity-40"
@@ -283,7 +281,7 @@ function NeonCard({
           boxShadow: `0 0 20px ${gradient.from}50, 0 0 40px ${gradient.to}25`,
         }}
       >
-        <div className="relative w-20 h-20 rounded-[14px] bg-[#0A0A0A] flex items-center justify-center overflow-hidden">
+        <div className="relative w-20 h-20 rounded-[14px] bg-[var(--share-card-neon-bg)] flex items-center justify-center overflow-hidden">
           {data.avatarUrl ? (
             <Image src={data.avatarUrl} alt="" fill sizes="80px" className="object-cover" />
           ) : (
@@ -340,14 +338,14 @@ function NeonCard({
               >
                 {s.n}
               </p>
-              <p className="text-[9px] text-white/30 uppercase tracking-wider font-semibold">{s.l}</p>
+              <p className="text-[9px] text-white/60 uppercase tracking-wider font-semibold">{s.l}</p>
             </div>
           ))}
         </div>
       )}
 
       {/* Tagline */}
-      <p className="text-[11px] text-white/30 italic">Retrouve-moi sur CeSoir</p>
+      <p className="text-[11px] text-white/70 italic">Retrouve-moi sur CeSoir</p>
 
       {/* QR */}
       {showQR && (

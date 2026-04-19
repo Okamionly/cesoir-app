@@ -17,6 +17,7 @@ import HeatmapOverlay, { HeatmapFallback } from "@/components/map/HeatmapOverlay
 import LiveActivityPanel from "@/components/map/LiveActivityPanel";
 import CrossLinkCard from "@/components/app/CrossLinkCard";
 import PageHeader from "@/components/ui/PageHeader";
+import MotionImage from "@/components/motion/MotionImage";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
@@ -434,9 +435,11 @@ export default function MapPage() {
                 >✕</motion.button>
 
                 <div className="flex items-center gap-3 mb-3">
-                  <motion.img
+                  <MotionImage
                     src={selected.photo}
                     alt={selected.name}
+                    width={56}
+                    height={56}
                     className="w-14 h-14 rounded-full object-cover border-2"
                     style={{ borderColor: MODE_COLORS[selected.mode] }}
                     initial={{ scale: 0 }}

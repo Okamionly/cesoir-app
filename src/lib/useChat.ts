@@ -451,44 +451,44 @@ export function useTypingIndicator(
   userName: string | undefined,
 ) {
   const [peerTyping, setPeerTyping] = useState<string | null>(null);
-  const channelRef = useRef<RealtimeChannel | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const peerTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Unified subscription (cleanup handled by useRealtimeChannel)
+  const { channelRef } = useRealtimeChannel(
+    (client) =>
+      conversationId && userId
+        ? client
+            .channel(`typing-${conversationId}`)
+            .on("broadcast", { event: "typing" }, (payload) => {
+              const data = payload.payload as { user_id: string; name: string };
+              if (data.user_id === userId) return; // ignore own typing
+
+              setPeerTyping(data.name ?? "...");
+
+              // Auto-clear peer typing after 3 seconds of no broadcast
+              if (peerTimeoutRef.current) clearTimeout(peerTimeoutRef.current);
+              peerTimeoutRef.current = setTimeout(() => {
+                setPeerTyping(null);
+              }, 3000);
+            })
+            .on("broadcast", { event: "stop_typing" }, (payload) => {
+              const data = payload.payload as { user_id: string };
+              if (data.user_id === userId) return;
+              if (peerTimeoutRef.current) clearTimeout(peerTimeoutRef.current);
+              setPeerTyping(null);
+            })
+        : null,
+    [conversationId, userId],
+  );
+
+  // Clear local timeout on unmount (channel cleanup lives in the hook)
   useEffect(() => {
-    if (!conversationId || !userId) return;
-
-    const channel = supabase.channel(`typing-${conversationId}`);
-
-    channel
-      .on("broadcast", { event: "typing" }, (payload) => {
-        const data = payload.payload as { user_id: string; name: string };
-        if (data.user_id === userId) return; // ignore own typing
-
-        setPeerTyping(data.name ?? "...");
-
-        // Auto-clear peer typing after 3 seconds of no broadcast
-        if (peerTimeoutRef.current) clearTimeout(peerTimeoutRef.current);
-        peerTimeoutRef.current = setTimeout(() => {
-          setPeerTyping(null);
-        }, 3000);
-      })
-      .on("broadcast", { event: "stop_typing" }, (payload) => {
-        const data = payload.payload as { user_id: string };
-        if (data.user_id === userId) return;
-        if (peerTimeoutRef.current) clearTimeout(peerTimeoutRef.current);
-        setPeerTyping(null);
-      })
-      .subscribe();
-
-    channelRef.current = channel;
-
     return () => {
-      channel.unsubscribe();
-      channelRef.current = null;
       if (peerTimeoutRef.current) clearTimeout(peerTimeoutRef.current);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [conversationId, userId]);
+  }, []);
 
   const sendTyping = useCallback(() => {
     const channel = channelRef.current;
@@ -503,13 +503,15 @@ export function useTypingIndicator(
     // Auto-send stop_typing after 3 seconds of inactivity
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => {
-      channel.send({
+      const current = channelRef.current;
+      if (!current) return;
+      current.send({
         type: "broadcast",
         event: "stop_typing",
         payload: { user_id: userId },
       });
     }, 3000);
-  }, [userId, userName]);
+  }, [channelRef, userId, userName]);
 
   const stopTyping = useCallback(() => {
     const channel = channelRef.current;
@@ -520,7 +522,7 @@ export function useTypingIndicator(
       event: "stop_typing",
       payload: { user_id: userId },
     });
-  }, [userId]);
+  }, [channelRef, userId]);
 
   return { peerTyping, sendTyping, stopTyping };
 }
@@ -541,19 +543,21 @@ export function useConversationPresence(
     isOnline: false,
     lastSeen: null,
   });
-  const channelRef = useRef<RealtimeChannel | null>(null);
 
-  useEffect(() => {
-    if (!conversationId || !userId || !peerId) return;
-
-    const channel = supabase.channel(`presence-${conversationId}`, {
-      config: { presence: { key: userId } },
-    });
-
-    channel
-      .on("presence", { event: "sync" }, () => {
+  // Unified subscription — presence tracking is wired in the factory's
+  // own .subscribe callback (invoked once when channel joins). The outer
+  // useRealtimeChannel still owns unsubscribe/cleanup on dep change/unmount.
+  useRealtimeChannel(
+    (client) => {
+      if (!conversationId || !userId || !peerId) return null;
+      const channel = client.channel(`presence-${conversationId}`, {
+        config: { presence: { key: userId } },
+      });
+      channel.on("presence", { event: "sync" }, () => {
         const state = channel.presenceState();
-        const peerPresences = state[peerId] as Array<{ online_at?: string }> | undefined;
+        const peerPresences = state[peerId] as
+          | Array<{ online_at?: string }>
+          | undefined;
         if (peerPresences && peerPresences.length > 0) {
           setPresence({ isOnline: true, lastSeen: new Date().toISOString() });
         } else {
@@ -562,20 +566,19 @@ export function useConversationPresence(
             lastSeen: prev.isOnline ? new Date().toISOString() : prev.lastSeen,
           }));
         }
-      })
-      .subscribe(async (status) => {
+      });
+      // Track self presence once the channel reports SUBSCRIBED.
+      // useRealtimeChannel's subsequent no-arg .subscribe() is a no-op
+      // when the channel is already joining/joined (supabase-js guards it).
+      channel.subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
           await channel.track({ online_at: new Date().toISOString() });
         }
       });
-
-    channelRef.current = channel;
-
-    return () => {
-      channel.unsubscribe();
-      channelRef.current = null;
-    };
-  }, [conversationId, userId, peerId]);
+      return channel;
+    },
+    [conversationId, userId, peerId],
+  );
 
   return presence;
 }
