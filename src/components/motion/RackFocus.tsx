@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion, type Variants } from "motion/react";
+import { m, useReducedMotion, type Variants } from "motion/react";
 import type { ReactNode } from "react";
 
 /**
@@ -63,13 +63,13 @@ export function RackFocus({
       };
 
   return (
-    <motion.div
+    <m.div
       className={className}
       variants={variants}
       initial="initial"
       animate="animate"
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }

@@ -2151,5 +2151,65 @@
       "is_interrupt": false,
       "logged_at": "2026-04-19T19:07:23.520823"
     }
+  },
+  {
+    "timestamp": "2026-04-19T20:50:33.832944",
+    "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "mcp__playwright__browser_evaluate",
+    "tool_use_id": "toolu_019U8HbRTfqLWmnbAiTkEEQE",
+    "tool_input": {
+      "function": "() => {\n  // Check what AppChrome sees \u00e2\u20ac\u201d try to access React devtools state\n  // Simpler: inspect what's actually rendered\n  const html = document.documentElement.outerHTML;\n  const hasBottomNavClass = html.includes('aria-label=\"Navigation principale\"');\n  const hasFabClass = html.includes('bottom-[90px]');\n  const hasSOSClass = html.includes('fixed inset-0 z-[200]');\n  return {\n    htmlLen: html.length,\n    hasBottomNav: hasBottomNavClass,\n    hasFabPattern: hasFabClass,\n    hasSOS: hasSOSClass,\n    // React devtools internal\n    hasReactRoot: !!document.getElementById('__next') || !!document.querySelector('#__NEXT_DATA__'),\n  };\n}"
+    },
+    "error": "### Error\nError: Execution context was destroyed, most likely because of a navigation",
+    "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+    "raw_input": {
+      "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+      "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+      "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "mcp__playwright__browser_evaluate",
+      "tool_input": {
+        "function": "() => {\n  // Check what AppChrome sees \u00e2\u20ac\u201d try to access React devtools state\n  // Simpler: inspect what's actually rendered\n  const html = document.documentElement.outerHTML;\n  const hasBottomNavClass = html.includes('aria-label=\"Navigation principale\"');\n  const hasFabClass = html.includes('bottom-[90px]');\n  const hasSOSClass = html.includes('fixed inset-0 z-[200]');\n  return {\n    htmlLen: html.length,\n    hasBottomNav: hasBottomNavClass,\n    hasFabPattern: hasFabClass,\n    hasSOS: hasSOSClass,\n    // React devtools internal\n    hasReactRoot: !!document.getElementById('__next') || !!document.querySelector('#__NEXT_DATA__'),\n  };\n}"
+      },
+      "tool_use_id": "toolu_019U8HbRTfqLWmnbAiTkEEQE",
+      "error": "### Error\nError: Execution context was destroyed, most likely because of a navigation",
+      "is_interrupt": false,
+      "logged_at": "2026-04-19T20:50:33.832944"
+    }
+  },
+  {
+    "timestamp": "2026-04-19T20:53:46.221120",
+    "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "mcp__playwright__browser_resize",
+    "tool_use_id": "toolu_01QrMgCNxSSCzdyzZrREZG3g",
+    "tool_input": {
+      "width": "375",
+      "height": "812"
+    },
+    "error": "### Error\n[\n  {\n    \"expected\": \"number\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"width\"\n    ],\n    \"message\": \"Invalid input: expected number, received string\"\n  },\n  {\n    \"expected\": \"number\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"height\"\n    ],\n    \"message\": \"Invalid input: expected number, received string\"\n  }\n]",
+    "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+    "raw_input": {
+      "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+      "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+      "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "mcp__playwright__browser_resize",
+      "tool_input": {
+        "width": "375",
+        "height": "812"
+      },
+      "tool_use_id": "toolu_01QrMgCNxSSCzdyzZrREZG3g",
+      "error": "### Error\n[\n  {\n    \"expected\": \"number\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"width\"\n    ],\n    \"message\": \"Invalid input: expected number, received string\"\n  },\n  {\n    \"expected\": \"number\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"height\"\n    ],\n    \"message\": \"Invalid input: expected number, received string\"\n  }\n]",
+      "is_interrupt": false,
+      "logged_at": "2026-04-19T20:53:46.221120"
+    }
   }
 ]

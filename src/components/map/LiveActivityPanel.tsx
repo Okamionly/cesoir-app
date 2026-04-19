@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { springs, micro } from "@/lib/motion-design";
 import type { LiveHotspot } from "@/lib/useHotspots";
 
@@ -105,7 +105,7 @@ export default function LiveActivityPanel({
   };
 
   return (
-    <motion.div
+    <m.div
       className="absolute bottom-24 left-3 right-3 z-[900]"
       initial={{ y: "100%" }}
       animate={{ y: 0 }}
@@ -123,7 +123,7 @@ export default function LiveActivityPanel({
           aria-label="Activite en direct"
         >
           <div className="flex items-center gap-2.5">
-            <motion.div
+            <m.div
               className="w-2 h-2 rounded-full bg-safe"
               animate={{
                 scale: [1, 1.4, 1],
@@ -132,7 +132,7 @@ export default function LiveActivityPanel({
               transition={{ duration: 1.5, repeat: Infinity }}
             />
             <span className="text-[13px] font-semibold text-text">
-              <motion.span
+              <m.span
                 key={`total-${totalActive}`}
                 initial={{ opacity: 0, scale: 0.5 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -140,14 +140,14 @@ export default function LiveActivityPanel({
                 className="inline-block"
               >
                 {totalActive}
-              </motion.span>{" "}
+              </m.span>{" "}
               personnes actives pres de toi
             </span>
           </div>
 
           <div className="flex items-center gap-2">
             {/* Refresh button */}
-            <motion.button
+            <m.button
               onClick={(e) => {
                 e.stopPropagation();
                 handleRefresh();
@@ -174,23 +174,23 @@ export default function LiveActivityPanel({
                 <path d="M3 22v-6h6" />
                 <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
               </svg>
-            </motion.button>
+            </m.button>
 
             {/* Expand chevron */}
-            <motion.span
+            <m.span
               className="text-text-muted text-[12px]"
               animate={{ rotate: expanded ? 180 : 0 }}
               transition={springs.snap}
             >
               ▲
-            </motion.span>
+            </m.span>
           </div>
         </div>
 
         {/* Expanded content */}
         <AnimatePresence>
           {expanded && (
-            <motion.div
+            <m.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
@@ -207,7 +207,7 @@ export default function LiveActivityPanel({
                     Spots les plus chauds
                   </span>
                   {top3.map((spot, idx) => (
-                    <motion.div
+                    <m.div
                       key={spot.id}
                       className="flex items-center justify-between"
                       initial={{ opacity: 0, x: -20 }}
@@ -229,7 +229,7 @@ export default function LiveActivityPanel({
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <motion.span
+                        <m.span
                           key={`spot-count-${spot.id}-${spot.count}`}
                           className="text-[12px] font-bold text-accent"
                           initial={{ opacity: 0, scale: 0.5 }}
@@ -237,7 +237,7 @@ export default function LiveActivityPanel({
                           transition={springs.snap}
                         >
                           {spot.count}
-                        </motion.span>
+                        </m.span>
                         {spot.distance !== null && (
                           <span className="text-[10px] text-text-muted">
                             {spot.distance < 1
@@ -246,13 +246,13 @@ export default function LiveActivityPanel({
                           </span>
                         )}
                       </div>
-                    </motion.div>
+                    </m.div>
                   ))}
                 </div>
 
                 {/* Top mode */}
                 {topMode && (
-                  <motion.div
+                  <m.div
                     className="flex items-center justify-between"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -264,11 +264,11 @@ export default function LiveActivityPanel({
                     <span className="bg-accent/10 border border-accent/20 px-2.5 py-0.5 rounded-full text-[10px] text-accent font-semibold">
                       {topMode}
                     </span>
-                  </motion.div>
+                  </m.div>
                 )}
 
                 {/* Last updated */}
-                <motion.div
+                <m.div
                   className="flex items-center justify-center pt-1"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -277,12 +277,12 @@ export default function LiveActivityPanel({
                   <span className="text-[10px] text-text-muted">
                     Derniere mise a jour {timeAgo(lastUpdated)}
                   </span>
-                </motion.div>
+                </m.div>
               </div>
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
       </div>
-    </motion.div>
+    </m.div>
   );
 }

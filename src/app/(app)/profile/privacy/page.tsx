@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import PageHeader from "@/components/ui/PageHeader";
 
 interface PrivacySetting {
@@ -63,7 +63,7 @@ export default function PrivacySettingsPage() {
         {SETTINGS.map((setting, i) => {
           const isOn = setting.key === "invisible" ? settings[setting.key] : settings[setting.key] !== false;
           return (
-            <motion.div
+            <m.div
               key={setting.key}
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
@@ -91,14 +91,14 @@ export default function PrivacySettingsPage() {
                     isOn ? "bg-accent" : "bg-border"
                   }`}
                 >
-                  <motion.div
+                  <m.div
                     className="absolute top-0.5 w-6 h-6 rounded-full bg-white shadow-sm"
                     animate={{ x: isOn ? 22 : 2 }}
                     transition={{ type: "spring", stiffness: 500, damping: 30 }}
                   />
                 </button>
               </div>
-            </motion.div>
+            </m.div>
           );
         })}
       </div>

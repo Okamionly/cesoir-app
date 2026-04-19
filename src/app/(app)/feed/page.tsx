@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { feedVariants, springs } from "@/lib/motion-design";
 import { MODES, type ModeKey } from "@/lib/modes";
 import { useFeed, type FeedActivity } from "@/lib/useFeed";
@@ -183,13 +183,13 @@ export default function FeedPage() {
         aria-label="Actualiser le fil d'activite"
       >
         {refreshing ? (
-          <motion.span
+          <m.span
             animate={{ rotate: 360 }}
             transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
             className="inline-block"
           >
             <RotateCcw size={14} strokeWidth={2} aria-hidden="true" />
-          </motion.span>
+          </m.span>
         ) : (
           "Actualiser"
         )}
@@ -208,7 +208,7 @@ export default function FeedPage() {
         />
       ) : (
         <>
-          <motion.ul
+          <m.ul
             className="px-4 space-y-2"
             variants={containerVariants}
             initial="hidden"
@@ -223,7 +223,7 @@ export default function FeedPage() {
                 const isSystemItem = item.type === "area" || item.type === "trending";
 
                 return (
-                  <motion.li
+                  <m.li
                     key={item.id}
                     initial={{ opacity: 0, y: -16, scale: 0.97, filter: "blur(4px)" }}
                     animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
@@ -281,22 +281,22 @@ export default function FeedPage() {
                         </span>
                       </div>
                     </div>
-                  </motion.li>
+                  </m.li>
                 );
               })}
             </AnimatePresence>
-          </motion.ul>
+          </m.ul>
 
           {/* Load more button — magnetic on fine pointers */}
           {showLoadMore && (
-            <motion.div
+            <m.div
               className="px-4 mt-4 mb-6"
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ ...springs.gentle, delay: 0.1 }}
             >
               <Magnetic as="div" strength={0.08} radius={120}>
-                <motion.button
+                <m.button
                   onClick={handleLoadMore}
                   disabled={loadingMore}
                   whileHover={{ borderColor: "color-mix(in srgb, var(--color-accent) 40%, transparent)", transition: springs.gentle }}
@@ -304,19 +304,19 @@ export default function FeedPage() {
                   className="w-full py-3 text-center text-sm font-medium text-text-muted bg-card border border-border rounded-2xl transition-colors disabled:opacity-50"
                 >
                   {loadingMore ? (
-                    <motion.span
+                    <m.span
                       animate={{ rotate: 360 }}
                       transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
                       className="inline-block"
                     >
                       <RotateCcw size={14} strokeWidth={2} aria-hidden="true" />
-                    </motion.span>
+                    </m.span>
                   ) : (
                     "Charger plus"
                   )}
-                </motion.button>
+                </m.button>
               </Magnetic>
-            </motion.div>
+            </m.div>
           )}
         </>
       )}

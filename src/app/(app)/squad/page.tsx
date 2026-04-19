@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { springs, ambient } from "@/lib/motion-design";
 import { useSquad } from "@/lib/useSquad";
 import PageHeader from "@/components/ui/PageHeader";
@@ -214,7 +214,7 @@ export default function SquadPage() {
 
       <div className="px-4 py-4 space-y-6">
         {/* Create squad card */}
-        <motion.section
+        <m.section
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={springs.heavy}
@@ -222,21 +222,21 @@ export default function SquadPage() {
           aria-label="Creer ton squad"
         >
           {/* 6. Squad name: slide from left with springs.heavy */}
-          <motion.h2
+          <m.h2
             initial={{ opacity: 0, x: -40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={springs.heavy}
             className="text-base font-display font-bold text-text mb-1"
           >
             Cree ton squad
-          </motion.h2>
+          </m.h2>
           <p className="text-xs text-text-muted mb-4">Invite jusqu&apos;a 3 amis pour matcher ensemble</p>
 
           {/* My squad members */}
           {mySquad.length > 0 && (
             <div className="flex items-center gap-[-8px] mb-4" aria-label="Membres de ton squad">
               {mySquad.map((member, i) => (
-                <motion.div
+                <m.div
                   key={member.id}
                   /* 3. Member avatars: scale from 0 with springs.elastic, stagger 0.06 */
                   initial={{ scale: 0 }}
@@ -246,10 +246,10 @@ export default function SquadPage() {
                   style={{ marginLeft: i > 0 ? "-8px" : 0, zIndex: mySquad.length - i }}
                 >
                   <Image src={member.photo} alt={member.name} fill sizes="40px" className="object-cover" />
-                </motion.div>
+                </m.div>
               ))}
               {mySquad.length < 4 && (
-                <motion.div
+                <m.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ ...springs.elastic, delay: mySquad.length * 0.06 }}
@@ -261,7 +261,7 @@ export default function SquadPage() {
                     <line x1="12" y1="5" x2="12" y2="19" />
                     <line x1="5" y1="12" x2="19" y2="12" />
                   </svg>
-                </motion.div>
+                </m.div>
               )}
             </div>
           )}
@@ -278,7 +278,7 @@ export default function SquadPage() {
               aria-label="Code d'invitation"
             />
             {/* 4. "Rejoindre" button: whileHover scale:1.05 y:-2 with glow, whileTap scale:0.92 */}
-            <motion.button
+            <m.button
               onClick={handleJoin}
               disabled={joinCode.length !== 6 || busy}
               whileHover={{ scale: 1.05, y: -2, boxShadow: "0 0 20px color-mix(in srgb, var(--color-accent) 40%, transparent)" }}
@@ -288,24 +288,24 @@ export default function SquadPage() {
               style={{ background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-2))" }}
             >
               Rejoindre
-            </motion.button>
+            </m.button>
           </div>
           {joinError && (
             <p className="text-[11px] text-red-400 mb-2">{joinError}</p>
           )}
           {!inviteCode && mySquad.length === 0 && (
-            <motion.button
+            <m.button
               onClick={handleCreateSquad}
               disabled={busy}
               whileTap={{ scale: 0.95 }}
               className="w-full mb-3 py-2.5 rounded-xl border border-accent/30 text-accent text-sm font-semibold hover:bg-accent/10 transition-colors disabled:opacity-50"
             >
               {busy ? "Creation..." : "Creer mon squad"}
-            </motion.button>
+            </m.button>
           )}
 
           {/* Share invite link — 8. Invite code section: slide from right */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={springs.heavy}
@@ -313,7 +313,7 @@ export default function SquadPage() {
           >
             <span className="flex-1 text-xs font-mono text-text-muted truncate">{inviteLink}</span>
             {/* 4. Action button: whileHover glow + whileTap */}
-            <motion.button
+            <m.button
               onClick={handleCopy}
               whileHover={{ scale: 1.05, y: -2, boxShadow: "0 0 20px color-mix(in srgb, var(--color-accent) 40%, transparent)" }}
               whileTap={{ scale: 0.92 }}
@@ -324,7 +324,7 @@ export default function SquadPage() {
             >
               <AnimatePresence mode="wait">
                 {copied ? (
-                  <motion.span
+                  <m.span
                     key="check"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
@@ -335,38 +335,38 @@ export default function SquadPage() {
                       <path d="M20 6L9 17l-5-5" />
                     </svg>
                     Copie
-                  </motion.span>
+                  </m.span>
                 ) : (
-                  <motion.span
+                  <m.span
                     key="copy"
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     exit={{ scale: 0 }}
                   >
                     Copier
-                  </motion.span>
+                  </m.span>
                 )}
               </AnimatePresence>
-            </motion.button>
-          </motion.div>
-        </motion.section>
+            </m.button>
+          </m.div>
+        </m.section>
 
         {/* Active squads section */}
         <section aria-label="Squads actifs ce soir">
           {/* 6. Squad name: slide from left with springs.heavy */}
-          <motion.h2
+          <m.h2
             initial={{ opacity: 0, x: -40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={springs.heavy}
             className="text-base font-display font-bold text-text mb-3"
           >
             Squads actifs ce soir
-          </motion.h2>
+          </m.h2>
 
           <div className="space-y-3">
             {(MOCK_FALLBACK_SQUADS.length > 0 ? MOCK_FALLBACK_SQUADS : MOCK_SQUADS).map((squad, i) => (
               /* 2. Squad cards: initial={opacity:0, y:40, scale:0.9} with springs.heavy + stagger 0.1 */
-              <motion.div
+              <m.div
                 key={squad.id}
                 initial={{ opacity: 0, y: 40, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -377,7 +377,7 @@ export default function SquadPage() {
                 <div className="flex flex-shrink-0" aria-label={`${squad.members.length} membres`}>
                   {squad.members.slice(0, 3).map((member, j) => (
                     /* 3. Member avatars: scale from 0 with springs.elastic, stagger 0.06 */
-                    <motion.div
+                    <m.div
                       key={member.id}
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
@@ -386,10 +386,10 @@ export default function SquadPage() {
                       style={{ marginLeft: j > 0 ? "-10px" : 0, zIndex: squad.members.length - j }}
                     >
                       <Image src={member.photo} alt={member.name} fill sizes="36px" className="object-cover" />
-                    </motion.div>
+                    </m.div>
                   ))}
                   {squad.members.length > 3 && (
-                    <motion.div
+                    <m.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ ...springs.elastic, delay: i * 0.1 + 3 * 0.06 }}
@@ -397,7 +397,7 @@ export default function SquadPage() {
                       style={{ marginLeft: "-10px" }}
                     >
                       +{squad.members.length - 3}
-                    </motion.div>
+                    </m.div>
                   )}
                 </div>
 
@@ -409,7 +409,7 @@ export default function SquadPage() {
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-xs text-text-muted">{squad.activity}</span>
                     {/* 5. Online indicator dot: ambient.breathe(3) for living pulse */}
-                    <motion.span
+                    <m.span
                       animate={ambient.breathe(3)}
                       className="inline-block w-1.5 h-1.5 rounded-full bg-accent-2"
                     />
@@ -421,7 +421,7 @@ export default function SquadPage() {
                 </div>
 
                 {/* 4. "Proposer" button: whileHover scale:1.05 y:-2 with glow, whileTap scale:0.92 */}
-                <motion.button
+                <m.button
                   whileHover={{ scale: 1.05, y: -2, boxShadow: "0 0 20px color-mix(in srgb, var(--color-accent) 40%, transparent)" }}
                   whileTap={{ scale: 0.92 }}
                   transition={springs.snap}
@@ -430,14 +430,14 @@ export default function SquadPage() {
                   aria-label={`Proposer un plan au squad de ${squad.members[0].name}`}
                 >
                   Proposer
-                </motion.button>
-              </motion.div>
+                </m.button>
+              </m.div>
             ))}
           </div>
         </section>
 
         {/* 7. Empty state / Fallback solo link: ambient.float(5) for gentle bobbing */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1, ...ambient.float(5) }}
           transition={{ delay: 0.8 }}
@@ -446,7 +446,7 @@ export default function SquadPage() {
           <a href="/browse" className="text-sm font-semibold text-text-muted hover:text-accent transition-colors">
             Matcher en solo &rarr;
           </a>
-        </motion.div>
+        </m.div>
       </div>
     </div>
   );

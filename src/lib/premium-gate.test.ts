@@ -1,0 +1,85 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { createMockSupabase, createQueryBuilder } from "@/test/mocks/supabase";
+
+/**
+ * premium-gate.ts pulls `createClient` from `@/lib/supabase/server`.
+ * We mock that module before importing the target.
+ */
+const mockSupabase = createMockSupabase();
+
+vi.mock("@/lib/supabase/server", () => ({
+  createClient: vi.fn(async () => mockSupabase),
+}));
+
+import {
+  isPremium,
+  getDailyLikeCap,
+  FREE_TIER_DAILY_LIKES,
+  PREMIUM_TIER_DAILY_LIKES,
+} from "./premium-gate";
+
+describe("isPremium", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns false when no userId is provided", async () => {
+    const result = await isPremium("");
+    expect(result).toBe(false);
+  });
+
+  it("returns true when an active subscription row exists", async () => {
+    mockSupabase.from = vi.fn(() =>
+      createQueryBuilder({ data: { status: "active" }, error: null }),
+    );
+    const result = await isPremium("user-123");
+    expect(result).toBe(true);
+  });
+
+  it("returns true for trialing subscriptions", async () => {
+    mockSupabase.from = vi.fn(() =>
+      createQueryBuilder({ data: { status: "trialing" }, error: null }),
+    );
+    const result = await isPremium("user-123");
+    expect(result).toBe(true);
+  });
+
+  it("returns false when no subscription row is found", async () => {
+    mockSupabase.from = vi.fn(() =>
+      createQueryBuilder({ data: null, error: null }),
+    );
+    const result = await isPremium("user-123");
+    expect(result).toBe(false);
+  });
+
+  it("returns false and logs when the query errors", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    mockSupabase.from = vi.fn(() =>
+      createQueryBuilder({ data: null, error: { message: "db down" } }),
+    );
+    const result = await isPremium("user-123");
+    expect(result).toBe(false);
+    expect(consoleSpy).toHaveBeenCalled();
+    consoleSpy.mockRestore();
+  });
+});
+
+describe("getDailyLikeCap", () => {
+  it("returns FREE_TIER cap for non-premium users", async () => {
+    mockSupabase.from = vi.fn(() =>
+      createQueryBuilder({ data: null, error: null }),
+    );
+    const cap = await getDailyLikeCap("user-free");
+    expect(cap).toBe(FREE_TIER_DAILY_LIKES);
+    expect(cap).toBe(100);
+  });
+
+  it("returns PREMIUM_TIER cap (Infinity) for active subscribers", async () => {
+    mockSupabase.from = vi.fn(() =>
+      createQueryBuilder({ data: { status: "active" }, error: null }),
+    );
+    const cap = await getDailyLikeCap("user-premium");
+    expect(cap).toBe(PREMIUM_TIER_DAILY_LIKES);
+    expect(cap).toBe(Infinity);
+  });
+});

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
@@ -172,7 +172,7 @@ export default function ShareProfilePage() {
 
       {/* Card Preview with 3D tilt */}
       <div className="px-5 pt-6 pb-4 flex justify-center">
-        <motion.div
+        <m.div
           style={{
             perspective: 1000,
             transformStyle: "preserve-3d",
@@ -195,7 +195,7 @@ export default function ShareProfilePage() {
             showQR={showQR}
             aspectRatio={aspectRatio}
           />
-        </motion.div>
+        </m.div>
       </div>
 
       {/* Style Selector */}
@@ -205,7 +205,7 @@ export default function ShareProfilePage() {
           {CARD_STYLES.map((s) => {
             const active = cardStyle === s.key;
             return (
-              <motion.button
+              <m.button
                 key={s.key}
                 onClick={() => setCardStyle(s.key)}
                 animate={{
@@ -221,7 +221,7 @@ export default function ShareProfilePage() {
               >
                 <p className="text-[13px] font-bold">{s.label}</p>
                 <p className={`text-[9px] ${active ? "text-white/70" : "text-text-muted"}`}>{s.desc}</p>
-              </motion.button>
+              </m.button>
             );
           })}
         </div>
@@ -234,7 +234,7 @@ export default function ShareProfilePage() {
           {GRADIENT_PRESETS.map((g) => {
             const active = gradient.id === g.id;
             return (
-              <motion.button
+              <m.button
                 key={g.id}
                 onClick={() => setGradient(g)}
                 animate={{ scale: active ? 1.15 : 1 }}
@@ -253,7 +253,7 @@ export default function ShareProfilePage() {
                 <span className={`text-[9px] font-semibold ${active ? "text-text" : "text-text-muted"}`}>
                   {g.name}
                 </span>
-              </motion.button>
+              </m.button>
             );
           })}
         </div>
@@ -279,7 +279,7 @@ export default function ShareProfilePage() {
                   opt.value ? "bg-accent" : "bg-border"
                 }`}
               >
-                <motion.div
+                <m.div
                   className="absolute top-[2px] w-5 h-5 rounded-full bg-white shadow"
                   animate={{ left: opt.value ? 22 : 2 }}
                   transition={springs.snap}
@@ -319,7 +319,7 @@ export default function ShareProfilePage() {
         <p className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3">Actions</p>
 
         {/* Share */}
-        <motion.button
+        <m.button
           onClick={handleShare}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -328,10 +328,10 @@ export default function ShareProfilePage() {
         >
           <Upload size={18} strokeWidth={2} />
           Partager
-        </motion.button>
+        </m.button>
 
         {/* Copy link */}
-        <motion.button
+        <m.button
           onClick={handleCopyLink}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -340,7 +340,7 @@ export default function ShareProfilePage() {
         >
           <AnimatePresence mode="wait">
             {copySuccess ? (
-              <motion.div
+              <m.div
                 key="check"
                 initial={{ scale: 0, rotate: -180 }}
                 animate={{ scale: 1, rotate: 0 }}
@@ -350,9 +350,9 @@ export default function ShareProfilePage() {
               >
                 <Check size={18} strokeWidth={2.5} />
                 Copie !
-              </motion.div>
+              </m.div>
             ) : (
-              <motion.div
+              <m.div
                 key="copy"
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
@@ -361,13 +361,13 @@ export default function ShareProfilePage() {
               >
                 <Copy size={18} strokeWidth={1.5} />
                 Copier le lien
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
-        </motion.button>
+        </m.button>
 
         {/* Download */}
-        <motion.button
+        <m.button
           onClick={handleDownload}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -376,7 +376,7 @@ export default function ShareProfilePage() {
         >
           <AnimatePresence mode="wait">
             {downloadSuccess ? (
-              <motion.div
+              <m.div
                 key="success"
                 initial={{ scale: 0, rotate: -180 }}
                 animate={{ scale: 1, rotate: 0 }}
@@ -386,9 +386,9 @@ export default function ShareProfilePage() {
               >
                 <Check size={18} strokeWidth={2.5} />
                 Telecharge !
-              </motion.div>
+              </m.div>
             ) : (
-              <motion.div
+              <m.div
                 key="download"
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
@@ -397,10 +397,10 @@ export default function ShareProfilePage() {
               >
                 <Download size={18} strokeWidth={1.5} />
                 Telecharger PNG
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
-        </motion.button>
+        </m.button>
       </div>
     </div>
   );

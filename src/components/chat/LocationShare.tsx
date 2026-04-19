@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { motion } from "motion/react";
+import { m } from "motion/react";
+import {
+  CHAT_VIOLET_VERT_135,
+  LOCATION_MAP_SOFT_TINT,
+  LOCATION_MAP_GRID_COLOR,
+  LOCATION_MAP_PIN_COLOR,
+} from "@/lib/chat-content-colors";
 
 // ---------- LocationShareButton ----------
 
@@ -69,9 +75,12 @@ interface LocationCardProps {
 
 export function LocationCard({ lat, lng, isOwn, time, distance = "1.2 km" }: LocationCardProps) {
   const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+  const gridPattern =
+    `linear-gradient(${LOCATION_MAP_GRID_COLOR} 1px, transparent 1px), ` +
+    `linear-gradient(90deg, ${LOCATION_MAP_GRID_COLOR} 1px, transparent 1px)`;
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 8, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.2 }}
@@ -81,7 +90,7 @@ export function LocationCard({ lat, lng, isOwn, time, distance = "1.2 km" }: Loc
         className="max-w-[75%] rounded-2xl overflow-hidden border-2"
         style={{
           border: "2px solid transparent",
-          backgroundImage: "linear-gradient(white, white), linear-gradient(135deg, #8B5CF6, #00FF88)",
+          backgroundImage: `linear-gradient(white, white), ${CHAT_VIOLET_VERT_135}`,
           backgroundOrigin: "border-box",
           backgroundClip: "padding-box, border-box",
         }}
@@ -89,19 +98,22 @@ export function LocationCard({ lat, lng, isOwn, time, distance = "1.2 km" }: Loc
         {/* Map placeholder */}
         <div
           className="h-28 relative overflow-hidden"
-          style={{ background: "linear-gradient(135deg, rgba(139,92,246,0.12), rgba(0,255,136,0.12))" }}
+          style={{ background: LOCATION_MAP_SOFT_TINT }}
         >
           {/* Grid pattern for map feel */}
-          <div className="absolute inset-0 opacity-20" style={{
-            backgroundImage: "linear-gradient(#8B5CF6 1px, transparent 1px), linear-gradient(90deg, #8B5CF6 1px, transparent 1px)",
-            backgroundSize: "20px 20px",
-          }} />
+          <div
+            className="absolute inset-0 opacity-20"
+            style={{
+              backgroundImage: gridPattern,
+              backgroundSize: "20px 20px",
+            }}
+          />
           {/* Pin icon */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-10 h-10 rounded-full gradient-bg flex items-center justify-center shadow-glow">
               <svg width={20} height={20} viewBox="0 0 24 24" fill="none">
                 <path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" fill="white" />
-                <circle cx="12" cy="10" r="3" fill="#8B5CF6" />
+                <circle cx="12" cy="10" r="3" fill={LOCATION_MAP_PIN_COLOR} />
               </svg>
             </div>
           </div>
@@ -131,6 +143,6 @@ export function LocationCard({ lat, lng, isOwn, time, distance = "1.2 km" }: Loc
           <span className="block text-[10px] text-text-muted mt-1 text-right">{time}</span>
         </div>
       </div>
-    </motion.div>
+    </m.div>
   );
 }

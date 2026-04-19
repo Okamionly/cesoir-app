@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { springs, achievementVariants } from "@/lib/motion-design";
 import type { Venue } from "@/lib/venues";
 import { formatDistance, formatPrice } from "@/lib/venues";
@@ -51,7 +51,7 @@ function StarRating({ rating }: { rating: number }) {
 
 function PopulaireBadge() {
   return (
-    <motion.span
+    <m.span
       animate={{
         scale: [1, 1.05, 1],
         transition: { duration: 1.2, repeat: Infinity, ease: "easeInOut" as const },
@@ -59,7 +59,7 @@ function PopulaireBadge() {
       className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-accent/15 text-accent border border-accent/20"
     >
       {"\uD83D\uDD25"} Populaire ce soir
-    </motion.span>
+    </m.span>
   );
 }
 
@@ -105,7 +105,7 @@ export default function VenuePicker({
           const isSelected = selectedId === venue.id;
 
           return (
-            <motion.div
+            <m.div
               key={venue.id}
               custom={i}
               variants={venueCardVariants}
@@ -114,7 +114,7 @@ export default function VenuePicker({
               exit="exit"
               layout
             >
-              <motion.button
+              <m.button
                 onClick={() => onSelect(venue)}
                 className={`w-full text-left rounded-2xl border p-3 transition-colors ${
                   isSelected
@@ -133,7 +133,7 @@ export default function VenuePicker({
               >
                 {/* Glow pulse on selected */}
                 {isSelected && (
-                  <motion.div
+                  <m.div
                     className="absolute inset-0 rounded-2xl pointer-events-none"
                     animate={achievementVariants.glow.pulse}
                   />
@@ -151,14 +151,14 @@ export default function VenuePicker({
                           {venue.name}
                         </h4>
                         {isSelected && (
-                          <motion.span
+                          <m.span
                             variants={checkmarkVariants}
                             initial="hidden"
                             animate="visible"
                             className="w-5 h-5 rounded-full gradient-bg flex items-center justify-center text-white text-[10px] font-bold shrink-0"
                           >
                             {"\u2713"}
-                          </motion.span>
+                          </m.span>
                         )}
                       </div>
                       <p className="text-[11px] text-text-muted mt-0.5">
@@ -182,13 +182,13 @@ export default function VenuePicker({
 
                 {/* Propose button */}
                 {isSelected && (
-                  <motion.div
+                  <m.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={springs.snap}
                     className="mt-3"
                   >
-                    <motion.button
+                    <m.button
                       onClick={(e) => {
                         e.stopPropagation();
                         onPropose(venue);
@@ -199,11 +199,11 @@ export default function VenuePicker({
                       className="w-full py-3 rounded-xl gradient-bg text-white text-[13px] font-bold shadow-glow"
                     >
                       Proposer ce lieu
-                    </motion.button>
-                  </motion.div>
+                    </m.button>
+                  </m.div>
                 )}
-              </motion.button>
-            </motion.div>
+              </m.button>
+            </m.div>
           );
         })}
       </AnimatePresence>

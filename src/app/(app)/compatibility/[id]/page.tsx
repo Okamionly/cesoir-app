@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { calculateCompatibility, type CompatProfile } from "@/lib/compatibility";
@@ -132,7 +132,7 @@ export default function CompatibilityPage({
         {score !== null && !loading && (
           <>
             {/* Score radial */}
-            <motion.div
+            <m.div
               className="relative w-48 h-48 mx-auto mb-8"
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -140,7 +140,7 @@ export default function CompatibilityPage({
             >
               <svg width={192} height={192} viewBox="0 0 192 192" className="absolute inset-0">
                 <circle cx={96} cy={96} r={82} stroke="var(--color-border)" strokeWidth={10} fill="none" />
-                <motion.circle
+                <m.circle
                   cx={96}
                   cy={96}
                   r={82}
@@ -169,9 +169,9 @@ export default function CompatibilityPage({
                   sur 100
                 </div>
               </div>
-            </motion.div>
+            </m.div>
 
-            <motion.p
+            <m.p
               className="text-center text-[15px] text-text-muted mb-8 leading-relaxed"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -181,10 +181,10 @@ export default function CompatibilityPage({
               {score >= 60 && score < 80 && "Belle compatibilité, des intérêts partagés."}
               {score >= 40 && score < 60 && "Compatibilité correcte, un peu à découvrir."}
               {score < 40 && "Peu de modes communs — l'opposé des contraires ?"}
-            </motion.p>
+            </m.p>
 
             {sharedModes.length > 0 && (
-              <motion.div
+              <m.div
                 className="bg-bg-card border border-border rounded-2xl p-5"
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -209,7 +209,7 @@ export default function CompatibilityPage({
                     );
                   })}
                 </div>
-              </motion.div>
+              </m.div>
             )}
           </>
         )}

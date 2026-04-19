@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { app } from "@/lib/design-tokens";
 
 // ─────────────────────────────────────────
@@ -56,7 +56,7 @@ export default function MusicEqualizer({
       aria-label="Equalizer musical"
     >
       {Array.from({ length: clampedBars }).map((_, i) => (
-        <motion.div
+        <m.div
           key={i}
           className="rounded-full"
           style={{

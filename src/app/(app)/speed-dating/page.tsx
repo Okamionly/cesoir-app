@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence, type Variants } from "motion/react";
+import { m, AnimatePresence, type Variants } from "motion/react";
 import { springs, easings } from "@/lib/motion-design";
 import PageHeader from "@/components/ui/PageHeader";
 import { X, Heart } from "@/components/ui/lucide";
@@ -261,7 +261,7 @@ export default function SpeedDatingPage() {
       <AnimatePresence mode="wait">
         {/* ═══ LOBBY ═══ */}
         {phase === "lobby" && (
-          <motion.div
+          <m.div
             key="lobby"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -271,7 +271,7 @@ export default function SpeedDatingPage() {
             {/* Waiting circle */}
             <div className="relative w-40 h-40 mb-8">
               {/* Outer pulse */}
-              <motion.div
+              <m.div
                 className="absolute inset-0 rounded-full border-2 border-accent/30"
                 animate={{
                   scale: [1, 1.15, 1],
@@ -281,14 +281,14 @@ export default function SpeedDatingPage() {
               />
               {/* Inner circle */}
               <div className="absolute inset-4 rounded-full bg-card border border-border flex flex-col items-center justify-center">
-                <motion.span
+                <m.span
                   key={lobbyCount}
                   initial={{ scale: 1.4, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   className="text-3xl font-display font-bold text-accent tabular-nums"
                 >
                   {lobbyCount}
-                </motion.span>
+                </m.span>
                 <span className="text-[10px] text-text-muted mt-0.5">secondes</span>
               </div>
 
@@ -298,7 +298,7 @@ export default function SpeedDatingPage() {
                 const x = Math.cos(angle) * 65 + 80;
                 const y = Math.sin(angle) * 65 + 80;
                 return (
-                  <motion.div
+                  <m.div
                     key={i}
                     initial={{ scale: 0, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
@@ -313,7 +313,7 @@ export default function SpeedDatingPage() {
                       height={32}
                       className="w-full h-full object-cover"
                     />
-                  </motion.div>
+                  </m.div>
                 );
               })}
             </div>
@@ -327,12 +327,12 @@ export default function SpeedDatingPage() {
             <p className="text-xs text-accent mt-3 font-medium">
               5 rounds de 5 minutes chacun
             </p>
-          </motion.div>
+          </m.div>
         )}
 
         {/* ═══ ROUND ═══ */}
         {phase === "round" && partner && (
-          <motion.div
+          <m.div
             key={`round-${currentRound}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -341,7 +341,7 @@ export default function SpeedDatingPage() {
           >
             {/* Big timer */}
             <div className="flex flex-col items-center mb-6">
-              <motion.div
+              <m.div
                 className={`text-4xl font-display font-bold tabular-nums ${
                   timerUrgent ? "text-red-400" : "text-text"
                 }`}
@@ -349,10 +349,10 @@ export default function SpeedDatingPage() {
                 transition={timerUrgent ? { duration: 1, repeat: Infinity } : {}}
               >
                 {formatTimer(timer)}
-              </motion.div>
+              </m.div>
               {/* Progress bar */}
               <div className="w-full max-w-xs h-1.5 bg-border rounded-full mt-2 overflow-hidden">
-                <motion.div
+                <m.div
                   className={`h-full rounded-full ${timerUrgent ? "bg-red-400" : "gradient-bg"}`}
                   style={{ width: `${timerPct * 100}%` }}
                   transition={{ duration: 0.5 }}
@@ -368,7 +368,7 @@ export default function SpeedDatingPage() {
 
             {/* Partner card */}
             <AnimatePresence mode="wait">
-              <motion.div
+              <m.div
                 key={partner.id}
                 variants={partnerCardVariants}
                 initial="enter"
@@ -407,7 +407,7 @@ export default function SpeedDatingPage() {
                   </p>
                   <div className="space-y-2.5">
                     {partner.starters.map((starter, i) => (
-                      <motion.div
+                      <m.div
                         key={i}
                         custom={i}
                         variants={starterVariants}
@@ -419,18 +419,18 @@ export default function SpeedDatingPage() {
                           {i + 1}
                         </span>
                         <p className="text-xs text-text leading-relaxed">{starter}</p>
-                      </motion.div>
+                      </m.div>
                     ))}
                   </div>
                 </div>
-              </motion.div>
+              </m.div>
             </AnimatePresence>
-          </motion.div>
+          </m.div>
         )}
 
         {/* ═══ VOTE ═══ */}
         {phase === "vote" && partner && (
-          <motion.div
+          <m.div
             key={`vote-${currentRound}`}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -438,14 +438,14 @@ export default function SpeedDatingPage() {
             transition={springs.heavy}
             className="px-5 pt-10 flex flex-col items-center"
           >
-            <motion.div
+            <m.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={springs.elastic}
               className="relative w-20 h-20 rounded-full overflow-hidden border-3 border-accent/30 mb-4"
             >
               <Image src={partner.photo} alt={partner.name} fill sizes="80px" className="object-cover" />
-            </motion.div>
+            </m.div>
 
             <h2 className="text-lg font-display font-bold text-text">
               Qu'as-tu pense de {partner.name} ?
@@ -456,7 +456,7 @@ export default function SpeedDatingPage() {
 
             <div className="flex gap-4 mt-8">
               {/* Pass */}
-              <motion.button
+              <m.button
                 onClick={() => handleVote(false)}
                 whileHover={{ scale: 1.08 }}
                 whileTap={{ scale: 0.88 }}
@@ -464,10 +464,10 @@ export default function SpeedDatingPage() {
                 aria-label="Passer"
               >
                 <X size={28} strokeWidth={2.5} className="text-text-muted" aria-hidden="true" />
-              </motion.button>
+              </m.button>
 
               {/* Like */}
-              <motion.button
+              <m.button
                 onClick={() => handleVote(true)}
                 whileHover={{ scale: 1.08, boxShadow: "0 0 30px color-mix(in srgb, var(--color-danger) 40%, transparent)" }}
                 whileTap={{ scale: 0.88 }}
@@ -475,14 +475,14 @@ export default function SpeedDatingPage() {
                 aria-label="Like"
               >
                 <Heart size={28} color="white" fill="white" strokeWidth={0} aria-hidden="true" />
-              </motion.button>
+              </m.button>
             </div>
-          </motion.div>
+          </m.div>
         )}
 
         {/* ═══ RESULTS ═══ */}
         {phase === "results" && (
-          <motion.div
+          <m.div
             key="results"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -490,7 +490,7 @@ export default function SpeedDatingPage() {
           >
             {/* Summary */}
             <div className="text-center mb-8">
-              <motion.div
+              <m.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={springs.elastic}
@@ -498,7 +498,7 @@ export default function SpeedDatingPage() {
                 aria-hidden="true"
               >
                 {mutualMatches.length > 0 ? "\uD83C\uDF89" : "\uD83D\uDC9C"}
-              </motion.div>
+              </m.div>
               <h2 className="text-xl font-display font-bold text-text">
                 {mutualMatches.length > 0
                   ? `${mutualMatches.length} match${mutualMatches.length > 1 ? "s" : ""} mutuel${mutualMatches.length > 1 ? "s" : ""} !`
@@ -517,9 +517,9 @@ export default function SpeedDatingPage() {
                 <p className="text-[10px] text-text-muted uppercase tracking-wider font-semibold">
                   Matchs mutuels
                 </p>
-                {mutualMatches.map((m, i) => (
-                  <motion.div
-                    key={m.id}
+                {mutualMatches.map((match, i) => (
+                  <m.div
+                    key={match.id}
                     custom={i}
                     variants={resultVariants}
                     initial="hidden"
@@ -528,13 +528,13 @@ export default function SpeedDatingPage() {
                   >
                     <div className="relative">
                       <Image
-                        src={m.photo}
-                        alt={m.name}
+                        src={match.photo}
+                        alt={match.name}
                         width={48}
                         height={48}
                         className="w-12 h-12 rounded-full object-cover"
                       />
-                      <motion.div
+                      <m.div
                         className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full gradient-bg flex items-center justify-center"
                         animate={{
                           scale: [1, 1.2, 1],
@@ -547,20 +547,20 @@ export default function SpeedDatingPage() {
                         transition={{ duration: 1.5, repeat: Infinity }}
                       >
                         <Heart size={10} color="white" fill="white" strokeWidth={0} aria-hidden="true" />
-                      </motion.div>
+                      </m.div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-text">{m.name}, {m.age}</p>
-                      <p className="text-xs text-text-muted truncate">{m.bio}</p>
+                      <p className="text-sm font-bold text-text">{match.name}, {match.age}</p>
+                      <p className="text-xs text-text-muted truncate">{match.bio}</p>
                     </div>
-                    <motion.button
+                    <m.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.92 }}
                       className="px-3 py-1.5 rounded-full gradient-bg text-white text-[11px] font-bold shadow-glow"
                     >
                       Discuter
-                    </motion.button>
-                  </motion.div>
+                    </m.button>
+                  </m.div>
                 ))}
               </div>
             )}
@@ -574,7 +574,7 @@ export default function SpeedDatingPage() {
                 const result = results.find((r) => r.partnerId === p.id);
                 const isMutual = result?.liked && MUTUAL_LIKE_IDS.has(p.id);
                 return (
-                  <motion.div
+                  <m.div
                     key={p.id}
                     custom={i + mutualMatches.length}
                     variants={resultVariants}
@@ -599,21 +599,21 @@ export default function SpeedDatingPage() {
                         <span className="text-text-muted">Pass</span>
                       )}
                     </span>
-                  </motion.div>
+                  </m.div>
                 );
               })}
             </div>
 
             {/* Restart */}
-            <motion.button
+            <m.button
               onClick={resetAll}
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               className="w-full py-3 rounded-full gradient-bg text-white text-sm font-bold shadow-glow"
             >
               Nouvelle session
-            </motion.button>
-          </motion.div>
+            </m.button>
+          </m.div>
         )}
       </AnimatePresence>
     </div>

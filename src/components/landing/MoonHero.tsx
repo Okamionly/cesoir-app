@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { m } from "motion/react";
 
 /**
  * MoonHero — crescent moon SVG with violet glow, craters, and slow float.
@@ -8,7 +8,7 @@ import { motion } from "motion/react";
  */
 export default function MoonHero({ size = 220 }: { size?: number }) {
   return (
-    <motion.div
+    <m.div
       className="relative"
       style={{ width: size, height: size }}
       animate={{
@@ -99,30 +99,30 @@ export default function MoonHero({ size = 220 }: { size?: number }) {
       </svg>
 
       {/* Tiny sparkle/star particles around moon */}
-      <motion.div
+      <m.div
         className="absolute top-[10%] right-[5%] w-1 h-1 rounded-full bg-[#00FF88]"
         style={{ boxShadow: "0 0 8px #00FF88" }}
         animate={{ opacity: [0, 1, 0], scale: [0.5, 1.2, 0.5] }}
         transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
       />
-      <motion.div
+      <m.div
         className="absolute top-[75%] left-[8%] w-1 h-1 rounded-full bg-[#EC4899]"
         style={{ boxShadow: "0 0 8px #EC4899" }}
         animate={{ opacity: [0, 1, 0], scale: [0.5, 1.2, 0.5] }}
         transition={{ duration: 4, repeat: Infinity, delay: 1.5 }}
       />
-      <motion.div
+      <m.div
         className="absolute top-[25%] left-[-5%] w-1 h-1 rounded-full bg-[#8B5CF6]"
         style={{ boxShadow: "0 0 8px #8B5CF6" }}
         animate={{ opacity: [0, 1, 0], scale: [0.5, 1.2, 0.5] }}
         transition={{ duration: 3.5, repeat: Infinity, delay: 2.2 }}
       />
-      <motion.div
+      <m.div
         className="absolute top-[60%] right-[-5%] w-[3px] h-[3px] rounded-full bg-white"
         style={{ boxShadow: "0 0 10px white" }}
         animate={{ opacity: [0, 0.8, 0], scale: [0.5, 1.3, 0.5] }}
         transition={{ duration: 5, repeat: Infinity, delay: 0.8 }}
       />
-    </motion.div>
+    </m.div>
   );
 }

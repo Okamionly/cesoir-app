@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { springs } from "@/lib/motion-design";
 
 export interface FilterTab<T extends string = string> {
@@ -49,7 +49,7 @@ export default function FilterTabs<T extends string = string>({
       {tabs.map((tab) => {
         const isActive = tab.id === active;
         return (
-          <motion.button
+          <m.button
             key={tab.id}
             type="button"
             role="tab"
@@ -77,7 +77,7 @@ export default function FilterTabs<T extends string = string>({
                 {tab.count}
               </span>
             )}
-          </motion.button>
+          </m.button>
         );
       })}
     </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { motion, AnimatePresence, type Variants } from "motion/react";
+import { m, AnimatePresence, type Variants } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import { useToast } from "@/components/ui/Toast";
 import { useRoses } from "@/lib/useRoses";
@@ -88,26 +88,26 @@ export default function ShopPage() {
         }
       />
 
-      <motion.div
+      <m.div
         className="px-5 pt-6 space-y-8"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
         {/* ═══ Balance card ═══ */}
-        <motion.div
+        <m.div
           variants={itemVariants}
           className="relative overflow-hidden rounded-2xl border border-accent/20 p-5"
           style={{ background: `linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 10%, transparent), color-mix(in srgb, ${appTokens.rose} 8%, transparent))` }}
         >
-          <motion.span
+          <m.span
             variants={floatVariants}
             animate="idle"
             className="absolute top-3 right-4 text-3xl opacity-20"
             aria-hidden="true"
           >
             🌹
-          </motion.span>
+          </m.span>
           <div className="flex items-center gap-4">
             <div className="w-14 h-14 rounded-2xl gradient-bg flex items-center justify-center">
               <span className="text-2xl">🌹</span>
@@ -121,28 +121,28 @@ export default function ShopPage() {
               </p>
             </div>
           </div>
-        </motion.div>
+        </m.div>
 
         {/* ═══ Error ═══ */}
         <AnimatePresence>
           {purchasesError && (
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs"
             >
               {purchasesError}
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
 
         {/* ═══ Roses section ═══ */}
         <div>
-          <motion.div variants={itemVariants} className="flex items-center gap-2 mb-3">
+          <m.div variants={itemVariants} className="flex items-center gap-2 mb-3">
             <span className="text-base" aria-hidden="true">🌹</span>
             <h2 className="text-sm font-display font-bold text-text">Acheter des Roses</h2>
-          </motion.div>
+          </m.div>
           <p className="text-xs text-text-muted mb-4">
             Like les Standouts, envoie des FlashNotes, like les profils tendance
           </p>
@@ -162,10 +162,10 @@ export default function ShopPage() {
 
         {/* ═══ Boosts section ═══ */}
         <div>
-          <motion.div variants={itemVariants} className="flex items-center gap-2 mb-3">
+          <m.div variants={itemVariants} className="flex items-center gap-2 mb-3">
             <span className="text-base" aria-hidden="true">⚡</span>
             <h2 className="text-sm font-display font-bold text-text">Acheter des Boosts</h2>
-          </motion.div>
+          </m.div>
           <p className="text-xs text-text-muted mb-4">
             30 minutes de visibilite maximale sur ton profil
           </p>
@@ -184,9 +184,9 @@ export default function ShopPage() {
         </div>
 
         {/* ═══ Premium card ═══ */}
-        <motion.div variants={itemVariants}>
+        <m.div variants={itemVariants}>
           <Link href="/premium">
-            <motion.div
+            <m.div
               whileHover={{ y: -3, boxShadow: "0 12px 30px color-mix(in srgb, var(--color-accent) 20%, transparent)" }}
               whileTap={{ scale: 0.98 }}
               className="relative overflow-hidden rounded-2xl border border-accent/30 p-5"
@@ -195,7 +195,7 @@ export default function ShopPage() {
                   `linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 12%, transparent), color-mix(in srgb, ${appTokens.purple} 8%, transparent), color-mix(in srgb, ${appTokens.rose} 6%, transparent))`,
               }}
             >
-              <motion.div
+              <m.div
                 className="absolute -top-10 -right-10 w-32 h-32 rounded-full"
                 style={{ background: "radial-gradient(circle, color-mix(in srgb, var(--color-accent) 15%, transparent), transparent 70%)" }}
                 animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3] }}
@@ -208,14 +208,14 @@ export default function ShopPage() {
                 <div className="flex-1">
                   <div className="flex items-center gap-1.5">
                     <h3 className="text-sm font-display font-bold text-text">CeSoir Premium</h3>
-                    <motion.span
+                    <m.span
                       animate={{ rotate: [0, -5, 5, -3, 0] }}
                       transition={{ duration: 2, repeat: Infinity }}
                       className="text-xs"
                       aria-hidden="true"
                     >
                       👑
-                    </motion.span>
+                    </m.span>
                   </div>
                   <p className="text-xs text-text-muted mt-0.5">
                     {isPremium
@@ -228,12 +228,12 @@ export default function ShopPage() {
                 </div>
                 <ChevronRight size={20} strokeWidth={2} className="text-accent shrink-0" aria-hidden="true" />
               </div>
-            </motion.div>
+            </m.div>
           </Link>
-        </motion.div>
+        </m.div>
 
         {/* ═══ How Roses work ═══ */}
-        <motion.div variants={itemVariants} className="pb-4">
+        <m.div variants={itemVariants} className="pb-4">
           <h3 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">
             Comment fonctionnent les Roses ?
           </h3>
@@ -243,7 +243,7 @@ export default function ShopPage() {
               { icon: "📝", title: "Envoie une FlashNote", desc: "Un message personnalise qui se demarque" },
               { icon: "🔥", title: "Like un profil tendance", desc: "Distingue-toi parmi les profils populaires" },
             ].map((item, i) => (
-              <motion.div
+              <m.div
                 key={i}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -255,11 +255,11 @@ export default function ShopPage() {
                   <p className="text-xs font-semibold text-text">{item.title}</p>
                   <p className="text-[10px] text-text-muted">{item.desc}</p>
                 </div>
-              </motion.div>
+              </m.div>
             ))}
           </div>
-        </motion.div>
-      </motion.div>
+        </m.div>
+      </m.div>
     </div>
   );
 }
@@ -281,7 +281,7 @@ function PackCard({
 }) {
   const badge = pack.bestValue ? "Meilleur prix" : pack.popular ? "Populaire" : null;
   return (
-    <motion.div
+    <m.div
       variants={itemVariants}
       className={`relative flex items-center gap-4 p-4 rounded-2xl border transition-all ${
         buying ? "border-accent bg-accent/5 scale-[0.98]" : "border-border bg-card hover:border-accent/20"
@@ -298,20 +298,20 @@ function PackCard({
           </span>
         </div>
       )}
-      <motion.div
+      <m.div
         className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl border ${iconBg}`}
         animate={buying ? { rotate: [0, -10, 10, -5, 5, 0], scale: [1, 1.2, 1] } : {}}
         transition={{ duration: 0.6 }}
       >
         {pack.icon}
-      </motion.div>
+      </m.div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-bold text-text">{pack.name}</p>
         <p className="text-xs text-text-muted">
           {pack.quantity} {pack.productType === "roses" ? "Roses" : "Boosts"}
         </p>
       </div>
-      <motion.button
+      <m.button
         onClick={onBuy}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.92 }}
@@ -320,17 +320,17 @@ function PackCard({
         aria-label={`Acheter ${pack.name} pour ${formatPrice(pack.amountCents, pack.currency)}`}
       >
         {buying ? (
-          <motion.span
+          <m.span
             animate={{ rotate: 360 }}
             transition={{ duration: 0.6, repeat: Infinity, ease: "linear" }}
             className="inline-block"
           >
             ✨
-          </motion.span>
+          </m.span>
         ) : (
           formatPrice(pack.amountCents, pack.currency)
         )}
-      </motion.button>
-    </motion.div>
+      </m.button>
+    </m.div>
   );
 }

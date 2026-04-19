@@ -1,12 +1,12 @@
 "use client";
 
-import { motion } from "motion/react";
+import { m } from "motion/react";
 
 export default function PageLoader() {
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-24">
       {/* Spinning moon */}
-      <motion.span
+      <m.span
         animate={{ rotate: 360 }}
         transition={{
           duration: 1.5,
@@ -21,10 +21,10 @@ export default function PageLoader() {
         }}
       >
         &#9790;
-      </motion.span>
+      </m.span>
 
       {/* Bouncing text */}
-      <motion.span
+      <m.span
         animate={{ y: [0, -4, 0] }}
         transition={{
           duration: 1.2,
@@ -34,7 +34,7 @@ export default function PageLoader() {
         className="text-sm font-medium text-text-muted"
       >
         Chargement...
-      </motion.span>
+      </m.span>
     </div>
   );
 }

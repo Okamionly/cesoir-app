@@ -13,9 +13,15 @@
 // with elastic delay, tags bounce in with snap.
 
 import { useState, useCallback, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import {
+  WEMET_STAR_ACTIVE,
+  WEMET_STAR_INACTIVE,
+  WEMET_STAR_GLOW_ZERO,
+  WEMET_STAR_GLOW_PEAK,
+} from "@/lib/chat-content-colors";
 
 // ─────────────────────────────────────────
 // Springs — unique to this component
@@ -157,7 +163,7 @@ export default function WeMetFeedback({
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
+        <m.div
           className="fixed inset-0 z-[95] flex items-end justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -168,7 +174,7 @@ export default function WeMetFeedback({
           aria-modal="true"
         >
           {/* Backdrop */}
-          <motion.div
+          <m.div
             className="absolute inset-0 bg-black/60"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -177,7 +183,7 @@ export default function WeMetFeedback({
           />
 
           {/* Sheet */}
-          <motion.div
+          <m.div
             className="relative bg-bg rounded-t-3xl border-t border-border w-full max-w-lg pb-8 pt-3 shadow-xl"
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
@@ -192,7 +198,7 @@ export default function WeMetFeedback({
             <div className="px-6">
               {/* Phase: Question */}
               {phase === "question" && (
-                <motion.div
+                <m.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={weMetSprings.confirm}
@@ -205,27 +211,27 @@ export default function WeMetFeedback({
                   </p>
 
                   <div className="flex gap-3">
-                    <motion.button
+                    <m.button
                       onClick={() => setPhase("rating")}
                       className="flex-1 py-3.5 rounded-2xl bg-accent/10 border border-accent/20 text-accent font-bold text-[15px]"
                       whileTap={{ scale: 0.95, transition: weMetSprings.tagBounce }}
                     >
                       Oui
-                    </motion.button>
-                    <motion.button
+                    </m.button>
+                    <m.button
                       onClick={handleNo}
                       className="flex-1 py-3.5 rounded-2xl bg-border/50 border border-border text-text-muted font-bold text-[15px]"
                       whileTap={{ scale: 0.95, transition: weMetSprings.tagBounce }}
                     >
                       Non
-                    </motion.button>
+                    </m.button>
                   </div>
-                </motion.div>
+                </m.div>
               )}
 
               {/* Phase: Rating */}
               {phase === "rating" && (
-                <motion.div
+                <m.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={weMetSprings.confirm}
@@ -240,7 +246,7 @@ export default function WeMetFeedback({
                   {/* Stars */}
                   <div className="flex items-center justify-center gap-2 mb-6">
                     {[1, 2, 3, 4, 5].map((star) => (
-                      <motion.button
+                      <m.button
                         key={star}
                         onClick={() => setRating(star)}
                         onMouseEnter={() => setHoveredStar(star)}
@@ -265,13 +271,13 @@ export default function WeMetFeedback({
                           viewBox="0 0 24 24"
                           fill={
                             star <= (hoveredStar || rating)
-                              ? "#8B5CF6"
+                              ? WEMET_STAR_ACTIVE
                               : "none"
                           }
                           stroke={
                             star <= (hoveredStar || rating)
-                              ? "#8B5CF6"
-                              : "#555"
+                              ? WEMET_STAR_ACTIVE
+                              : WEMET_STAR_INACTIVE
                           }
                           strokeWidth="1.5"
                           className="transition-colors duration-150"
@@ -281,14 +287,14 @@ export default function WeMetFeedback({
 
                         {/* Glow ring on selected */}
                         {star <= rating && (
-                          <motion.div
+                          <m.div
                             className="absolute inset-0 rounded-full"
-                            initial={{ boxShadow: "0 0 0px rgba(139,92,246,0)" }}
+                            initial={{ boxShadow: WEMET_STAR_GLOW_ZERO }}
                             animate={{
                               boxShadow: [
-                                "0 0 0px rgba(139,92,246,0)",
-                                "0 0 12px rgba(139,92,246,0.4)",
-                                "0 0 0px rgba(139,92,246,0)",
+                                WEMET_STAR_GLOW_ZERO,
+                                WEMET_STAR_GLOW_PEAK,
+                                WEMET_STAR_GLOW_ZERO,
                               ],
                             }}
                             transition={{
@@ -298,14 +304,14 @@ export default function WeMetFeedback({
                             }}
                           />
                         )}
-                      </motion.button>
+                      </m.button>
                     ))}
                   </div>
 
                   {/* Tags */}
                   <div className="flex flex-wrap gap-2 justify-center mb-6">
                     {TAG_OPTIONS.map((tag, i) => (
-                      <motion.button
+                      <m.button
                         key={tag.id}
                         onClick={() => toggleTag(tag.id)}
                         className={`px-4 py-2 rounded-full text-[13px] font-semibold border transition-colors ${
@@ -323,12 +329,12 @@ export default function WeMetFeedback({
                       >
                         <span className="mr-1">{tag.emoji}</span>
                         {tag.label}
-                      </motion.button>
+                      </m.button>
                     ))}
                   </div>
 
                   {/* Submit */}
-                  <motion.button
+                  <m.button
                     onClick={handleSubmit}
                     disabled={rating === 0 || saving}
                     className={`w-full py-3.5 rounded-2xl font-bold text-[15px] transition-all ${
@@ -342,19 +348,19 @@ export default function WeMetFeedback({
                     transition={{ ...weMetSprings.confirm, delay: 0.6 }}
                   >
                     {saving ? "Envoi..." : "Envoyer"}
-                  </motion.button>
-                </motion.div>
+                  </m.button>
+                </m.div>
               )}
 
               {/* Phase: Thanks */}
               {phase === "thanks" && (
-                <motion.div
+                <m.div
                   className="text-center py-6"
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={weMetSprings.starPop}
                 >
-                  <motion.div
+                  <m.div
                     className="text-[48px] mb-3"
                     animate={{
                       scale: [1, 1.3, 0.95, 1.1, 1],
@@ -363,17 +369,17 @@ export default function WeMetFeedback({
                     transition={{ duration: 0.6, times: [0, 0.2, 0.4, 0.7, 1] }}
                   >
                     {rating >= 4 ? "\u2728" : rating >= 2 ? "\uD83D\uDE4F" : "\uD83D\uDC99"}
-                  </motion.div>
+                  </m.div>
                   <h2 className="text-[17px] font-bold text-text mb-1">Merci !</h2>
                   <p className="text-[13px] text-text-muted">
                     Votre retour aide a ameliorer les suggestions
                   </p>
-                </motion.div>
+                </m.div>
               )}
 
               {/* Phase: Declined */}
               {phase === "declined" && (
-                <motion.div
+                <m.div
                   className="text-center py-6"
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -386,11 +392,11 @@ export default function WeMetFeedback({
                   <p className="text-[13px] text-text-muted">
                     La prochaine sera la bonne !
                   </p>
-                </motion.div>
+                </m.div>
               )}
             </div>
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       )}
     </AnimatePresence>
   );

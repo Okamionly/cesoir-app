@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import { getTrustTierStyle } from "@/lib/trust-colors";
 
@@ -25,7 +25,7 @@ export default function TrustBadge({ trustScore, isVerified = false, compact = f
   const tier = getTrustTierStyle(trustScore);
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={springs.snap}
@@ -59,7 +59,7 @@ export default function TrustBadge({ trustScore, isVerified = false, compact = f
 
       {/* Verified checkmark */}
       {isVerified && (
-        <motion.svg
+        <m.svg
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={springs.elastic}
@@ -77,8 +77,8 @@ export default function TrustBadge({ trustScore, isVerified = false, compact = f
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-        </motion.svg>
+        </m.svg>
       )}
-    </motion.div>
+    </m.div>
   );
 }

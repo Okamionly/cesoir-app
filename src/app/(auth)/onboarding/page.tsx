@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { MODES, MODE_KEYS, type ModeKey } from "@/lib/modes";
@@ -116,7 +116,7 @@ export default function OnboardingPage() {
       {/* Progress bar */}
       <div className="px-5 pt-3">
         <div className="h-1 w-full rounded-full bg-border overflow-hidden">
-          <motion.div
+          <m.div
             className="h-full rounded-full origin-left"
             initial={{ scaleX: 0 }}
             animate={{ scaleX: (screen + 1) / 4 }}
@@ -147,7 +147,7 @@ export default function OnboardingPage() {
         <AnimatePresence mode="wait" custom={direction}>
           {/* ─── Screen 0: Choose Modes (orbit-float elastic stagger) ─── */}
           {screen === 0 && (
-            <motion.div
+            <m.div
               key="screen0"
               variants={stepTransition}
               initial="enter"
@@ -155,22 +155,22 @@ export default function OnboardingPage() {
               exit="exit"
               className="w-full max-w-sm text-center"
             >
-              <motion.p
+              <m.p
                 className="text-[11px] text-accent font-semibold uppercase tracking-wider mb-4"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ ...springs.gentle, delay: 0.15 }}
               >
                 14 facons de sortir ce soir
-              </motion.p>
-              <motion.h1
+              </m.p>
+              <m.h1
                 className="text-[22px] font-black text-text mb-6"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ ...springs.elastic, delay: 0.1 }}
               >
                 Choisis ton mode
-              </motion.h1>
+              </m.h1>
 
               <div className="grid grid-cols-3 gap-2" role="group" aria-label="Selection des modes">
                 {POPULAR_MODES.map((key, i) => {
@@ -182,7 +182,7 @@ export default function OnboardingPage() {
                   const orbitX = Math.cos(angle) * 60;
                   const orbitY = Math.sin(angle) * 40;
                   return (
-                    <motion.button
+                    <m.button
                       key={key}
                       type="button"
                       onClick={() => toggleMode(key)}
@@ -203,16 +203,16 @@ export default function OnboardingPage() {
                       <span className={`text-[10px] font-medium ${on ? "text-accent" : "text-text-muted"}`}>
                         {mode.name}
                       </span>
-                    </motion.button>
+                    </m.button>
                   );
                 })}
               </div>
-            </motion.div>
+            </m.div>
           )}
 
           {/* ─── Screen 1: Availability / Clock (form fields alternate sides) ─── */}
           {screen === 1 && (
-            <motion.div
+            <m.div
               key="screen1"
               variants={stepTransition}
               initial="enter"
@@ -221,50 +221,50 @@ export default function OnboardingPage() {
               className="w-full max-w-sm text-center"
             >
               {/* Clock animation */}
-              <motion.div
+              <m.div
                 className="w-24 h-24 mx-auto mb-6 rounded-full border-2 border-accent/30 flex items-center justify-center relative"
                 initial={{ scale: 0, rotate: -90 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ ...springs.elastic, delay: 0.2 }}
               >
                 <div className="absolute w-[2px] h-8 bg-accent rounded-full origin-bottom" style={{ bottom: "50%", left: "calc(50% - 1px)" }}>
-                  <motion.div
+                  <m.div
                     className="w-full h-full bg-accent rounded-full origin-bottom"
                     animate={{ rotate: 360 }}
                     transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
                   />
                 </div>
                 <div className="absolute w-[2px] h-5 bg-text-muted rounded-full origin-bottom" style={{ bottom: "50%", left: "calc(50% - 1px)" }}>
-                  <motion.div
+                  <m.div
                     className="w-full h-full bg-text-muted rounded-full origin-bottom"
                     animate={{ rotate: 360 }}
                     transition={{ repeat: Infinity, duration: 12, ease: "linear" }}
                   />
                 </div>
                 <span className="text-[28px] text-accent font-bold">17h</span>
-              </motion.div>
+              </m.div>
 
               {/* Title slides from left */}
-              <motion.h1
+              <m.h1
                 className="text-[22px] font-black text-text mb-2"
                 initial={{ opacity: 0, x: -40 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ ...springs.heavy, delay: 0.3 }}
               >
                 Dispo ce soir ?
-              </motion.h1>
+              </m.h1>
               {/* Subtitle slides from right */}
-              <motion.p
+              <m.p
                 className="text-[14px] text-text-muted mb-8"
                 initial={{ opacity: 0, x: 40 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ ...springs.heavy, delay: 0.4 }}
               >
                 Confirme ta dispo chaque soir a 17h
-              </motion.p>
+              </m.p>
 
               {/* Toggle slides from left */}
-              <motion.button
+              <m.button
                 onClick={() => setReminders(!reminders)}
                 className={`flex items-center gap-3 mx-auto px-6 py-3 rounded-full border transition-colors tap-target ${
                   reminders ? "border-accent bg-accent/10" : "border-border"
@@ -274,7 +274,7 @@ export default function OnboardingPage() {
                 transition={{ ...springs.heavy, delay: 0.5 }}
               >
                 <div className={`w-10 h-6 rounded-full p-0.5 transition-colors ${reminders ? "bg-accent" : "bg-border"}`}>
-                  <motion.div
+                  <m.div
                     className="w-5 h-5 rounded-full bg-white shadow"
                     animate={{ x: reminders ? 16 : 0 }}
                     transition={springs.snap}
@@ -283,13 +283,13 @@ export default function OnboardingPage() {
                 <span className={`text-[13px] font-semibold ${reminders ? "text-accent" : "text-text-muted"}`}>
                   Activer les rappels
                 </span>
-              </motion.button>
-            </motion.div>
+              </m.button>
+            </m.div>
           )}
 
           {/* ─── Screen 2: Verify Profile (ambient breathe on icon) ─── */}
           {screen === 2 && (
-            <motion.div
+            <m.div
               key="screen2"
               variants={stepTransition}
               initial="enter"
@@ -298,40 +298,40 @@ export default function OnboardingPage() {
               className="w-full max-w-sm text-center"
             >
               {/* Camera icon with ambient breathe pulse */}
-              <motion.div
+              <m.div
                 className="w-24 h-24 mx-auto mb-6 rounded-full gradient-bg flex items-center justify-center shadow-glow"
                 initial={{ scale: 0, rotate: -180 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ ...springs.cinematic, delay: 0.2 }}
               >
-                <motion.div
+                <m.div
                   animate={ambient.breathe(3)}
                 >
                   <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" aria-hidden="true">
                     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
                     <circle cx="12" cy="13" r="4" />
                   </svg>
-                </motion.div>
-              </motion.div>
+                </m.div>
+              </m.div>
 
-              <motion.h1
+              <m.h1
                 className="text-[22px] font-black text-text mb-2"
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ ...springs.heavy, delay: 0.35 }}
               >
                 Verifie ton profil
-              </motion.h1>
-              <motion.p
+              </m.h1>
+              <m.p
                 className="text-[14px] text-text-muted mb-8"
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ ...springs.heavy, delay: 0.45 }}
               >
                 Un selfie video = confiance x10
-              </motion.p>
+              </m.p>
 
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ ...springs.elastic, delay: 0.55 }}
@@ -342,13 +342,13 @@ export default function OnboardingPage() {
                 >
                   Verifier
                 </Link>
-              </motion.div>
-            </motion.div>
+              </m.div>
+            </m.div>
           )}
 
           {/* ─── Screen 3: Ready / Celebration (scale bounce + confetti entrance) ─── */}
           {screen === 3 && (
-            <motion.div
+            <m.div
               key="screen3"
               variants={stepTransition}
               initial="enter"
@@ -364,7 +364,7 @@ export default function OnboardingPage() {
                 const targetY = Math.sin(angle) * radius;
                 const colors = ["#8B5CF6", "#00FF88", "#EC4899", "#FACC15"];
                 return (
-                  <motion.div
+                  <m.div
                     key={`confetti-${i}`}
                     className="absolute left-1/2 top-1/2 w-2 h-2 rounded-full"
                     style={{ backgroundColor: colors[i % colors.length] }}
@@ -385,7 +385,7 @@ export default function OnboardingPage() {
               })}
 
               {/* Big gradient logo with bounce scale */}
-              <motion.div
+              <m.div
                 className="w-28 h-28 mx-auto mb-6 rounded-full gradient-bg flex items-center justify-center shadow-glow"
                 initial={{ scale: 0 }}
                 animate={{ scale: [0, 1.25, 0.9, 1.08, 1] }}
@@ -396,26 +396,26 @@ export default function OnboardingPage() {
                 }}
               >
                 <span className="text-[48px] text-white">☾</span>
-              </motion.div>
+              </m.div>
 
-              <motion.h1
+              <m.h1
                 className="text-[26px] font-black gradient-text mb-2"
                 initial={{ opacity: 0, y: 20, scale: 0.8 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ ...springs.elastic, delay: 0.4 }}
               >
                 C&apos;est parti
-              </motion.h1>
-              <motion.p
+              </m.h1>
+              <m.p
                 className="text-[14px] text-text-muted mb-8"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6, duration: 0.4 }}
               >
                 Trouve quelqu&apos;un. Ce soir.
-              </motion.p>
+              </m.p>
 
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, y: 20, scale: 0.8 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ ...springs.elastic, delay: 0.7 }}
@@ -428,8 +428,8 @@ export default function OnboardingPage() {
                 >
                   {saving ? "Enregistrement..." : "Explorer"}
                 </button>
-              </motion.div>
-            </motion.div>
+              </m.div>
+            </m.div>
           )}
         </AnimatePresence>
       </div>
@@ -439,7 +439,7 @@ export default function OnboardingPage() {
         {/* Dots */}
         <div className="flex items-center justify-center gap-2 mb-4">
           {[0, 1, 2, 3].map(i => (
-            <motion.button
+            <m.button
               key={i}
               onClick={() => { setDirection(i > screen ? 1 : -1); setScreen(i); }}
               className={`rounded-full tap-target ${
@@ -457,15 +457,15 @@ export default function OnboardingPage() {
         {screen < 3 && (
           <div className="flex gap-3">
             {screen > 0 && (
-              <motion.button
+              <m.button
                 onClick={goPrev}
                 className="flex-1 py-3.5 rounded-full text-[14px] font-medium border border-border text-text-muted tap-target"
                 whileTap={{ scale: 0.9, transition: springs.micro }}
               >
                 Retour
-              </motion.button>
+              </m.button>
             )}
-            <motion.button
+            <m.button
               onClick={goNext}
               className={`${screen > 0 ? "flex-1" : "w-full"} gradient-bg text-white py-3.5 rounded-full text-[14px] font-semibold shadow-glow tap-target`}
               whileHover={{
@@ -476,7 +476,7 @@ export default function OnboardingPage() {
               whileTap={{ scale: 0.95, transition: springs.micro }}
             >
               Suivant
-            </motion.button>
+            </m.button>
           </div>
         )}
       </div>

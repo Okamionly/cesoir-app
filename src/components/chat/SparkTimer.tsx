@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 
 interface SparkTimerProps {
   matchedAt: string; // ISO string
@@ -77,7 +77,7 @@ export default function SparkTimer({ matchedAt, duration = 7200, compact = false
   if (isExpired) {
     return (
       <div className="px-4 py-2 border-b border-border">
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center justify-center gap-2 bg-danger/10 border border-danger/20 rounded-xl px-3 py-2"
@@ -85,7 +85,7 @@ export default function SparkTimer({ matchedAt, duration = 7200, compact = false
           <span className="text-danger text-sm font-semibold" role="alert">
             Match expire — propose un plan !
           </span>
-        </motion.div>
+        </m.div>
       </div>
     );
   }
@@ -100,7 +100,7 @@ export default function SparkTimer({ matchedAt, duration = 7200, compact = false
           pour fixer un plan
         </span>
         <div className="flex-1 h-1.5 bg-border rounded-full overflow-hidden">
-          <motion.div
+          <m.div
             className="h-full rounded-full"
             style={{
               width: `${progress * 100}%`,

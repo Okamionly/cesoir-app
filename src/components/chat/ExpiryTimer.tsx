@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { springs } from "@/lib/motion-design";
 
 // ─────────────────────────────────────────
@@ -77,7 +77,7 @@ function CircularCountdown({
           stroke="rgba(255,255,255,0.06)"
           strokeWidth={stroke}
         />
-        <motion.circle
+        <m.circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
@@ -160,7 +160,7 @@ export default function ExpiryTimer({
   // ── Compact: for chat list ──
   if (compact) {
     return (
-      <motion.span
+      <m.span
         className={`text-[10px] font-semibold ${className}`}
         style={{ color: isExpired ? "var(--color-danger)" : isUrgent ? "var(--color-danger)" : "var(--color-accent)" }}
         animate={isUrgent && !isExpired ? { opacity: [1, 0.4, 1] } : {}}
@@ -168,14 +168,14 @@ export default function ExpiryTimer({
         aria-label={formatCompact(secondsLeft)}
       >
         {formatCompact(secondsLeft)}
-      </motion.span>
+      </m.span>
     );
   }
 
   // ── Expired state ──
   if (isExpired) {
     return (
-      <motion.div
+      <m.div
         className={`flex items-center gap-3 bg-danger/10 border border-danger/20 rounded-xl px-4 py-3 ${className}`}
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -189,13 +189,13 @@ export default function ExpiryTimer({
             Le match a ete dissous
           </p>
         </div>
-      </motion.div>
+      </m.div>
     );
   }
 
   // ── Full timer ──
   return (
-    <motion.div
+    <m.div
       className={`flex items-center gap-3 bg-black border rounded-xl px-4 py-3 ${
         isUrgent ? "border-danger/30" : "border-white/10"
       } ${className}`}
@@ -218,12 +218,12 @@ export default function ExpiryTimer({
 
       {/* Urgency indicator */}
       {isUrgent && (
-        <motion.div
+        <m.div
           className="w-2 h-2 rounded-full bg-danger"
           animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
           transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
         />
       )}
-    </motion.div>
+    </m.div>
   );
 }

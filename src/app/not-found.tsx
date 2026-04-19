@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { springs, ambient } from "@/lib/motion-design";
 
 export default function NotFound() {
@@ -9,15 +9,15 @@ export default function NotFound() {
     <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center px-6 text-center relative overflow-hidden">
       {/* Ambient glow orbs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <motion.div
+        <m.div
           className="absolute w-[400px] h-[400px] rounded-full bg-[#8B5CF6] opacity-20 blur-[120px] -top-20 -right-20"
           animate={ambient.float(8)}
         />
-        <motion.div
+        <m.div
           className="absolute w-[300px] h-[300px] rounded-full bg-[#00FF88] opacity-15 blur-[100px] -bottom-16 -left-20"
           animate={ambient.float(10)}
         />
-        <motion.div
+        <m.div
           className="absolute w-[200px] h-[200px] rounded-full bg-[#8B5CF6] opacity-10 blur-[80px] top-1/2 left-1/4"
           animate={ambient.float(12)}
         />
@@ -26,15 +26,15 @@ export default function NotFound() {
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center">
         {/* Moon floating */}
-        <motion.span
+        <m.span
           className="text-7xl mb-6 drop-shadow-[0_0_40px_rgba(139,92,246,0.5)]"
           animate={ambient.float(6)}
         >
           ☾
-        </motion.span>
+        </m.span>
 
         {/* 404 — scales from 3 with rubber spring */}
-        <motion.h1
+        <m.h1
           className="text-[120px] font-black tracking-tighter leading-none mb-4"
           style={{
             background: "linear-gradient(135deg, #8B5CF6, #00FF88)",
@@ -46,20 +46,20 @@ export default function NotFound() {
           transition={springs.rubber}
         >
           404
-        </motion.h1>
+        </m.h1>
 
         {/* Subtitle */}
-        <motion.p
+        <m.p
           className="text-[16px] sm:text-[18px] text-white/50 font-light mb-10 max-w-xs leading-relaxed"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...springs.heavy, delay: 0.2 }}
         >
           Cette page n&apos;existe pas
-        </motion.p>
+        </m.p>
 
         {/* CTA buttons — staggered entrance */}
-        <motion.div
+        <m.div
           className="flex flex-col items-center gap-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -76,7 +76,7 @@ export default function NotFound() {
             Retourner a l&apos;accueil
           </Link>
 
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ ...springs.gentle, delay: 0.5 }}
@@ -87,8 +87,8 @@ export default function NotFound() {
             >
               Explorer les profils
             </Link>
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       </div>
     </div>
   );

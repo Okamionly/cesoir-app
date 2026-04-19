@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import PageHeader from "@/components/ui/PageHeader";
 
@@ -76,7 +76,7 @@ export default function ProgressPage() {
         slotBelowTitle={
           <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
             {TABS.map((t) => (
-              <motion.button
+              <m.button
                 key={t.key}
                 onClick={() => setTab(t.key)}
                 whileTap={{ scale: 0.92 }}
@@ -88,7 +88,7 @@ export default function ProgressPage() {
               >
                 <span className="mr-1" aria-hidden="true">{t.emoji}</span>
                 {t.label}
-              </motion.button>
+              </m.button>
             ))}
           </div>
         }
@@ -96,7 +96,7 @@ export default function ProgressPage() {
 
       <main className="max-w-lg mx-auto">
         <AnimatePresence mode="wait">
-          <motion.div
+          <m.div
             key={tab}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -108,7 +108,7 @@ export default function ProgressPage() {
             {tab === "leaderboard" && <LeaderboardTab />}
             {tab === "trust" && <TrustTab />}
             {tab === "reviews" && <ReviewsTab />}
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </main>
     </div>

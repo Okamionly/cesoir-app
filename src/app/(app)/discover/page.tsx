@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { discoverVariants, springs, micro } from "@/lib/motion-design";
 import { ModeKey, MODES, MODE_KEYS } from "@/lib/modes";
 import { MOCK_PROFILES, type Profile } from "@/lib/mock-profiles";
@@ -205,7 +205,7 @@ export default function DiscoverPage() {
         titleClassName="text-[20px] font-black tracking-tight"
         rackFocus
         icon={
-          <motion.span
+          <m.span
             className="inline-block w-1.5 h-1.5 rounded-full bg-accent"
             animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.2, 1] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
@@ -213,7 +213,7 @@ export default function DiscoverPage() {
         }
         hairlineVariant="vert-violet"
         actions={
-          <motion.button
+          <m.button
             onClick={() => setShowFilters(!showFilters)}
             className={`relative w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${
               showFilters || activeFilterCount > 0
@@ -225,16 +225,16 @@ export default function DiscoverPage() {
           >
             <IconFilter size={18} />
             {activeFilterCount > 0 && (
-              <motion.span
+              <m.span
                 className="absolute -top-1 -right-1 w-[18px] h-[18px] rounded-full gradient-bg text-white text-[10px] font-bold flex items-center justify-center"
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={springs.elastic}
               >
                 {activeFilterCount}
-              </motion.span>
+              </m.span>
             )}
-          </motion.button>
+          </m.button>
         }
         slotBelowTitle={
           <div className="space-y-0">
@@ -261,7 +261,7 @@ export default function DiscoverPage() {
             {/* Filter panel (collapsible) */}
             <AnimatePresence>
               {showFilters && (
-                <motion.div
+                <m.div
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
@@ -271,7 +271,7 @@ export default function DiscoverPage() {
                   <div className="px-5 py-3 space-y-3">
                     <FilterSection label="Mode">
                       <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                        <motion.button
+                        <m.button
                           variants={discoverVariants.filterChip}
                           custom={0}
                           initial="hidden"
@@ -284,11 +284,11 @@ export default function DiscoverPage() {
                           }`}
                         >
                           Tous
-                        </motion.button>
+                        </m.button>
                         {MODE_KEYS.map((k, i) => {
                           const Icon = MODE_ICONS[k];
                           return (
-                            <motion.button
+                            <m.button
                               key={k}
                               variants={discoverVariants.filterChip}
                               custom={i + 1}
@@ -303,7 +303,7 @@ export default function DiscoverPage() {
                             >
                               {Icon && <Icon size={12} />}
                               {MODES[k].name}
-                            </motion.button>
+                            </m.button>
                           );
                         })}
                       </div>
@@ -312,7 +312,7 @@ export default function DiscoverPage() {
                     <FilterSection label="Distance">
                       <div className="flex gap-2">
                         {DISTANCE_OPTIONS.map((d, i) => (
-                          <motion.button
+                          <m.button
                             key={d}
                             variants={discoverVariants.filterChip}
                             custom={i}
@@ -331,7 +331,7 @@ export default function DiscoverPage() {
                             }`}
                           >
                             {d}km
-                          </motion.button>
+                          </m.button>
                         ))}
                       </div>
                     </FilterSection>
@@ -339,7 +339,7 @@ export default function DiscoverPage() {
                     <FilterSection label="Age">
                       <div className="flex gap-2">
                         {AGE_OPTIONS.map((opt, i) => (
-                          <motion.button
+                          <m.button
                             key={opt.value}
                             variants={discoverVariants.filterChip}
                             custom={i}
@@ -358,19 +358,19 @@ export default function DiscoverPage() {
                             }`}
                           >
                             {opt.label}
-                          </motion.button>
+                          </m.button>
                         ))}
                       </div>
                     </FilterSection>
                   </div>
-                </motion.div>
+                </m.div>
               )}
             </AnimatePresence>
 
             {/* Active filter chips */}
             <AnimatePresence>
               {activeFilterCount > 0 && (
-                <motion.div
+                <m.div
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
@@ -403,7 +403,7 @@ export default function DiscoverPage() {
                       Tout effacer
                     </button>
                   </div>
-                </motion.div>
+                </m.div>
               )}
             </AnimatePresence>
           </div>
@@ -421,7 +421,7 @@ export default function DiscoverPage() {
         <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
           {sourceProfiles.filter(p => p.distance < 3).slice(0, 6).map((p, i) => (
             <Link key={p.id} href={`/p/${p.id}`} className="shrink-0">
-              <motion.div
+              <m.div
                 className="w-[100px] rounded-xl overflow-hidden border border-border/50 bg-card"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -443,7 +443,7 @@ export default function DiscoverPage() {
                 <div className="px-2 py-1.5">
                   <span className="text-[9px] text-accent font-semibold">{p.time}</span>
                 </div>
-              </motion.div>
+              </m.div>
             </Link>
           ))}
         </div>
@@ -461,7 +461,7 @@ export default function DiscoverPage() {
 
       {/* Profile grid */}
       {displayedProfiles.length > 0 ? (
-        <motion.div
+        <m.div
           className="grid grid-cols-2 gap-3 px-4 pt-4"
           variants={discoverVariants.grid}
           initial="hidden"
@@ -471,7 +471,7 @@ export default function DiscoverPage() {
           {displayedProfiles.map((profile, i) => (
             <ProfileCard key={profile.id} profile={profile} index={i} />
           ))}
-        </motion.div>
+        </m.div>
       ) : (
         <EmptyState onReset={resetFilters} />
       )}
@@ -479,19 +479,19 @@ export default function DiscoverPage() {
       {/* Loading more indicator */}
       <AnimatePresence>
         {loadingMore && (
-          <motion.div
+          <m.div
             className="flex justify-center py-6"
             variants={discoverVariants.loadMore}
             initial="hidden"
             animate="visible"
             exit="hidden"
           >
-            <motion.div
+            <m.div
               className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full"
               animate={{ rotate: 360 }}
               transition={{ repeat: Infinity, duration: 0.6, ease: "linear" }}
             />
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
@@ -519,7 +519,7 @@ function ProfileCard({ profile, index }: { profile: Profile; index: number }) {
   const ModeIcon = MODE_ICONS[profile.mode];
 
   return (
-    <motion.div
+    <m.div
       variants={discoverVariants.card}
       custom={index}
       whileHover="hover"
@@ -597,13 +597,13 @@ function ProfileCard({ profile, index }: { profile: Profile; index: number }) {
           </div>
         </div>
       </Link>
-    </motion.div>
+    </m.div>
   );
 }
 
 function ActiveChip({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
-    <motion.button
+    <m.button
       onClick={onRemove}
       className="shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent text-[10px] font-semibold"
       initial={{ opacity: 0, scale: 0.8, x: -10 }}
@@ -614,7 +614,7 @@ function ActiveChip({ label, onRemove }: { label: string; onRemove: () => void }
     >
       {label}
       <IconX size={10} />
-    </motion.button>
+    </m.button>
   );
 }
 
@@ -631,7 +631,7 @@ function FilterSection({ label, children }: { label: string; children: React.Rea
 
 function EmptyState({ onReset }: { onReset: () => void }) {
   return (
-    <motion.div
+    <m.div
       className="flex flex-col items-center justify-center px-8 pt-24"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -654,7 +654,7 @@ function EmptyState({ onReset }: { onReset: () => void }) {
           Reinitialiser les filtres
         </button>
       </Magnetic>
-    </motion.div>
+    </m.div>
   );
 }
 

@@ -3,7 +3,7 @@
 import { useMemo, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion, AnimatePresence, type Variants } from "motion/react";
+import { m, AnimatePresence, type Variants } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import { Magnetic } from "@/components/motion/Magnetic";
 import { usePlans, PLAN_TYPE_META, type PlanType } from "@/lib/usePlans";
@@ -88,7 +88,7 @@ export default function PlansPage() {
         slotBelowTitle={
           <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
             {TYPE_FILTERS.map((tab) => (
-              <motion.button
+              <m.button
                 key={tab.key}
                 onClick={() => setType(tab.key)}
                 whileTap={{ scale: 0.92 }}
@@ -100,7 +100,7 @@ export default function PlansPage() {
               >
                 <span className="mr-1" aria-hidden="true">{tab.emoji}</span>
                 {tab.label}
-              </motion.button>
+              </m.button>
             ))}
           </div>
         }
@@ -119,7 +119,7 @@ export default function PlansPage() {
           actionHref={`/plans/create${activeType !== "all" ? `?type=${activeType}` : ""}`}
         />
       ) : (
-        <motion.div
+        <m.div
           className="px-4 space-y-3 pt-4"
           variants={containerVariants}
           initial="hidden"
@@ -133,8 +133,8 @@ export default function PlansPage() {
               const isFull = plan.maxParticipants > 0 && plan.participants.length >= plan.maxParticipants;
 
               return (
-                <motion.div key={plan.id} variants={cardVariants} layout role="listitem">
-                  <motion.div
+                <m.div key={plan.id} variants={cardVariants} layout role="listitem">
+                  <m.div
                     role="link"
                     tabIndex={0}
                     onClick={() => router.push(`/plans/${plan.id}`)}
@@ -180,7 +180,7 @@ export default function PlansPage() {
                             {plan.maxParticipants > 0 ? `/${plan.maxParticipants}` : ""} interesses
                           </span>
                           <div className="flex-1" />
-                          <motion.button
+                          <m.button
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
@@ -198,16 +198,16 @@ export default function PlansPage() {
                             whileTap={!isFull || isInterested ? { scale: 0.92 } : {}}
                           >
                             {isInterested ? "Inscrit \u2713" : isFull ? "Complet" : "J'y vais"}
-                          </motion.button>
+                          </m.button>
                         </div>
                       </div>
                     </div>
-                  </motion.div>
-                </motion.div>
+                  </m.div>
+                </m.div>
               );
             })}
           </AnimatePresence>
-        </motion.div>
+        </m.div>
       )}
     </div>
   );

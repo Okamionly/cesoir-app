@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import type { LiveHotspot } from "@/lib/useHotspots";
 import maplibregl from "maplibre-gl";
@@ -178,7 +178,7 @@ export function HeatmapFallback({
           const left = `${50 + (spot.lng - center.lng) * 5000}%`;
 
           return (
-            <motion.div
+            <m.div
               key={`heat-fb-${spot.id}`}
               className="absolute rounded-full pointer-events-none"
               style={{
@@ -209,7 +209,7 @@ export function HeatmapFallback({
               <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[11px] font-bold text-white drop-shadow-md">
                 {spot.count}
               </span>
-            </motion.div>
+            </m.div>
           );
         })}
       </AnimatePresence>

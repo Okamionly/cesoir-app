@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { motion, useReducedMotion } from "motion/react";
+import { m, useReducedMotion } from "motion/react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { Magnetic } from "@/components/motion/Magnetic";
@@ -107,14 +107,14 @@ export default function ProfilePage() {
       />
 
       {/* ── HERO ── Avatar + Name + Edit button ── */}
-      <motion.section
+      <m.section
         className="px-6 pt-8 pb-10 flex flex-col items-center text-center"
         variants={profileVariants.hero}
         initial="hidden"
         animate="visible"
       >
         {/* Avatar with breathing gradient ring */}
-        <motion.div
+        <m.div
           className="relative mb-6"
           initial={{ scale: 0.6, opacity: 0, rotate: -8 }}
           animate={{ scale: 1, opacity: 1, rotate: 0 }}
@@ -122,7 +122,7 @@ export default function ProfilePage() {
         >
           {/* Outer animated halo (skipped on reduced-motion) */}
           {!reducedMotion && (
-            <motion.div
+            <m.div
               aria-hidden="true"
               className="absolute -inset-2 rounded-full pointer-events-none"
               style={{
@@ -134,7 +134,7 @@ export default function ProfilePage() {
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
             />
           )}
-          <motion.div
+          <m.div
             className="relative w-32 h-32 rounded-full p-[3px]"
             style={{ background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-2))" }}
             animate={
@@ -169,9 +169,9 @@ export default function ProfilePage() {
                 </div>
               )}
             </div>
-          </motion.div>
+          </m.div>
           {/* Online indicator with soft pulse */}
-          <motion.span
+          <m.span
             className="absolute bottom-1.5 right-1.5 block w-4 h-4 rounded-full ring-[3px] ring-bg"
             style={{ background: "var(--color-accent-2)" }}
             aria-label="En ligne ce soir"
@@ -188,28 +188,28 @@ export default function ProfilePage() {
             }
             transition={{ duration: 2, repeat: Infinity }}
           />
-        </motion.div>
+        </m.div>
 
         {/* Name */}
-        <motion.h2
+        <m.h2
           className="text-[28px] font-bold tracking-tight text-text leading-none"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...springs.heavy, delay: 0.25 }}
         >
           {profileName}, <span className="font-normal text-text-muted">{age}</span>
-        </motion.h2>
-        <motion.p
+        </m.h2>
+        <m.p
           className="text-[13px] text-text-muted mt-2 tracking-wide"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
           Paris, France
-        </motion.p>
+        </m.p>
 
         {/* Status pill */}
-        <motion.div
+        <m.div
           className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-bg-card border border-border"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -217,17 +217,17 @@ export default function ProfilePage() {
         >
           <span className="block w-1.5 h-1.5 rounded-full" style={{ background: "var(--color-accent-2)" }} aria-hidden="true" />
           <span className="text-[12px] font-medium text-text">Disponible ce soir</span>
-        </motion.div>
+        </m.div>
 
         {/* Edit profile — magnetic primary action */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...springs.cinematic, delay: 0.6 }}
           className="mt-7"
         >
           <Magnetic strength={0.16} radius={90}>
-            <motion.span
+            <m.span
               className="inline-block"
               whileTap={{ scale: 0.96, transition: springs.micro }}
             >
@@ -237,13 +237,13 @@ export default function ProfilePage() {
               >
                 Modifier le profil
               </Link>
-            </motion.span>
+            </m.span>
           </Magnetic>
-        </motion.div>
-      </motion.section>
+        </m.div>
+      </m.section>
 
       {/* ── INTENT: What do you want tonight? ── */}
-      <motion.section
+      <m.section
         className="px-6 mb-8"
         {...fade(0.1)}
         aria-labelledby="tonight-label"
@@ -258,7 +258,7 @@ export default function ProfilePage() {
           {TONIGHT_CHIPS.map((chip, i) => {
             const on = selectedChips.includes(chip);
             return (
-              <motion.button
+              <m.button
                 key={chip}
                 onClick={() => toggleChip(chip)}
                 aria-pressed={on}
@@ -274,14 +274,14 @@ export default function ProfilePage() {
                 }`}
               >
                 {chip}
-              </motion.button>
+              </m.button>
             );
           })}
         </div>
-      </motion.section>
+      </m.section>
 
       {/* ── ESSENTIALS ── 3 main destinations ── */}
-      <motion.nav
+      <m.nav
         className="px-6 mb-8"
         {...fade(0.15)}
         aria-label="Navigation principale"
@@ -310,10 +310,10 @@ export default function ProfilePage() {
             </Link>
           ))}
         </div>
-      </motion.nav>
+      </m.nav>
 
       {/* ── SETTINGS ── */}
-      <motion.div
+      <m.div
         className="px-6 mb-8"
         {...fade(0.2)}
       >
@@ -339,10 +339,10 @@ export default function ProfilePage() {
             </Link>
           ))}
         </div>
-      </motion.div>
+      </m.div>
 
       {/* ── LOGOUT ── */}
-      <motion.div
+      <m.div
         className="px-6"
         {...fade(0.25)}
       >
@@ -352,7 +352,7 @@ export default function ProfilePage() {
         >
           Se deconnecter
         </button>
-      </motion.div>
+      </m.div>
     </div>
   );
 }

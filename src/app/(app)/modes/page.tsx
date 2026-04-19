@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion, type Variants } from "motion/react";
+import { m, useReducedMotion, type Variants } from "motion/react";
 import { MODES, MODE_KEYS } from "@/lib/modes";
 import { MOCK_PROFILES } from "@/lib/mock-profiles";
 import { MODE_ICONS } from "@/components/ui/Icons";
@@ -24,7 +24,7 @@ export default function ModesPage() {
         hairlineVariant="vert-violet"
       />
 
-      <motion.main
+      <m.main
         className="px-4 pb-24 pt-4 space-y-2.5"
         variants={containerVariants}
         initial="hidden"
@@ -37,7 +37,7 @@ export default function ModesPage() {
           const Icon = MODE_ICONS[key];
 
           return (
-            <motion.div
+            <m.div
               key={key}
               variants={cardVariants}
               custom={index}
@@ -51,14 +51,14 @@ export default function ModesPage() {
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-3">
-                    <motion.div
+                    <m.div
                       className="w-10 h-10 rounded-xl flex items-center justify-center"
                       style={{ background: `${mode.color}15` }}
                       animate={{ scale: [1, 1.03, 1] }}
                       transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                     >
                       {Icon && <Icon size={20} className="text-accent" />}
-                    </motion.div>
+                    </m.div>
                     <div>
                       <h2 className="text-[15px] font-bold text-text">{mode.name}</h2>
                       <div className="flex items-center gap-1.5 mt-0.5">
@@ -78,10 +78,10 @@ export default function ModesPage() {
                   ))}
                 </div>
               </Link>
-            </motion.div>
+            </m.div>
           );
         })}
-      </motion.main>
+      </m.main>
     </div>
   );
 }

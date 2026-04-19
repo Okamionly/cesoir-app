@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { springs, micro, ambient } from "@/lib/motion-design";
 import PageHeader from "@/components/ui/PageHeader";
 import { Camera, ChevronLeft, ChevronRight, Check, Info } from "@/components/ui/lucide";
@@ -99,7 +99,7 @@ function ProgressBar({ methods, completed }: { methods: VerifyMethod[]; complete
         <span className="text-[11px] font-bold text-accent">{done}/{total}</span>
       </div>
       <div className="h-1.5 bg-border rounded-full overflow-hidden">
-        <motion.div
+        <m.div
           className="h-full rounded-full gradient-bg"
           initial={{ width: 0 }}
           animate={{ width: `${(done / total) * 100}%` }}
@@ -118,7 +118,7 @@ function SelfieVerification({ onComplete }: { onComplete: () => void }) {
   return (
     <AnimatePresence mode="wait">
       {step === "instructions" && (
-        <motion.div
+        <m.div
           key="selfie-instructions"
           variants={stepVariants}
           initial="enter"
@@ -132,7 +132,7 @@ function SelfieVerification({ onComplete }: { onComplete: () => void }) {
           <p className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3">Choisis ta pose</p>
           <div className="flex gap-3 mb-6">
             {POSES.map((pose, i) => (
-              <motion.button
+              <m.button
                 key={pose.label}
                 onClick={() => setSelectedPose(i)}
                 className={`flex-1 flex flex-col items-center gap-2 p-4 rounded-2xl border transition-colors tap-target ${
@@ -144,22 +144,22 @@ function SelfieVerification({ onComplete }: { onComplete: () => void }) {
               >
                 <span className="text-[32px]">{pose.emoji}</span>
                 <span className="text-[12px] font-semibold text-text">{pose.label}</span>
-              </motion.button>
+              </m.button>
             ))}
           </div>
 
-          <motion.button
+          <m.button
             onClick={() => setStep("camera")}
             className="w-full gradient-bg text-white py-3.5 rounded-full text-[14px] font-semibold shadow-glow tap-target"
             whileTap={micro.tapScale}
           >
             Ouvrir la camera
-          </motion.button>
-        </motion.div>
+          </m.button>
+        </m.div>
       )}
 
       {step === "camera" && (
-        <motion.div
+        <m.div
           key="selfie-camera"
           variants={stepVariants}
           initial="enter"
@@ -167,7 +167,7 @@ function SelfieVerification({ onComplete }: { onComplete: () => void }) {
           exit="exit"
         >
           {/* Camera preview placeholder */}
-          <motion.div
+          <m.div
             className="relative h-72 rounded-2xl overflow-hidden mb-5"
             style={{ background: "linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)" /* dark camera-viewport tint — intentional out-of-palette atmospheric surface */ }}
             animate={{
@@ -176,7 +176,7 @@ function SelfieVerification({ onComplete }: { onComplete: () => void }) {
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
           >
             {/* Border breathe effect */}
-            <motion.div
+            <m.div
               className="absolute inset-0 rounded-2xl border-2 border-accent/30"
               animate={ambient.breathe(3)}
             />
@@ -192,7 +192,7 @@ function SelfieVerification({ onComplete }: { onComplete: () => void }) {
 
             {/* Center guide circle */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <motion.div
+              <m.div
                 className="w-32 h-32 rounded-full border-2 border-white/20"
                 animate={ambient.breathe(4)}
               />
@@ -205,7 +205,7 @@ function SelfieVerification({ onComplete }: { onComplete: () => void }) {
             </div>
 
             {/* Pose instruction at bottom */}
-            <motion.div
+            <m.div
               className="absolute bottom-4 left-0 right-0 text-center"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -213,27 +213,27 @@ function SelfieVerification({ onComplete }: { onComplete: () => void }) {
             >
               <span className="text-[28px]">{POSES[selectedPose].emoji}</span>
               <p className="text-white text-[13px] font-semibold mt-1">{POSES[selectedPose].instruction}</p>
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
 
-          <motion.button
+          <m.button
             onClick={() => setStep("success")}
             className="w-full gradient-bg text-white py-3.5 rounded-full text-[14px] font-semibold shadow-glow tap-target"
             whileTap={micro.tapScale}
           >
             Prendre la photo
-          </motion.button>
+          </m.button>
           <button
             onClick={() => setStep("instructions")}
             className="w-full text-center text-[13px] text-text-muted font-medium py-3 mt-2 tap-target"
           >
             Retour
           </button>
-        </motion.div>
+        </m.div>
       )}
 
       {step === "success" && (
-        <motion.div
+        <m.div
           key="selfie-success"
           variants={stepVariants}
           initial="enter"
@@ -242,14 +242,14 @@ function SelfieVerification({ onComplete }: { onComplete: () => void }) {
           className="flex flex-col items-center py-8"
         >
           {/* Celebration circle + checkmark */}
-          <motion.div
+          <m.div
             className="relative w-24 h-24 rounded-full gradient-bg flex items-center justify-center shadow-glow mb-5"
             variants={celebrationVariants}
             initial="hidden"
             animate="visible"
           >
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" aria-hidden="true">
-              <motion.path
+              <m.path
                 d="M20 6L9 17l-5-5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -261,7 +261,7 @@ function SelfieVerification({ onComplete }: { onComplete: () => void }) {
 
             {/* Sparkle particles */}
             {[...Array(8)].map((_, i) => (
-              <motion.div
+              <m.div
                 key={i}
                 className="absolute w-2 h-2 rounded-full"
                 style={{ background: i % 2 === 0 ? "var(--color-accent)" : "var(--color-accent-2)" }}
@@ -275,25 +275,25 @@ function SelfieVerification({ onComplete }: { onComplete: () => void }) {
                 transition={{ duration: 0.8, delay: 0.3 + i * 0.05 }}
               />
             ))}
-          </motion.div>
+          </m.div>
 
-          <motion.p
+          <m.p
             className="text-[18px] font-black text-text mb-1"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
             Selfie verifie !
-          </motion.p>
-          <motion.p
+          </m.p>
+          <m.p
             className="text-[13px] text-text-muted mb-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
           >
             Ta photo a ete validee avec succes
-          </motion.p>
-          <motion.button
+          </m.p>
+          <m.button
             onClick={onComplete}
             className="gradient-bg text-white px-8 py-3 rounded-full text-[14px] font-semibold shadow-glow tap-target"
             whileTap={micro.tapScale}
@@ -302,8 +302,8 @@ function SelfieVerification({ onComplete }: { onComplete: () => void }) {
             transition={{ delay: 0.7 }}
           >
             Continuer
-          </motion.button>
-        </motion.div>
+          </m.button>
+        </m.div>
       )}
     </AnimatePresence>
   );
@@ -370,7 +370,7 @@ function PhoneVerification({ onComplete }: { onComplete: () => void }) {
   return (
     <AnimatePresence mode="wait">
       {step === "input" && (
-        <motion.div
+        <m.div
           key="phone-input"
           variants={stepVariants}
           initial="enter"
@@ -400,7 +400,7 @@ function PhoneVerification({ onComplete }: { onComplete: () => void }) {
             />
           </div>
 
-          <motion.button
+          <m.button
             onClick={() => {
               if (phone.length >= 9) {
                 setStep("code");
@@ -415,12 +415,12 @@ function PhoneVerification({ onComplete }: { onComplete: () => void }) {
             whileTap={phone.length >= 9 ? micro.tapScale : undefined}
           >
             Envoyer le code
-          </motion.button>
-        </motion.div>
+          </m.button>
+        </m.div>
       )}
 
       {step === "code" && (
-        <motion.div
+        <m.div
           key="phone-code"
           variants={stepVariants}
           initial="enter"
@@ -440,7 +440,7 @@ function PhoneVerification({ onComplete }: { onComplete: () => void }) {
           {/* 6-digit code input */}
           <div className="flex gap-2.5 justify-center mb-6">
             {code.map((digit, i) => (
-              <motion.div
+              <m.div
                 key={i}
                 variants={digitVariants}
                 initial="hidden"
@@ -462,7 +462,7 @@ function PhoneVerification({ onComplete }: { onComplete: () => void }) {
                   }`}
                   aria-label={`Chiffre ${i + 1}`}
                 />
-              </motion.div>
+              </m.div>
             ))}
           </div>
 
@@ -481,11 +481,11 @@ function PhoneVerification({ onComplete }: { onComplete: () => void }) {
               </p>
             )}
           </div>
-        </motion.div>
+        </m.div>
       )}
 
       {step === "success" && (
-        <motion.div
+        <m.div
           key="phone-success"
           variants={stepVariants}
           initial="enter"
@@ -493,14 +493,14 @@ function PhoneVerification({ onComplete }: { onComplete: () => void }) {
           exit="exit"
           className="flex flex-col items-center py-8"
         >
-          <motion.div
+          <m.div
             className="relative w-24 h-24 rounded-full gradient-bg flex items-center justify-center shadow-glow mb-5"
             variants={celebrationVariants}
             initial="hidden"
             animate="visible"
           >
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" aria-hidden="true">
-              <motion.path
+              <m.path
                 d="M20 6L9 17l-5-5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -511,7 +511,7 @@ function PhoneVerification({ onComplete }: { onComplete: () => void }) {
             </svg>
 
             {[...Array(8)].map((_, i) => (
-              <motion.div
+              <m.div
                 key={i}
                 className="absolute w-2 h-2 rounded-full"
                 style={{ background: i % 2 === 0 ? "var(--color-accent)" : "var(--color-accent-2)" }}
@@ -525,25 +525,25 @@ function PhoneVerification({ onComplete }: { onComplete: () => void }) {
                 transition={{ duration: 0.8, delay: 0.3 + i * 0.05 }}
               />
             ))}
-          </motion.div>
+          </m.div>
 
-          <motion.p
+          <m.p
             className="text-[18px] font-black text-text mb-1"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
             Telephone verifie !
-          </motion.p>
-          <motion.p
+          </m.p>
+          <m.p
             className="text-[13px] text-text-muted mb-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
           >
             Ton numero a ete confirme
-          </motion.p>
-          <motion.button
+          </m.p>
+          <m.button
             onClick={onComplete}
             className="gradient-bg text-white px-8 py-3 rounded-full text-[14px] font-semibold shadow-glow tap-target"
             whileTap={micro.tapScale}
@@ -552,8 +552,8 @@ function PhoneVerification({ onComplete }: { onComplete: () => void }) {
             transition={{ delay: 0.7 }}
           >
             Continuer
-          </motion.button>
-        </motion.div>
+          </m.button>
+        </m.div>
       )}
     </AnimatePresence>
   );
@@ -586,7 +586,7 @@ function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
   return (
     <AnimatePresence mode="wait">
       {step === "instructions" && (
-        <motion.div
+        <m.div
           key="video-instructions"
           variants={stepVariants}
           initial="enter"
@@ -618,18 +618,18 @@ function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
             </p>
           </div>
 
-          <motion.button
+          <m.button
             onClick={() => setStep("smile")}
             className="w-full gradient-bg text-white py-3.5 rounded-full text-[14px] font-semibold shadow-glow tap-target"
             whileTap={micro.tapScale}
           >
             Lancer la verification video
-          </motion.button>
-        </motion.div>
+          </m.button>
+        </m.div>
       )}
 
       {(step === "smile" || step === "turn") && (
-        <motion.div
+        <m.div
           key={`video-${step}`}
           variants={stepVariants}
           initial="enter"
@@ -637,13 +637,13 @@ function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
           exit="exit"
         >
           {/* Camera placeholder */}
-          <motion.div
+          <m.div
             className="relative h-72 rounded-2xl overflow-hidden mb-5"
             style={{ background: "linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)" /* dark camera-viewport tint — intentional out-of-palette atmospheric surface */ }}
           >
             {/* Recording indicator */}
             <div className="absolute top-4 left-4 flex items-center gap-2 z-10">
-              <motion.div
+              <m.div
                 className="w-3 h-3 rounded-full bg-danger"
                 animate={{ opacity: [1, 0.3, 1] }}
                 transition={{ repeat: Infinity, duration: 1 }}
@@ -662,7 +662,7 @@ function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
 
             {/* Face guide */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <motion.div
+              <m.div
                 className="w-36 h-36 rounded-full border-2 border-accent/40"
                 animate={{
                   borderColor: ["color-mix(in srgb, var(--color-accent) 40%, transparent)", "color-mix(in srgb, var(--color-accent-2) 40%, transparent)", "color-mix(in srgb, var(--color-accent) 40%, transparent)"],
@@ -682,24 +682,24 @@ function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
             </div>
 
             {/* Current instruction */}
-            <motion.div
+            <m.div
               className="absolute bottom-4 left-0 right-0 text-center"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={springs.elastic}
             >
-              <motion.span
+              <m.span
                 className="text-[36px]"
                 animate={{ scale: [1, 1.15, 1] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
               >
                 {VIDEO_PROMPTS[promptIndex].emoji}
-              </motion.span>
+              </m.span>
               <p className="text-white text-[15px] font-bold mt-1">
                 {VIDEO_PROMPTS[promptIndex].instruction}
               </p>
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
 
           {/* Step progress */}
           <div className="flex items-center gap-2 mb-4">
@@ -709,7 +709,7 @@ function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
                   i < promptIndex ? "gradient-bg" : i === promptIndex ? "bg-accent/40" : "bg-border"
                 }`}>
                   {i === promptIndex && (
-                    <motion.div
+                    <m.div
                       className="h-full rounded-full gradient-bg"
                       initial={{ width: 0 }}
                       animate={{ width: "100%" }}
@@ -724,11 +724,11 @@ function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
           <p className="text-center text-[12px] text-text-muted">
             Etape {promptIndex + 1} sur {VIDEO_PROMPTS.length}
           </p>
-        </motion.div>
+        </m.div>
       )}
 
       {step === "verifying" && (
-        <motion.div
+        <m.div
           key="video-verifying"
           variants={stepVariants}
           initial="enter"
@@ -736,18 +736,18 @@ function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
           exit="exit"
           className="flex flex-col items-center py-12"
         >
-          <motion.div
+          <m.div
             className="w-16 h-16 rounded-full border-2 border-t-accent border-r-transparent border-b-transparent border-l-transparent mb-4"
             animate={{ rotate: 360 }}
             transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
           />
           <p className="text-[15px] font-bold text-text mb-1">Analyse en cours...</p>
           <p className="text-[12px] text-text-muted">Verification de la vivacite</p>
-        </motion.div>
+        </m.div>
       )}
 
       {step === "success" && (
-        <motion.div
+        <m.div
           key="video-success"
           variants={stepVariants}
           initial="enter"
@@ -755,7 +755,7 @@ function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
           exit="exit"
           className="flex flex-col items-center py-8"
         >
-          <motion.div
+          <m.div
             className="relative w-24 h-24 rounded-full gradient-bg flex items-center justify-center shadow-glow mb-5"
             initial={{ scale: 0 }}
             animate={{ scale: [0, 1.35, 0.9, 1.1, 1] }}
@@ -764,7 +764,7 @@ function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
             {/* Blue checkmark */}
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <circle cx="12" cy="12" r="10" fill="#3B82F6" /* LinkedIn brand blue — intentional */ />
-              <motion.path
+              <m.path
                 d="M8 12l3 3 5-5"
                 stroke="white"
                 strokeWidth="2.5"
@@ -779,7 +779,7 @@ function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
 
             {/* Sparkle particles */}
             {[...Array(8)].map((_, i) => (
-              <motion.div
+              <m.div
                 key={i}
                 className="absolute w-2 h-2 rounded-full"
                 style={{ background: i % 2 === 0 ? "#3B82F6" : "var(--color-accent-2)" /* LinkedIn brand + CeSoir green */ }}
@@ -793,9 +793,9 @@ function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
                 transition={{ duration: 0.8, delay: 0.3 + i * 0.05 }}
               />
             ))}
-          </motion.div>
+          </m.div>
 
-          <motion.div
+          <m.div
             className="flex items-center gap-2 mb-1"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -806,16 +806,16 @@ function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
               <circle cx="12" cy="12" r="10" fill="#3B82F6" /* LinkedIn brand blue — intentional */ />
               <path d="M8 12l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-          </motion.div>
-          <motion.p
+          </m.div>
+          <m.p
             className="text-[13px] text-text-muted mb-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
           >
             Badge coche bleue attribue a ton profil
-          </motion.p>
-          <motion.button
+          </m.p>
+          <m.button
             onClick={onComplete}
             className="gradient-bg text-white px-8 py-3 rounded-full text-[14px] font-semibold shadow-glow tap-target"
             whileTap={micro.tapScale}
@@ -824,8 +824,8 @@ function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
             transition={{ delay: 0.7 }}
           >
             Continuer
-          </motion.button>
-        </motion.div>
+          </m.button>
+        </m.div>
       )}
     </AnimatePresence>
   );
@@ -834,7 +834,7 @@ function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
 // ─── Social verification ─────────────────────────────
 function SocialVerification() {
   return (
-    <motion.div
+    <m.div
       variants={stepVariants}
       initial="enter"
       animate="center"
@@ -846,7 +846,7 @@ function SocialVerification() {
 
       <div className="space-y-3">
         {/* Instagram */}
-        <motion.button
+        <m.button
           className="w-full flex items-center justify-between bg-bg-card border border-border rounded-2xl p-4 opacity-60 cursor-not-allowed relative overflow-hidden"
           disabled
         >
@@ -864,10 +864,10 @@ function SocialVerification() {
           <span className="text-[9px] font-bold text-accent bg-accent/10 px-2 py-1 rounded-full uppercase tracking-wider">
             Bientot
           </span>
-        </motion.button>
+        </m.button>
 
         {/* LinkedIn */}
-        <motion.button
+        <m.button
           className="w-full flex items-center justify-between bg-bg-card border border-border rounded-2xl p-4 opacity-60 cursor-not-allowed relative overflow-hidden"
           disabled
         >
@@ -886,13 +886,13 @@ function SocialVerification() {
           <span className="text-[9px] font-bold text-accent bg-accent/10 px-2 py-1 rounded-full uppercase tracking-wider">
             Bientot
           </span>
-        </motion.button>
+        </m.button>
       </div>
 
       <p className="text-[11px] text-text-muted text-center mt-5 leading-relaxed">
         La verification sociale sera bientot disponible. En attendant, utilise le selfie ou le telephone.
       </p>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -928,31 +928,31 @@ export default function VerifyPage() {
         {/* Verified celebration */}
         <AnimatePresence>
           {isFullyVerified && !activeMethod && (
-            <motion.div
+            <m.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9 }}
               transition={springs.elastic}
               className="mb-6 bg-safe/8 border border-safe/20 rounded-2xl p-5 text-center"
             >
-              <motion.div
+              <m.div
                 className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-safe/15 mb-3"
                 animate={micro.successPop}
               >
                 <Check size={24} strokeWidth={2.5} className="text-safe" aria-hidden="true" />
-              </motion.div>
+              </m.div>
               <p className="text-[16px] font-black text-text mb-1">Profil verifie !</p>
               <p className="text-[12px] text-text-muted">
                 Ton badge Verifie est maintenant visible sur ton profil.
               </p>
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
 
         {/* Active method view */}
         <AnimatePresence mode="wait">
           {activeMethod && (
-            <motion.div
+            <m.div
               key={activeMethod}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -980,13 +980,13 @@ export default function VerifyPage() {
               {activeMethod === "social" && (
                 <SocialVerification />
               )}
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
 
         {/* Method cards — shown when no method active */}
         {!activeMethod && (
-          <motion.div
+          <m.div
             className="space-y-3"
             initial="hidden"
             animate="visible"
@@ -996,7 +996,7 @@ export default function VerifyPage() {
               const isSocial = method.key === "social";
 
               return (
-                <motion.button
+                <m.button
                   key={method.key}
                   variants={cardVariants}
                   custom={i}
@@ -1014,13 +1014,13 @@ export default function VerifyPage() {
                     isCompleted ? "bg-safe/15" : "bg-accent/8"
                   }`}>
                     {isCompleted ? (
-                      <motion.div
+                      <m.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={springs.elastic}
                       >
                         <Check size={20} strokeWidth={2.5} className="text-safe" aria-hidden="true" />
-                      </motion.div>
+                      </m.div>
                     ) : (
                       <span className="text-[22px]">{method.icon}</span>
                     )}
@@ -1047,15 +1047,15 @@ export default function VerifyPage() {
                   {!isCompleted && (
                     <ChevronRight size={16} strokeWidth={1.5} className="text-text-muted shrink-0" aria-hidden="true" />
                   )}
-                </motion.button>
+                </m.button>
               );
             })}
-          </motion.div>
+          </m.div>
         )}
 
         {/* Info note */}
         {!activeMethod && (
-          <motion.div
+          <m.div
             className="mt-6 bg-bg-card border border-border rounded-2xl p-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1072,7 +1072,7 @@ export default function VerifyPage() {
                 </p>
               </div>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </div>
     </div>

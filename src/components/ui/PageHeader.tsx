@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useReducedMotion, type Transition, type TargetAndTransition } from "motion/react";
+import { m, useReducedMotion, type Transition, type TargetAndTransition } from "motion/react";
 import { springs, easings } from "@/lib/motion-design";
 import { RackFocus } from "@/components/motion/RackFocus";
 import { Magnetic } from "@/components/motion/Magnetic";
@@ -260,15 +260,15 @@ function BackButton({
   let node: React.ReactNode;
   if (href) {
     node = (
-      <motion.div whileTap={{ scale: 0.9 }} transition={springs.micro}>
+      <m.div whileTap={{ scale: 0.9 }} transition={springs.micro}>
         <Link href={href} className={cls} aria-label={label}>
           {iconNode}
         </Link>
-      </motion.div>
+      </m.div>
     );
   } else {
     node = (
-      <motion.button
+      <m.button
         type="button"
         onClick={onBack}
         whileTap={{ scale: 0.9 }}
@@ -277,7 +277,7 @@ function BackButton({
         aria-label={label}
       >
         {iconNode}
-      </motion.button>
+      </m.button>
     );
   }
 
@@ -358,14 +358,14 @@ function PageHeader({
   const titleNode = (
     <div className="flex items-center gap-2 flex-1 min-w-0">
       {icon != null && (
-        <motion.span
+        <m.span
           className="inline-flex items-center justify-center shrink-0"
           aria-hidden="true"
           animate={shouldAnimateIcon ? iconMotion.animate : undefined}
           transition={shouldAnimateIcon ? iconMotion.transition : undefined}
         >
           {icon}
-        </motion.span>
+        </m.span>
       )}
       <div className="flex-1 min-w-0">
         <h1
@@ -411,14 +411,14 @@ function PageHeader({
   const renderedTitleArea: React.ReactNode = titleSlot != null ? (
     <div className="flex items-center gap-2 flex-1 min-w-0">
       {icon != null && (
-        <motion.span
+        <m.span
           className="inline-flex items-center justify-center shrink-0"
           aria-hidden="true"
           animate={shouldAnimateIcon ? iconMotion.animate : undefined}
           transition={shouldAnimateIcon ? iconMotion.transition : undefined}
         >
           {icon}
-        </motion.span>
+        </m.span>
       )}
       <div className="flex-1 min-w-0">{titleSlot}</div>
     </div>
@@ -463,15 +463,15 @@ function PageHeader({
     };
     return (
       <header className={headerClassName}>
-        <motion.div
+        <m.div
           initial={reducedMotion ? false : { opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: easings.out }}
         >
           {onHeader(defaults)}
-        </motion.div>
+        </m.div>
         {hairline && !reducedMotion && !borderless && (
-          <motion.div
+          <m.div
             aria-hidden="true"
             className="absolute bottom-0 left-0 right-0 h-px"
             style={{ background: hairline }}
@@ -485,19 +485,19 @@ function PageHeader({
 
   return (
     <header className={headerClassName}>
-      <motion.div
+      <m.div
         initial={reducedMotion ? false : { opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: easings.out }}
       >
         {defaultTopRow}
-      </motion.div>
+      </m.div>
 
       {slotBelowTitle && <div className="px-4 pb-3">{slotBelowTitle}</div>}
 
       {/* Hairline gradient bottom */}
       {hairline && !reducedMotion && !borderless && (
-        <motion.div
+        <m.div
           aria-hidden="true"
           className="absolute bottom-0 left-0 right-0 h-px"
           style={{ background: hairline }}

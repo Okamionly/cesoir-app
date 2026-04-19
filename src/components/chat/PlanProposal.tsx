@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 
 // ---------- Types ----------
 
@@ -74,14 +74,14 @@ export function PlanProposalButton({ onSubmit }: PlanProposalButtonProps) {
       <AnimatePresence>
         {isOpen && (
           <>
-            <motion.div
+            <m.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/40 z-50"
               onClick={() => setIsOpen(false)}
             />
-            <motion.div
+            <m.div
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
@@ -173,7 +173,7 @@ export function PlanProposalButton({ onSubmit }: PlanProposalButtonProps) {
                   Proposer
                 </button>
               </div>
-            </motion.div>
+            </m.div>
           </>
         )}
       </AnimatePresence>
@@ -197,7 +197,7 @@ export function PlanCard({ plan, isOwn, time, onAccept, onModify }: PlanCardProp
   const isAccepted = plan.status === "accepted";
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 8, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.2 }}
@@ -211,13 +211,13 @@ export function PlanCard({ plan, isOwn, time, onAccept, onModify }: PlanCardProp
       >
         <div className="bg-bg p-3.5">
           {isAccepted && (
-            <motion.p
+            <m.p
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               className="text-safe text-[13px] font-bold mb-2"
             >
               Plan confirme !
-            </motion.p>
+            </m.p>
           )}
 
           <div className="flex items-start gap-3">
@@ -259,6 +259,6 @@ export function PlanCard({ plan, isOwn, time, onAccept, onModify }: PlanCardProp
           </span>
         </div>
       </div>
-    </motion.div>
+    </m.div>
   );
 }

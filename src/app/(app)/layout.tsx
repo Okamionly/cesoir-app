@@ -5,7 +5,7 @@ import OfflineBanner from "@/components/app/OfflineBanner";
 import PageLoader from "@/components/app/PageLoader";
 import { DarkModeProvider } from "@/components/ui/DarkModeProvider";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
-import LazyMotionProvider from "@/components/ui/LazyMotionProvider";
+import { LazyMotionMaxProvider } from "@/components/ui/LazyMotionProvider";
 import { ToastProvider } from "@/components/ui/Toast";
 import { AccessibilityProvider } from "@/components/ui/ReducedMotion";
 import { AuthProvider } from "@/context/AuthContext";
@@ -45,7 +45,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             (opacity:1), and CSS keeps the accessibility contract.
           */}
           <MotionConfig reducedMotion="never">
-            <LazyMotionProvider>
+            <LazyMotionMaxProvider>
               <ToastProvider>
                 <div className="min-h-screen bg-bg">
                   <OfflineBanner />
@@ -61,7 +61,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   <AppChrome />
                 </div>
               </ToastProvider>
-            </LazyMotionProvider>
+            </LazyMotionMaxProvider>
           </MotionConfig>
         </AccessibilityProvider>
       </DarkModeProvider>

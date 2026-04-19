@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import { STORY_GRADIENT_PRESETS } from "@/lib/story-presets";
 
@@ -90,7 +90,7 @@ export default function StoryCreator({ open, onClose, onPublish }: StoryCreatorP
       {open && (
         <>
           {/* Backdrop */}
-          <motion.div
+          <m.div
             className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -100,7 +100,7 @@ export default function StoryCreator({ open, onClose, onPublish }: StoryCreatorP
           />
 
           {/* Bottom sheet */}
-          <motion.div
+          <m.div
             className="fixed bottom-0 left-0 right-0 z-[61] bg-bg rounded-t-[24px] max-h-[92vh] overflow-y-auto"
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
@@ -190,7 +190,7 @@ export default function StoryCreator({ open, onClose, onPublish }: StoryCreatorP
                   </label>
                   <div className="flex gap-2.5">
                     {GRADIENT_PRESETS.map((grad, i) => (
-                      <motion.button
+                      <m.button
                         key={grad.name}
                         onClick={() => setSelectedGradient(i)}
                         className={`w-10 h-10 rounded-full tap-target border-2 ${
@@ -214,7 +214,7 @@ export default function StoryCreator({ open, onClose, onPublish }: StoryCreatorP
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {MOOD_EMOJIS.map((emoji) => (
-                      <motion.button
+                      <m.button
                         key={emoji}
                         onClick={() =>
                           setSelectedMood((prev) => (prev === emoji ? null : emoji))
@@ -229,7 +229,7 @@ export default function StoryCreator({ open, onClose, onPublish }: StoryCreatorP
                         aria-label={`Humeur ${emoji}`}
                       >
                         {emoji}
-                      </motion.button>
+                      </m.button>
                     ))}
                   </div>
                 </div>
@@ -262,7 +262,7 @@ export default function StoryCreator({ open, onClose, onPublish }: StoryCreatorP
 
                   <AnimatePresence>
                     {showLocationPicker && !location && (
-                      <motion.div
+                      <m.div
                         className="flex flex-wrap gap-2 mt-2"
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
@@ -281,7 +281,7 @@ export default function StoryCreator({ open, onClose, onPublish }: StoryCreatorP
                             📍 {loc}
                           </button>
                         ))}
-                      </motion.div>
+                      </m.div>
                     )}
                   </AnimatePresence>
                 </div>
@@ -289,7 +289,7 @@ export default function StoryCreator({ open, onClose, onPublish }: StoryCreatorP
             ) : (
               /* ─── Preview step ─────────────────────── */
               <div className="px-4 pb-[calc(env(safe-area-inset-bottom)+16px)]">
-                <motion.div
+                <m.div
                   className="relative w-full aspect-[9/16] rounded-2xl overflow-hidden flex items-center justify-center mx-auto max-w-[300px]"
                   style={{ background: currentGradient.value }}
                   initial={{ scale: 0.9, opacity: 0 }}
@@ -297,25 +297,25 @@ export default function StoryCreator({ open, onClose, onPublish }: StoryCreatorP
                   transition={springs.elastic}
                 >
                   {selectedMood && (
-                    <motion.span
+                    <m.span
                       className="absolute top-5 right-5 text-[40px]"
                       initial={{ scale: 0, rotate: -30 }}
                       animate={{ scale: 1, rotate: 0 }}
                       transition={{ ...springs.elastic, delay: 0.2 }}
                     >
                       {selectedMood}
-                    </motion.span>
+                    </m.span>
                   )}
-                  <motion.p
+                  <m.p
                     className="text-[22px] font-bold text-white text-center px-8 leading-snug drop-shadow-lg"
                     initial={{ y: 15, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ ...springs.heavy, delay: 0.1 }}
                   >
                     {text}
-                  </motion.p>
+                  </m.p>
                   {location && (
-                    <motion.div
+                    <m.div
                       className="absolute bottom-5 left-5 bg-black/30 backdrop-blur-md rounded-full px-3 py-1.5"
                       initial={{ y: 10, opacity: 0 }}
                       animate={{ y: 0, opacity: 1 }}
@@ -324,21 +324,21 @@ export default function StoryCreator({ open, onClose, onPublish }: StoryCreatorP
                       <span className="text-[12px] text-white/80 font-medium">
                         📍 {location}
                       </span>
-                    </motion.div>
+                    </m.div>
                   )}
-                </motion.div>
+                </m.div>
 
-                <motion.p
+                <m.p
                   className="text-center text-[12px] text-text-muted mt-4"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.3 }}
                 >
                   Ta story sera visible par tout le monde jusqu&apos;a minuit
-                </motion.p>
+                </m.p>
               </div>
             )}
-          </motion.div>
+          </m.div>
         </>
       )}
     </AnimatePresence>

@@ -1,9 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import { useMidnightReset } from "@/lib/useMidnightReset";
+import {
+  MIDNIGHT_URGENT_COLOR,
+  MIDNIGHT_STAR_COLORS,
+  MIDNIGHT_BACKDROP,
+  MIDNIGHT_TITLE_GRADIENT,
+  MIDNIGHT_SUBTITLE_COLOR,
+  MIDNIGHT_SUBTEXT_COLOR,
+} from "@/lib/chat-content-colors";
 
 // ─────────────────────────────────────────
 // Star particle for celebration
@@ -17,14 +25,14 @@ function CelebrationStar({ index }: { index: number }) {
   const duration = 1.5 + Math.random() * 1.5;
 
   return (
-    <motion.div
+    <m.div
       className="absolute rounded-full"
       style={{
         width: size,
         height: size,
         left: `${left}%`,
         top: `${top}%`,
-        background: index % 3 === 0 ? "#00FF88" : index % 3 === 1 ? "#8B5CF6" : "#FFF",
+        background: MIDNIGHT_STAR_COLORS[index % MIDNIGHT_STAR_COLORS.length],
       }}
       initial={{ opacity: 0, scale: 0 }}
       animate={{
@@ -80,29 +88,29 @@ export default function MidnightReset() {
         <AnimatePresence mode="wait">
           {isDramatic ? (
             // ─── Dramatic last-60-seconds countdown ───
-            <motion.div
+            <m.div
               key="dramatic"
               className="flex items-center justify-center gap-1"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              <motion.span
+              <m.span
                 className="text-[10px] font-medium"
-                style={{ color: "#EF4444" }}
+                style={{ color: MIDNIGHT_URGENT_COLOR }}
                 animate={{ opacity: [0.5, 1, 0.5] }}
                 transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
               >
                 {"\u{1F525}"}
-              </motion.span>
+              </m.span>
 
               <AnimatePresence mode="popLayout">
-                <motion.span
+                <m.span
                   key={seconds}
                   className="font-black text-[16px] leading-none tabular-nums"
                   style={{
                     fontFamily: "var(--font-display, 'Space Grotesk')",
-                    color: "#EF4444",
+                    color: MIDNIGHT_URGENT_COLOR,
                     minWidth: "2ch",
                     textAlign: "center",
                     display: "inline-block",
@@ -113,23 +121,22 @@ export default function MidnightReset() {
                   transition={springs.snap}
                 >
                   {seconds}
-                </motion.span>
+                </m.span>
               </AnimatePresence>
 
-              <motion.span
+              <m.span
                 className="text-[10px] font-bold"
-                style={{ color: "#EF4444" }}
+                style={{ color: MIDNIGHT_URGENT_COLOR }}
               >
                 sec
-              </motion.span>
-            </motion.div>
+              </m.span>
+            </m.div>
           ) : (
             // ─── Normal countdown ───
-            <motion.p
+            <m.p
               key="countdown"
-              className={`text-center text-[10px] font-medium ${
-                isUrgent ? "text-[#EF4444]" : "text-text-muted"
-              }`}
+              className="text-center text-[10px] font-medium"
+              style={{ color: isUrgent ? MIDNIGHT_URGENT_COLOR : undefined }}
               initial={{ opacity: 0 }}
               animate={
                 isUrgent
@@ -143,8 +150,10 @@ export default function MidnightReset() {
                   : { duration: 0.4 }
               }
             >
-              {"\u23F0"} Reset dans {hours}h {String(minutes).padStart(2, "0")}m
-            </motion.p>
+              <span className={isUrgent ? "" : "text-text-muted"}>
+                {"\u23F0"} Reset dans {hours}h {String(minutes).padStart(2, "0")}m
+              </span>
+            </m.p>
           )}
         </AnimatePresence>
       </div>
@@ -152,7 +161,7 @@ export default function MidnightReset() {
       {/* ─── Full-screen "Nouveau jour" celebration overlay ─── */}
       <AnimatePresence>
         {showOverlay && (
-          <motion.div
+          <m.div
             className="fixed inset-0 z-[350] flex flex-col items-center justify-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -162,11 +171,10 @@ export default function MidnightReset() {
             aria-label="Nouveau jour"
           >
             {/* Dark backdrop */}
-            <motion.div
+            <m.div
               className="absolute inset-0"
               style={{
-                background:
-                  "radial-gradient(circle at 50% 40%, rgba(139,92,246,0.15) 0%, rgba(0,0,0,0.92) 70%)",
+                background: MIDNIGHT_BACKDROP,
                 backdropFilter: "blur(12px)",
               }}
               initial={{ opacity: 0 }}
@@ -184,7 +192,7 @@ export default function MidnightReset() {
             {/* Content */}
             <div className="relative z-10 flex flex-col items-center">
               {/* Rotating moon */}
-              <motion.div
+              <m.div
                 className="text-[72px] mb-6"
                 initial={{ rotate: -180, scale: 0.3, opacity: 0 }}
                 animate={{ rotate: 0, scale: 1, opacity: 1 }}
@@ -195,14 +203,14 @@ export default function MidnightReset() {
                 aria-hidden="true"
               >
                 {"\u263E"}
-              </motion.div>
+              </m.div>
 
               {/* "Nouveau jour" text */}
-              <motion.h1
+              <m.h1
                 className="font-black text-[36px] leading-tight text-center mb-3"
                 style={{
                   fontFamily: "var(--font-display, 'Space Grotesk')",
-                  background: "linear-gradient(135deg, #8B5CF6, #00FF88, #8B5CF6)",
+                  background: MIDNIGHT_TITLE_GRADIENT,
                   backgroundSize: "200% 200%",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
@@ -220,31 +228,31 @@ export default function MidnightReset() {
                 }}
               >
                 Nouveau jour
-              </motion.h1>
+              </m.h1>
 
               {/* Subtitle */}
-              <motion.p
+              <m.p
                 className="text-[15px] font-medium text-center"
-                style={{ color: "#888" }}
+                style={{ color: MIDNIGHT_SUBTITLE_COLOR }}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ ...springs.heavy, delay: 0.3 }}
               >
                 Bonne soiree !
-              </motion.p>
+              </m.p>
 
               {/* Subtext */}
-              <motion.p
+              <m.p
                 className="text-[12px] text-center mt-2"
-                style={{ color: "#555" }}
+                style={{ color: MIDNIGHT_SUBTEXT_COLOR }}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6 }}
               >
                 Nouveaux matchs, nouveaux challenges, nouvelle energie
-              </motion.p>
+              </m.p>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </>

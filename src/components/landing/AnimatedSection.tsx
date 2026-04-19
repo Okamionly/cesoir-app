@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, type Variants } from "motion/react";
+import { m, type Variants } from "motion/react";
 
 const sectionVariants: Variants = {
   hidden: { opacity: 0, y: 40 },
@@ -33,7 +33,7 @@ const staggerItem: Variants = {
 
 export function FadeInSection({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
   return (
-    <motion.div
+    <m.div
       className={className}
       variants={sectionVariants}
       initial="hidden"
@@ -42,13 +42,13 @@ export function FadeInSection({ children, className = "", delay = 0 }: { childre
       transition={{ delay }}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }
 
 export function StaggerContainer({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <motion.div
+    <m.div
       className={className}
       variants={staggerContainer}
       initial="hidden"
@@ -56,21 +56,21 @@ export function StaggerContainer({ children, className = "" }: { children: React
       viewport={{ once: true, amount: 0.15 }}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }
 
 export function StaggerItem({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <motion.div className={className} variants={staggerItem}>
+    <m.div className={className} variants={staggerItem}>
       {children}
-    </motion.div>
+    </m.div>
   );
 }
 
 export function ScaleIn({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <motion.div
+    <m.div
       className={className}
       initial={{ opacity: 0, scale: 0.8 }}
       whileInView={{ opacity: 1, scale: 1 }}
@@ -78,6 +78,6 @@ export function ScaleIn({ children, className = "" }: { children: React.ReactNod
       transition={{ type: "spring", stiffness: 300, damping: 25 }}
     >
       {children}
-    </motion.div>
+    </m.div>
   );
 }

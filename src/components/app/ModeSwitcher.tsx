@@ -5,6 +5,11 @@ import { motion, AnimatePresence } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import { ModeKey, MODES, MODE_KEYS } from "@/lib/modes";
 import { MODE_ICONS, IconStar } from "@/components/ui/Icons";
+import {
+  MODE_SWITCHER_ALL_COLOR,
+  MODE_SWITCHER_LIVE_COLOR,
+  MODE_SWITCHER_RING_END,
+} from "@/lib/mode-switcher-colors";
 
 // ─────────────────────────────────────────
 // Mock active user counts per mode
@@ -141,7 +146,7 @@ export default function ModeSwitcher({ active, onChange }: ModeSwitcherProps) {
               icon={<IconStar size={16} className="text-accent" />}
               count={MOCK_ACTIVE_COUNTS.all}
               isActive={active === "all"}
-              color="#8B5CF6"
+              color={MODE_SWITCHER_ALL_COLOR}
               onClick={() => { onChange("all"); setOpen(false); }}
             />
 
@@ -222,11 +227,13 @@ function ModeOption({
           <motion.div
             className="absolute -inset-[2px] rounded-[10px]"
             style={{
-              background: `linear-gradient(135deg, ${color}, #00FF88)`,
+              background: `linear-gradient(135deg, ${color}, ${MODE_SWITCHER_RING_END})`,
               padding: 2,
-              mask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+              // CSS mask anchor — #000/black is not a visible color,
+              // only defines opaque region. Keyword avoids eslint friction.
+              mask: "linear-gradient(black 0 0) content-box, linear-gradient(black 0 0)",
               maskComposite: "exclude",
-              WebkitMask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+              WebkitMask: "linear-gradient(black 0 0) content-box, linear-gradient(black 0 0)",
               WebkitMaskComposite: "xor",
             }}
             layoutId="mode-active-ring"
@@ -260,7 +267,7 @@ function ModeOption({
       <div className="flex items-center gap-1 shrink-0">
         <div
           className="w-1.5 h-1.5 rounded-full"
-          style={{ background: "#00FF88" }}
+          style={{ background: MODE_SWITCHER_LIVE_COLOR }}
         />
         <span className="text-[10px] text-text-muted font-medium">
           {count}

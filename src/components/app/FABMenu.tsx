@@ -2,20 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { haptics } from "@/lib/haptics";
 import { Clock } from "@/components/ui/lucide";
-
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-interface FABAction {
-  label: string;
-  color: string;
-  icon: React.ReactNode;
-  href: string;
-}
+import { FAB_ACTIONS_META, type FABAction } from "@/lib/fab-actions";
 
 // ---------------------------------------------------------------------------
 // Icons
@@ -59,26 +49,18 @@ function CalendarPlusIcon() {
 // Component
 // ---------------------------------------------------------------------------
 
-const FAB_ACTIONS: FABAction[] = [
-  {
-    label: "Mood Match",
-    color: "#8B5CF6",
-    icon: <RadarIcon />,
-    href: "/mood-match",
-  },
-  {
-    label: "Speed Dating",
-    color: "#F59E0B",
-    icon: <TimerIcon />,
-    href: "/speed-dating",
-  },
-  {
-    label: "Creer un plan",
-    color: "#00FF88",
-    icon: <CalendarPlusIcon />,
-    href: "/plans/create",
-  },
-];
+// Actions come from src/lib/fab-actions.ts (per-action hex lives there, not
+// in components/). Icons are rendered here because JSX can't live in the lib.
+const FAB_ICONS: Record<string, React.ReactNode> = {
+  "/mood-match": <RadarIcon />,
+  "/speed-dating": <TimerIcon />,
+  "/plans/create": <CalendarPlusIcon />,
+};
+
+const FAB_ACTIONS: FABAction[] = FAB_ACTIONS_META.map((meta) => ({
+  ...meta,
+  icon: FAB_ICONS[meta.href] ?? null,
+}));
 
 // Arc positions for 3 buttons — tighter, closer to the FAB
 const positions = [
@@ -114,7 +96,7 @@ export function FABMenu() {
       {/* Backdrop when open */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div
+          <m.div
             key="fab-backdrop"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -130,7 +112,7 @@ export function FABMenu() {
         {isOpen && (
           <div role="menu" aria-label="Actions rapides">
           {FAB_ACTIONS.map((action, i) => (
-            <motion.div
+            <m.div
               key={action.label}
               initial={{ opacity: 0, x: 0, y: 0, scale: 0.3 }}
               animate={{
@@ -160,14 +142,14 @@ export function FABMenu() {
               >
                 {action.icon}
               </button>
-            </motion.div>
+            </m.div>
           ))}
           </div>
         )}
       </AnimatePresence>
 
       {/* Main FAB — 48px, simpler style */}
-      <motion.button
+      <m.button
         onClick={() => { haptics.medium(); setIsOpen((v) => !v); }}
         animate={{ rotate: isOpen ? 135 : 0 }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
@@ -179,7 +161,7 @@ export function FABMenu() {
         <span className="text-lg font-bold text-white select-none">
           {isOpen ? "+" : "\u263E"}
         </span>
-      </motion.button>
+      </m.button>
     </div>
   );
 }

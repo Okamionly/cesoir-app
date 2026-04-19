@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { useOfflineQueue } from "@/lib/offline-queue";
 import { springs } from "@/lib/motion-design";
 import { WifiOff } from "@/components/ui/lucide";
@@ -47,7 +47,7 @@ export default function OfflineBanner() {
   return (
     <AnimatePresence>
       {!isOnline && (
-        <motion.div
+        <m.div
           initial={{ y: -60, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -60, opacity: 0, transition: springs.snap }}
@@ -78,7 +78,7 @@ export default function OfflineBanner() {
           >
             Reessayer
           </button>
-        </motion.div>
+        </m.div>
       )}
     </AnimatePresence>
   );

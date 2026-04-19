@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { trendingVariants, springs } from "@/lib/motion-design";
 import { ModeKey, MODES, MODE_KEYS } from "@/lib/modes";
 import { supabase } from "@/lib/supabase";
@@ -133,7 +133,7 @@ export default function TrendingPage() {
       <header className="relative sticky top-0 z-30 bg-bg/80 backdrop-blur-xl border-b border-border px-4 py-3">
         <RackFocus duration={0.5}>
           <div className="flex items-center gap-2">
-            <motion.svg
+            <m.svg
               width="20"
               height="20"
               viewBox="0 0 24 24"
@@ -153,11 +153,11 @@ export default function TrendingPage() {
               transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
             >
               <path d="M12 22c4.97 0 8-3.03 8-8 0-4-2.5-7-4-8-.5 2.5-2 4-4 5-1-1-2-3.5-1.5-6C8 7 5 10 5 14c0 4.97 3.03 8 7 8z" />
-            </motion.svg>
+            </m.svg>
             <h1 className="text-lg font-display font-bold text-text">Trending ce soir</h1>
           </div>
         </RackFocus>
-        <motion.div
+        <m.div
           className="absolute bottom-0 left-0 right-0 h-px"
           style={{
             background:
@@ -227,7 +227,7 @@ export default function TrendingPage() {
       </div>
 
       {/* Venue cards */}
-      <motion.div
+      <m.div
         className="px-4 space-y-3"
         variants={containerVariants}
         initial="hidden"
@@ -236,7 +236,7 @@ export default function TrendingPage() {
       >
         <AnimatePresence mode="popLayout">
           {filtered.map((venue, index) => (
-            <motion.article
+            <m.article
               key={venue.id}
               variants={cardVariants}
               custom={index}
@@ -266,14 +266,14 @@ export default function TrendingPage() {
                       {venue.type} &middot; {venue.neighborhood} &middot; {venue.distance} km
                     </p>
                   </div>
-                  <motion.div
+                  <m.div
                     className="flex items-center gap-1 flex-shrink-0 bg-accent-2/10 px-2 py-1 rounded-full"
                     animate={{ scale: [1, 1.08, 1] }}
                     transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-accent-2" aria-hidden="true" />
                     <span className="text-[11px] font-bold text-accent-2">{venue.people}</span>
-                  </motion.div>
+                  </m.div>
                 </div>
 
                 {/* Mode tags */}
@@ -298,7 +298,7 @@ export default function TrendingPage() {
                   Y aller
                 </button>
               </div>
-            </motion.article>
+            </m.article>
           ))}
         </AnimatePresence>
 
@@ -309,7 +309,7 @@ export default function TrendingPage() {
             subtitle="Essaie un autre mode"
           />
         )}
-      </motion.div>
+      </m.div>
     </div>
   );
 }

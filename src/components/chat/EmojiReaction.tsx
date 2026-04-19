@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 
 const REACTION_EMOJIS = ["❤️", "🔥", "😂", "😮", "😢", "👍"];
 
@@ -18,7 +18,7 @@ interface ReactionPickerProps {
 
 function ReactionPicker({ onSelect, onClose }: ReactionPickerProps) {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, scale: 0.8, y: 8 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.8, y: 8 }}
@@ -41,7 +41,7 @@ function ReactionPicker({ onSelect, onClose }: ReactionPickerProps) {
           {emoji}
         </button>
       ))}
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -57,7 +57,7 @@ export function ReactionDisplay({ reactions, isOwn, onToggle }: ReactionDisplayP
   return (
     <div className={`flex gap-1 mt-0.5 ${isOwn ? "justify-end pr-2" : "justify-start pl-2"}`}>
       {reactions.map((r) => (
-        <motion.button
+        <m.button
           key={r.emoji}
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
@@ -72,7 +72,7 @@ export function ReactionDisplay({ reactions, isOwn, onToggle }: ReactionDisplayP
         >
           <span>{r.emoji}</span>
           {r.count > 1 && <span className="text-text-muted font-medium">{r.count}</span>}
-        </motion.button>
+        </m.button>
       ))}
     </div>
   );

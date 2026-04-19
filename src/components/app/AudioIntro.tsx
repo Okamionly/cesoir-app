@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { app } from "@/lib/design-tokens";
 
 export default function AudioIntro() {
@@ -36,7 +36,7 @@ export default function AudioIntro() {
   return (
     <div className="bg-bg-card border border-border rounded-2xl p-4" role="region" aria-label="Introduction audio">
       <div className="flex items-center gap-3">
-        <motion.button
+        <m.button
           onClick={() => { setPlaying(!playing); if (!playing) setProgress(0); }}
           className="w-10 h-10 rounded-full gradient-bg flex items-center justify-center shrink-0 shadow-glow"
           whileTap={{ scale: 0.9 }}
@@ -52,7 +52,7 @@ export default function AudioIntro() {
               <path d="M5 3l14 9-14 9V3z" />
             </svg>
           )}
-        </motion.button>
+        </m.button>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1 mb-1.5">
@@ -62,7 +62,7 @@ export default function AudioIntro() {
 
           <div className="flex items-end gap-[3px] h-5">
             {bars.map((height, i) => (
-              <motion.div
+              <m.div
                 key={i}
                 className="w-[4px] rounded-full"
                 style={{
@@ -84,7 +84,7 @@ export default function AudioIntro() {
 
           {/* Progress bar */}
           <div className="h-[2px] bg-border rounded-full mt-1.5 overflow-hidden">
-            <motion.div
+            <m.div
               className="h-full gradient-bg rounded-full"
               style={{ width: `${progress * 100}%` }}
             />

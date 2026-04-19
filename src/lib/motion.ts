@@ -7,16 +7,21 @@
  *   LazyMotion + `m` lets us lazy-load just the features we need.
  *
  * Usage:
- *   // New code — preferred:
- *   import { m, AnimatePresence } from "@/lib/motion";
+ *   // Preferred for 99% of animations (opacity, transform, variants):
+ *   import { m, AnimatePresence } from "motion/react";
  *   <m.div animate={{ opacity: 1 }} />
  *
- *   // Legacy code using drag / layout / pan still imports directly:
- *   import { motion } from "motion/react"; // keep — needs domMax features
+ *   // Only the 9 files that need drag or layoutId features:
+ *   import { motion } from "motion/react"; // keep — needs domMax
  *
- * The `LazyMotionProvider` in `(app)/layout.tsx` + `(auth)/layout.tsx`
- * loads `domMax` async on first paint, which covers all features
- * (animation + drag + layout + pan) while keeping the sync bundle small.
+ * After the 2026-04-19 codemod:
+ *   - `LazyMotionProvider`    (default) loads `domAnimation` (~11KB)
+ *     → used by `app/page.tsx` (landing) and `(auth)/layout.tsx`
+ *   - `LazyMotionMaxProvider` loads `domMax` (~25KB, +14KB)
+ *     → used by `(app)/layout.tsx` because its subtree still contains
+ *       SwipeCard, BottomSheet, Toast, welcome, notifications, browse
+ *       (drag) + plan/[matchId], PhotoGallery, ModeSwitcher, notifications
+ *       (layoutId).
  */
 
 export {

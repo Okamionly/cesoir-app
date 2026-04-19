@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useState, useCallback } from "react";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -185,7 +185,7 @@ export default function ModeDetailPage({
   return (
     <div className="min-h-screen bg-bg pb-32">
       {/* ─── HERO SECTION ─── */}
-      <motion.section
+      <m.section
         className="relative overflow-hidden"
         initial={{ opacity: 0, filter: "blur(20px)" }}
         animate={{ opacity: 1, filter: "blur(0px)" }}
@@ -220,34 +220,34 @@ export default function ModeDetailPage({
         {/* Hero content */}
         <div className="relative z-10 px-6 pt-8 pb-10 text-center">
           {/* Floating emoji */}
-          <motion.div
+          <m.div
             className="text-7xl mb-4 inline-block"
             animate={ambient.float(5)}
             aria-hidden="true"
           >
             {modeData.icon}
-          </motion.div>
+          </m.div>
 
-          <motion.h1
+          <m.h1
             className="text-3xl font-bold font-display mb-2"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, ...springs.heavy }}
           >
             {modeData.name}
-          </motion.h1>
+          </m.h1>
 
-          <motion.p
+          <m.p
             className="text-sm text-text-muted max-w-xs mx-auto leading-relaxed"
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, ...springs.heavy }}
           >
             {modeData.description}
-          </motion.p>
+          </m.p>
 
           {/* Tags */}
-          <motion.div
+          <m.div
             className="flex flex-wrap justify-center gap-1.5 mt-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -266,13 +266,13 @@ export default function ModeDetailPage({
                 {tag}
               </span>
             ))}
-          </motion.div>
+          </m.div>
         </div>
-      </motion.section>
+      </m.section>
 
       {/* ─── QUI EST LA CE SOIR ─── */}
       <section className="px-5 py-6" aria-labelledby="active-users-heading">
-        <motion.div
+        <m.div
           className="bg-bg-card border border-border rounded-2xl p-5"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -285,7 +285,7 @@ export default function ModeDetailPage({
             {/* Avatar stack */}
             <div className="flex -space-x-3">
               {avatarPreviews.map((profile, i) => (
-                <motion.div
+                <m.div
                   key={profile.id}
                   className="relative"
                   initial={{ scale: 0, opacity: 0 }}
@@ -306,10 +306,10 @@ export default function ModeDetailPage({
                     className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-bg bg-safe"
                     aria-hidden="true"
                   />
-                </motion.div>
+                </m.div>
               ))}
               {activeCount > 3 && (
-                <motion.div
+                <m.div
                   className="w-11 h-11 rounded-full border-2 border-bg flex items-center justify-center text-[10px] font-bold"
                   style={{ background: `${modeData.color}15`, color: modeData.color }}
                   initial={{ scale: 0 }}
@@ -317,7 +317,7 @@ export default function ModeDetailPage({
                   transition={{ delay: 0.8, ...springs.elastic }}
                 >
                   +{activeCount - 3}
-                </motion.div>
+                </m.div>
               )}
             </div>
 
@@ -331,7 +331,7 @@ export default function ModeDetailPage({
 
             {/* Live pulse */}
             <div className="ml-auto flex items-center gap-1.5">
-              <motion.div
+              <m.div
                 className="w-2 h-2 rounded-full bg-safe"
                 animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
@@ -339,12 +339,12 @@ export default function ModeDetailPage({
               <span className="text-[10px] text-safe font-semibold">LIVE</span>
             </div>
           </div>
-        </motion.div>
+        </m.div>
       </section>
 
       {/* ─── GOING TONIGHT ─── */}
       <section className="px-5 py-2" aria-labelledby="going-tonight-heading">
-        <motion.h2
+        <m.h2
           id="going-tonight-heading"
           className="text-[15px] font-bold mb-3"
           initial={{ opacity: 0 }}
@@ -352,14 +352,14 @@ export default function ModeDetailPage({
           transition={{ delay: 0.45 }}
         >
           Going Tonight
-        </motion.h2>
+        </m.h2>
 
         <div className="space-y-2">
           {[
             { title: `${modeData.name} Meetup`, time: "20h30", venue: "Le Comptoir", attendees: Math.max(4, activeCount % 12) },
             { title: `Soiree ${modeData.tags[0] ?? modeData.name}`, time: "21h00", venue: "Cafe de Flore", attendees: Math.max(3, (activeCount % 8) + 2) },
           ].map((event, i) => (
-            <motion.div
+            <m.div
               key={i}
               className="flex items-center gap-3 bg-bg-card border border-border rounded-2xl p-3.5"
               initial={{ opacity: 0, y: 20 }}
@@ -390,14 +390,14 @@ export default function ModeDetailPage({
                   {event.attendees}
                 </span>
               </div>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </section>
 
       {/* ─── COMMENT CA MARCHE ─── */}
       <section className="px-5 py-2" aria-labelledby="how-it-works-heading">
-        <motion.h2
+        <m.h2
           id="how-it-works-heading"
           className="text-[15px] font-bold mb-4"
           initial={{ opacity: 0 }}
@@ -405,11 +405,11 @@ export default function ModeDetailPage({
           transition={{ delay: 0.5 }}
         >
           Comment ca marche
-        </motion.h2>
+        </m.h2>
 
         <div className="space-y-3">
           {steps.map((step, i) => (
-            <motion.div
+            <m.div
               key={i}
               className="flex items-start gap-4 bg-bg-card border border-border rounded-2xl p-4"
               initial={{ opacity: 0, y: 30 }}
@@ -434,7 +434,7 @@ export default function ModeDetailPage({
                 </div>
                 <p className="text-[12px] text-text-muted leading-relaxed">{step.description}</p>
               </div>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </section>
@@ -442,7 +442,7 @@ export default function ModeDetailPage({
       {/* ─── LIEUX POPULAIRES ─── */}
       {modeVenues.length > 0 && (
         <section className="px-5 py-6" aria-labelledby="venues-heading">
-          <motion.h2
+          <m.h2
             id="venues-heading"
             className="text-[15px] font-bold mb-4"
             initial={{ opacity: 0 }}
@@ -450,11 +450,11 @@ export default function ModeDetailPage({
             transition={{ delay: 0.7 }}
           >
             Lieux populaires
-          </motion.h2>
+          </m.h2>
 
           <div className="space-y-2.5">
             {modeVenues.map((venue, i) => (
-              <motion.div
+              <m.div
                 key={venue.id}
                 className="flex items-center gap-3 bg-bg-card border border-border rounded-2xl p-4 hover:border-accent/20 transition-colors"
                 initial={{ opacity: 0, x: -30 }}
@@ -501,7 +501,7 @@ export default function ModeDetailPage({
                 )}
 
                 <ChevronRight />
-              </motion.div>
+              </m.div>
             ))}
           </div>
         </section>
@@ -509,7 +509,7 @@ export default function ModeDetailPage({
 
       {/* ─── TEMOIGNAGES ─── */}
       <section className="px-5 py-2" aria-labelledby="reviews-heading">
-        <motion.h2
+        <m.h2
           id="reviews-heading"
           className="text-[15px] font-bold mb-4"
           initial={{ opacity: 0 }}
@@ -517,11 +517,11 @@ export default function ModeDetailPage({
           transition={{ delay: 0.9 }}
         >
           Temoignages
-        </motion.h2>
+        </m.h2>
 
         <div className="space-y-3">
           {testimonials.map((review, i) => (
-            <motion.div
+            <m.div
               key={i}
               className="bg-bg-card border border-border rounded-2xl p-4"
               initial={{ opacity: 0, scale: 0.9 }}
@@ -548,7 +548,7 @@ export default function ModeDetailPage({
               <p className="text-[12px] text-text-muted leading-relaxed italic">
                 &ldquo;{review.text}&rdquo;
               </p>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </section>
@@ -556,7 +556,7 @@ export default function ModeDetailPage({
       {/* ─── CTA: ACTIVER CE MODE — Magnetic + glow ─── */}
       <div className="fixed bottom-0 left-0 right-0 z-50 px-5 pb-6 pt-4 bg-gradient-to-t from-bg via-bg/95 to-transparent">
         <Magnetic as="div" strength={0.14} radius={140}>
-        <motion.button
+        <m.button
           onClick={handleActivate}
           disabled={activating || activated}
           className="w-full relative overflow-hidden rounded-2xl py-4 text-white font-bold text-base shadow-glow disabled:opacity-60 disabled:cursor-not-allowed"
@@ -572,7 +572,7 @@ export default function ModeDetailPage({
           whileTap={{ scale: 0.95 }}
         >
           {/* Glow effect */}
-          <motion.div
+          <m.div
             className="absolute inset-0 opacity-30"
             style={{
               background: `radial-gradient(circle at 50% 50%, white, transparent 70%)`,
@@ -584,18 +584,18 @@ export default function ModeDetailPage({
           <span className="relative z-10 flex items-center justify-center gap-2">
             {activated ? (
               <>
-                <motion.span
+                <m.span
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={springs.elastic}
                 >
                   ✓
-                </motion.span>
+                </m.span>
                 Mode active !
               </>
             ) : activating ? (
               <>
-                <motion.span
+                <m.span
                   className="w-4 h-4 border-2 border-white border-t-transparent rounded-full"
                   animate={{ rotate: 360 }}
                   transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
@@ -609,7 +609,7 @@ export default function ModeDetailPage({
               </>
             )}
           </span>
-        </motion.button>
+        </m.button>
         </Magnetic>
       </div>
     </div>

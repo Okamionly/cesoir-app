@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { springs, ambient } from "@/lib/motion-design";
 import { app } from "@/lib/design-tokens";
 
@@ -26,38 +26,38 @@ export default function EmptyState({
       role="status"
     >
       {/* Floating emoji */}
-      <motion.div
+      <m.div
         className="text-5xl mb-5"
         animate={ambient.float(5)}
       >
         {emoji}
-      </motion.div>
+      </m.div>
 
       {/* Title */}
-      <motion.p
+      <m.p
         className="text-sm font-bold text-text"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...springs.heavy, delay: 0.1 }}
       >
         {title}
-      </motion.p>
+      </m.p>
 
       {/* Subtitle */}
       {subtitle && (
-        <motion.p
+        <m.p
           className="text-xs text-text-muted mt-1.5 max-w-[260px]"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...springs.heavy, delay: 0.2 }}
         >
           {subtitle}
-        </motion.p>
+        </m.p>
       )}
 
       {/* Optional CTA */}
       {actionLabel && actionHref && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...springs.heavy, delay: 0.3 }}
@@ -73,7 +73,7 @@ export default function EmptyState({
           >
             {actionLabel}
           </Link>
-        </motion.div>
+        </m.div>
       )}
     </div>
   );

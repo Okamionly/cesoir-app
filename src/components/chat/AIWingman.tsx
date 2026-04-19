@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useMemo, useCallback } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import type { ModeKey } from "@/lib/modes";
 import { springs, micro } from "@/lib/motion-design";
 
@@ -268,7 +268,7 @@ export default function AIWingman({
 
   return (
     <AnimatePresence mode="wait">
-      <motion.div
+      <m.div
         key={`wingman-${messageCount >= 3 ? "followup" : "starter"}-${unansweredCount >= 2 ? "reengage" : "normal"}`}
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
@@ -287,7 +287,7 @@ export default function AIWingman({
           className="flex gap-2 overflow-x-auto no-scrollbar"
         >
           {chips.map((chip, i) => (
-            <motion.button
+            <m.button
               key={chip}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -300,10 +300,10 @@ export default function AIWingman({
               className="shrink-0 px-3.5 py-2 rounded-full border border-accent/20 bg-accent/5 text-[12px] text-accent font-medium tap-target whitespace-nowrap"
             >
               {chip}
-            </motion.button>
+            </m.button>
           ))}
         </div>
-      </motion.div>
+      </m.div>
     </AnimatePresence>
   );
 }

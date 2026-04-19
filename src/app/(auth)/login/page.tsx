@@ -1,16 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { useAuth } from "@/context/AuthContext";
 import { landing } from "@/lib/design-tokens";
-import { springs, easings } from "@/lib/motion-design";
-import { Magnetic } from "@/components/motion/Magnetic";
+import { easings } from "@/lib/motion-design";
+import {
+  FormField,
+  FormInput,
+  FormSubmit,
+  FormBanner,
+} from "@/components/ui/forms";
 
 export default function LoginPage() {
-  const router = useRouter();
   const { signIn, error: authError } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -70,7 +73,7 @@ export default function LoginPage() {
         }}
       />
 
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 12, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.6, ease: easings.out }}
@@ -78,7 +81,7 @@ export default function LoginPage() {
       >
         {/* Logo with breathing moon */}
         <div className="flex items-center justify-center gap-2 mb-10">
-          <motion.span
+          <m.span
             className="text-3xl drop-shadow-[0_0_18px_rgba(139,92,246,0.6)]"
             aria-hidden="true"
             style={{ color: landing.violet }}
@@ -86,7 +89,7 @@ export default function LoginPage() {
             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
           >
             ☾
-          </motion.span>
+          </m.span>
           <span className="font-display text-2xl font-bold tracking-tight">
             CeSoir
           </span>
@@ -108,70 +111,38 @@ export default function LoginPage() {
           Connecte-toi pour voir qui est dispo
         </p>
 
-        {(error || authError) && (
-          <motion.div
-            role="alert"
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={springs.snap}
-            className="border text-[13px] px-4 py-3 rounded-xl mb-4"
-            style={{
-              background: "rgba(239,68,68,0.08)",
-              borderColor: "rgba(239,68,68,0.25)",
-              color: "#FCA5A5",
-            }}
-          >
-            {error || authError}
-          </motion.div>
-        )}
+        <div className="mb-4">
+          <FormBanner tone="error" variant="dark">
+            {error || authError || null}
+          </FormBanner>
+        </div>
 
         <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          <div>
-            <label
-              htmlFor="login-email"
-              className="block text-[11px] font-semibold mb-1.5 tracking-wide uppercase text-white/50"
-            >
-              Email
-            </label>
-            <input
-              id="login-email"
+          <FormField label="Email" variant="dark" required>
+            <FormInput
               type="email"
               placeholder="ton@email.com"
-              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
-              className="w-full px-4 py-3.5 rounded-xl text-sm placeholder:text-white/30 focus:outline-none transition-colors"
-              style={{
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                color: landing.fg,
-              }}
+              variant="dark"
+              size="lg"
+              error={Boolean(error)}
             />
-          </div>
-          <div>
-            <label
-              htmlFor="login-password"
-              className="block text-[11px] font-semibold mb-1.5 tracking-wide uppercase text-white/50"
-            >
-              Mot de passe
-            </label>
-            <input
-              id="login-password"
+          </FormField>
+
+          <FormField label="Mot de passe" variant="dark" required>
+            <FormInput
               type="password"
               placeholder="********"
-              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="current-password"
-              className="w-full px-4 py-3.5 rounded-xl text-sm placeholder:text-white/30 focus:outline-none transition-colors"
-              style={{
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                color: landing.fg,
-              }}
+              variant="dark"
+              size="lg"
+              error={Boolean(error)}
             />
-          </div>
+          </FormField>
 
           <div className="text-right">
             <Link
@@ -183,37 +154,14 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          <Magnetic as="div" strength={0.1} radius={120}>
-            <motion.button
-              type="submit"
-              disabled={loading}
-              whileHover={{
-                y: -2,
-                boxShadow: "0 14px 60px rgba(0,255,136,0.35)",
-                transition: springs.gentle,
-              }}
-              whileTap={{ scale: 0.98 }}
-              transition={springs.snap}
-              className="w-full font-semibold py-3.5 rounded-full text-sm text-white disabled:opacity-50 tap-target"
-              style={{
-                background: landing.gradient,
-                boxShadow: landing.shadow,
-              }}
-            >
-              {loading ? (
-                <span className="inline-flex items-center gap-2">
-                  <motion.span
-                    className="inline-block w-3.5 h-3.5 rounded-full border-2 border-white/40 border-t-white"
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
-                  />
-                  Connexion...
-                </span>
-              ) : (
-                "Se connecter"
-              )}
-            </motion.button>
-          </Magnetic>
+          <FormSubmit
+            isLoading={loading}
+            loadingLabel="Connexion..."
+            hasError={Boolean(error)}
+            variant="dark"
+          >
+            Se connecter
+          </FormSubmit>
         </form>
 
         <p className="text-sm text-white/60 text-center mt-8">
@@ -226,7 +174,7 @@ export default function LoginPage() {
             Creer un compte
           </Link>
         </p>
-      </motion.div>
+      </m.div>
     </main>
   );
 }

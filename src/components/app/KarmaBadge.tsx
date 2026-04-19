@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "motion/react";
+import { m } from "motion/react";
+import { getKarmaTier, KARMA_STAR_COLOR } from "@/lib/karma-tiers";
 
 interface KarmaBadgeProps {
   score: number;
@@ -9,28 +10,32 @@ interface KarmaBadgeProps {
 }
 
 export default function KarmaBadge({ score, meetups, compact = false }: KarmaBadgeProps) {
-  const ringColor = score > 4.5 ? "#F59E0B" : score > 4.0 ? "#C0C0C0" : "transparent";
-  const hasRing = score > 4.0;
+  const tier = getKarmaTier(score);
+  const hasRing = tier.key !== "none";
+  const tierColor = hasRing ? tier.color : undefined;
 
   return (
     <div
       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full ${
         hasRing ? "border-2" : "border border-border"
       }`}
-      style={hasRing ? { borderColor: ringColor, backgroundColor: `${ringColor}08` } : {}}
+      style={hasRing ? { borderColor: tier.color, backgroundColor: tier.tint } : {}}
       role="status"
       aria-label={`Score karma: ${score} etoiles, ${meetups} rencontres`}
     >
-      <motion.span
+      <m.span
         className="text-[14px]"
         animate={{ scale: [1, 1.2, 1] }}
         transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-        style={{ color: "#F59E0B" }}
+        style={{ color: KARMA_STAR_COLOR }}
         aria-hidden="true"
       >
         ★
-      </motion.span>
-      <span className={`font-bold ${compact ? "text-[11px]" : "text-[13px]"}`} style={{ color: score > 4.5 ? "#F59E0B" : score > 4.0 ? "#C0C0C0" : undefined }}>
+      </m.span>
+      <span
+        className={`font-bold ${compact ? "text-[11px]" : "text-[13px]"}`}
+        style={{ color: tierColor }}
+      >
         {score.toFixed(1)}
       </span>
       {!compact && (

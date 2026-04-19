@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, useCallback } from "react";
-import { motion, AnimatePresence, type Transition } from "motion/react";
+import { m, AnimatePresence, type Transition } from "motion/react";
 import { IconSearch, IconMap, IconChat, IconMoon, IconUser } from "@/components/ui/Icons";
 import { springs } from "@/lib/motion-design";
 
@@ -97,7 +97,7 @@ function DotBadge({ visible }: { visible: boolean }) {
           className="absolute -top-1 -right-1 w-3 h-3 flex items-center justify-center pointer-events-none"
           aria-hidden="true"
         >
-          <motion.span
+          <m.span
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0 }}
@@ -183,7 +183,7 @@ export default function BottomNav({
                 }`}
               >
                 {/* Icon with badge container */}
-                <motion.span
+                <m.span
                   className="relative"
                   whileTap={{ scale: 0.85 }}
                   transition={springs.micro as Transition}
@@ -192,7 +192,7 @@ export default function BottomNav({
 
                   {/* Small red dot badge */}
                   {hasBadge && <DotBadge visible />}
-                </motion.span>
+                </m.span>
 
                 <span className="text-[9px] font-semibold tracking-wide">
                   {tab.label}

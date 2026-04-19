@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
+import {
+  CHAT_VOICE_DARK_FILL,
+  CHAT_VOICE_WAVEFORM_ACCENT,
+  CHAT_VOICE_NEUTRAL_BG,
+} from "@/lib/chat-content-colors";
 
 // ---------- VoiceRecordButton ----------
 
@@ -56,7 +61,7 @@ export function VoiceRecordButton({ onRecordComplete }: VoiceRecordButtonProps) 
     <div className="relative flex items-center">
       <AnimatePresence>
         {isRecording && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, x: 10, width: 0 }}
             animate={{ opacity: 1, x: 0, width: "auto" }}
             exit={{ opacity: 0, x: 10, width: 0 }}
@@ -65,7 +70,7 @@ export function VoiceRecordButton({ onRecordComplete }: VoiceRecordButtonProps) 
             {/* Waveform bars */}
             <div className="flex items-center gap-0.5 h-6">
               {Array.from({ length: 8 }).map((_, i) => (
-                <motion.div
+                <m.div
                   key={i}
                   className="w-[3px] rounded-full bg-danger"
                   animate={{
@@ -83,7 +88,7 @@ export function VoiceRecordButton({ onRecordComplete }: VoiceRecordButtonProps) 
             <span className="text-[11px] font-semibold text-danger tabular-nums whitespace-nowrap">
               {maxDuration - recordTime}s
             </span>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
@@ -170,7 +175,7 @@ export function VoiceNoteBubble({ duration, isOwn, time }: VoiceNoteBubbleProps)
   });
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 8, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.2 }}
@@ -178,10 +183,9 @@ export function VoiceNoteBubble({ duration, isOwn, time }: VoiceNoteBubbleProps)
     >
       <div
         className={`flex items-center gap-2.5 px-3 py-2.5 rounded-2xl max-w-[75%] ${
-          isOwn
-            ? "gradient-bg rounded-br-md"
-            : "bg-[#F2F2F2] rounded-bl-md"
+          isOwn ? "gradient-bg rounded-br-md" : "rounded-bl-md"
         }`}
+        style={!isOwn ? { backgroundColor: CHAT_VOICE_NEUTRAL_BG } : undefined}
       >
         {/* Play/Pause button */}
         <button
@@ -192,12 +196,22 @@ export function VoiceNoteBubble({ duration, isOwn, time }: VoiceNoteBubbleProps)
           aria-label={isPlaying ? "Pause" : "Lecture"}
         >
           {isPlaying ? (
-            <svg width={12} height={12} viewBox="0 0 12 12" fill={isOwn ? "white" : "#111"}>
+            <svg
+              width={12}
+              height={12}
+              viewBox="0 0 12 12"
+              fill={isOwn ? "white" : CHAT_VOICE_DARK_FILL}
+            >
               <rect x="1" y="1" width="3.5" height="10" rx="1" />
               <rect x="7.5" y="1" width="3.5" height="10" rx="1" />
             </svg>
           ) : (
-            <svg width={12} height={12} viewBox="0 0 12 12" fill={isOwn ? "white" : "#111"}>
+            <svg
+              width={12}
+              height={12}
+              viewBox="0 0 12 12"
+              fill={isOwn ? "white" : CHAT_VOICE_DARK_FILL}
+            >
               <path d="M2 1l9 5-9 5V1z" />
             </svg>
           )}
@@ -209,15 +223,19 @@ export function VoiceNoteBubble({ duration, isOwn, time }: VoiceNoteBubbleProps)
             const barProgress = (i / bars.length) * 100;
             const isActive = barProgress <= progress;
             return (
-              <motion.div
+              <m.div
                 key={i}
                 className="rounded-full"
                 style={{
                   width: 2,
                   height: h,
                   background: isOwn
-                    ? isActive ? "rgba(255,255,255,1)" : "rgba(255,255,255,0.35)"
-                    : isActive ? "#8B5CF6" : "rgba(0,0,0,0.15)",
+                    ? isActive
+                      ? "rgba(255,255,255,1)"
+                      : "rgba(255,255,255,0.35)"
+                    : isActive
+                    ? CHAT_VOICE_WAVEFORM_ACCENT
+                    : "rgba(0,0,0,0.15)",
                 }}
                 animate={isPlaying && isActive ? { scaleY: [1, 1.3, 1] } : {}}
                 transition={{ duration: 0.3 }}
@@ -227,10 +245,14 @@ export function VoiceNoteBubble({ duration, isOwn, time }: VoiceNoteBubbleProps)
         </div>
 
         {/* Duration */}
-        <span className={`text-[10px] font-medium shrink-0 ${isOwn ? "text-white/60" : "text-text-muted"}`}>
+        <span
+          className={`text-[10px] font-medium shrink-0 ${
+            isOwn ? "text-white/60" : "text-text-muted"
+          }`}
+        >
           {formatDuration(duration)}
         </span>
       </div>
-    </motion.div>
+    </m.div>
   );
 }

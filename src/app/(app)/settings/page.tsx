@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { useAuth } from "@/context/AuthContext";
 import { setMuted, isMuted } from "@/lib/sounds";
 import { useDarkMode } from "@/components/ui/DarkModeProvider";
@@ -110,7 +110,7 @@ function Section({
   index?: number;
 }) {
   return (
-    <motion.div
+    <m.div
       className="px-5 mb-6"
       initial={{ opacity: 0, y: 12, filter: "blur(4px)" }}
       animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
@@ -122,7 +122,7 @@ function Section({
       <div className="bg-bg-card border border-border rounded-2xl overflow-hidden divide-y divide-border">
         {children}
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 

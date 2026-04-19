@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 
 interface PlusMenuProps {
   children: React.ReactNode;
@@ -20,7 +20,7 @@ export function PlusMenu({ children }: PlusMenuProps) {
               onClick={() => setIsOpen(false)}
               aria-hidden="true"
             />
-            <motion.div
+            <m.div
               initial={{ opacity: 0, scale: 0.8, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.8, y: 10 }}
@@ -30,7 +30,7 @@ export function PlusMenu({ children }: PlusMenuProps) {
               aria-label="Actions supplementaires"
             >
               {children}
-            </motion.div>
+            </m.div>
           </>
         )}
       </AnimatePresence>
@@ -46,7 +46,7 @@ export function PlusMenu({ children }: PlusMenuProps) {
         aria-label={isOpen ? "Fermer le menu" : "Plus d'actions"}
         aria-expanded={isOpen}
       >
-        <motion.svg
+        <m.svg
           width={18}
           height={18}
           viewBox="0 0 24 24"
@@ -60,7 +60,7 @@ export function PlusMenu({ children }: PlusMenuProps) {
             strokeWidth="2"
             strokeLinecap="round"
           />
-        </motion.svg>
+        </m.svg>
       </button>
     </div>
   );

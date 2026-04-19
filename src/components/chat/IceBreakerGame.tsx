@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useMemo } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { springs, micro } from "@/lib/motion-design";
 
 // ==========================================================================
@@ -296,7 +296,7 @@ export function IceBreakerButton({ onStartGame }: IceBreakerButtonProps) {
       <AnimatePresence>
         {isOpen && (
           <>
-            <motion.div
+            <m.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -306,7 +306,7 @@ export function IceBreakerButton({ onStartGame }: IceBreakerButtonProps) {
                 setSelectedGame(null);
               }}
             />
-            <motion.div
+            <m.div
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
@@ -451,7 +451,7 @@ export function IceBreakerButton({ onStartGame }: IceBreakerButtonProps) {
                   </div>
                 )}
               </div>
-            </motion.div>
+            </m.div>
           </>
         )}
       </AnimatePresence>
@@ -610,7 +610,7 @@ function PreferesMultiCard({
   };
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={springs.cinematic}
@@ -623,7 +623,7 @@ function PreferesMultiCard({
             ⚡ Tu preferes ?
           </p>
           {state.phase !== "results" && (
-            <motion.span
+            <m.span
               key={state.score}
               initial={{ scale: 1.6 }}
               animate={{ scale: 1 }}
@@ -631,13 +631,13 @@ function PreferesMultiCard({
               className="text-[12px] font-bold text-accent"
             >
               {state.score} pt{state.score !== 1 ? "s" : ""}
-            </motion.span>
+            </m.span>
           )}
         </div>
 
         {/* Intro screen */}
         {state.phase === "playing" && !animateReveal && q && (
-          <motion.div
+          <m.div
             key={`round-${state.currentRound}`}
             initial={{ opacity: 0, x: 40, rotateY: 15 }}
             animate={{ opacity: 1, x: 0, rotateY: 0 }}
@@ -653,7 +653,7 @@ function PreferesMultiCard({
               {(["A", "B"] as const).map((c) => {
                 const label = c === "A" ? q.optionA : q.optionB;
                 return (
-                  <motion.button
+                  <m.button
                     key={c}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.95 }}
@@ -661,16 +661,16 @@ function PreferesMultiCard({
                     className="text-left px-4 py-3 rounded-xl text-[13px] border border-border bg-bg text-text hover:border-accent/30 transition-colors"
                   >
                     {label}
-                  </motion.button>
+                  </m.button>
                 );
               })}
             </div>
-          </motion.div>
+          </m.div>
         )}
 
         {/* Reveal phase */}
         {state.phase === "reveal" && animateReveal && q && (
-          <motion.div
+          <m.div
             animate={shakeWrong ? micro.shake : {}}
             className="relative"
           >
@@ -684,7 +684,7 @@ function PreferesMultiCard({
                 const isTheirs = state.theirChoices[state.theirChoices.length - 1] === c;
                 const match = isMine && isTheirs;
                 return (
-                  <motion.div
+                  <m.div
                     key={c}
                     initial={{ rotateY: 90 }}
                     animate={{ rotateY: 0 }}
@@ -716,11 +716,11 @@ function PreferesMultiCard({
                             ? "L'autre"
                             : ""}
                     </span>
-                  </motion.div>
+                  </m.div>
                 );
               })}
             </div>
-            <motion.p
+            <m.p
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
@@ -735,26 +735,26 @@ function PreferesMultiCard({
               state.theirChoices[state.theirChoices.length - 1]
                 ? "Match ! +1 pt"
                 : "Pas pareil !"}
-            </motion.p>
-          </motion.div>
+            </m.p>
+          </m.div>
         )}
 
         {/* Results */}
         {state.phase === "results" && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={springs.elastic}
             className="text-center py-2"
           >
-            <motion.p
+            <m.p
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={springs.elastic}
               className="text-4xl mb-2"
             >
               {state.score >= 4 ? "🔥" : state.score >= 2 ? "✨" : "😅"}
-            </motion.p>
+            </m.p>
             <p className="text-[18px] font-bold text-text">
               {state.score}/{state.totalRounds}
             </p>
@@ -772,7 +772,7 @@ function PreferesMultiCard({
                 const theirs = state.theirChoices[i];
                 const match = mine === theirs;
                 return (
-                  <motion.div
+                  <m.div
                     key={i}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -785,23 +785,23 @@ function PreferesMultiCard({
                     <span className="truncate">
                       {mine === "A" ? rq.optionA : rq.optionB}
                     </span>
-                  </motion.div>
+                  </m.div>
                 );
               })}
             </div>
-            <motion.button
+            <m.button
               whileTap={{ scale: 0.95 }}
               onClick={handleReplay}
               className="mt-4 px-6 py-2.5 rounded-2xl gradient-bg text-white font-bold text-[13px] active:scale-[0.98] transition-transform"
             >
               Rejouer
-            </motion.button>
-          </motion.div>
+            </m.button>
+          </m.div>
         )}
 
         <span className="block text-[10px] text-text-muted mt-3 text-right">{time}</span>
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -891,7 +891,7 @@ function Top3Card({
   );
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={springs.cinematic}
@@ -909,7 +909,7 @@ function Top3Card({
 
         {/* Input phase */}
         {state.phase === "input" && catInfo && (
-          <motion.div
+          <m.div
             key={`input-${state.currentRound}`}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -942,12 +942,12 @@ function Top3Card({
             >
               Valider
             </button>
-          </motion.div>
+          </m.div>
         )}
 
         {/* Guess phase */}
         {state.phase === "guess" && catInfo && (
-          <motion.div
+          <m.div
             key={`guess-${state.currentRound}`}
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
@@ -980,12 +980,12 @@ function Top3Card({
             >
               Deviner
             </button>
-          </motion.div>
+          </m.div>
         )}
 
         {/* Reveal phase */}
         {state.phase === "reveal" && catInfo && (
-          <motion.div
+          <m.div
             key={`reveal-${state.currentRound}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -999,7 +999,7 @@ function Top3Card({
                 const isMatch =
                   guess.toLowerCase().trim() === entry.toLowerCase().trim();
                 return (
-                  <motion.div
+                  <m.div
                     key={i}
                     initial={{ rotateY: 90, opacity: 0 }}
                     animate={{ rotateY: 0, opacity: 1 }}
@@ -1026,7 +1026,7 @@ function Top3Card({
                           </p>
                         )}
                       </div>
-                      <motion.span
+                      <m.span
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{
@@ -1036,13 +1036,13 @@ function Top3Card({
                         className="text-xl"
                       >
                         {isMatch ? "✅" : "❌"}
-                      </motion.span>
+                      </m.span>
                     </div>
-                  </motion.div>
+                  </m.div>
                 );
               })}
             </div>
-            <motion.button
+            <m.button
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1 }}
@@ -1053,26 +1053,26 @@ function Top3Card({
               {state.currentRound + 1 >= state.totalRounds
                 ? "Voir les resultats"
                 : "Categorie suivante"}
-            </motion.button>
-          </motion.div>
+            </m.button>
+          </m.div>
         )}
 
         {/* Final results */}
         {state.phase === "results" && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={springs.elastic}
             className="text-center py-2"
           >
-            <motion.p
+            <m.p
               initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={springs.elastic}
               className="text-4xl mb-2"
             >
               🏆
-            </motion.p>
+            </m.p>
             <p className="text-[16px] font-bold text-text mb-1">
               Partie terminee !
             </p>
@@ -1080,7 +1080,7 @@ function Top3Card({
               {state.rounds.map((r, i) => {
                 const cat = TOP3_CATEGORIES.find((c) => c.key === r.category);
                 return (
-                  <motion.div
+                  <m.div
                     key={i}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -1094,25 +1094,25 @@ function Top3Card({
                     <span className="ml-auto text-text-muted">
                       {r.entries.join(", ")}
                     </span>
-                  </motion.div>
+                  </m.div>
                 );
               })}
             </div>
-            <motion.button
+            <m.button
               whileTap={{ scale: 0.95 }}
               onClick={handleReplay}
               className="mt-4 px-6 py-2.5 rounded-2xl gradient-bg text-white font-bold text-[13px] active:scale-[0.98] transition-transform"
             >
               Rejouer
-            </motion.button>
-          </motion.div>
+            </m.button>
+          </m.div>
         )}
 
         <span className="block text-[10px] text-text-muted mt-3 text-right">
           {time}
         </span>
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -1149,13 +1149,13 @@ function TwoTruthsCard({
   }, [localAnswer, showResult, payload.lieIndex]);
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={springs.cinematic}
       className={`flex ${isOwn ? "justify-end" : "justify-start"} mt-3`}
     >
-      <motion.div
+      <m.div
         animate={shaking ? micro.shake : {}}
         className="max-w-[85%] rounded-2xl bg-bg-card border border-border p-3.5"
       >
@@ -1168,7 +1168,7 @@ function TwoTruthsCard({
             const isLie = showResult && i === payload.lieIndex;
             const isTruth = showResult && i !== payload.lieIndex;
             return (
-              <motion.button
+              <m.button
                 key={i}
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -1198,23 +1198,23 @@ function TwoTruthsCard({
               >
                 <span className="flex items-center gap-2">
                   {showResult && (
-                    <motion.span
+                    <m.span
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={springs.elastic}
                     >
                       {isLie ? "❌" : "✅"}
-                    </motion.span>
+                    </m.span>
                   )}
                   {s}
                   {isLie && " -- Mensonge !"}
                 </span>
-              </motion.button>
+              </m.button>
             );
           })}
         </div>
         {showResult && localAnswer && (
-          <motion.p
+          <m.p
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={springs.elastic}
@@ -1227,13 +1227,13 @@ function TwoTruthsCard({
             {localAnswer === String(payload.lieIndex)
               ? "Bien joue ! Tu as trouve !"
               : "Rate ! C'etait l'autre..."}
-          </motion.p>
+          </m.p>
         )}
         <span className="block text-[10px] text-text-muted mt-2 text-right">
           {time}
         </span>
-      </motion.div>
-    </motion.div>
+      </m.div>
+    </m.div>
   );
 }
 
@@ -1288,7 +1288,7 @@ function EmojiStoryCard({
   };
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={springs.cinematic}
@@ -1301,7 +1301,7 @@ function EmojiStoryCard({
 
         {/* Compose phase */}
         {state.phase === "compose" && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={springs.elastic}
@@ -1319,7 +1319,7 @@ function EmojiStoryCard({
               )}
               <AnimatePresence mode="popLayout">
                 {selected.map((emoji, i) => (
-                  <motion.button
+                  <m.button
                     key={`${emoji}-${i}`}
                     layout
                     initial={{ scale: 0, rotate: -90 }}
@@ -1331,7 +1331,7 @@ function EmojiStoryCard({
                     title="Cliquer pour retirer"
                   >
                     {emoji}
-                  </motion.button>
+                  </m.button>
                 ))}
               </AnimatePresence>
             </div>
@@ -1339,7 +1339,7 @@ function EmojiStoryCard({
             {/* Emoji palette */}
             <div className="grid grid-cols-8 gap-1 mb-3">
               {EMOJI_PALETTE.map((emoji) => (
-                <motion.button
+                <m.button
                   key={emoji}
                   whileTap={{ scale: 0.8 }}
                   onClick={() => handleSelectEmoji(emoji)}
@@ -1347,7 +1347,7 @@ function EmojiStoryCard({
                   className="text-xl p-1 rounded-lg hover:bg-bg transition-colors disabled:opacity-30"
                 >
                   {emoji}
-                </motion.button>
+                </m.button>
               ))}
             </div>
 
@@ -1358,12 +1358,12 @@ function EmojiStoryCard({
             >
               Envoyer l'histoire ({selected.length}/5)
             </button>
-          </motion.div>
+          </m.div>
         )}
 
         {/* Guess phase */}
         {state.phase === "guess" && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
             transition={springs.elastic}
@@ -1373,7 +1373,7 @@ function EmojiStoryCard({
             </p>
             <div className="flex gap-3 justify-center mb-4">
               {state.emojis.map((emoji, i) => (
-                <motion.span
+                <m.span
                   key={i}
                   initial={{ opacity: 0, y: 20, scale: 0.5 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -1381,7 +1381,7 @@ function EmojiStoryCard({
                   className="text-3xl"
                 >
                   {emoji}
-                </motion.span>
+                </m.span>
               ))}
             </div>
             <div className="flex gap-2">
@@ -1400,19 +1400,19 @@ function EmojiStoryCard({
                 OK
               </button>
             </div>
-          </motion.div>
+          </m.div>
         )}
 
         {/* Reveal phase */}
         {state.phase === "reveal" && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="text-center"
           >
             <div className="flex gap-3 justify-center mb-3">
               {state.emojis.map((emoji, i) => (
-                <motion.span
+                <m.span
                   key={i}
                   initial={{ rotateY: 180, opacity: 0 }}
                   animate={{ rotateY: 0, opacity: 1 }}
@@ -1420,10 +1420,10 @@ function EmojiStoryCard({
                   className="text-3xl"
                 >
                   {emoji}
-                </motion.span>
+                </m.span>
               ))}
             </div>
-            <motion.div
+            <m.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
@@ -1435,16 +1435,16 @@ function EmojiStoryCard({
               <p className="text-[14px] text-text font-medium">
                 &laquo; {state.guess} &raquo;
               </p>
-            </motion.div>
-            <motion.p
+            </m.div>
+            <m.p
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ ...springs.elastic, delay: 0.9 }}
               className="text-2xl mb-2"
             >
               😂
-            </motion.p>
-            <motion.button
+            </m.p>
+            <m.button
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1.2 }}
@@ -1453,15 +1453,15 @@ function EmojiStoryCard({
               className="mt-2 px-6 py-2.5 rounded-2xl gradient-bg text-white font-bold text-[13px] active:scale-[0.98] transition-transform"
             >
               Rejouer
-            </motion.button>
-          </motion.div>
+            </m.button>
+          </m.div>
         )}
 
         <span className="block text-[10px] text-text-muted mt-3 text-right">
           {time}
         </span>
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -1491,7 +1491,7 @@ function SinglePreferesCard({
   }, [localAnswer, showResult]);
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 8, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       className={`flex ${isOwn ? "justify-end" : "justify-start"} mt-3`}
@@ -1530,19 +1530,19 @@ function SinglePreferesCard({
           })}
         </div>
         {showResult && (
-          <motion.p
+          <m.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="text-[12px] text-accent font-semibold mt-2"
           >
             Reponse envoyee !
-          </motion.p>
+          </m.p>
         )}
         <span className="block text-[10px] text-text-muted mt-2 text-right">
           {time}
         </span>
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -1573,7 +1573,7 @@ function QuestionCardInner({
   }, [localAnswer, showResult]);
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 8, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       className={`flex ${isOwn ? "justify-end" : "justify-start"} mt-3`}
@@ -1612,7 +1612,7 @@ function QuestionCardInner({
               <p className="text-[13px] text-text">{localAnswer}</p>
             </div>
             {showResult && (
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, y: 4 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="bg-bg border border-border rounded-xl px-3 py-2"
@@ -1623,7 +1623,7 @@ function QuestionCardInner({
                 <p className="text-[13px] text-text">
                   Bonne question ! Je dirais pareil
                 </p>
-              </motion.div>
+              </m.div>
             )}
           </div>
         )}
@@ -1631,6 +1631,6 @@ function QuestionCardInner({
           {time}
         </span>
       </div>
-    </motion.div>
+    </m.div>
   );
 }

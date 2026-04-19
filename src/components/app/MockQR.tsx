@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import { app } from "@/lib/design-tokens";
 
@@ -83,7 +83,7 @@ export default function MockQR({
         {pattern.map((row, r) =>
           row.map((filled, c) =>
             filled ? (
-              <motion.rect
+              <m.rect
                 key={`${r}-${c}`}
                 x={c * cellSize + gap / 2}
                 y={r * cellSize + gap / 2}

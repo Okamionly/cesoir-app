@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { app } from "@/lib/design-tokens";
 
 interface AudioWaveProps {
@@ -38,7 +38,7 @@ export default function AudioWave({
     >
       {/* Concentric rings */}
       {Array.from({ length: ringCount }).map((_, i) => (
-        <motion.div
+        <m.div
           key={i}
           className="absolute rounded-full pointer-events-none"
           style={{
@@ -75,7 +75,7 @@ export default function AudioWave({
       ))}
 
       {/* Avatar circle */}
-      <motion.div
+      <m.div
         className="relative z-10 rounded-full overflow-hidden border-2"
         style={{
           width: size,
@@ -115,7 +115,7 @@ export default function AudioWave({
             {name.charAt(0).toUpperCase()}
           </div>
         )}
-      </motion.div>
+      </m.div>
     </div>
   );
 }

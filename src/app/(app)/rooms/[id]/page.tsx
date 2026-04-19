@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import AudioWave from "@/components/app/AudioWave";
 import PageHeader from "@/components/ui/PageHeader";
@@ -190,14 +190,14 @@ export default function RoomDetailPage() {
           <div className="px-5 pt-3 pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 min-w-0">
-                <motion.button
+                <m.button
                   onClick={handleLeave}
                   whileTap={{ scale: 0.85, transition: springs.micro }}
                   className="p-1 -ml-1 shrink-0"
                   aria-label="Retour"
                 >
                   <ArrowLeft size={20} strokeWidth={2} className="text-text-muted" />
-                </motion.button>
+                </m.button>
                 <div className="min-w-0">
                   <h1 className="text-[15px] font-display font-bold text-text truncate">
                     {room.title}
@@ -218,18 +218,18 @@ export default function RoomDetailPage() {
               </div>
 
               {/* Live pill */}
-              <motion.span
+              <m.span
                 className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white bg-red-500 shrink-0"
                 animate={{ scale: [1, 1.1, 1] }}
                 transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
               >
-                <motion.span
+                <m.span
                   className="w-1.5 h-1.5 rounded-full bg-white"
                   animate={{ opacity: [1, 0.4, 1] }}
                   transition={{ duration: 1, repeat: Infinity }}
                 />
                 {totalListening} en ligne
-              </motion.span>
+              </m.span>
             </div>
           </div>
         )}
@@ -242,7 +242,7 @@ export default function RoomDetailPage() {
         </p>
         <div className="flex flex-wrap justify-center gap-6">
           {liveSpeakers.map((speaker, i) => (
-            <motion.div
+            <m.div
               key={speaker.name}
               className="flex flex-col items-center gap-1.5"
               initial={{ scale: 0 }}
@@ -267,7 +267,7 @@ export default function RoomDetailPage() {
                   Hote
                 </span>
               )}
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </section>
@@ -286,7 +286,7 @@ export default function RoomDetailPage() {
           </button>
           <AnimatePresence>
             {showHandQueue && (
-              <motion.div
+              <m.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
@@ -295,7 +295,7 @@ export default function RoomDetailPage() {
               >
                 <div className="flex gap-3">
                   {room.handRaises.map((hr, i) => (
-                    <motion.div
+                    <m.div
                       key={hr.name}
                       className="flex flex-col items-center gap-1"
                       initial={{ y: 20, opacity: 0 }}
@@ -310,7 +310,7 @@ export default function RoomDetailPage() {
                           height={40}
                           className="w-10 h-10 rounded-full object-cover border-2 border-border"
                         />
-                        <motion.span
+                        <m.span
                           className="absolute -top-2 -right-2 text-sm"
                           animate={{ y: [0, -4, 0] }}
                           transition={{
@@ -321,15 +321,15 @@ export default function RoomDetailPage() {
                           }}
                         >
                           {"\u270B"}
-                        </motion.span>
+                        </m.span>
                       </div>
                       <span className="text-[10px] text-text-muted truncate max-w-[60px]">
                         {hr.name}
                       </span>
-                    </motion.div>
+                    </m.div>
                   ))}
                 </div>
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
         </section>
@@ -342,7 +342,7 @@ export default function RoomDetailPage() {
         </p>
         <div className="flex flex-wrap gap-2.5">
           {room.listeners.map((listener, i) => (
-            <motion.div
+            <m.div
               key={listener.name}
               className="flex flex-col items-center gap-0.5"
               initial={{ scale: 0, opacity: 0 }}
@@ -359,7 +359,7 @@ export default function RoomDetailPage() {
               <span className="text-[9px] text-text-muted truncate max-w-[50px]">
                 {listener.name.split(" ")[0]}
               </span>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </section>
@@ -368,7 +368,7 @@ export default function RoomDetailPage() {
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-bg/95 backdrop-blur-md border-t border-border px-5 py-3 pb-safe">
         <div className="flex items-center justify-center gap-5 max-w-md mx-auto">
           {/* Mute/Unmute */}
-          <motion.button
+          <m.button
             onClick={() => setIsMuted(!isMuted)}
             whileTap={{ scale: 0.85, transition: springs.micro }}
             className={`w-14 h-14 rounded-full flex items-center justify-center border-2 transition-colors ${
@@ -383,10 +383,10 @@ export default function RoomDetailPage() {
             ) : (
               <Mic size={22} strokeWidth={2} />
             )}
-          </motion.button>
+          </m.button>
 
           {/* Raise hand */}
-          <motion.button
+          <m.button
             onClick={() => setHandRaised(!handRaised)}
             whileTap={{ scale: 0.85, transition: springs.micro }}
             className={`w-14 h-14 rounded-full flex items-center justify-center border-2 transition-colors ${
@@ -396,7 +396,7 @@ export default function RoomDetailPage() {
             }`}
             aria-label={handRaised ? "Baisser la main" : "Lever la main"}
           >
-            <motion.span
+            <m.span
               className="text-xl"
               animate={
                 handRaised
@@ -415,18 +415,18 @@ export default function RoomDetailPage() {
               }
             >
               {"\u270B"}
-            </motion.span>
-          </motion.button>
+            </m.span>
+          </m.button>
 
           {/* Leave room */}
-          <motion.button
+          <m.button
             onClick={handleLeave}
             whileTap={{ scale: 0.85, transition: springs.micro }}
             className="w-14 h-14 rounded-full flex items-center justify-center border-2 border-danger bg-danger/10 text-danger"
             aria-label="Quitter le salon"
           >
             <LogOut size={22} strokeWidth={2} />
-          </motion.button>
+          </m.button>
         </div>
       </div>
     </div>

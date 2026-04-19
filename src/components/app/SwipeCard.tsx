@@ -7,6 +7,14 @@ import { MODES } from "@/lib/modes";
 import { MODE_ICONS } from "@/components/ui/Icons";
 import SmartQueueBadge from "@/components/app/SmartQueueBadge";
 import PhotoGallery from "@/components/app/PhotoGallery";
+import {
+  LIKE_COLOR,
+  NOPE_COLOR,
+  LIVE_COLOR,
+  SWIPE_TAG_COLORS,
+  LANGUAGE_SPEAKS_COLOR,
+  LANGUAGE_LEARNS_COLOR,
+} from "@/lib/swipe-card-colors";
 
 interface SwipeCardProps {
   profile: Profile;
@@ -97,13 +105,35 @@ export default function SwipeCard({
 
       {/* Swipe indicators */}
       <motion.div className="absolute top-8 left-6 z-10" style={{ opacity: likeOpacity }}>
-        <div className="px-5 py-2 rounded-2xl border-2 border-[#00FF88] bg-[#00FF88]/15 backdrop-blur-sm -rotate-6">
-          <span className="text-[#00FF88] text-[18px] font-black tracking-widest">LIKE</span>
+        <div
+          className="px-5 py-2 rounded-2xl border-2 backdrop-blur-sm -rotate-6"
+          style={{
+            borderColor: LIKE_COLOR,
+            backgroundColor: `${LIKE_COLOR}26`, // /15 ≈ 26 alpha hex
+          }}
+        >
+          <span
+            className="text-[18px] font-black tracking-widest"
+            style={{ color: LIKE_COLOR }}
+          >
+            LIKE
+          </span>
         </div>
       </motion.div>
       <motion.div className="absolute top-8 right-6 z-10" style={{ opacity: nopeOpacity }}>
-        <div className="px-5 py-2 rounded-2xl border-2 border-[#ff4466] bg-[#ff4466]/15 backdrop-blur-sm rotate-6">
-          <span className="text-[#ff4466] text-[18px] font-black tracking-widest">NOPE</span>
+        <div
+          className="px-5 py-2 rounded-2xl border-2 backdrop-blur-sm rotate-6"
+          style={{
+            borderColor: NOPE_COLOR,
+            backgroundColor: `${NOPE_COLOR}26`,
+          }}
+        >
+          <span
+            className="text-[18px] font-black tracking-widest"
+            style={{ color: NOPE_COLOR }}
+          >
+            NOPE
+          </span>
         </div>
       </motion.div>
 
@@ -139,14 +169,25 @@ export default function SwipeCard({
         <div className={`relative h-full flex flex-col justify-end p-6 ${expanded ? "overflow-y-auto" : ""}`}>
           {p.time === "Dispo maintenant" && (
             <div className="flex items-center gap-1.5 mb-3">
-              <span className="w-2 h-2 rounded-full bg-[#00FF88]" />
-              <span className="text-[11px] text-[#00FF88] font-bold uppercase tracking-widest">Maintenant</span>
+              <span
+                className="w-2 h-2 rounded-full"
+                style={{ backgroundColor: LIVE_COLOR }}
+              />
+              <span
+                className="text-[11px] font-bold uppercase tracking-widest"
+                style={{ color: LIVE_COLOR }}
+              >
+                Maintenant
+              </span>
             </div>
           )}
 
           <h2 className="text-[38px] font-black leading-[0.95] tracking-tight text-white mb-1">{p.name}</h2>
           <p className="text-[15px] text-white/50 font-light mb-3">
-            {p.age} ans · {p.distance} km · <span className="text-[#00FF88] font-medium">{p.time}</span>
+            {p.age} ans · {p.distance} km ·{" "}
+            <span className="font-medium" style={{ color: LIVE_COLOR }}>
+              {p.time}
+            </span>
           </p>
 
           <p className={`text-[14px] text-white/70 leading-relaxed ${expanded ? "" : "line-clamp-2"}`}>{p.bio}</p>
@@ -167,22 +208,22 @@ export default function SwipeCard({
 function ProfileTags({ profile: p }: { profile: Profile }) {
   const tags: React.ReactNode[] = [];
   if (p.cuisine) tags.push(<Tag key="c" text={p.cuisine} />);
-  if (p.event) tags.push(<Tag key="e" text={p.event} accent />);
+  if (p.event) tags.push(<Tag key="e" text={p.event} variant="accent" />);
   if (p.dog) tags.push(<Tag key="d" text={`${p.dog} · ${p.breed}`} />);
-  if (p.safe) tags.push(<Tag key="s" text="Safe Space" green />);
+  if (p.safe) tags.push(<Tag key="s" text="Safe Space" variant="green" />);
   if (p.from) tags.push(<Tag key="f" text={p.from} />);
   if (p.speaks) tags.push(<Tag key="l" text={`${p.speaks.join(" · ")} → ${p.learns}`} />);
   if (tags.length === 0) return null;
   return <div className="flex flex-wrap gap-1.5 mt-3">{tags}</div>;
 }
 
-function Tag({ text, accent, green }: { text: string; accent?: boolean; green?: boolean }) {
-  const cls = accent
-    ? "bg-[#8B5CF6]/15 text-[#8B5CF6]"
-    : green
-    ? "bg-[#00FF88]/15 text-[#00FF88]"
-    : "bg-white/8 text-white/70";
-  return <span className={`px-3 py-1 rounded-full text-[11px] font-medium ${cls}`}>{text}</span>;
+function Tag({ text, variant = "neutral" }: { text: string; variant?: keyof typeof SWIPE_TAG_COLORS }) {
+  const { bg, text: textCls } = SWIPE_TAG_COLORS[variant];
+  return (
+    <span className={`px-3 py-1 rounded-full text-[11px] font-medium ${bg} ${textCls}`}>
+      {text}
+    </span>
+  );
 }
 
 function ExpandedDetails({ profile: p }: { profile: Profile }) {
@@ -195,8 +236,29 @@ function ExpandedDetails({ profile: p }: { profile: Profile }) {
       {p.speaks && (
         <DetailSection title="Langues">
           <div className="flex gap-1.5">
-            {p.speaks.map(l => <span key={l} className="text-[11px] bg-[#06b6d4]/15 px-2.5 py-0.5 rounded-full text-[#06b6d4] font-medium">{l}</span>)}
-            {p.learns && <span className="text-[11px] bg-[#8B5CF6]/15 px-2.5 py-0.5 rounded-full text-[#8B5CF6] font-medium">→ {p.learns}</span>}
+            {p.speaks.map((l) => (
+              <span
+                key={l}
+                className="text-[11px] px-2.5 py-0.5 rounded-full font-medium"
+                style={{
+                  backgroundColor: `${LANGUAGE_SPEAKS_COLOR}26`,
+                  color: LANGUAGE_SPEAKS_COLOR,
+                }}
+              >
+                {l}
+              </span>
+            ))}
+            {p.learns && (
+              <span
+                className="text-[11px] px-2.5 py-0.5 rounded-full font-medium"
+                style={{
+                  backgroundColor: `${LANGUAGE_LEARNS_COLOR}26`,
+                  color: LANGUAGE_LEARNS_COLOR,
+                }}
+              >
+                → {p.learns}
+              </span>
+            )}
           </div>
         </DetailSection>
       )}

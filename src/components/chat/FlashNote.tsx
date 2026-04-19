@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { springs } from "@/lib/motion-design";
 
 // ─────────────────────────────────────────
@@ -61,7 +61,7 @@ export function FlashNoteButton({
   return (
     <>
       {/* Trigger button */}
-      <motion.button
+      <m.button
         onClick={() => canSend && setIsOpen(true)}
         className={`flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold transition-colors ${
           canSend
@@ -77,20 +77,20 @@ export function FlashNoteButton({
           <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
         </svg>
         {canSend ? "Envoyer un FlashNote" : "FlashNote utilise"}
-      </motion.button>
+      </m.button>
 
       {/* Compose sheet */}
       <AnimatePresence>
         {isOpen && (
           <>
-            <motion.div
+            <m.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/50 z-50"
               onClick={() => setIsOpen(false)}
             />
-            <motion.div
+            <m.div
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
@@ -136,7 +136,7 @@ export function FlashNoteButton({
                 </div>
 
                 {/* Send button */}
-                <motion.button
+                <m.button
                   onClick={handleSend}
                   disabled={!isValid}
                   className="w-full mt-3 py-3 rounded-2xl bg-accent text-white font-bold text-[15px] disabled:opacity-30 disabled:cursor-not-allowed"
@@ -144,7 +144,7 @@ export function FlashNoteButton({
                   transition={springs.micro}
                 >
                   Envoyer le FlashNote
-                </motion.button>
+                </m.button>
 
                 {!isPremium && (
                   <p className="text-[10px] text-white/30 mt-2 text-center">
@@ -152,7 +152,7 @@ export function FlashNoteButton({
                   </p>
                 )}
               </div>
-            </motion.div>
+            </m.div>
           </>
         )}
       </AnimatePresence>
@@ -171,7 +171,7 @@ export function FlashNoteReceived({
   onReply,
 }: FlashNoteReceivedProps) {
   return (
-    <motion.div
+    <m.div
       className="mx-4 my-3"
       initial={{ opacity: 0, y: 12, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -197,18 +197,18 @@ export function FlashNoteReceived({
         <div className="flex items-center justify-between mt-3">
           <span className="text-[10px] text-text-muted">{time}</span>
           {onReply && (
-            <motion.button
+            <m.button
               onClick={onReply}
               className="text-[12px] text-accent font-bold"
               whileTap={{ scale: 0.95 }}
               transition={springs.micro}
             >
               Repondre
-            </motion.button>
+            </m.button>
           )}
         </div>
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 

@@ -3,7 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import { usePlan, PLAN_TYPE_META } from "@/lib/usePlans";
 import PageHeader from "@/components/ui/PageHeader";
@@ -128,7 +128,7 @@ export default function PlanDetailPage() {
         )}
 
         {/* CTA */}
-        <motion.button
+        <m.button
           onClick={() => void toggleInterest()}
           disabled={isFull && !isInterested}
           whileHover={!isFull || isInterested ? { scale: 1.02 } : {}}
@@ -143,7 +143,7 @@ export default function PlanDetailPage() {
           }`}
         >
           {isInterested ? "Inscrit \u2713 — cliquer pour se desinscrire" : isFull ? "Complet" : "J'y vais"}
-        </motion.button>
+        </m.button>
       </main>
     </div>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -26,7 +26,7 @@ export function FlipCard({ front, back, className = "" }: FlipCardProps) {
       className={`perspective cursor-pointer ${className}`}
       style={{ perspective: "1000px" }}
     >
-      <motion.div
+      <m.div
         animate={{ rotateY: flipped ? 180 : 0 }}
         transition={{ type: "spring", stiffness: 260, damping: 25 }}
         style={{ transformStyle: "preserve-3d" }}
@@ -47,7 +47,7 @@ export function FlipCard({ front, back, className = "" }: FlipCardProps) {
         >
           {back}
         </div>
-      </motion.div>
+      </m.div>
     </div>
   );
 }

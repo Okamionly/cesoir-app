@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import { useSubscription } from "@/lib/useSubscription";
 import { SUBSCRIPTION_PLANS, formatPrice, type SubscriptionPlan } from "@/lib/stripe/plans";
@@ -32,7 +32,7 @@ const FAQ = [
 function FAQItem({ question, answer, index }: { question: string; answer: string; index: number }) {
   const [open, setOpen] = useState(false);
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ ...springs.elastic, delay: 0.8 + index * 0.1 }}
@@ -44,18 +44,18 @@ function FAQItem({ question, answer, index }: { question: string; answer: string
         aria-expanded={open}
       >
         <span className="text-[14px] font-semibold text-text pr-4">{question}</span>
-        <motion.span
+        <m.span
           animate={{ rotate: open ? 180 : 0 }}
           transition={springs.snap}
           className="text-text-muted text-[18px] shrink-0"
           aria-hidden="true"
         >
           ▾
-        </motion.span>
+        </m.span>
       </button>
       <AnimatePresence>
         {open && (
-          <motion.div
+          <m.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -63,10 +63,10 @@ function FAQItem({ question, answer, index }: { question: string; answer: string
             className="overflow-hidden"
           >
             <p className="px-5 pb-4 text-[13px] text-text-muted leading-relaxed">{answer}</p>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -119,7 +119,7 @@ export default function PremiumPage() {
           style={{ background: "radial-gradient(ellipse at 50% 30%, var(--color-warn) 0%, transparent 70%)" }}
           aria-hidden="true"
         />
-        <motion.div
+        <m.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={springs.elastic}
@@ -127,8 +127,8 @@ export default function PremiumPage() {
           aria-hidden="true"
         >
           👑
-        </motion.div>
-        <motion.h1
+        </m.div>
+        <m.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...springs.elastic, delay: 0.1 }}
@@ -142,18 +142,18 @@ export default function PremiumPage() {
           }}
         >
           CeSoir Premium
-        </motion.h1>
-        <motion.p
+        </m.h1>
+        <m.p
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...springs.elastic, delay: 0.2 }}
           className="text-[14px] text-text-muted mt-2"
         >
           Debloques toutes les fonctionnalites. Fais la difference.
-        </motion.p>
+        </m.p>
 
         {isPremium && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[12px] font-semibold"
@@ -164,14 +164,14 @@ export default function PremiumPage() {
               Premium actif
               {subscription?.cancel_at_period_end ? " (annulation programmée)" : ""}
             </span>
-          </motion.div>
+          </m.div>
         )}
       </div>
 
       {/* ── Benefits ── */}
       <div className="px-6 space-y-3">
         {BENEFITS.map((benefit, i) => (
-          <motion.div
+          <m.div
             key={benefit.title}
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -189,14 +189,14 @@ export default function PremiumPage() {
               <p className="text-[14px] font-semibold text-text">{benefit.title}</p>
               <p className="text-[12px] text-text-muted mt-0.5 leading-relaxed">{benefit.description}</p>
             </div>
-          </motion.div>
+          </m.div>
         ))}
       </div>
 
       {/* ── Pricing / Manage ── */}
       {isPremium ? (
         <div className="px-6 mt-10">
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={springs.elastic}
@@ -209,7 +209,7 @@ export default function PremiumPage() {
                 {new Date(subscription.current_period_end).toLocaleDateString("fr-FR")}
               </p>
             )}
-            <motion.button
+            <m.button
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.96 }}
               disabled={busy === "portal"}
@@ -218,20 +218,20 @@ export default function PremiumPage() {
               style={{ background: GOLD_GRADIENT }}
             >
               {busy === "portal" ? "Ouverture..." : "Gérer ma subscription"}
-            </motion.button>
-          </motion.div>
+            </m.button>
+          </m.div>
         </div>
       ) : (
         <>
           <div className="px-6 mt-10">
-            <motion.h2
+            <m.h2
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6 }}
               className="text-[18px] font-display font-bold text-center mb-5"
             >
               Choisis ton plan
-            </motion.h2>
+            </m.h2>
 
             <div className="grid grid-cols-2 gap-3">
               {paidPlans.map((plan, idx) => {
@@ -241,7 +241,7 @@ export default function PremiumPage() {
                     ? plan.amountCents / 12
                     : plan.amountCents;
                 return (
-                  <motion.button
+                  <m.button
                     key={plan.id}
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -277,7 +277,7 @@ export default function PremiumPage() {
                         Facturé {formatPrice(plan.amountCents, plan.currency)}/an
                       </p>
                     )}
-                  </motion.button>
+                  </m.button>
                 );
               })}
             </div>
@@ -288,7 +288,7 @@ export default function PremiumPage() {
             {error && (
               <p className="text-[12px] text-red-500 text-center mb-3">{error}</p>
             )}
-            <motion.button
+            <m.button
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ ...springs.elastic, delay: 0.75 }}
@@ -305,21 +305,21 @@ export default function PremiumPage() {
                 : selectedPlan?.trialDays
                   ? `Essai gratuit ${selectedPlan.trialDays} jours`
                   : "S'abonner"}
-            </motion.button>
-            <motion.p
+            </m.button>
+            <m.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.85 }}
               className="text-[11px] text-text-muted text-center mt-3"
             >
               Annule a tout moment. Aucun engagement. Paiement sécurisé Stripe.
-            </motion.p>
+            </m.p>
           </div>
         </>
       )}
 
       {/* ── Social proof ── */}
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...springs.elastic, delay: 0.9 }}
@@ -336,18 +336,18 @@ export default function PremiumPage() {
           Rejoint par <span style={{ color: "var(--color-warn)" }}>1,247</span> membres premium
         </p>
         <p className="text-[11px] text-text-muted mt-0.5">Les membres premium ont 3x plus de matchs</p>
-      </motion.div>
+      </m.div>
 
       {/* ── FAQ ── */}
       <div className="px-6 mt-10 mb-8">
-        <motion.h2
+        <m.h2
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
           className="text-[16px] font-display font-bold mb-4"
         >
           Questions frequentes
-        </motion.h2>
+        </m.h2>
         <div className="space-y-2">
           {FAQ.map((faq, i) => (
             <FAQItem key={faq.question} question={faq.question} answer={faq.answer} index={i} />

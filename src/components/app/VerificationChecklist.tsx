@@ -1,15 +1,18 @@
 "use client";
 
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import Link from "next/link";
 import { springs } from "@/lib/motion-design";
 import { Check, Clock, X, ChevronRight } from "@/components/ui/lucide";
+import {
+  type VerificationStatus,
+  VERIFICATION_STATUS_CONFIG,
+  VERIFICATION_PROGRESS_GRADIENT,
+} from "@/lib/verification-status";
 
 // ─────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────
-
-type VerificationStatus = "verified" | "pending" | "not_started" | "coming_soon";
 
 interface VerificationMethod {
   id: string;
@@ -32,44 +35,6 @@ interface VerificationChecklistProps {
   /** Whether ID has been verified */
   idVerified?: boolean;
 }
-
-// ─────────────────────────────────────────
-// Status config
-// ─────────────────────────────────────────
-
-const STATUS_CONFIG: Record<
-  VerificationStatus,
-  { label: string; bg: string; text: string; border: string; icon: string }
-> = {
-  verified: {
-    label: "Verifie",
-    bg: "rgba(0,255,136,0.1)",
-    text: "#00FF88",
-    border: "rgba(0,255,136,0.25)",
-    icon: "check",
-  },
-  pending: {
-    label: "En cours",
-    bg: "rgba(245,158,11,0.1)",
-    text: "#F59E0B",
-    border: "rgba(245,158,11,0.25)",
-    icon: "clock",
-  },
-  not_started: {
-    label: "A faire",
-    bg: "rgba(239,68,68,0.1)",
-    text: "#EF4444",
-    border: "rgba(239,68,68,0.25)",
-    icon: "x",
-  },
-  coming_soon: {
-    label: "Bientot",
-    bg: "rgba(100,116,139,0.1)",
-    text: "#94A3B8",
-    border: "rgba(100,116,139,0.25)",
-    icon: "clock",
-  },
-};
 
 // ─────────────────────────────────────────
 // Status icons (inline SVGs)
@@ -168,7 +133,7 @@ export default function VerificationChecklist({
   return (
     <div className="space-y-4">
       {/* Progress header */}
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...springs.heavy, delay: 0.1 }}
@@ -179,7 +144,10 @@ export default function VerificationChecklist({
             {completedCount}/{methods.length} verifications
           </span>
           {allDone ? (
-            <span className="text-[11px] font-bold text-[#00FF88] uppercase tracking-wider">
+            <span
+              className="text-[11px] font-bold uppercase tracking-wider"
+              style={{ color: VERIFICATION_STATUS_CONFIG.verified.text }}
+            >
               Badge Or obtenu
             </span>
           ) : (
@@ -190,28 +158,28 @@ export default function VerificationChecklist({
         </div>
         {/* Progress bar */}
         <div className="h-2 rounded-full bg-white/8 overflow-hidden">
-          <motion.div
+          <m.div
             className="h-full rounded-full"
             style={{
               background: allDone
-                ? "linear-gradient(90deg, #00FF88, #10B981)"
-                : "linear-gradient(90deg, #3B82F6, #8B5CF6)",
+                ? VERIFICATION_PROGRESS_GRADIENT.done
+                : VERIFICATION_PROGRESS_GRADIENT.inProgress,
             }}
             initial={{ width: 0 }}
             animate={{ width: `${progressPct}%` }}
             transition={{ ...springs.cinematic, delay: 0.3 }}
           />
         </div>
-      </motion.div>
+      </m.div>
 
       {/* Method rows */}
       <div className="space-y-2">
         {methods.map((method, i) => {
-          const config = STATUS_CONFIG[method.status];
+          const config = VERIFICATION_STATUS_CONFIG[method.status];
           const isActionable = method.href && method.status === "not_started";
 
           const content = (
-            <motion.div
+            <m.div
               variants={rowVariants}
               initial="hidden"
               animate="visible"
@@ -253,7 +221,7 @@ export default function VerificationChecklist({
 
               {/* Arrow for actionable items */}
               {isActionable && <ArrowRight />}
-            </motion.div>
+            </m.div>
           );
 
           if (isActionable && method.href) {

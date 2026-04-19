@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { useAuth } from "@/context/AuthContext";
 import { useConversations } from "@/lib/useConversations";
 import type { ConversationPreview } from "@/lib/useConversations";
@@ -125,7 +125,7 @@ function ConversationRow({
   }, []);
 
   return (
-    <motion.div
+    <m.div
       className="relative overflow-hidden"
       role="listitem"
       initial={{ opacity: 0, x: -30, filter: "blur(4px)" }}
@@ -137,7 +137,7 @@ function ConversationRow({
       {/* Swipe reveal actions */}
       <AnimatePresence>
         {showActions && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -161,7 +161,7 @@ function ConversationRow({
             >
               Supprimer
             </button>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
@@ -169,14 +169,14 @@ function ConversationRow({
       <AnimatePresence>
         {contextMenu && (
           <>
-            <motion.div
+            <m.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 z-40"
               onClick={() => setContextMenu(false)}
             />
-            <motion.div
+            <m.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
@@ -204,7 +204,7 @@ function ConversationRow({
                 <span className="text-base">🗑️</span>
                 <span>Supprimer</span>
               </button>
-            </motion.div>
+            </m.div>
           </>
         )}
       </AnimatePresence>
@@ -280,14 +280,14 @@ function ConversationRow({
               {convo.lastMessage ?? "Aucun message"}
             </p>
             {hasUnread && (
-              <motion.span
+              <m.span
                 className="shrink-0 w-5 h-5 gradient-bg rounded-full flex items-center justify-center text-[10px] font-bold text-white"
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={springs.elastic}
               >
                 {convo.unreadCount}
-              </motion.span>
+              </m.span>
             )}
           </div>
           {modeInfo && (
@@ -297,7 +297,7 @@ function ConversationRow({
           )}
         </div>
       </Link>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -396,7 +396,7 @@ export default function ChatPage() {
           className="shrink-0 flex items-center justify-center overflow-hidden transition-all"
           style={{ height: refreshing ? 40 : pullY }}
         >
-          <motion.div
+          <m.div
             className="w-5 h-5 border-2 border-accent border-t-transparent rounded-full"
             animate={{ rotate: refreshing ? 360 : pullY * 3 }}
             transition={refreshing ? { repeat: Infinity, duration: 0.6, ease: "linear" } : { duration: 0 }}
@@ -410,7 +410,7 @@ export default function ChatPage() {
         iconAnimation="rotate"
         actions={
           displayUnread > 0 ? (
-            <motion.span
+            <m.span
               className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-accent/15"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -420,7 +420,7 @@ export default function ChatPage() {
               <span className="text-[11px] text-accent font-semibold">
                 {displayUnread} nouveau{displayUnread > 1 ? "x" : ""}
               </span>
-            </motion.span>
+            </m.span>
           ) : null
         }
       />

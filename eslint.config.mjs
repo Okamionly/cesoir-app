@@ -183,32 +183,12 @@ const eslintConfig = defineConfig([
     files: ["src/components/**/*.{ts,tsx}"],
     rules: strictHexOnlyRules,
   },
-  {
-    // Brand-metier-heavy components whose hex values encode product
-    // semantics (per-tier karma medals, per-mode gradient rings,
-    // per-badge smart-queue colors, per-status feedback colors,
-    // celebration/animation star hues). These are out-of-palette by
-    // design — they are NOT UI surface tokens and cannot route through
-    // the W&B theme without diluting semantic meaning. Scoped "off"
-    // with the same rationale as src/lib/modes.ts, src/lib/badges.ts,
-    // src/lib/seasons.ts, etc.
-    files: [
-      "src/components/app/SwipeCard.tsx",
-      "src/components/app/MidnightReset.tsx",
-      "src/components/app/VerificationChecklist.tsx",
-      "src/components/app/KarmaBadge.tsx",
-      "src/components/app/ModeSwitcher.tsx",
-      "src/components/app/SmartQueueBadge.tsx",
-      "src/components/app/FABMenu.tsx",
-      "src/components/app/WeMetFeedback.tsx",
-      "src/components/chat/PlaylistShare.tsx",
-      "src/components/chat/VoiceNote.tsx",
-      "src/components/chat/LocationShare.tsx",
-    ],
-    rules: {
-      "no-restricted-syntax": "off",
-    },
-  },
+  // F2 landed — brand-metier hex from the 11 remaining components was
+  // extracted to src/lib/ (karma-tiers, smart-queue-colors,
+  // swipe-card-colors, mode-switcher-colors, chat-content-colors).
+  // Components now import tokens from those libs — hex lives in lib,
+  // not in components. The component-level "off" allowlist is therefore
+  // removed: src/components/** is fully under strictHexOnlyRules.
   {
     // Design tokens file owns the hex literals.
     files: ["src/lib/design-tokens.ts"],
@@ -239,6 +219,15 @@ const eslintConfig = defineConfig([
       "src/lib/trust-colors.ts",
       "src/lib/verification-status.ts",
       "src/lib/fab-actions.ts",
+      // F2 landed — brand-metier hex extracted from 11 components
+      // (SwipeCard, MidnightReset, KarmaBadge, ModeSwitcher,
+      // SmartQueueBadge, FABMenu, WeMetFeedback, PlaylistShare,
+      // VoiceNote, LocationShare, VerificationChecklist).
+      "src/lib/karma-tiers.ts",
+      "src/lib/smart-queue-colors.ts",
+      "src/lib/swipe-card-colors.ts",
+      "src/lib/mode-switcher-colors.ts",
+      "src/lib/chat-content-colors.ts",
     ],
     rules: {
       "no-restricted-syntax": "off",
@@ -266,6 +255,11 @@ const eslintConfig = defineConfig([
       "src/app/(auth)/**/*.{ts,tsx}",
       // Root landing page itself.
       "src/app/page.tsx",
+      // Form primitives carry a dark-variant branch (FCA5A5 / 86EFAC /
+      // C4B5FD) used exclusively by landing/auth surfaces. Out-of-palette
+      // by design — scoped "off" alongside landing/**.
+      "src/components/ui/forms/FormBanner.tsx",
+      "src/components/ui/forms/FormChoice.tsx",
     ],
     rules: {
       "no-restricted-syntax": "off",

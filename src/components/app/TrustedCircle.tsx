@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { haptics } from "@/lib/haptics";
 import { TRUST_COLORS } from "@/lib/trust-colors";
 import { Plus } from "@/components/ui/lucide";
@@ -109,7 +109,7 @@ export default function TrustedCircle() {
       {/* Contact slots */}
       <div className="mb-4 flex justify-center gap-4">
         {contacts.map((contact, i) => (
-          <motion.div
+          <m.div
             key={contact.id}
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
@@ -126,7 +126,7 @@ export default function TrustedCircle() {
             <p className="mt-1 max-w-[70px] truncate text-xs" style={{ color: "var(--color-text)" }}>
               {contact.name}
             </p>
-          </motion.div>
+          </m.div>
         ))}
 
         {Array.from({ length: emptySlots }).map((_, i) => (
@@ -149,7 +149,7 @@ export default function TrustedCircle() {
       {/* Add contact form */}
       <AnimatePresence>
         {adding && contacts.length < MAX_CONTACTS && (
-          <motion.div
+          <m.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -194,7 +194,7 @@ export default function TrustedCircle() {
                 </button>
               </div>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 
@@ -244,7 +244,7 @@ export default function TrustedCircle() {
                 aria-checked={contact[opt.key]}
                 aria-label={`${opt.label} pour ${contact.name}`}
               >
-                <motion.span
+                <m.span
                   className="absolute top-0.5 left-0.5 h-4 w-4 rounded-full"
                   style={{ backgroundColor: "white" }}
                   animate={{ x: contact[opt.key] ? 16 : 0 }}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { motion, useScroll, useTransform, AnimatePresence } from "motion/react";
+import { m, useScroll, useTransform, AnimatePresence } from "motion/react";
 import { springs, easings } from "@/lib/motion-design";
 import { MODES } from "@/lib/modes";
 import { MODE_ICONS } from "@/components/ui/Icons";
@@ -71,7 +71,7 @@ export default function PresentationClient({ profile }: PresentationClientProps)
           1. HERO PHOTO AREA — Full-width parallax
           ═══════════════════════════════════════ */}
       <div className="relative h-[420px] overflow-hidden">
-        <motion.div
+        <m.div
           className="absolute inset-0 w-full h-full"
           style={{ y: heroY, scale: heroScale, opacity: heroOpacity }}
         >
@@ -89,10 +89,10 @@ export default function PresentationClient({ profile }: PresentationClientProps)
           )}
           {/* Dark overlay gradient */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-bg" />
-        </motion.div>
+        </m.div>
 
         {/* Ambient glow ring behind avatar area */}
-        <motion.div
+        <m.div
           className="absolute bottom-0 left-1/2 -translate-x-1/2 w-40 h-40 rounded-full"
           style={{
             background: "radial-gradient(circle, rgba(139,92,246,0.25) 0%, transparent 70%)",
@@ -105,7 +105,7 @@ export default function PresentationClient({ profile }: PresentationClientProps)
         />
 
         {/* Back button */}
-        <motion.button
+        <m.button
           onClick={() => window.history.back()}
           className="absolute top-4 left-4 z-20 w-10 h-10 rounded-full bg-black/30 backdrop-blur-md border border-white/10 flex items-center justify-center"
           initial={{ opacity: 0, x: -20 }}
@@ -116,14 +116,14 @@ export default function PresentationClient({ profile }: PresentationClientProps)
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
             <path d="M15 18l-6-6 6-6" />
           </svg>
-        </motion.button>
+        </m.button>
       </div>
 
       {/* ═══════════════════════════════════════
           AVATAR — overlapping hero bottom
           ═══════════════════════════════════════ */}
       <div className="relative -mt-20 px-5 max-w-md mx-auto">
-        <motion.div
+        <m.div
           style={{ scale: avatarScale }}
           className="w-32 h-32 rounded-2xl gradient-bg p-[3px] shadow-glow mx-auto"
         >
@@ -138,12 +138,12 @@ export default function PresentationClient({ profile }: PresentationClientProps)
               {profile.name.charAt(0).toUpperCase()}
             </div>
           )}
-        </motion.div>
+        </m.div>
 
         {/* ═══════════════════════════════════════
             2. NAME + AGE + CITY — cinematic blur reveal
             ═══════════════════════════════════════ */}
-        <motion.div
+        <m.div
           className="text-center mt-5"
           initial={{ opacity: 0, filter: "blur(16px)", y: 10 }}
           animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
@@ -154,12 +154,12 @@ export default function PresentationClient({ profile }: PresentationClientProps)
             <span className="text-[18px] text-text-muted font-light">{profile.age}</span>
           </div>
           <p className="text-[14px] text-text-muted mt-0.5">{profile.city}</p>
-        </motion.div>
+        </m.div>
 
         {/* ═══════════════════════════════════════
             3. VERIFICATION + TRUST BADGES — inline
             ═══════════════════════════════════════ */}
-        <motion.div
+        <m.div
           className="flex items-center justify-center gap-2 mt-4 flex-wrap"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -176,20 +176,20 @@ export default function PresentationClient({ profile }: PresentationClientProps)
           )}
           <TrustBadge trustScore={profile.trustScore} isVerified={profile.isVerified} />
           <KarmaBadge score={profile.karmaScore} meetups={profile.meetupCount} compact />
-        </motion.div>
+        </m.div>
 
         {/* ═══════════════════════════════════════
             4. "DISPO CE SOIR" — green badge + mode
             ═══════════════════════════════════════ */}
         {profile.isAvailableTonight && (
-          <motion.div
+          <m.div
             className="flex items-center justify-center gap-3 mt-5"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ ...springs.elastic, delay: 0.45 }}
           >
             <div className="flex items-center gap-2 bg-safe/10 border border-safe/20 px-4 py-2 rounded-full">
-              <motion.span
+              <m.span
                 className="w-2.5 h-2.5 rounded-full bg-safe"
                 animate={{ scale: [1, 1.3, 1], opacity: [1, 0.7, 1] }}
                 transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
@@ -206,26 +206,26 @@ export default function PresentationClient({ profile }: PresentationClientProps)
                 </span>
               </div>
             )}
-          </motion.div>
+          </m.div>
         )}
       </div>
 
       {/* ═══════════════════════════════════════
           5. AUDIO INTRO — playable preview
           ═══════════════════════════════════════ */}
-      <motion.div
+      <m.div
         className="px-5 mt-8 max-w-md mx-auto"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...springs.heavy, delay: 0.5 }}
       >
         <AudioIntro />
-      </motion.div>
+      </m.div>
 
       {/* ═══════════════════════════════════════
           6. BIO SECTION — "A propos" card
           ═══════════════════════════════════════ */}
-      <motion.div
+      <m.div
         className="px-5 mt-8 max-w-md mx-auto"
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -235,23 +235,23 @@ export default function PresentationClient({ profile }: PresentationClientProps)
         <div className="bg-bg-card border border-border rounded-2xl p-5">
           <p className="text-[15px] text-text leading-relaxed">{profile.bio}</p>
         </div>
-      </motion.div>
+      </m.div>
 
       {/* ═══════════════════════════════════════
           7. CONVERSATION PROMPTS — alternating slides
           ═══════════════════════════════════════ */}
       <div className="px-5 mt-8 max-w-md mx-auto">
-        <motion.p
+        <m.p
           className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-3"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.65 }}
         >
           Conversation starters
-        </motion.p>
+        </m.p>
         <div className="space-y-3">
           {profile.prompts.map((p, i) => (
-            <motion.div
+            <m.div
               key={i}
               className="bg-bg-card border border-border rounded-2xl p-5 hover:border-accent/20 transition-colors"
               initial={{ opacity: 0, x: i % 2 === 0 ? -50 : 50 }}
@@ -260,7 +260,7 @@ export default function PresentationClient({ profile }: PresentationClientProps)
             >
               <p className="text-[11px] text-accent font-bold uppercase tracking-wider mb-2">{p.question}</p>
               <p className="text-[15px] text-text leading-relaxed">{p.answer}</p>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </div>
@@ -269,7 +269,7 @@ export default function PresentationClient({ profile }: PresentationClientProps)
           8. VIBE TAGS — tonight chips + mood
           ═══════════════════════════════════════ */}
       {(profile.tonightChips.length > 0 || profile.moodEmoji) && (
-        <motion.div
+        <m.div
           className="px-5 mt-8 max-w-md mx-auto"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -293,7 +293,7 @@ export default function PresentationClient({ profile }: PresentationClientProps)
           {profile.tonightChips.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {profile.tonightChips.map((chip, i) => (
-                <motion.span
+                <m.span
                   key={chip}
                   className="px-3.5 py-2 rounded-full text-[12px] font-medium border border-accent/20 bg-accent/5 text-accent"
                   initial={{ opacity: 0, scale: 0.5 }}
@@ -301,18 +301,18 @@ export default function PresentationClient({ profile }: PresentationClientProps)
                   transition={{ ...springs.elastic, delay: 0.95 + i * 0.05 }}
                 >
                   {chip}
-                </motion.span>
+                </m.span>
               ))}
             </div>
           )}
-        </motion.div>
+        </m.div>
       )}
 
       {/* ═══════════════════════════════════════
           9. MODE ACTIF — current mode with icon + description
           ═══════════════════════════════════════ */}
       {profile.activeModes.length > 0 && (
-        <motion.div
+        <m.div
           className="px-5 mt-8 max-w-md mx-auto"
           initial={{ opacity: 0, x: -40 }}
           animate={{ opacity: 1, x: 0 }}
@@ -325,7 +325,7 @@ export default function PresentationClient({ profile }: PresentationClientProps)
               if (!mode) return null;
               const Icon = MODE_ICONS[key as keyof typeof MODE_ICONS];
               return (
-                <motion.div
+                <m.div
                   key={key}
                   className="flex items-center gap-3 bg-bg-card border border-border rounded-2xl p-4 hover:border-accent/15 transition-colors"
                   initial={{ opacity: 0, x: -30 }}
@@ -343,18 +343,18 @@ export default function PresentationClient({ profile }: PresentationClientProps)
                     <p className="text-[14px] font-bold text-text">{mode.name}</p>
                     <p className="text-[11px] text-text-muted leading-snug truncate">{mode.description}</p>
                   </div>
-                </motion.div>
+                </m.div>
               );
             })}
           </div>
-        </motion.div>
+        </m.div>
       )}
 
       {/* ═══════════════════════════════════════
           10. REVIEWS — horizontal scroll with springs
           ═══════════════════════════════════════ */}
       {profile.reviews.length > 0 && (
-        <motion.div
+        <m.div
           className="mt-8 max-w-md mx-auto"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -366,7 +366,7 @@ export default function PresentationClient({ profile }: PresentationClientProps)
             className="flex gap-3 overflow-x-auto no-scrollbar px-5 pb-2 snap-x snap-mandatory"
           >
             {profile.reviews.map((review, i) => (
-              <motion.div
+              <m.div
                 key={i}
                 className="shrink-0 w-[280px] bg-bg-card border border-border rounded-2xl p-5 snap-center"
                 initial={{ opacity: 0, scale: 0.9, x: 40 }}
@@ -410,10 +410,10 @@ export default function PresentationClient({ profile }: PresentationClientProps)
 
                 {/* Reviewer name */}
                 <p className="text-[11px] text-text-muted mt-3 font-medium">- {review.name}</p>
-              </motion.div>
+              </m.div>
             ))}
           </div>
-        </motion.div>
+        </m.div>
       )}
 
       {/* ═══════════════════════════════════════
@@ -428,7 +428,7 @@ export default function PresentationClient({ profile }: PresentationClientProps)
         </button>
         <AnimatePresence>
           {showReport && (
-            <motion.div
+            <m.div
               className="mt-3 flex items-center justify-center gap-3"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
@@ -441,7 +441,7 @@ export default function PresentationClient({ profile }: PresentationClientProps)
               <button className="px-4 py-2 rounded-xl text-[12px] font-medium text-text-muted bg-bg-card border border-border tap-target">
                 Bloquer
               </button>
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
       </div>
@@ -449,32 +449,32 @@ export default function PresentationClient({ profile }: PresentationClientProps)
       {/* ═══════════════════════════════════════
           11. ACTION BUTTONS — sticky bottom bar
           ═══════════════════════════════════════ */}
-      <motion.div
+      <m.div
         className="fixed bottom-0 left-0 right-0 z-50 pb-[env(safe-area-inset-bottom)]"
         style={{ y: bottomBarY, opacity: bottomBarOpacity }}
       >
         <div className="bg-bg/90 backdrop-blur-xl border-t border-border/50">
           <div className="max-w-md mx-auto px-5 py-3 flex items-center gap-3">
             {/* Passer */}
-            <motion.button
+            <m.button
               className="flex-1 py-3.5 rounded-xl text-[14px] font-bold text-text-muted border border-border bg-bg-card tap-target"
               whileTap={{ scale: 0.95 }}
               transition={springs.micro}
             >
               Passer
-            </motion.button>
+            </m.button>
 
             {/* Dire oui */}
-            <motion.button
+            <m.button
               className="flex-[2] py-3.5 rounded-xl text-[14px] font-bold text-white gradient-bg shadow-glow tap-target"
               whileTap={{ scale: 0.95 }}
               transition={springs.micro}
             >
               Dire oui
-            </motion.button>
+            </m.button>
 
             {/* Super Like */}
-            <motion.button
+            <m.button
               className="w-[52px] h-[52px] rounded-xl border-2 border-[#F59E0B]/30 bg-[#F59E0B]/8 flex items-center justify-center shrink-0 tap-target"
               whileTap={{ scale: 0.85, rotate: -10 }}
               transition={springs.elastic}
@@ -482,10 +482,10 @@ export default function PresentationClient({ profile }: PresentationClientProps)
               <svg width="22" height="22" viewBox="0 0 24 24" fill="#F59E0B" aria-hidden="true">
                 <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
               </svg>
-            </motion.button>
+            </m.button>
           </div>
         </div>
-      </motion.div>
+      </m.div>
     </div>
   );
 }

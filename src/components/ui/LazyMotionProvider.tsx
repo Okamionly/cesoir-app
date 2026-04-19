@@ -1,27 +1,40 @@
 "use client";
 
-import { LazyMotion, domMax } from "motion/react";
+import { LazyMotion, domAnimation, domMax } from "motion/react";
 
 /**
  * LazyMotionProvider — enables lazy-loading of motion features.
  *
- * Bundle impact (2026-04-19 audit):
+ * Bundle impact (2026-04-19 audit, 2026-04-19 codemod):
  *   Before: `motion/react` sync import = ~60KB gzipped (223KB raw chunk)
- *   After:  sync core ~6KB, features chunk ~25KB loaded async post-paint
+ *   After:  sync core ~6KB, features chunk loaded async post-paint
  *
- * We use `domMax` (not `domAnimation`) because several existing components
- * rely on drag + layoutId features:
- *   - SwipeCard, BottomSheet, Toast, welcome/page (drag)
- *   - plan/[matchId], notifications, PhotoGallery, ModeSwitcher (layoutId)
- * Downgrading to `domAnimation` would break those without a second pass
- * migrating each call site to `m.div` + feature-split. `domMax` keeps
- * existing `motion.*` imports working while still splitting the chunk.
+ * Two variants:
+ *   - Default  `LazyMotionProvider`     → `domAnimation` (~11KB)
+ *   - Max      `LazyMotionMaxProvider`  → `domMax`       (~25KB)
  *
- * `strict={false}` (default) allows both `motion.div` and `m.div` to
- * coexist during progressive migration. Set to `true` to force `m.*`
- * only once all call sites have been migrated.
+ * Use the default everywhere. Use the Max variant only in subtrees that
+ * rely on `motion.*` with drag or layout features. After the 2026-04-19
+ * codemod migrating `motion.*` → `m.*`, only 9 files still need `domMax`:
+ *   drag:    SwipeCard, BottomSheet, Toast, welcome, notifications, browse
+ *   layoutId: plan/[matchId], PhotoGallery, ModeSwitcher, notifications
+ *
+ * `strict={false}` (default) allows both `motion.*` and `m.*` to coexist.
  */
 export default function LazyMotionProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <LazyMotion features={domAnimation}>{children}</LazyMotion>;
+}
+
+/**
+ * LazyMotionMaxProvider — full feature set (domMax: animation + drag +
+ * layout + pan). Use this to wrap subtrees that still use `motion.*`
+ * components requiring drag or `layoutId`.
+ */
+export function LazyMotionMaxProvider({
   children,
 }: {
   children: React.ReactNode;

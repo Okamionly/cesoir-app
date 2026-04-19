@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useInView } from "motion/react";
+import { m, useInView } from "motion/react";
 
 function useCountUp(target: number, duration: number, inView: boolean) {
   const [count, setCount] = useState(0);
@@ -58,7 +58,7 @@ export function CountUpNumbers() {
   }, [inView]);
 
   return (
-    <motion.div
+    <m.div
       ref={ref}
       className="flex justify-center gap-6 sm:gap-12 max-w-lg mx-auto"
       initial={{ opacity: 0, y: 20 }}
@@ -93,6 +93,6 @@ export function CountUpNumbers() {
         </p>
         <p className="text-[11px] text-white/50 uppercase tracking-wider">Avis</p>
       </div>
-    </motion.div>
+    </m.div>
   );
 }

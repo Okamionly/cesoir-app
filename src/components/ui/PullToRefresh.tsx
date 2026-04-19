@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect, type ReactNode } from "react";
-import { motion, useMotionValue, useTransform, animate, type MotionValue } from "motion/react";
+import { m, useMotionValue, useTransform, animate, type MotionValue } from "motion/react";
 import { app } from "@/lib/design-tokens";
 
 // ---------------------------------------------------------------------------
@@ -120,22 +120,22 @@ export function PullToRefresh({
       className="relative"
     >
       {/* Indicator */}
-      <motion.div
+      <m.div
         style={{ opacity: indicatorOpacity, y: pullY }}
         className="absolute left-1/2 top-0 z-50 -translate-x-1/2 -translate-y-full flex items-center justify-center pb-2"
       >
-        <motion.div
+        <m.div
           animate={refreshing ? { rotate: 360 } : {}}
           transition={refreshing ? { repeat: Infinity, duration: 1, ease: "linear" } : {}}
         >
           <MoonProgressWrapper progress={progress} />
-        </motion.div>
-      </motion.div>
+        </m.div>
+      </m.div>
 
       {/* Content */}
-      <motion.div style={{ y: pullY }}>
+      <m.div style={{ y: pullY }}>
         {children}
-      </motion.div>
+      </m.div>
     </div>
   );
 }

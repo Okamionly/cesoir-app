@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import { MOCK_PROFILES } from "@/lib/mock-profiles";
 import { ModeKey } from "@/lib/modes";
@@ -73,7 +73,7 @@ export default function StoriesBar() {
         aria-label="Stories"
       >
         {/* Add story button */}
-        <motion.div
+        <m.div
           className="shrink-0 flex flex-col items-center gap-1.5"
           role="listitem"
           initial={{ opacity: 0 }}
@@ -88,13 +88,13 @@ export default function StoriesBar() {
             <Plus size={20} strokeWidth={2.5} aria-hidden="true" />
           </button>
           <span className="text-[11px] text-text-muted font-medium">Ma story</span>
-        </motion.div>
+        </m.div>
 
         {/* Story avatars */}
         {users.map((user, i) => {
           const isViewed = viewedIds.has(user.id) || user.viewed;
           return (
-            <motion.div
+            <m.div
               key={user.id}
               className="shrink-0 flex flex-col items-center gap-1.5"
               role="listitem"
@@ -132,7 +132,7 @@ export default function StoriesBar() {
               <span className="text-[11px] text-text-muted font-medium truncate max-w-[56px]">
                 {user.name}
               </span>
-            </motion.div>
+            </m.div>
           );
         })}
       </div>

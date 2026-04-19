@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { app } from "@/lib/design-tokens";
 
 const NOTIFICATIONS = [
@@ -44,7 +44,7 @@ export default function NotificationPreview() {
     >
       <AnimatePresence mode="wait">
         {visible && (
-          <motion.div
+          <m.div
             key={currentIndex}
             className="pointer-events-auto bg-bg border border-border rounded-xl shadow-lg overflow-hidden"
             initial={{ y: -60, opacity: 0 }}
@@ -72,7 +72,7 @@ export default function NotificationPreview() {
                 <span className="text-[14px]">&times;</span>
               </button>
             </div>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>

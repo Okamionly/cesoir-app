@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, useMotionValue, useTransform, animate } from "motion/react";
+import { m, useMotionValue, useTransform, animate } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import {
   DEFAULT_TRUST_BREAKDOWN,
@@ -154,7 +154,7 @@ export default function TrustGauge({
           />
 
           {/* Main progress arc */}
-          <motion.circle
+          <m.circle
             cx={center}
             cy={center}
             r={radius}
@@ -181,7 +181,7 @@ export default function TrustGauge({
 
           {/* Inner breakdown arcs */}
           {breakdownArcs.map((arc) => (
-            <motion.circle
+            <m.circle
               key={arc.label}
               cx={center}
               cy={center}
@@ -201,7 +201,7 @@ export default function TrustGauge({
 
         {/* Center content */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <motion.span
+          <m.span
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ ...springs.elastic, delay: 0.3 }}
@@ -209,20 +209,20 @@ export default function TrustGauge({
             style={{ color: scoreColor }}
           >
             {displayScore}
-          </motion.span>
-          <motion.span
+          </m.span>
+          <m.span
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ ...springs.heavy, delay: 0.5 }}
             className="text-xs font-semibold text-text-muted uppercase tracking-wider mt-1"
           >
             {label}
-          </motion.span>
+          </m.span>
         </div>
       </div>
 
       {/* Breakdown legend */}
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...springs.heavy, delay: 0.7 }}
@@ -231,7 +231,7 @@ export default function TrustGauge({
         {breakdown.map((item, i) => {
           const pct = item.maxPoints > 0 ? (item.points / item.maxPoints) * 100 : 0;
           return (
-            <motion.div
+            <m.div
               key={item.label}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -254,7 +254,7 @@ export default function TrustGauge({
                   </span>
                 </div>
                 <div className="h-1 rounded-full bg-white/8 overflow-hidden">
-                  <motion.div
+                  <m.div
                     className="h-full rounded-full"
                     style={{ backgroundColor: item.color }}
                     initial={{ width: 0 }}
@@ -263,10 +263,10 @@ export default function TrustGauge({
                   />
                 </div>
               </div>
-            </motion.div>
+            </m.div>
           );
         })}
-      </motion.div>
+      </m.div>
     </div>
   );
 }

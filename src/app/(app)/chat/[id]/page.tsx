@@ -3,7 +3,7 @@
 import { use, useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { chatVariants, springs, micro } from "@/lib/motion-design";
 import { useAuth } from "@/context/AuthContext";
 import { useChat, useTypingIndicator, useConversationPresence } from "@/lib/useChat";
@@ -99,7 +99,7 @@ function ChatBubble({ content, isOwn, time, showTail, readAt }: { content: strin
   const variants = isOwn ? chatVariants.bubbleSent : chatVariants.bubbleReceived;
 
   return (
-    <motion.div
+    <m.div
       variants={variants}
       initial="hidden"
       animate="visible"
@@ -129,7 +129,7 @@ function ChatBubble({ content, isOwn, time, showTail, readAt }: { content: strin
           </span>
         </div>
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -138,7 +138,7 @@ function TypingIndicator() {
     <div className="flex justify-start mt-2" role="status" aria-label="Envoi en cours">
       <div className="bg-bg-card rounded-2xl rounded-bl-md px-4 py-3 flex gap-1 items-center">
         {[0, 1, 2].map((i) => (
-          <motion.div
+          <m.div
             key={i}
             className="w-2 h-2 rounded-full bg-text-muted"
             animate={chatVariants.typingDot(i)}
@@ -553,7 +553,7 @@ export default function ConversationPage({
 
       {/* WeMetFeedback prompt — shows when a date likely happened */}
       {weMetDetected && !showWeMetFeedback && (
-        <motion.div
+        <m.div
           className="mx-4 mt-2 mb-1"
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -570,7 +570,7 @@ export default function ConversationPage({
             </div>
             <ChevronRight size={16} strokeWidth={2} className="text-accent" />
           </button>
-        </motion.div>
+        </m.div>
       )}
 
       {/* Messages area */}
@@ -718,7 +718,7 @@ export default function ConversationPage({
             <div className="bg-bg-card rounded-2xl rounded-bl-md px-4 py-3 flex gap-1.5 items-center">
               <span className="text-xs text-text-muted font-medium">{peerTyping} ecrit</span>
               {[0, 1, 2].map((i) => (
-                <motion.div
+                <m.div
                   key={i}
                   className="w-1.5 h-1.5 rounded-full bg-text-muted"
                   animate={chatVariants.typingDot(i)}
@@ -747,7 +747,7 @@ export default function ConversationPage({
       />
 
       {/* Input bar */}
-      <motion.div
+      <m.div
         className="sticky bottom-0 border-t border-border bg-bg/95 backdrop-blur-md px-3 py-2"
         style={{ paddingBottom: "max(0.5rem, env(safe-area-inset-bottom))" }}
         initial={{ y: 0 }}
@@ -780,7 +780,7 @@ export default function ConversationPage({
           </PlusMenu>
 
           {/* Text input */}
-          <motion.textarea
+          <m.textarea
             ref={inputRef}
             value={inputValue}
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => { setInputValue(e.target.value); sendTyping(); }}
@@ -801,7 +801,7 @@ export default function ConversationPage({
           <VoiceRecordButton onRecordComplete={handleVoiceRecord} />
 
           {/* Send button */}
-          <motion.button
+          <m.button
             onClick={handleSend}
             disabled={!inputValue.trim() || sending}
             className="tap-target shrink-0 w-11 h-11 rounded-full gradient-bg flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed"
@@ -810,9 +810,9 @@ export default function ConversationPage({
             transition={springs.micro}
           >
             <SendIcon size={18} className="text-white" />
-          </motion.button>
+          </m.button>
         </div>
-      </motion.div>
+      </m.div>
 
       {/* Vibe Check overlay */}
       {showVibeCheck && (
@@ -827,14 +827,14 @@ export default function ConversationPage({
       {/* Message screening warning/block overlay */}
       <AnimatePresence>
         {screeningResult && screeningResult.severity !== "clean" && (
-          <motion.div
+          <m.div
             className="fixed inset-0 z-[90] flex items-end justify-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <div className="absolute inset-0 bg-black/50" onClick={handleDismissScreening} />
-            <motion.div
+            <m.div
               className="relative bg-bg rounded-t-2xl border-t border-border w-full max-w-lg pb-8 pt-3 shadow-xl"
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
@@ -879,22 +879,22 @@ export default function ConversationPage({
                   </button>
                 )}
               </div>
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         )}
       </AnimatePresence>
 
       {/* SharedPlaylist overlay */}
       <AnimatePresence>
         {showSharedPlaylist && (
-          <motion.div
+          <m.div
             className="fixed inset-0 z-[85] flex items-end justify-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
             <div className="absolute inset-0 bg-black/50" onClick={() => setShowSharedPlaylist(false)} />
-            <motion.div
+            <m.div
               className="relative w-full max-w-lg max-h-[80vh] overflow-y-auto pb-4"
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
@@ -913,8 +913,8 @@ export default function ConversationPage({
               >
                 Fermer
               </button>
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         )}
       </AnimatePresence>
 

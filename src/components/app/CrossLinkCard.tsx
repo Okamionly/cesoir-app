@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { springs } from "@/lib/motion-design";
 
 interface CrossLinkCardProps {
@@ -21,7 +21,7 @@ export default function CrossLinkCard({
 }: CrossLinkCardProps) {
   return (
     <Link href={href} className="block">
-      <motion.div
+      <m.div
         className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-border/50 bg-card transition-colors"
         style={
           gradient
@@ -62,7 +62,7 @@ export default function CrossLinkCard({
         >
           <path d="M9 18l6-6-6-6" />
         </svg>
-      </motion.div>
+      </m.div>
     </Link>
   );
 }

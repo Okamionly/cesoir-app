@@ -1,7 +1,8 @@
 "use client";
 
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { Profile } from "@/lib/mock-profiles";
+import { SMART_QUEUE_COLORS } from "@/lib/smart-queue-colors";
 
 interface SmartQueueBadgeProps {
   profile: Profile;
@@ -24,8 +25,7 @@ function getBadges(profile: Profile): Badge[] {
     badges.push({
       key: "karma",
       label: `Karma ${karma.toFixed(1)} \u2605`,
-      color: "#F59E0B",
-      bgColor: "rgba(245,158,11,0.15)",
+      ...SMART_QUEUE_COLORS.karma,
     });
   }
 
@@ -34,8 +34,7 @@ function getBadges(profile: Profile): Badge[] {
     badges.push({
       key: "dispo",
       label: "Dispo maintenant",
-      color: "#00FF88",
-      bgColor: "rgba(0,255,136,0.15)",
+      ...SMART_QUEUE_COLORS.dispo,
       pulse: true,
     });
   }
@@ -46,8 +45,7 @@ function getBadges(profile: Profile): Badge[] {
     badges.push({
       key: "intention",
       label: "Meme intention",
-      color: "#8B5CF6",
-      bgColor: "rgba(139,92,246,0.15)",
+      ...SMART_QUEUE_COLORS.intention,
     });
   }
 
@@ -57,8 +55,7 @@ function getBadges(profile: Profile): Badge[] {
     badges.push({
       key: "distance",
       label: `A ${meters}m`,
-      color: "#06b6d4",
-      bgColor: "rgba(6,182,212,0.15)",
+      ...SMART_QUEUE_COLORS.distance,
     });
   }
 
@@ -85,14 +82,14 @@ export default function SmartQueueBadge({ profile }: SmartQueueBadgeProps) {
   if (badges.length === 0) return null;
 
   return (
-    <motion.div
+    <m.div
       className="flex flex-wrap gap-1 z-10"
       variants={staggerContainer}
       initial="hidden"
       animate="show"
     >
       {badges.map((badge) => (
-        <motion.span
+        <m.span
           key={badge.key}
           className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold backdrop-blur-md"
           style={{
@@ -115,8 +112,8 @@ export default function SmartQueueBadge({ profile }: SmartQueueBadgeProps) {
             </span>
           )}
           {badge.label}
-        </motion.span>
+        </m.span>
       ))}
-    </motion.div>
+    </m.div>
   );
 }

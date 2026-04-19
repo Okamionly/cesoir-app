@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { useState, useEffect } from "react";
 import { usePausableInterval } from "@/lib/usePausableInterval";
 
@@ -35,7 +35,7 @@ export default function PhoneVideo() {
       />
 
       {/* iPhone frame */}
-      <motion.div
+      <m.div
         className="relative w-full h-full rounded-[44px] bg-black/95 border border-white/15 overflow-hidden"
         style={{
           boxShadow: "0 0 80px rgba(139,92,246,0.25), inset 0 0 0 2px rgba(255,255,255,0.08)",
@@ -85,7 +85,7 @@ export default function PhoneVideo() {
             ))}
           </div>
         </div>
-      </motion.div>
+      </m.div>
 
       {/* Scene indicator dots */}
       <div className="absolute -bottom-8 left-0 right-0 flex justify-center gap-2">
@@ -133,7 +133,7 @@ function SceneModes() {
   ];
 
   return (
-    <motion.div
+    <m.div
       className="h-full flex flex-col px-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -143,21 +143,21 @@ function SceneModes() {
       <h3 className="text-[14px] font-bold text-white mb-1">Ce soir</h3>
       <p className="text-[10px] text-white/50 mb-3">Choisis ton mode</p>
       <div className="grid grid-cols-3 gap-2 overflow-hidden">
-        {modes.slice(0, 12).map((m, i) => (
-          <motion.div
-            key={m.name}
+        {modes.slice(0, 12).map((mode, i) => (
+          <m.div
+            key={mode.name}
             className="flex flex-col items-center gap-1 p-2 rounded-xl border border-white/5"
-            style={{ background: i === 0 ? `${m.color}20` : "rgba(255,255,255,0.02)", borderColor: i === 0 ? `${m.color}60` : "rgba(255,255,255,0.05)" }}
+            style={{ background: i === 0 ? `${mode.color}20` : "rgba(255,255,255,0.02)", borderColor: i === 0 ? `${mode.color}60` : "rgba(255,255,255,0.05)" }}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.03 }}
           >
-            <span className="text-[16px]">{m.icon}</span>
-            <span className={`text-[7px] font-semibold truncate w-full text-center ${i === 0 ? "text-white" : "text-white/60"}`}>{m.name}</span>
-          </motion.div>
+            <span className="text-[16px]">{mode.icon}</span>
+            <span className={`text-[7px] font-semibold truncate w-full text-center ${i === 0 ? "text-white" : "text-white/60"}`}>{mode.name}</span>
+          </m.div>
         ))}
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -170,7 +170,7 @@ function SceneFeed() {
   ];
 
   return (
-    <motion.div
+    <m.div
       className="h-full flex flex-col px-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -186,7 +186,7 @@ function SceneFeed() {
       </div>
       <div className="space-y-2 overflow-hidden">
         {profiles.map((p, i) => (
-          <motion.div
+          <m.div
             key={p.name}
             className="flex items-center gap-2 p-2.5 rounded-xl border border-white/5 bg-white/[0.02]"
             initial={{ opacity: 0, x: -20 }}
@@ -207,16 +207,16 @@ function SceneFeed() {
             >
               ♥
             </div>
-          </motion.div>
+          </m.div>
         ))}
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 
 function SceneMatch() {
   return (
-    <motion.div
+    <m.div
       className="h-full flex flex-col items-center justify-center px-6 relative"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -224,37 +224,37 @@ function SceneMatch() {
       transition={{ duration: 0.4 }}
     >
       {/* Background pulse */}
-      <motion.div
+      <m.div
         className="absolute inset-8 rounded-full"
         style={{ background: "radial-gradient(circle, rgba(139,92,246,0.3), transparent 70%)" }}
         animate={{ scale: [0.8, 1.2, 0.8], opacity: [0.5, 1, 0.5] }}
         transition={{ duration: 2, repeat: Infinity }}
       />
-      <motion.div
+      <m.div
         className="relative z-10 w-20 h-20 rounded-full flex items-center justify-center mb-4"
         style={{ background: "linear-gradient(135deg, #8B5CF6, #EC4899, #00FF88)" }}
         animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] }}
         transition={{ duration: 1.5, repeat: Infinity }}
       >
         <span className="text-[36px]">♥</span>
-      </motion.div>
-      <motion.h2
+      </m.div>
+      <m.h2
         className="relative z-10 font-display text-[22px] font-black text-white text-center leading-tight mb-2"
         initial={{ y: 10, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3 }}
       >
         Match !
-      </motion.h2>
-      <motion.p
+      </m.h2>
+      <m.p
         className="relative z-10 text-[11px] text-white/70 text-center"
         initial={{ y: 10, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5 }}
       >
         Marie veut dîner à 20h<br />au <span className="text-[#8B5CF6] font-semibold">Petit Tonneau</span>
-      </motion.p>
-    </motion.div>
+      </m.p>
+    </m.div>
   );
 }
 
@@ -266,7 +266,7 @@ function SceneChat() {
   ];
 
   return (
-    <motion.div
+    <m.div
       className="h-full flex flex-col px-3"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -282,24 +282,24 @@ function SceneChat() {
       </div>
 
       <div className="flex-1 flex flex-col gap-2 overflow-hidden">
-        {messages.map((m, i) => (
-          <motion.div
+        {messages.map((msg, i) => (
+          <m.div
             key={i}
-            className={`max-w-[80%] px-3 py-2 rounded-2xl ${m.from === "them" ? "self-start" : "self-end"}`}
+            className={`max-w-[80%] px-3 py-2 rounded-2xl ${msg.from === "them" ? "self-start" : "self-end"}`}
             style={{
-              background: m.from === "them"
+              background: msg.from === "them"
                 ? "rgba(255,255,255,0.08)"
                 : "linear-gradient(135deg, #8B5CF6, #00FF88)",
-              color: m.from === "them" ? "rgba(255,255,255,0.9)" : "white",
+              color: msg.from === "them" ? "rgba(255,255,255,0.9)" : "white",
             }}
             initial={{ opacity: 0, y: 10, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ delay: m.delay }}
+            transition={{ delay: msg.delay }}
           >
-            <p className="text-[10px] leading-snug">{m.text}</p>
-          </motion.div>
+            <p className="text-[10px] leading-snug">{msg.text}</p>
+          </m.div>
         ))}
       </div>
-    </motion.div>
+    </m.div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { springs } from "@/lib/motion-design";
 
 // ─────────────────────────────────────────
@@ -52,7 +52,7 @@ interface QuickReactWrapperProps {
 
 function QuickReactBar({ onSelect, onClose, position = "above" }: QuickReactBarProps) {
   return (
-    <motion.div
+    <m.div
       className={`absolute ${position === "above" ? "-top-14" : "-bottom-14"} left-1/2 -translate-x-1/2 z-50`}
       initial={{ opacity: 0, scale: 0.6, y: position === "above" ? 10 : -10 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -61,7 +61,7 @@ function QuickReactBar({ onSelect, onClose, position = "above" }: QuickReactBarP
     >
       <div className="flex items-center gap-0.5 bg-black border border-white/15 rounded-full px-2 py-1.5 shadow-2xl backdrop-blur-md">
         {QUICK_EMOJIS.map((emoji, i) => (
-          <motion.button
+          <m.button
             key={emoji}
             onClick={() => {
               onSelect(emoji);
@@ -76,10 +76,10 @@ function QuickReactBar({ onSelect, onClose, position = "above" }: QuickReactBarP
             aria-label={`Reagir avec ${emoji}`}
           >
             {emoji}
-          </motion.button>
+          </m.button>
         ))}
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -91,7 +91,7 @@ function QuickReactBubble({ reaction, isOwn }: QuickReactBubbleProps) {
   if (!reaction) return null;
 
   return (
-    <motion.div
+    <m.div
       className={`absolute -bottom-2.5 ${isOwn ? "right-2" : "left-2"} z-10`}
       initial={{ scale: 0 }}
       animate={{ scale: 1 }}
@@ -106,7 +106,7 @@ function QuickReactBubble({ reaction, isOwn }: QuickReactBubbleProps) {
       >
         {reaction.emoji}
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 

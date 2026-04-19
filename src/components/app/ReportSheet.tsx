@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { IconX } from "@/components/ui/Icons";
 
 const reasons = [
@@ -39,14 +39,14 @@ export default function ReportSheet({ profileName, isOpen, onClose, onReport }: 
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
+        <m.div
           className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-end justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
         >
-          <motion.div
+          <m.div
             className="w-full max-w-lg bg-bg border-t border-border rounded-t-3xl p-6 max-h-[80vh] overflow-y-auto"
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
@@ -112,8 +112,8 @@ export default function ReportSheet({ profileName, isOpen, onClose, onReport }: 
                 </p>
               </>
             )}
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       )}
     </AnimatePresence>
   );

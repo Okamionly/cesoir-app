@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { springs, ambient } from "@/lib/motion-design";
 import { haptics } from "@/lib/haptics";
 import { useSafety } from "@/lib/useSafety";
@@ -137,7 +137,7 @@ export default function SafetyPage() {
 
       <main className="px-5 py-6 max-w-lg mx-auto pb-32">
         {/* ── Hero ── */}
-        <motion.div
+        <m.div
           className="mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -158,16 +158,16 @@ export default function SafetyPage() {
             Tous tes outils de securite au meme endroit. SOS, check-in,
             contacts de confiance.
           </p>
-        </motion.div>
+        </m.div>
 
         {/* ── SOS Button (big, red, prominent) ── */}
-        <motion.div
+        <m.div
           className="mb-8"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ ...springs.heavy, delay: 0.1 }}
         >
-          <motion.button
+          <m.button
             type="button"
             onClick={handleSOSPress}
             disabled={sosActive}
@@ -177,18 +177,18 @@ export default function SafetyPage() {
             aria-label="Declencher l'alerte SOS"
           >
             {/* Breathing pulse behind the button */}
-            <motion.div
+            <m.div
               className="absolute inset-0 rounded-2xl"
               style={{ backgroundColor: "color-mix(in srgb, var(--color-bg) 10%, transparent)" }}
               animate={ambient.breathe(3)}
             />
 
-            <motion.div
+            <m.div
               animate={{ scale: [1, 1.1, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             >
               <AlertTriangle size={40} color="white" strokeWidth={2.5} aria-hidden="true" />
-            </motion.div>
+            </m.div>
 
             <span className="text-lg relative z-10">
               {sosActive ? "SOS en cours..." : "SOS Urgence"}
@@ -199,20 +199,20 @@ export default function SafetyPage() {
             >
               Envoie ta position a tes contacts
             </span>
-          </motion.button>
-        </motion.div>
+          </m.button>
+        </m.div>
 
         {/* SOS confirmation dialog */}
         <AnimatePresence>
           {sosConfirm && (
-            <motion.div
+            <m.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 z-[150] flex items-center justify-center p-6"
               style={{ backgroundColor: "color-mix(in srgb, var(--color-text) 70%, transparent)" }}
             >
-              <motion.div
+              <m.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
@@ -260,13 +260,13 @@ export default function SafetyPage() {
                     Confirmer SOS
                   </button>
                 </div>
-              </motion.div>
-            </motion.div>
+              </m.div>
+            </m.div>
           )}
         </AnimatePresence>
 
         {/* ── Check-in Status ── */}
-        <motion.div
+        <m.div
           className="mb-6 rounded-2xl p-5"
           style={{
             backgroundColor: isCheckInActive
@@ -309,7 +309,7 @@ export default function SafetyPage() {
             </div>
 
             {isCheckInActive && (
-              <motion.div
+              <m.div
                 className="h-2.5 w-2.5 rounded-full"
                 style={{ backgroundColor: "var(--color-safe)" }}
                 animate={{ scale: [1, 1.4, 1] }}
@@ -351,10 +351,10 @@ export default function SafetyPage() {
               Activer le check-in (30 min)
             </button>
           )}
-        </motion.div>
+        </m.div>
 
         {/* ── Trusted Circle ── */}
-        <motion.div
+        <m.div
           className="mb-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -367,10 +367,10 @@ export default function SafetyPage() {
             Cercle de confiance
           </h2>
           <TrustedCircle />
-        </motion.div>
+        </m.div>
 
         {/* ── Recent Safety Actions Log ── */}
-        <motion.div
+        <m.div
           className="mb-6"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -429,10 +429,10 @@ export default function SafetyPage() {
               </div>
             )}
           </div>
-        </motion.div>
+        </m.div>
 
         {/* ── Report History Link ── */}
-        <motion.div
+        <m.div
           className="mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -464,10 +464,10 @@ export default function SafetyPage() {
             </div>
             <ChevronRight size={16} color="var(--color-border)" strokeWidth={2} aria-hidden="true" />
           </Link>
-        </motion.div>
+        </m.div>
 
         {/* ── Safety Tips (collapsible) ── */}
-        <motion.div
+        <m.div
           className="mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -496,19 +496,19 @@ export default function SafetyPage() {
                 Conseils de securite
               </span>
             </div>
-            <motion.div
+            <m.div
               animate={{ rotate: showTips ? 180 : 0 }}
               transition={springs.snap}
               aria-hidden="true"
               style={{ display: "inline-flex" }}
             >
               <ChevronDown size={16} color="var(--color-text-muted)" strokeWidth={2} />
-            </motion.div>
+            </m.div>
           </button>
 
           <AnimatePresence>
             {showTips && (
-              <motion.div
+              <m.div
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: "auto", opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
@@ -547,13 +547,13 @@ export default function SafetyPage() {
                     </div>
                   ))}
                 </div>
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
-        </motion.div>
+        </m.div>
 
         {/* ── Emergency Numbers ── */}
-        <motion.div
+        <m.div
           className="mb-6 rounded-2xl p-5 text-center"
           style={{
             backgroundColor: "color-mix(in srgb, var(--color-text) 2%, transparent)",
@@ -579,7 +579,7 @@ export default function SafetyPage() {
           <p className="text-[11px]" style={{ color: "var(--color-text-muted)" }}>
             Violences conjugales -- appel gratuit et anonyme
           </p>
-        </motion.div>
+        </m.div>
 
         {/* Back link */}
         <Link

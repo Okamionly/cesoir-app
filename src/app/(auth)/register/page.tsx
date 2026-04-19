@@ -3,20 +3,32 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import PhotoUpload from "@/components/app/PhotoUpload";
 import { landing } from "@/lib/design-tokens";
 import { springs, easings } from "@/lib/motion-design";
-import { Magnetic } from "@/components/motion/Magnetic";
+import {
+  FormField,
+  FormInput,
+  FormTextarea,
+  FormChoice,
+  FormSubmit,
+  FormBanner,
+} from "@/components/ui/forms";
 
-// Dark-mode input style shared by every step
-const INPUT_STYLE: React.CSSProperties = {
-  background: "rgba(255,255,255,0.04)",
-  border: "1px solid rgba(255,255,255,0.1)",
-  color: landing.fg,
-};
+const GENDERS = [
+  { value: "homme", label: "Homme" },
+  { value: "femme", label: "Femme" },
+  { value: "autre", label: "Autre" },
+] as const;
+
+const LOOKING_FOR = [
+  { value: "hommes", label: "Hommes" },
+  { value: "femmes", label: "Femmes" },
+  { value: "tous", label: "Tout le monde" },
+] as const;
 
 const stepVariants = {
   enter: { opacity: 0, x: 40, scale: 0.98 },
@@ -49,6 +61,9 @@ export default function RegisterPage() {
   const [tempUserId, setTempUserId] = useState<string | null>(null);
   const [photoUploaded, setPhotoUploaded] = useState(false);
 
+  const stepOneInvalid =
+    !gender || !lookingFor || !name || !email || !password || !age;
+
   async function handleCreateAccount() {
     setError("");
 
@@ -64,7 +79,6 @@ export default function RegisterPage() {
       return;
     }
 
-    // Modes are picked on /onboarding — not duplicated here.
     setTempUserId(user.id);
     setStep(2);
   }
@@ -100,7 +114,7 @@ export default function RegisterPage() {
         }}
       />
 
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: easings.out }}
@@ -108,7 +122,7 @@ export default function RegisterPage() {
       >
         {/* Logo with breathing moon */}
         <div className="flex items-center justify-center gap-2 mb-6">
-          <motion.span
+          <m.span
             className="text-2xl drop-shadow-[0_0_14px_rgba(139,92,246,0.5)]"
             aria-hidden="true"
             style={{ color: landing.violet }}
@@ -116,7 +130,7 @@ export default function RegisterPage() {
             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
           >
             ☾
-          </motion.span>
+          </m.span>
           <span className="font-display text-xl font-bold tracking-tight">
             CeSoir
           </span>
@@ -143,28 +157,17 @@ export default function RegisterPage() {
           ))}
         </div>
 
-        {/* Error */}
-        {(error || authError) && (
-          <motion.div
-            role="alert"
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={springs.snap}
-            className="text-[13px] px-4 py-3 rounded-xl mb-4 border"
-            style={{
-              background: "rgba(239,68,68,0.08)",
-              borderColor: "rgba(239,68,68,0.25)",
-              color: "#FCA5A5",
-            }}
-          >
-            {error || authError}
-          </motion.div>
-        )}
+        {/* Form-level error */}
+        <div className="mb-4">
+          <FormBanner tone="error" variant="dark">
+            {error || authError || null}
+          </FormBanner>
+        </div>
 
         <AnimatePresence mode="wait">
           {/* Step 1 — identity */}
           {step === 1 && (
-            <motion.div
+            <m.div
               key="step1"
               variants={stepVariants}
               initial="enter"
@@ -179,193 +182,97 @@ export default function RegisterPage() {
               </p>
               <div className="space-y-4">
                 <div className="grid grid-cols-[1fr_80px] gap-3">
-                  <div>
-                    <label
-                      htmlFor="reg-name"
-                      className="block text-[11px] font-semibold uppercase tracking-wide text-white/50 mb-1.5"
-                    >
-                      Prenom
-                    </label>
-                    <input
-                      id="reg-name"
+                  <FormField label="Prenom" variant="dark" required>
+                    <FormInput
                       type="text"
-                      required
                       placeholder="Ton prenom"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       autoComplete="given-name"
-                      className="w-full px-3 py-3 rounded-xl text-sm placeholder:text-white/30 focus:outline-none"
-                      style={INPUT_STYLE}
+                      variant="dark"
+                      size="md"
                     />
-                  </div>
-                  <div>
-                    <label
-                      htmlFor="reg-age"
-                      className="block text-[11px] font-semibold uppercase tracking-wide text-white/50 mb-1.5"
-                    >
-                      Age
-                    </label>
-                    <input
-                      id="reg-age"
+                  </FormField>
+                  <FormField label="Age" variant="dark" required>
+                    <FormInput
                       type="number"
                       min={18}
                       max={99}
-                      required
                       placeholder="25"
                       value={age}
                       onChange={(e) => setAge(e.target.value)}
-                      className="w-full px-3 py-3 rounded-xl text-sm placeholder:text-white/30 focus:outline-none"
-                      style={INPUT_STYLE}
+                      variant="dark"
+                      size="md"
                     />
-                  </div>
+                  </FormField>
                 </div>
-                <div>
-                  <label
-                    htmlFor="reg-email"
-                    className="block text-[11px] font-semibold uppercase tracking-wide text-white/50 mb-1.5"
-                  >
-                    Email
-                  </label>
-                  <input
-                    id="reg-email"
+                <FormField label="Email" variant="dark" required>
+                  <FormInput
                     type="email"
-                    required
                     placeholder="ton@email.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     autoComplete="email"
-                    className="w-full px-3 py-3 rounded-xl text-sm placeholder:text-white/30 focus:outline-none"
-                    style={INPUT_STYLE}
+                    variant="dark"
+                    size="md"
                   />
-                </div>
-                <div>
-                  <label
-                    htmlFor="reg-pass"
-                    className="block text-[11px] font-semibold uppercase tracking-wide text-white/50 mb-1.5"
-                  >
-                    Mot de passe
-                  </label>
-                  <input
-                    id="reg-pass"
+                </FormField>
+                <FormField
+                  label="Mot de passe"
+                  variant="dark"
+                  required
+                  hint="Minimum 6 caracteres."
+                >
+                  <FormInput
                     type="password"
-                    required
                     minLength={6}
-                    placeholder="Min. 6 caracteres"
+                    placeholder="********"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     autoComplete="new-password"
-                    className="w-full px-3 py-3 rounded-xl text-sm placeholder:text-white/30 focus:outline-none"
-                    style={INPUT_STYLE}
+                    variant="dark"
+                    size="md"
                   />
-                </div>
-                <fieldset>
-                  <legend className="text-[11px] font-semibold uppercase tracking-wide text-white/50 mb-2">
-                    Je suis
-                  </legend>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { v: "homme", l: "Homme" },
-                      { v: "femme", l: "Femme" },
-                      { v: "autre", l: "Autre" },
-                    ].map((g) => (
-                      <button
-                        key={g.v}
-                        type="button"
-                        onClick={() => setGender(g.v)}
-                        aria-pressed={gender === g.v}
-                        className="py-3 rounded-xl text-sm font-medium transition-all tap-target"
-                        style={
-                          gender === g.v
-                            ? {
-                                background: landing.gradient,
-                                color: "#FFFFFF",
-                                border: "1px solid transparent",
-                                boxShadow: "0 0 24px rgba(139,92,246,0.35)",
-                              }
-                            : {
-                                background: "rgba(255,255,255,0.04)",
-                                color: "rgba(255,255,255,0.7)",
-                                border: "1px solid rgba(255,255,255,0.1)",
-                              }
-                        }
-                      >
-                        {g.l}
-                      </button>
-                    ))}
-                  </div>
-                </fieldset>
-                <fieldset>
-                  <legend className="text-[11px] font-semibold uppercase tracking-wide text-white/50 mb-2">
-                    Je cherche
-                  </legend>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { v: "hommes", l: "Hommes" },
-                      { v: "femmes", l: "Femmes" },
-                      { v: "tous", l: "Tout le monde" },
-                    ].map((g) => (
-                      <button
-                        key={g.v}
-                        type="button"
-                        onClick={() => setLookingFor(g.v)}
-                        aria-pressed={lookingFor === g.v}
-                        className="py-3 rounded-xl text-sm font-medium transition-all tap-target"
-                        style={
-                          lookingFor === g.v
-                            ? {
-                                background: landing.gradient,
-                                color: "#FFFFFF",
-                                border: "1px solid transparent",
-                                boxShadow: "0 0 24px rgba(139,92,246,0.35)",
-                              }
-                            : {
-                                background: "rgba(255,255,255,0.04)",
-                                color: "rgba(255,255,255,0.7)",
-                                border: "1px solid rgba(255,255,255,0.1)",
-                              }
-                        }
-                      >
-                        {g.l}
-                      </button>
-                    ))}
-                  </div>
-                </fieldset>
-                <motion.button
+                </FormField>
+                <FormChoice
+                  legend="Je suis"
+                  variant="dark"
+                  options={GENDERS}
+                  value={gender}
+                  onChange={setGender}
+                />
+                <FormChoice
+                  legend="Je cherche"
+                  variant="dark"
+                  options={LOOKING_FOR}
+                  value={lookingFor}
+                  onChange={setLookingFor}
+                />
+                <FormSubmit
                   type="button"
                   onClick={handleCreateAccount}
-                  disabled={
-                    !gender ||
-                    !lookingFor ||
-                    !name ||
-                    !email ||
-                    !password ||
-                    !age ||
-                    authLoading
-                  }
-                  whileHover={{ y: -1 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={springs.snap}
-                  className="w-full text-white py-3.5 rounded-full text-sm font-semibold disabled:opacity-40 tap-target"
-                  style={{
-                    background: landing.gradient,
-                    boxShadow: landing.shadow,
-                  }}
+                  isLoading={authLoading}
+                  loadingLabel="Creation..."
+                  disabled={stepOneInvalid}
+                  hasError={Boolean(error || authError)}
+                  variant="dark"
+                  magnetic={false}
                 >
-                  {authLoading ? "Creation..." : "Creer mon compte"}
-                </motion.button>
+                  Creer mon compte
+                </FormSubmit>
                 <p className="text-[10px] text-white/40 text-center mt-2 leading-relaxed">
                   En t&apos;inscrivant, tu acceptes nos{" "}
                   <Link href="/cgu" className="underline" style={{ color: landing.violet }}>CGU</Link>{" "}et notre{" "}
                   <Link href="/privacy" className="underline" style={{ color: landing.violet }}>Politique de confidentialite</Link>.
                 </p>
               </div>
-            </motion.div>
+            </m.div>
           )}
 
-          {/* Step 2 — photo (modes moved to /onboarding) */}
+          {/* Step 2 — photo */}
           {step === 2 && tempUserId && (
-            <motion.div
-              key="step3"
+            <m.div
+              key="step2"
               variants={stepVariants}
               initial="enter"
               animate="center"
@@ -382,10 +289,12 @@ export default function RegisterPage() {
                 onUploadComplete={() => setPhotoUploaded(true)}
               />
               <div className="flex gap-3 mt-8">
-                <button
+                <m.button
                   type="button"
                   onClick={() => setStep(3)}
-                  className="flex-1 py-3.5 rounded-full text-sm font-medium tap-target"
+                  whileTap={{ scale: 0.97 }}
+                  transition={springs.micro}
+                  className="flex-1 py-3.5 rounded-full text-sm font-medium tap-target min-h-[44px]"
                   style={{
                     background: "rgba(255,255,255,0.04)",
                     border: "1px solid rgba(255,255,255,0.12)",
@@ -393,29 +302,25 @@ export default function RegisterPage() {
                   }}
                 >
                   Passer
-                </button>
-                <motion.button
-                  type="button"
-                  onClick={() => setStep(3)}
-                  disabled={!photoUploaded}
-                  whileHover={{ y: -1 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={springs.snap}
-                  className="flex-1 text-white py-3.5 rounded-full text-sm font-semibold disabled:opacity-40 tap-target"
-                  style={{
-                    background: landing.gradient,
-                    boxShadow: landing.shadow,
-                  }}
-                >
-                  Suivant
-                </motion.button>
+                </m.button>
+                <div className="flex-1">
+                  <FormSubmit
+                    type="button"
+                    onClick={() => setStep(3)}
+                    disabled={!photoUploaded}
+                    variant="dark"
+                    magnetic={false}
+                  >
+                    Suivant
+                  </FormSubmit>
+                </div>
               </div>
-            </motion.div>
+            </m.div>
           )}
 
           {/* Step 3 — bio */}
           {step === 3 && (
-            <motion.form
+            <m.form
               key="step3"
               onSubmit={handleFinish}
               variants={stepVariants}
@@ -430,28 +335,22 @@ export default function RegisterPage() {
                 Qu&apos;est-ce qui te rend unique ?
               </p>
               <div className="space-y-4">
-                <div>
-                  <label
-                    htmlFor="reg-bio"
-                    className="block text-[11px] font-semibold uppercase tracking-wide text-white/50 mb-1.5"
-                  >
-                    Ta soiree ideale
-                  </label>
-                  <textarea
-                    id="reg-bio"
+                <FormField label="Ta soiree ideale" variant="dark">
+                  <FormTextarea
                     rows={3}
                     placeholder="Ex: Un bon sushi avec quelqu'un de cool..."
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
-                    className="w-full px-3 py-3 rounded-xl text-sm placeholder:text-white/30 resize-none focus:outline-none"
-                    style={INPUT_STYLE}
+                    variant="dark"
                   />
-                </div>
+                </FormField>
                 <div className="flex gap-3">
-                  <button
+                  <m.button
                     type="button"
                     onClick={() => setStep(2)}
-                    className="flex-1 py-3.5 rounded-full text-sm font-medium tap-target"
+                    whileTap={{ scale: 0.97 }}
+                    transition={springs.micro}
+                    className="flex-1 py-3.5 rounded-full text-sm font-medium tap-target min-h-[44px]"
                     style={{
                       background: "rgba(255,255,255,0.04)",
                       border: "1px solid rgba(255,255,255,0.12)",
@@ -459,29 +358,15 @@ export default function RegisterPage() {
                     }}
                   >
                     Retour
-                  </button>
-                  <Magnetic as="div" strength={0.12} radius={120} className="flex-1">
-                    <motion.button
-                      type="submit"
-                      whileHover={{
-                        y: -2,
-                        boxShadow: "0 14px 60px rgba(0,255,136,0.35)",
-                        transition: springs.gentle,
-                      }}
-                      whileTap={{ scale: 0.98 }}
-                      transition={springs.snap}
-                      className="w-full text-white py-3.5 rounded-full text-sm font-semibold tap-target"
-                      style={{
-                        background: landing.gradient,
-                        boxShadow: landing.shadow,
-                      }}
-                    >
+                  </m.button>
+                  <div className="flex-1">
+                    <FormSubmit variant="dark">
                       C&apos;est parti !
-                    </motion.button>
-                  </Magnetic>
+                    </FormSubmit>
+                  </div>
                 </div>
               </div>
-            </motion.form>
+            </m.form>
           )}
         </AnimatePresence>
 
@@ -495,7 +380,7 @@ export default function RegisterPage() {
             Se connecter
           </Link>
         </p>
-      </motion.div>
+      </m.div>
     </main>
   );
 }

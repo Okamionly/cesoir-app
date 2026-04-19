@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { springs, ambient } from "@/lib/motion-design";
 
 interface ErrorStateProps {
@@ -40,36 +40,36 @@ export default function ErrorState({
       role="alert"
       className={`flex flex-col items-center justify-center py-20 px-6 text-center ${className}`.trim()}
     >
-      <motion.div
+      <m.div
         className="text-5xl mb-5"
         animate={ambient.float(4)}
         aria-hidden="true"
       >
         {emoji}
-      </motion.div>
+      </m.div>
 
-      <motion.p
+      <m.p
         className="text-sm font-bold text-text"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...springs.heavy, delay: 0.1 }}
       >
         {title}
-      </motion.p>
+      </m.p>
 
       {description && (
-        <motion.p
+        <m.p
           className="text-xs text-text-muted mt-2 max-w-[280px]"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ ...springs.heavy, delay: 0.2 }}
         >
           {description}
-        </motion.p>
+        </m.p>
       )}
 
       {onRetry && (
-        <motion.button
+        <m.button
           type="button"
           onClick={onRetry}
           initial={{ opacity: 0, y: 10 }}
@@ -79,7 +79,7 @@ export default function ErrorState({
           className="mt-5 inline-flex items-center px-5 py-2 rounded-full text-[13px] font-semibold text-bg bg-text active:opacity-90 transition-opacity"
         >
           {retryLabel}
-        </motion.button>
+        </m.button>
       )}
     </div>
   );

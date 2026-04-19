@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import { usePlans, PLAN_TYPE_META, type PlanType } from "@/lib/usePlans";
 import PageHeader from "@/components/ui/PageHeader";
@@ -72,9 +72,9 @@ export default function CreatePlanPage() {
           <label className="text-[11px] font-semibold text-text-muted uppercase mb-2 block">Type</label>
           <div className="flex gap-2">
             {PUBLIC_TYPES.map((t) => {
-              const m = PLAN_TYPE_META[t];
+              const item = PLAN_TYPE_META[t];
               return (
-                <motion.button
+                <m.button
                   key={t}
                   onClick={() => setType(t)}
                   whileTap={{ scale: 0.95 }}
@@ -84,9 +84,9 @@ export default function CreatePlanPage() {
                       : "border-border text-text-muted"
                   }`}
                 >
-                  <div className="text-xl mb-1" aria-hidden="true">{m.emoji}</div>
-                  {m.label}
-                </motion.button>
+                  <div className="text-xl mb-1" aria-hidden="true">{item.emoji}</div>
+                  {item.label}
+                </m.button>
               );
             })}
           </div>
@@ -171,7 +171,7 @@ export default function CreatePlanPage() {
         </div>
 
         {/* Submit */}
-        <motion.button
+        <m.button
           onClick={handleSubmit}
           disabled={!canSubmit || submitting}
           whileHover={canSubmit && !submitting ? { scale: 1.02 } : {}}
@@ -184,7 +184,7 @@ export default function CreatePlanPage() {
           }`}
         >
           {submitting ? "Creation..." : "Creer le plan"}
-        </motion.button>
+        </m.button>
       </main>
     </div>
   );

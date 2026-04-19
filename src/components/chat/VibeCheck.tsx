@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 
 interface VibeCheckProps {
   peerName: string;
@@ -52,7 +52,7 @@ export default function VibeCheck({ peerName, peerInitial, userInitial, onClose 
   return (
     <AnimatePresence>
       {phase !== "dismissed" && (
-        <motion.div
+        <m.div
           className="fixed inset-0 z-[100] flex flex-col"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -110,24 +110,24 @@ export default function VibeCheck({ peerName, peerInitial, userInitial, onClose 
               {/* Mock camera views */}
               <div className="flex items-center gap-8">
                 {/* User camera (large) */}
-                <motion.div
+                <m.div
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.2, type: "spring" }}
                   className="w-28 h-40 rounded-3xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center"
                 >
                   <span className="text-[40px] font-black text-white/80">{userInitial}</span>
-                </motion.div>
+                </m.div>
 
                 {/* Peer camera (large) */}
-                <motion.div
+                <m.div
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.4, type: "spring" }}
                   className="w-28 h-40 rounded-3xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center"
                 >
                   <span className="text-[40px] font-black text-white/80">{peerInitial}</span>
-                </motion.div>
+                </m.div>
               </div>
 
               {/* Bottom bar — mock controls */}
@@ -182,7 +182,7 @@ export default function VibeCheck({ peerName, peerInitial, userInitial, onClose 
           )}
 
           {phase === "decision" && (
-            <motion.div
+            <m.div
               className="relative flex-1 flex flex-col items-center justify-center px-6 gap-8"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -196,7 +196,7 @@ export default function VibeCheck({ peerName, peerInitial, userInitial, onClose 
               </div>
 
               <div className="flex flex-col gap-4 w-full max-w-[280px]">
-                <motion.button
+                <m.button
                   onClick={handleYes}
                   className="w-full py-4 rounded-2xl font-bold text-[16px] text-white tap-target"
                   style={{ background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-2))" }}
@@ -204,46 +204,46 @@ export default function VibeCheck({ peerName, peerInitial, userInitial, onClose 
                   aria-label="Oui, je veux le voir ce soir"
                 >
                   Oui !
-                </motion.button>
-                <motion.button
+                </m.button>
+                <m.button
                   onClick={handleNo}
                   className="w-full py-4 rounded-2xl border-2 border-white/30 text-white/80 font-bold text-[16px] tap-target"
                   whileTap={{ scale: 0.95 }}
                   aria-label="Pas cette fois"
                 >
                   Pas cette fois
-                </motion.button>
+                </m.button>
               </div>
-            </motion.div>
+            </m.div>
           )}
 
           {phase === "match" && (
-            <motion.div
+            <m.div
               className="relative flex-1 flex flex-col items-center justify-center px-6"
               initial={{ opacity: 0, scale: 0.5 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, type: "spring", stiffness: 200 }}
             >
-              <motion.div
+              <m.div
                 className="text-[64px] mb-4"
                 animate={{ rotate: [0, -10, 10, -10, 0], scale: [1, 1.2, 1] }}
                 transition={{ duration: 0.8, ease: "easeInOut" }}
                 aria-hidden="true"
               >
                 🎉
-              </motion.div>
+              </m.div>
               <p className="text-[28px] font-black text-white mb-2">C&apos;est un match !</p>
               <p className="text-[15px] text-white/70">
                 Vous vous voyez ce soir
               </p>
-              <motion.div
+              <m.div
                 className="absolute inset-0 pointer-events-none"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: [0, 0.6, 0] }}
                 transition={{ duration: 2, ease: "easeOut" }}
               >
                 {[...Array(12)].map((_, i) => (
-                  <motion.div
+                  <m.div
                     key={i}
                     className="absolute w-2 h-2 rounded-full"
                     style={{
@@ -261,10 +261,10 @@ export default function VibeCheck({ peerName, peerInitial, userInitial, onClose 
                     transition={{ duration: 1.5, delay: i * 0.1, ease: "easeOut" }}
                   />
                 ))}
-              </motion.div>
-            </motion.div>
+              </m.div>
+            </m.div>
           )}
-        </motion.div>
+        </m.div>
       )}
     </AnimatePresence>
   );
@@ -273,7 +273,7 @@ export default function VibeCheck({ peerName, peerInitial, userInitial, onClose 
 /* Small trigger button for the chat header */
 export function VibeCheckButton({ onClick }: { onClick: () => void }) {
   return (
-    <motion.button
+    <m.button
       onClick={onClick}
       className="shrink-0 w-9 h-9 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center tap-target"
       whileTap={{ scale: 0.9 }}
@@ -281,6 +281,6 @@ export function VibeCheckButton({ onClick }: { onClick: () => void }) {
       title="Vibe Check"
     >
       <span className="text-[14px]" aria-hidden="true">📹</span>
-    </motion.button>
+    </m.button>
   );
 }

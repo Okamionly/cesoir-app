@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { app } from "@/lib/design-tokens";
 
 const COLORS = [app.violet, app.vert, app.bg];
@@ -61,7 +61,7 @@ export function Confetti({ active, onComplete }: ConfettiProps) {
     >
       <AnimatePresence>
         {particles.map((p) => (
-          <motion.div
+          <m.div
             key={p.id}
             initial={{ x: 0, y: 0, opacity: 1, scale: 1, rotate: 0 }}
             animate={{

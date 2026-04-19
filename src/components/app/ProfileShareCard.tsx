@@ -2,7 +2,7 @@
 
 import { forwardRef } from "react";
 import Image from "next/image";
-import { motion } from "motion/react";
+import { m } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import {
   SHARE_CARD_GRADIENT_PRESETS,
@@ -90,7 +90,7 @@ function MinimalCard({
 
       {/* Mode badge */}
       {showMode && (
-        <motion.div
+        <m.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={springs.elastic}
@@ -98,7 +98,7 @@ function MinimalCard({
           style={{ background: `linear-gradient(135deg, ${gradient.from}, ${gradient.to})` }}
         >
           {data.mode}
-        </motion.div>
+        </m.div>
       )}
 
       {/* Stats */}
@@ -174,14 +174,14 @@ function GradientCard({
 
       {/* Mode */}
       {showMode && (
-        <motion.div
+        <m.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={springs.elastic}
           className="px-4 py-1.5 rounded-full text-[12px] font-bold bg-white/20 backdrop-blur text-white border border-white/20"
         >
           {data.mode}
-        </motion.div>
+        </m.div>
       )}
 
       {/* Stats overlay */}
@@ -219,7 +219,7 @@ function NeonEqualizer({ color }: { color: string }) {
   return (
     <div className="flex items-end gap-[3px] h-6">
       {[0.6, 1, 0.4, 0.8, 0.5, 0.9, 0.3].map((h, i) => (
-        <motion.div
+        <m.div
           key={i}
           className="w-[3px] rounded-full"
           style={{ backgroundColor: color, height: `${h * 100}%` }}
@@ -308,7 +308,7 @@ function NeonCard({
 
       {/* Mode */}
       {showMode && (
-        <motion.div
+        <m.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={springs.elastic}
@@ -320,7 +320,7 @@ function NeonCard({
           }}
         >
           {data.mode}
-        </motion.div>
+        </m.div>
       )}
 
       {/* Stats */}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { useSafety } from "@/lib/useSafety";
 import { AlertTriangle } from "@/components/ui/lucide";
 
@@ -111,7 +111,7 @@ export default function SOSButton() {
   return (
     <AnimatePresence>
       {activated && (
-        <motion.div
+        <m.div
           className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-red-600/95 backdrop-blur-md"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -122,13 +122,13 @@ export default function SOSButton() {
           aria-label="Alerte SOS activee"
         >
           {/* SOS Icon */}
-          <motion.div
+          <m.div
             className="mb-6"
             animate={{ scale: [1, 1.1, 1] }}
             transition={{ duration: 1.5, repeat: Infinity }}
           >
             <AlertTriangle size={64} strokeWidth={2} color="white" aria-hidden="true" />
-          </motion.div>
+          </m.div>
 
           <h2 className="text-2xl font-bold text-white font-display mb-2">
             SOS Active
@@ -168,7 +168,7 @@ export default function SOSButton() {
           {/* Progress bar */}
           {countdown > 0 && !sent && (
             <div className="w-64 h-1.5 bg-white/20 rounded-full overflow-hidden mb-8">
-              <motion.div
+              <m.div
                 className="h-full bg-white rounded-full"
                 initial={{ width: "100%" }}
                 animate={{ width: "0%" }}
@@ -185,7 +185,7 @@ export default function SOSButton() {
           >
             {sent ? "Fermer" : "Annuler"}
           </button>
-        </motion.div>
+        </m.div>
       )}
     </AnimatePresence>
   );

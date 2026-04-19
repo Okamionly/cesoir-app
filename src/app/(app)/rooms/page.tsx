@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { motion, AnimatePresence, type Variants } from "motion/react";
+import { m, AnimatePresence, type Variants } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import Link from "next/link";
 import Image from "next/image";
@@ -166,18 +166,18 @@ const cardVariants: Variants = {
 
 function LiveBadge() {
   return (
-    <motion.span
+    <m.span
       className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white bg-red-500"
       animate={{ scale: [1, 1.1, 1] }}
       transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
     >
-      <motion.span
+      <m.span
         className="w-1.5 h-1.5 rounded-full bg-white"
         animate={{ opacity: [1, 0.4, 1] }}
         transition={{ duration: 1, repeat: Infinity }}
       />
       Live
-    </motion.span>
+    </m.span>
   );
 }
 
@@ -188,7 +188,7 @@ function RoomCard({ room }: { room: MockRoom }) {
 
   return (
     <Link href={`/rooms/${room.id}`} className="block">
-      <motion.div
+      <m.div
         className="bg-card border border-border rounded-2xl p-4 hover:border-accent/20 transition-colors"
         whileHover={{
           y: -3,
@@ -275,7 +275,7 @@ function RoomCard({ room }: { room: MockRoom }) {
             {room.startedMinutesAgo}min
           </span>
         </div>
-      </motion.div>
+      </m.div>
     </Link>
   );
 }
@@ -327,7 +327,7 @@ export default function RoomsPage() {
         }
         icon={<span className="text-lg" aria-hidden="true">{"\uD83C\uDF99\uFE0F"}</span>}
         actions={
-          <motion.button
+          <m.button
             whileHover={{
               scale: 1.05,
               boxShadow: "0 0 15px color-mix(in srgb, var(--color-accent) 40%, transparent)",
@@ -349,12 +349,12 @@ export default function RoomsPage() {
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
             Creer
-          </motion.button>
+          </m.button>
         }
         slotBelowTitle={
           <div className="flex gap-1.5">
             {CATEGORIES.map((cat) => (
-              <motion.button
+              <m.button
                 key={cat.key}
                 onClick={() => setActiveCategory(cat.key)}
                 whileTap={{ scale: 0.92 }}
@@ -365,7 +365,7 @@ export default function RoomsPage() {
                 }`}
               >
                 {cat.label}
-              </motion.button>
+              </m.button>
             ))}
           </div>
         }
@@ -379,7 +379,7 @@ export default function RoomsPage() {
           subtitle="Sois le premier a lancer la conversation!"
         />
       ) : (
-        <motion.div
+        <m.div
           className="px-4 pt-3 space-y-3"
           variants={containerVariants}
           initial="hidden"
@@ -389,17 +389,17 @@ export default function RoomsPage() {
         >
           <AnimatePresence mode="popLayout">
             {filteredRooms.map((room) => (
-              <motion.div
+              <m.div
                 key={room.id}
                 variants={cardVariants}
                 layout
                 role="listitem"
               >
                 <RoomCard room={room} />
-              </motion.div>
+              </m.div>
             ))}
           </AnimatePresence>
-        </motion.div>
+        </m.div>
       )}
     </div>
   );

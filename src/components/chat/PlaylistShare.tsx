@@ -1,8 +1,13 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { springs } from "@/lib/motion-design";
+import {
+  CHAT_VIOLET_VERT_GRADIENT,
+  CHAT_ALBUM_GRADIENTS,
+  BRAND_VIOLET,
+} from "@/lib/chat-content-colors";
 
 // ─────────────────────────────────────────
 // Types
@@ -63,14 +68,14 @@ export function PlaylistShareButton({ onAddSong }: PlaylistShareButtonProps) {
       <AnimatePresence>
         {isOpen && (
           <>
-            <motion.div
+            <m.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/40 z-50"
               onClick={() => setIsOpen(false)}
             />
-            <motion.div
+            <m.div
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
@@ -118,7 +123,7 @@ export function PlaylistShareButton({ onAddSong }: PlaylistShareButtonProps) {
                   Ajouter a la playlist
                 </button>
               </div>
-            </motion.div>
+            </m.div>
           </>
         )}
       </AnimatePresence>
@@ -142,7 +147,7 @@ export function MusicCard({ songs, isOwn, time }: MusicCardProps) {
   const totalCount = songs.length;
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 8, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.2 }}
@@ -179,7 +184,7 @@ export function MusicCard({ songs, isOwn, time }: MusicCardProps) {
         <div className="px-3.5 pb-3 flex items-center gap-2.5">
           <div
             className="w-1 h-10 rounded-full shrink-0"
-            style={{ background: "linear-gradient(180deg, #8B5CF6, #00FF88)" }}
+            style={{ background: CHAT_VIOLET_VERT_GRADIENT }}
           />
           <div className="min-w-0 flex-1">
             <p className="text-[14px] font-bold text-text truncate">{latestSong.title}</p>
@@ -187,7 +192,7 @@ export function MusicCard({ songs, isOwn, time }: MusicCardProps) {
           </div>
           {/* Fake play icon */}
           <div className="shrink-0 w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
-            <svg width={12} height={12} viewBox="0 0 12 12" fill="#8B5CF6">
+            <svg width={12} height={12} viewBox="0 0 12 12" fill={BRAND_VIOLET}>
               <path d="M2 1l9 5-9 5V1z" />
             </svg>
           </div>
@@ -195,7 +200,7 @@ export function MusicCard({ songs, isOwn, time }: MusicCardProps) {
 
         <span className="block text-[10px] text-text-muted px-3.5 pb-2 text-right">{time}</span>
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -221,7 +226,7 @@ export function SharedPlaylist({
   const [showAdd, setShowAdd] = useState(false);
 
   return (
-    <motion.div
+    <m.div
       className={`bg-bg-card border border-border rounded-2xl overflow-hidden ${className}`}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
@@ -239,21 +244,21 @@ export function SharedPlaylist({
               </p>
             </div>
           </div>
-          <motion.button
+          <m.button
             onClick={() => setShowAdd(true)}
             className="px-3 py-1.5 rounded-full bg-accent/10 text-accent text-[12px] font-semibold border border-accent/20"
             whileTap={{ scale: 0.95 }}
             transition={springs.micro}
           >
             + Ajouter
-          </motion.button>
+          </m.button>
         </div>
       </div>
 
       {/* Song list */}
       <div className="divide-y divide-border">
         {songs.map((song, i) => (
-          <motion.div
+          <m.div
             key={`${song.artist}-${song.title}-${i}`}
             className="flex items-center gap-3 px-4 py-3"
             initial={{ opacity: 0, x: -15 }}
@@ -264,9 +269,7 @@ export function SharedPlaylist({
             <div
               className="w-10 h-10 rounded-lg shrink-0 flex items-center justify-center"
               style={{
-                background: `linear-gradient(135deg, ${
-                  i % 2 === 0 ? "#8B5CF6, #EC4899" : "#06b6d4, #8B5CF6"
-                })`,
+                background: CHAT_ALBUM_GRADIENTS[i % CHAT_ALBUM_GRADIENTS.length],
               }}
             >
               <svg width={14} height={14} viewBox="0 0 24 24" fill="white">
@@ -286,13 +289,13 @@ export function SharedPlaylist({
                 {song.addedBy === "me" ? "Toi" : partnerName}
               </span>
             )}
-          </motion.div>
+          </m.div>
         ))}
       </div>
 
       {/* "Ecouter ensemble" concept */}
       <div className="px-4 py-3 border-t border-border">
-        <motion.button
+        <m.button
           className="w-full py-2.5 rounded-xl bg-accent/10 border border-accent/20 text-accent text-[13px] font-bold flex items-center justify-center gap-2"
           whileTap={{ scale: 0.97 }}
           transition={springs.micro}
@@ -301,7 +304,7 @@ export function SharedPlaylist({
             <polygon points="5 3 19 12 5 21 5 3" />
           </svg>
           Ecouter ensemble
-        </motion.button>
+        </m.button>
       </div>
 
       {/* Inline add song sheet */}
@@ -316,7 +319,7 @@ export function SharedPlaylist({
           />
         )}
       </AnimatePresence>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -336,14 +339,14 @@ function InlineAddSong({
 
   return (
     <>
-      <motion.div
+      <m.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 bg-black/40 z-50"
         onClick={onClose}
       />
-      <motion.div
+      <m.div
         initial={{ y: "100%" }}
         animate={{ y: 0 }}
         exit={{ y: "100%" }}
@@ -387,7 +390,7 @@ function InlineAddSong({
             Ajouter
           </button>
         </div>
-      </motion.div>
+      </m.div>
     </>
   );
 }

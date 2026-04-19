@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "motion/react";
+import { m, AnimatePresence } from "motion/react";
 import { supabase } from "@/lib/supabase";
 import { springs, ambient } from "@/lib/motion-design";
 import type { DbSquadInvite } from "@/lib/supabase-types";
@@ -96,12 +96,12 @@ export default function InvitePage() {
     <div className="min-h-screen bg-bg-dark flex flex-col items-center justify-center px-5 py-10 overflow-hidden relative">
       {/* Ambient gradient background */}
       <div className="absolute inset-0 pointer-events-none">
-        <motion.div
+        <m.div
           className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] rounded-full opacity-[0.06]"
           style={{ background: "radial-gradient(circle, #8B5CF6 0%, transparent 70%)" }}
           animate={ambient.float(8)}
         />
-        <motion.div
+        <m.div
           className="absolute bottom-[-15%] right-[-10%] w-[50vw] h-[50vw] rounded-full opacity-[0.04]"
           style={{ background: "radial-gradient(circle, #00FF88 0%, transparent 70%)" }}
           animate={ambient.float(10)}
@@ -111,59 +111,59 @@ export default function InvitePage() {
       <AnimatePresence mode="wait">
         {/* ─── Loading ─── */}
         {state === "loading" && (
-          <motion.div
+          <m.div
             key="loading"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="flex flex-col items-center gap-4"
           >
-            <motion.span
+            <m.span
               className="text-[48px] text-accent"
               animate={ambient.float(3)}
               aria-hidden="true"
             >
               ☾
-            </motion.span>
+            </m.span>
             <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-          </motion.div>
+          </m.div>
         )}
 
         {/* ─── Invalid code ─── */}
         {state === "invalid" && (
-          <motion.div
+          <m.div
             key="invalid"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={springs.elastic}
             className="text-center max-w-sm"
           >
-            <motion.span
+            <m.span
               className="block text-[56px] mb-4"
               animate={ambient.float(5)}
               aria-hidden="true"
             >
               ☾
-            </motion.span>
+            </m.span>
             <h1 className="text-2xl font-bold text-text-inv mb-2">
               Lien invalide
             </h1>
             <p className="text-sm text-text-muted mb-8">
               Ce lien d&apos;invitation a expire ou n&apos;existe pas.
             </p>
-            <motion.a
+            <m.a
               href="/"
               className="inline-block px-8 py-3.5 rounded-full gradient-bg text-white text-sm font-semibold shadow-glow"
               whileTap={{ scale: 0.95, transition: springs.micro }}
             >
               Decouvrir CeSoir
-            </motion.a>
-          </motion.div>
+            </m.a>
+          </m.div>
         )}
 
         {/* ─── Invite found ─── */}
         {state === "found" && invite && (
-          <motion.div
+          <m.div
             key="found"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -171,23 +171,23 @@ export default function InvitePage() {
             className="w-full max-w-sm flex flex-col items-center"
           >
             {/* Moon logo with ambient float */}
-            <motion.span
+            <m.span
               className="text-[56px] text-accent mb-6"
               animate={ambient.float(6)}
               aria-hidden="true"
             >
               ☾
-            </motion.span>
+            </m.span>
 
             {/* Invite card -- cinematic entrance, scale from 0.8 */}
-            <motion.div
+            <m.div
               initial={{ opacity: 0, scale: 0.8, y: 30 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={springs.elastic}
               className="w-full bg-bg-card border border-border rounded-2xl p-6 text-center shadow-glow"
             >
               {/* Inviter avatar */}
-              <motion.div
+              <m.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ ...springs.elastic, delay: 0.15 }}
@@ -196,10 +196,10 @@ export default function InvitePage() {
                 <div className="w-full h-full rounded-full bg-bg flex items-center justify-center text-[28px] font-black text-accent">
                   {invite.inviterInitial}
                 </div>
-              </motion.div>
+              </m.div>
 
               {/* Inviter message */}
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ ...springs.cinematic, delay: 0.25 }}
@@ -212,20 +212,20 @@ export default function InvitePage() {
                     ? `t'invite a rejoindre "${invite.squadName}"`
                     : "t'invite sur CeSoir"}
                 </p>
-              </motion.div>
+              </m.div>
 
               {/* Headline */}
-              <motion.p
+              <m.p
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ ...springs.cinematic, delay: 0.35 }}
                 className="text-lg font-display font-bold gradient-text mb-6"
               >
                 Rejoins-moi sur CeSoir
-              </motion.p>
+              </m.p>
 
               {/* Value props */}
-              <motion.div
+              <m.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.4, delay: 0.45 }}
@@ -236,7 +236,7 @@ export default function InvitePage() {
                   { icon: "📍", text: "Trouve des gens pres de toi, ce soir" },
                   { icon: "💯", text: "100% gratuit, zero paywall" },
                 ].map((item, i) => (
-                  <motion.div
+                  <m.div
                     key={item.text}
                     initial={{ opacity: 0, x: -15 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -249,12 +249,12 @@ export default function InvitePage() {
                     <span className="text-[13px] text-text font-medium">
                       {item.text}
                     </span>
-                  </motion.div>
+                  </m.div>
                 ))}
-              </motion.div>
+              </m.div>
 
               {/* CTA Button */}
-              <motion.button
+              <m.button
                 onClick={handleJoin}
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -263,21 +263,21 @@ export default function InvitePage() {
                 className="w-full py-4 rounded-2xl gradient-bg text-white text-[15px] font-bold shadow-glow active:scale-[0.97] transition-transform tap-target"
               >
                 Rejoindre
-              </motion.button>
+              </m.button>
 
               {/* Invite code display */}
-              <motion.p
+              <m.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3, delay: 0.7 }}
                 className="text-[11px] text-text-muted mt-3"
               >
                 Code : <span className="font-mono font-bold text-accent">{invite.code}</span>
-              </motion.p>
-            </motion.div>
+              </m.p>
+            </m.div>
 
             {/* Already have an account? */}
-            <motion.p
+            <m.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.3, delay: 0.8 }}
@@ -287,8 +287,8 @@ export default function InvitePage() {
               <a href="/login" className="text-accent font-semibold">
                 Se connecter
               </a>
-            </motion.p>
-          </motion.div>
+            </m.p>
+          </m.div>
         )}
       </AnimatePresence>
     </div>
