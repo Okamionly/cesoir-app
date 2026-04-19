@@ -492,7 +492,7 @@ export default function NotificationsPage() {
       {/* Header */}
       <header className="px-5 pt-6 pb-4">
         <motion.div
-          className="flex items-center justify-between"
+          className="flex items-center justify-between gap-2 flex-wrap"
           initial={{ opacity: 0, y: -8, filter: "blur(4px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           transition={{ duration: 0.5, ease: easings.out }}
@@ -526,9 +526,10 @@ export default function NotificationsPage() {
                 onClick={handleMarkAllRead}
                 whileTap={micro.tapScale}
                 whileHover={{ color: "#8B5CF6", transition: springs.gentle }}
-                className="text-[13px] font-semibold text-accent"
+                className="text-[13px] font-semibold text-accent whitespace-nowrap"
               >
-                Tout marquer comme lu
+                <span className="hidden sm:inline">Tout marquer comme lu</span>
+                <span className="sm:hidden">Tout marquer</span>
               </motion.button>
             </Magnetic>
           )}

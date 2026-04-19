@@ -188,14 +188,14 @@ export function FlashNoteReceived({
           </span>
         </div>
 
-        {/* Message */}
-        <p className="text-[14px] text-white font-medium leading-relaxed">
+        {/* Message — text-text so it reads on both light + dark body */}
+        <p className="text-[14px] text-text font-medium leading-relaxed">
           {message}
         </p>
 
         {/* Footer */}
         <div className="flex items-center justify-between mt-3">
-          <span className="text-[10px] text-white/30">{time}</span>
+          <span className="text-[10px] text-text-muted">{time}</span>
           {onReply && (
             <motion.button
               onClick={onReply}

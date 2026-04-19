@@ -80,7 +80,10 @@ export default function MapPage() {
 
     const map = new maplibregl.Map({
       container: mapContainer.current,
-      style: "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json",
+      // Carto Positron = light basemap, matches the White Fluo Minimal
+      // palette. Was dark-matter-gl-style before which rendered as
+      // "half black" on the light app (UI audit 2026-04-19).
+      style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
       center: [center.lng, center.lat],
       zoom: 13,
       attributionControl: false,
