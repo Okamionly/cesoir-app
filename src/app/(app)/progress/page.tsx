@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import { springs } from "@/lib/motion-design";
+import PageHeader from "@/components/ui/PageHeader";
 
 type Tab = "achievements" | "challenges" | "leaderboard" | "trust" | "reviews";
 
@@ -70,38 +70,29 @@ export default function ProgressPage() {
 
   return (
     <div className="min-h-screen bg-bg pb-28">
-      <header className="sticky top-0 z-40 bg-bg/95 backdrop-blur-md border-b border-border px-5 pt-3 pb-3">
-        <div className="flex items-center gap-2 mb-3">
-          <Link
-            href="/profile"
-            className="w-9 h-9 flex items-center justify-center rounded-full border border-border text-text-muted hover:text-accent"
-            aria-label="Retour"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-          </Link>
-          <h1 className="text-base font-bold text-text">Progression</h1>
-        </div>
-
-        <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
-          {TABS.map((t) => (
-            <motion.button
-              key={t.key}
-              onClick={() => setTab(t.key)}
-              whileTap={{ scale: 0.92 }}
-              className={`shrink-0 px-3 py-1.5 rounded-full text-[11px] font-semibold border tap-target transition-all ${
-                tab === t.key
-                  ? "border-accent gradient-bg text-white"
-                  : "border-border text-text-muted"
-              }`}
-            >
-              <span className="mr-1" aria-hidden="true">{t.emoji}</span>
-              {t.label}
-            </motion.button>
-          ))}
-        </div>
-      </header>
+      <PageHeader
+        title="Progression"
+        backHref="/profile"
+        slotBelowTitle={
+          <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+            {TABS.map((t) => (
+              <motion.button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                whileTap={{ scale: 0.92 }}
+                className={`shrink-0 px-3 py-1.5 rounded-full text-[11px] font-semibold border tap-target transition-all ${
+                  tab === t.key
+                    ? "border-accent gradient-bg text-white"
+                    : "border-border text-text-muted"
+                }`}
+              >
+                <span className="mr-1" aria-hidden="true">{t.emoji}</span>
+                {t.label}
+              </motion.button>
+            ))}
+          </div>
+        }
+      />
 
       <main className="max-w-lg mx-auto">
         <AnimatePresence mode="wait">

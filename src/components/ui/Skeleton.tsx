@@ -1,4 +1,9 @@
-/** Skeleton loading components with shimmer animation */
+/**
+ * @deprecated Use `@/components/ui/skeletons` instead.
+ * This file is kept only to avoid breaking imports; new code should
+ * consume SkeletonText / SkeletonAvatar / SkeletonCard / SkeletonList /
+ * SkeletonPage from the unified primitive.
+ */
 
 interface SkeletonProps {
   className?: string;

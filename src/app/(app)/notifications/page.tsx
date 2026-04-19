@@ -9,10 +9,11 @@ import {
   useTransform,
   type PanInfo,
 } from "motion/react";
-import { springs, micro, easings } from "@/lib/motion-design";
+import { springs, micro } from "@/lib/motion-design";
 import { useAuth } from "@/context/AuthContext";
 import { useNotifications, type AppNotification } from "@/lib/useNotifications";
 import { Magnetic } from "@/components/motion/Magnetic";
+import PageHeader from "@/components/ui/PageHeader";
 
 // ---------- Extended notification types ----------
 
@@ -489,18 +490,10 @@ export default function NotificationsPage() {
 
   return (
     <div className="min-h-screen bg-bg max-w-lg mx-auto pb-safe">
-      {/* Header */}
-      <header className="px-5 pt-6 pb-4">
-        <motion.div
-          className="flex items-center justify-between gap-2 flex-wrap"
-          initial={{ opacity: 0, y: -8, filter: "blur(4px)" }}
-          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          transition={{ duration: 0.5, ease: easings.out }}
-        >
-          <div className="flex items-center gap-3">
-            <h1 className="text-[22px] font-black text-text font-display">
-              Notifications
-            </h1>
+      <PageHeader
+        title={
+          <span className="flex items-center gap-3">
+            Notifications
             <AnimatePresence>
               {unreadCount > 0 && (
                 <motion.span
@@ -515,9 +508,11 @@ export default function NotificationsPage() {
                 </motion.span>
               )}
             </AnimatePresence>
-          </div>
-
-          {unreadCount > 0 && (
+          </span>
+        }
+        titleClassName="text-[22px] font-black font-display"
+        actions={
+          unreadCount > 0 ? (
             <Magnetic strength={0.18} radius={70}>
               <motion.button
                 initial={{ opacity: 0, x: 10 }}
@@ -532,37 +527,35 @@ export default function NotificationsPage() {
                 <span className="sm:hidden">Tout marquer</span>
               </motion.button>
             </Magnetic>
-          )}
-        </motion.div>
-      </header>
-
-      {/* Filter tabs */}
-      <div className="px-5 mb-4">
-        <div className="flex gap-1 p-1 rounded-xl bg-bg-card border border-border">
-          {TABS.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className="relative flex-1 py-2 text-[13px] font-semibold text-center rounded-lg transition-colors"
-            >
-              {activeTab === tab.key && (
-                <motion.div
-                  layoutId="notif-tab-indicator"
-                  className="absolute inset-0 rounded-lg bg-accent/10 border border-accent/20"
-                  transition={springs.snap}
-                />
-              )}
-              <span
-                className={`relative z-10 ${
-                  activeTab === tab.key ? "text-accent" : "text-text-muted"
-                }`}
+          ) : undefined
+        }
+        slotBelowTitle={
+          <div className="flex gap-1 p-1 rounded-xl bg-bg-card border border-border">
+            {TABS.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className="relative flex-1 py-2 text-[13px] font-semibold text-center rounded-lg transition-colors"
               >
-                {tab.label}
-              </span>
-            </button>
-          ))}
-        </div>
-      </div>
+                {activeTab === tab.key && (
+                  <motion.div
+                    layoutId="notif-tab-indicator"
+                    className="absolute inset-0 rounded-lg bg-accent/10 border border-accent/20"
+                    transition={springs.snap}
+                  />
+                )}
+                <span
+                  className={`relative z-10 ${
+                    activeTab === tab.key ? "text-accent" : "text-text-muted"
+                  }`}
+                >
+                  {tab.label}
+                </span>
+              </button>
+            ))}
+          </div>
+        }
+      />
 
       {/* Notification list */}
       {filtered.length === 0 ? (

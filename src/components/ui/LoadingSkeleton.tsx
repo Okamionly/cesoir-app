@@ -1,4 +1,8 @@
-/** Reusable skeleton component with shimmer animation and variant support */
+/**
+ * @deprecated Use `@/components/ui/skeletons` instead.
+ * The variant-based API here is superseded by dedicated primitives
+ * (SkeletonText, SkeletonAvatar, SkeletonCard, SkeletonList, SkeletonPage).
+ */
 
 interface LoadingSkeletonProps {
   variant?: "card" | "row" | "avatar" | "text";

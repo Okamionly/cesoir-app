@@ -7,8 +7,8 @@ import { springs, micro } from "@/lib/motion-design";
 import { useAuth } from "@/context/AuthContext";
 import { useProfile } from "@/lib/useProfile";
 import PhotoUpload from "@/components/app/PhotoUpload";
-import { IconX } from "@/components/ui/Icons";
 import { Magnetic } from "@/components/motion/Magnetic";
+import PageHeader from "@/components/ui/PageHeader";
 
 const BIO_MAX = 200;
 
@@ -102,19 +102,13 @@ export default function EditProfilePage() {
 
   return (
     <div className="min-h-screen bg-bg">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-bg/95 backdrop-blur-md border-b border-border px-5 py-3 flex items-center justify-between">
-        <motion.button
-          onClick={() => router.back()}
-          className="tap-target p-1"
-          aria-label="Retour"
-          whileTap={{ scale: 0.9 }}
-        >
-          <IconX size={20} className="text-text-muted" />
-        </motion.button>
-        <h1 className="text-[15px] font-bold text-text">Modifier mon profil</h1>
-        <div className="w-8" />
-      </header>
+      <PageHeader
+        title="Modifier mon profil"
+        onBack={() => router.back()}
+        backIconVariant="close"
+        magneticBack
+        backLabel="Fermer"
+      />
 
       <form
         ref={formRef}

@@ -7,8 +7,7 @@ import { haptics } from "@/lib/haptics";
 import { useSafety } from "@/lib/useSafety";
 import TrustedCircle from "@/components/app/TrustedCircle";
 import Link from "next/link";
-import { Magnetic } from "@/components/motion/Magnetic";
-import { RackFocus } from "@/components/motion/RackFocus";
+import PageHeader from "@/components/ui/PageHeader";
 
 // ------------------------------------------------------------------
 // Static data
@@ -66,13 +65,13 @@ function actionColor(type: string): string {
   switch (type) {
     case "sos":
     case "alert_sent":
-      return "#ef4444";
+      return "var(--color-danger)";
     case "checkin":
-      return "#22c55e";
+      return "var(--color-safe)";
     case "report":
-      return "#f59e0b";
+      return "var(--color-warn)";
     default:
-      return "#8B5CF6";
+      return "var(--color-accent)";
   }
 }
 
@@ -124,55 +123,28 @@ export default function SafetyPage() {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#FFFFFF" }}>
-      {/* Header — shield glow + hairline pulse */}
-      <header
-        className="sticky top-0 z-40 backdrop-blur-md border-b px-5 pt-3 pb-3 relative"
-        style={{
-          backgroundColor: "rgba(255,255,255,0.95)",
-          borderColor: "rgba(0,0,0,0.06)",
-        }}
-      >
-        <RackFocus duration={0.5}>
-          <div className="flex items-center gap-2">
-            <motion.div
-              animate={{
-                filter: [
-                  "drop-shadow(0 0 0px rgba(34,197,94,0))",
-                  "drop-shadow(0 0 8px rgba(34,197,94,0.7))",
-                  "drop-shadow(0 0 0px rgba(34,197,94,0))",
-                ],
-              }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#22c55e"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-              </svg>
-            </motion.div>
-            <span className="text-lg font-bold" style={{ color: "#111111" }}>
-              Securite
-            </span>
-          </div>
-        </RackFocus>
-        <motion.div
-          className="absolute bottom-0 left-0 right-0 h-px"
-          style={{
-            background:
-              "linear-gradient(90deg, transparent, rgba(34,197,94,0.4), rgba(139,92,246,0.3), transparent)",
-          }}
-          animate={{ opacity: [0.3, 0.9, 0.3] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        />
-      </header>
+      <PageHeader
+        title="Securite"
+        tone="white"
+        rackFocus
+        hairlineVariant="green-violet"
+        icon={
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#22c55e"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+        }
+        iconAnimation="glow-green"
+      />
 
       <main className="px-5 py-6 max-w-lg mx-auto pb-32">
         {/* ── Hero ── */}

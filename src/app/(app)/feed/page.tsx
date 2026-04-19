@@ -9,6 +9,7 @@ import StoriesBar from "@/components/app/StoriesBar";
 import EmptyState from "@/components/ui/EmptyState";
 import { Magnetic } from "@/components/motion/Magnetic";
 import PageHeader from "@/components/ui/PageHeader";
+import { SkeletonChatRow } from "@/components/ui/skeletons";
 
 // --- Types ---
 
@@ -86,17 +87,9 @@ function FeedSkeleton() {
       {Array.from({ length: 6 }).map((_, i) => (
         <div
           key={i}
-          className="bg-card border border-border rounded-2xl p-3.5 flex items-start gap-3 animate-pulse"
+          className="bg-card border border-border rounded-2xl"
         >
-          <div className="w-10 h-10 rounded-full bg-border flex-shrink-0" />
-          <div className="flex-1 space-y-2">
-            <div className="h-3 bg-border rounded-full w-3/4" />
-            <div className="h-2.5 bg-border rounded-full w-1/2" />
-            <div className="flex gap-2 mt-1">
-              <div className="h-2 bg-border rounded-full w-16" />
-              <div className="h-4 bg-border rounded-full w-20" />
-            </div>
-          </div>
+          <SkeletonChatRow />
         </div>
       ))}
     </div>

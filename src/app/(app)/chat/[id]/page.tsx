@@ -26,6 +26,8 @@ import QuickReact from "@/components/chat/QuickReact";
 import WeMetFeedback from "@/components/app/WeMetFeedback";
 import { screenMessage } from "@/lib/messageScreening";
 import type { ScreeningResult } from "@/lib/messageScreening";
+import EmptyState from "@/components/ui/EmptyState";
+import PageHeader from "@/components/ui/PageHeader";
 
 // ---------- Types for special messages ----------
 
@@ -480,73 +482,69 @@ export default function ConversationPage({
 
   return (
     <div className="flex flex-col h-[100dvh] bg-bg">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-bg/95 backdrop-blur-md border-b border-border">
-        <div className="flex items-center gap-3 px-3 py-3">
-          <Link
-            href="/chat"
-            className="tap-target flex items-center justify-center shrink-0"
-            aria-label="Retour aux conversations"
-          >
-            <BackArrow />
-          </Link>
+      <PageHeader
+        backHref="/chat"
+        backLabel="Retour aux conversations"
+        hideTitle
+        leftSlot={
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Avatar */}
+            <div className="relative shrink-0">
+              {peer?.avatar_url ? (
+                <img
+                  src={peer.avatar_url}
+                  alt={peer.name}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-10 h-10 rounded-full object-cover"
+                />
+              ) : (
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white"
+                  style={{ background: avatarColor }}
+                >
+                  {peer?.name?.[0] ?? "?"}
+                </div>
+              )}
+              {(peerPresence.isOnline || peer?.is_online) && (
+                <div
+                  className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-safe border-2 border-bg"
+                  aria-label="En ligne"
+                />
+              )}
+            </div>
 
-          {/* Avatar */}
-          <div className="relative shrink-0">
-            {peer?.avatar_url ? (
-              <img
-                src={peer.avatar_url}
-                alt={peer.name}
-                loading="lazy"
-                decoding="async"
-                className="w-10 h-10 rounded-full object-cover"
-              />
-            ) : (
-              <div
-                className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white"
-                style={{ background: avatarColor }}
-              >
-                {peer?.name?.[0] ?? "?"}
-              </div>
-            )}
-            {(peerPresence.isOnline || peer?.is_online) && (
-              <div
-                className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-safe border-2 border-bg"
-                aria-label="En ligne"
-              />
-            )}
+            {/* Name + mode + presence */}
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-[15px] truncate">{peer?.name ?? "..."}</p>
+              {modeInfo && (
+                <p className="text-[11px] text-accent truncate">
+                  {modeInfo.icon} {modeInfo.name}
+                </p>
+              )}
+              {peerPresence.isOnline ? (
+                <p className="text-[11px] text-safe">En ligne</p>
+              ) : peerPresence.lastSeen ? (
+                <p className="text-[11px] text-text-muted">{formatLastSeen(peerPresence.lastSeen)}</p>
+              ) : !modeInfo && peer?.is_online ? (
+                <p className="text-[11px] text-safe">En ligne</p>
+              ) : null}
+            </div>
           </div>
-
-          {/* Name + mode + presence */}
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-[15px] truncate">{peer?.name ?? "..."}</p>
-            {modeInfo && (
-              <p className="text-[11px] text-accent truncate">
-                {modeInfo.icon} {modeInfo.name}
-              </p>
-            )}
-            {peerPresence.isOnline ? (
-              <p className="text-[11px] text-safe">En ligne</p>
-            ) : peerPresence.lastSeen ? (
-              <p className="text-[11px] text-text-muted">{formatLastSeen(peerPresence.lastSeen)}</p>
-            ) : !modeInfo && peer?.is_online ? (
-              <p className="text-[11px] text-safe">En ligne</p>
-            ) : null}
+        }
+        actions={
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/compatibility/${conversationId}`}
+              className="tap-target shrink-0 w-9 h-9 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-[14px] hover:bg-accent/20 transition-colors"
+              aria-label="Voir la compatibilite"
+            >
+              📊
+            </Link>
+            <VibeCheckButton onClick={() => setShowVibeCheck(true)} />
           </div>
-
-          {/* Compatibilite button */}
-          <Link
-            href={`/compatibility/${conversationId}`}
-            className="tap-target shrink-0 w-9 h-9 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-[14px] hover:bg-accent/20 transition-colors"
-            aria-label="Voir la compatibilite"
-          >
-            📊
-          </Link>
-
-          {/* Vibe Check button */}
-          <VibeCheckButton onClick={() => setShowVibeCheck(true)} />
-        </div>
-      </header>
+        }
+      />
 
       {/* Spark Timer */}
       <SparkTimer matchedAt={MOCK_MATCHED_AT} />
@@ -584,13 +582,11 @@ export default function ConversationPage({
         )}
 
         {!loading && timeline.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="w-16 h-16 rounded-full gradient-bg-subtle border border-accent/20 flex items-center justify-center mb-4">
-              <span className="text-2xl">{modeInfo?.icon ?? "💬"}</span>
-            </div>
-            <p className="text-sm text-text-muted">Aucun message pour le moment</p>
-            <p className="text-xs text-text-muted mt-1">Envoie le premier message !</p>
-          </div>
+          <EmptyState
+            emoji={modeInfo?.icon ?? "💬"}
+            title="Aucun message pour le moment"
+            subtitle="Envoie le premier message !"
+          />
         )}
 
         {/* Load older messages */}

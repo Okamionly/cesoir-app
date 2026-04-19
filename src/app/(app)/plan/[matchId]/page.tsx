@@ -4,10 +4,12 @@ import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useParams, useRouter } from "next/navigation";
 import { springs, achievementVariants } from "@/lib/motion-design";
+import PageHeader from "@/components/ui/PageHeader";
 import { suggestVenuesByActivity, formatPrice } from "@/lib/venues";
 import type { Venue } from "@/lib/venues";
 import VenuePicker from "@/components/app/VenuePicker";
 import { usePlans } from "@/lib/useMatchPlan";
+import EmptyState from "@/components/ui/EmptyState";
 
 // ─────────────────────────────────────────
 // Types & constants
@@ -250,21 +252,12 @@ export default function DatePlannerPage() {
 
   return (
     <div className="min-h-screen bg-bg relative">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-bg/95 backdrop-blur-md border-b border-border px-5 pt-4 pb-3 space-y-3">
-        <div className="flex items-center gap-3">
-          <motion.button
-            onClick={step > 1 ? goBack : () => router.back()}
-            whileTap={{ scale: 0.9 }}
-            className="w-8 h-8 rounded-full bg-bg-card border border-border flex items-center justify-center text-text-muted shrink-0"
-            aria-label="Retour"
-          >
-            {"\u2190"}
-          </motion.button>
-          <MatchHeader name={MOCK_MATCH.name} avatar={MOCK_MATCH.avatar} />
-        </div>
-        <ProgressDots current={step} />
-      </header>
+      <PageHeader
+        onBack={step > 1 ? goBack : () => router.back()}
+        hideTitle
+        leftSlot={<MatchHeader name={MOCK_MATCH.name} avatar={MOCK_MATCH.avatar} />}
+        slotBelowTitle={<ProgressDots current={step} />}
+      />
 
       {/* Step content */}
       <main className="px-5 pb-32 pt-6">
@@ -416,9 +409,11 @@ export default function DatePlannerPage() {
                   onPropose={handleProposeVenue}
                 />
               ) : (
-                <div className="text-center py-12 text-text-muted text-[13px]">
-                  Aucun lieu trouve pour cette activite.
-                </div>
+                <EmptyState
+                  emoji={"\uD83D\uDCCD"}
+                  title="Aucun lieu trouve pour cette activite"
+                  subtitle="Essaie une autre activite ou elargis la recherche."
+                />
               )}
             </motion.div>
           )}

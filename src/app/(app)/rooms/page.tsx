@@ -6,6 +6,7 @@ import { springs } from "@/lib/motion-design";
 import Link from "next/link";
 import { useRooms, type Room } from "@/lib/useRooms";
 import EmptyState from "@/components/ui/EmptyState";
+import PageHeader from "@/components/ui/PageHeader";
 
 // --- Helpers ---
 function minutesSince(iso: string): number {
@@ -332,69 +333,60 @@ export default function RoomsPage() {
 
   return (
     <div className="min-h-screen bg-bg pb-28">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-bg/95 backdrop-blur-md border-b border-border px-5 pt-3 pb-3">
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <div className="flex items-center justify-between mb-1">
-            <div className="flex items-center gap-2">
-              <span className="text-lg" aria-hidden="true">
-                {"\uD83C\uDF99\uFE0F"}
-              </span>
-              <h1 className="text-base font-display font-bold text-text">
-                Salons vocaux
-              </h1>
-              <span className="text-[10px] text-accent/70 font-medium ml-1">
-                {loading ? "..." : `${liveRooms.length} live`}
-              </span>
-            </div>
-            <motion.button
-              whileHover={{
-                scale: 1.05,
-                boxShadow: "0 0 15px rgba(139,92,246,0.4)",
-              }}
-              whileTap={{ scale: 0.92 }}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full gradient-bg text-white text-[11px] font-bold shadow-glow"
+      <PageHeader
+        title={
+          <span className="flex items-center gap-2">
+            Salons vocaux
+            <span className="text-[10px] text-accent/70 font-medium ml-1">
+              {loading ? "..." : `${liveRooms.length} live`}
+            </span>
+          </span>
+        }
+        icon={<span className="text-lg" aria-hidden="true">{"\uD83C\uDF99\uFE0F"}</span>}
+        actions={
+          <motion.button
+            whileHover={{
+              scale: 1.05,
+              boxShadow: "0 0 15px rgba(139,92,246,0.4)",
+            }}
+            whileTap={{ scale: 0.92 }}
+            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full gradient-bg text-white text-[11px] font-bold shadow-glow"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              aria-hidden="true"
             >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                aria-hidden="true"
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Creer
+          </motion.button>
+        }
+        slotBelowTitle={
+          <div className="flex gap-1.5">
+            {CATEGORIES.map((cat) => (
+              <motion.button
+                key={cat.key}
+                onClick={() => setActiveCategory(cat.key)}
+                whileTap={{ scale: 0.92 }}
+                className={`px-3 py-1.5 rounded-full text-[11px] font-semibold border tap-target transition-all ${
+                  activeCategory === cat.key
+                    ? "border-accent gradient-bg text-white"
+                    : "border-border text-text-muted"
+                }`}
               >
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              Creer
-            </motion.button>
+                {cat.label}
+              </motion.button>
+            ))}
           </div>
-        </motion.div>
-
-        {/* Category tabs */}
-        <div className="flex gap-1.5 mt-2">
-          {CATEGORIES.map((cat) => (
-            <motion.button
-              key={cat.key}
-              onClick={() => setActiveCategory(cat.key)}
-              whileTap={{ scale: 0.92 }}
-              className={`px-3 py-1.5 rounded-full text-[11px] font-semibold border tap-target transition-all ${
-                activeCategory === cat.key
-                  ? "border-accent gradient-bg text-white"
-                  : "border-border text-text-muted"
-              }`}
-            >
-              {cat.label}
-            </motion.button>
-          ))}
-        </div>
-      </header>
+        }
+      />
 
       {/* Rooms list */}
       {filteredRooms.length === 0 ? (

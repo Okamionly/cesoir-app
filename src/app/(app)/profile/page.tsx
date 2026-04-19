@@ -8,6 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { Magnetic } from "@/components/motion/Magnetic";
 import { springs, profileVariants } from "@/lib/motion-design";
+import PageHeader from "@/components/ui/PageHeader";
 
 const TONIGHT_CHIPS = ["Diner", "Boire un verre", "Cinema", "Balade", "Concert", "Sport"];
 
@@ -88,20 +89,21 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-bg pb-28">
-      {/* ── HEADER ── */}
-      <motion.header
-        className="px-6 pt-7 pb-2 flex items-center justify-between"
-        {...fade(0)}
-      >
-        <h1 className="text-[15px] font-semibold tracking-tight text-text">Profil</h1>
-        <Link
-          href="/settings"
-          aria-label="Parametres"
-          className="-mr-2 w-10 h-10 rounded-full flex items-center justify-center text-text-muted hover:text-text hover:bg-bg-card transition-colors tap-target focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
-        >
-          <SettingsIcon />
-        </Link>
-      </motion.header>
+      <PageHeader
+        title="Profil"
+        titleClassName="text-[15px] font-semibold tracking-tight"
+        sticky={false}
+        borderless
+        actions={
+          <Link
+            href="/settings"
+            aria-label="Parametres"
+            className="w-10 h-10 rounded-full flex items-center justify-center text-text-muted hover:text-text hover:bg-bg-card transition-colors tap-target focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+          >
+            <SettingsIcon />
+          </Link>
+        }
+      />
 
       {/* ── HERO ── Avatar + Name + Edit button ── */}
       <motion.section

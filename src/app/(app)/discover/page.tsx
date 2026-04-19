@@ -11,7 +11,7 @@ import CrossLinkCard from "@/components/app/CrossLinkCard";
 import { useProfiles } from "@/lib/useProfiles";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { Magnetic } from "@/components/motion/Magnetic";
-import { RackFocus } from "@/components/motion/RackFocus";
+import PageHeader from "@/components/ui/PageHeader";
 
 // ─────────────────────────────────────────
 // Types
@@ -199,29 +199,19 @@ export default function DiscoverPage() {
 
   return (
     <div className="min-h-screen bg-bg max-w-lg mx-auto pb-24">
-      {/* Header — hairline gradient bottom signals "alive" */}
-      <header className="sticky top-0 z-30 bg-bg/80 backdrop-blur-xl border-b border-border/50">
-        {/* Hairline pulse line */}
-        <motion.div
-          className="absolute bottom-0 left-0 right-0 h-px"
-          style={{
-            background:
-              "linear-gradient(90deg, transparent, rgba(139,92,246,0.4), rgba(0,255,136,0.3), transparent)",
-          }}
-          animate={{ opacity: [0.4, 1, 0.4] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <div className="flex items-center justify-between px-5 pt-4 pb-3">
-          <RackFocus duration={0.6}>
-            <h1 className="text-[20px] font-black tracking-tight text-text flex items-center gap-2">
-              <motion.span
-                className="inline-block w-1.5 h-1.5 rounded-full bg-accent"
-                animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.2, 1] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-              />
-              Decouvrir
-            </h1>
-          </RackFocus>
+      <PageHeader
+        title="Decouvrir"
+        titleClassName="text-[20px] font-black tracking-tight"
+        rackFocus
+        icon={
+          <motion.span
+            className="inline-block w-1.5 h-1.5 rounded-full bg-accent"
+            animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.2, 1] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          />
+        }
+        hairlineVariant="vert-violet"
+        actions={
           <motion.button
             onClick={() => setShowFilters(!showFilters)}
             className={`relative w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${
@@ -244,180 +234,180 @@ export default function DiscoverPage() {
               </motion.span>
             )}
           </motion.button>
-        </div>
+        }
+        slotBelowTitle={
+          <div className="space-y-0">
+            {/* Sort tabs */}
+            <div className="flex gap-1">
+              {SORT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setSort(opt.value)}
+                  className={`px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all ${
+                    sort === opt.value
+                      ? "gradient-bg text-white"
+                      : "bg-border/30 text-text-muted hover:text-text"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+              <span className="ml-auto text-[11px] text-text-muted self-center">
+                {filteredProfiles.length} profil{filteredProfiles.length !== 1 ? "s" : ""}
+              </span>
+            </div>
 
-        {/* Sort tabs */}
-        <div className="flex gap-1 px-5 pb-3">
-          {SORT_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setSort(opt.value)}
-              className={`px-3 py-1.5 rounded-full text-[11px] font-semibold transition-all ${
-                sort === opt.value
-                  ? "gradient-bg text-white"
-                  : "bg-border/30 text-text-muted hover:text-text"
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-          <span className="ml-auto text-[11px] text-text-muted self-center">
-            {filteredProfiles.length} profil{filteredProfiles.length !== 1 ? "s" : ""}
-          </span>
-        </div>
-
-        {/* Filter panel (collapsible) */}
-        <AnimatePresence>
-          {showFilters && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={springs.snap}
-              className="overflow-hidden border-t border-border/30"
-            >
-              <div className="px-5 py-3 space-y-3">
-                {/* Mode filter */}
-                <FilterSection label="Mode">
-                  <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                    <motion.button
-                      variants={discoverVariants.filterChip}
-                      custom={0}
-                      initial="hidden"
-                      animate="visible"
-                      onClick={() => setFilters((f) => ({ ...f, mode: "all" }))}
-                      className={`shrink-0 px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${
-                        filters.mode === "all"
-                          ? "border-accent bg-accent/10 text-accent"
-                          : "border-border text-text-muted"
-                      }`}
-                    >
-                      Tous
-                    </motion.button>
-                    {MODE_KEYS.map((k, i) => {
-                      const Icon = MODE_ICONS[k];
-                      return (
+            {/* Filter panel (collapsible) */}
+            <AnimatePresence>
+              {showFilters && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={springs.snap}
+                  className="overflow-hidden border-t border-border/30 -mx-4"
+                >
+                  <div className="px-5 py-3 space-y-3">
+                    <FilterSection label="Mode">
+                      <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
                         <motion.button
-                          key={k}
                           variants={discoverVariants.filterChip}
-                          custom={i + 1}
+                          custom={0}
                           initial="hidden"
                           animate="visible"
-                          onClick={() => setFilters((f) => ({ ...f, mode: k }))}
-                          className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${
-                            filters.mode === k
+                          onClick={() => setFilters((f) => ({ ...f, mode: "all" }))}
+                          className={`shrink-0 px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${
+                            filters.mode === "all"
                               ? "border-accent bg-accent/10 text-accent"
                               : "border-border text-text-muted"
                           }`}
                         >
-                          {Icon && <Icon size={12} />}
-                          {MODES[k].name}
+                          Tous
                         </motion.button>
-                      );
-                    })}
-                  </div>
-                </FilterSection>
+                        {MODE_KEYS.map((k, i) => {
+                          const Icon = MODE_ICONS[k];
+                          return (
+                            <motion.button
+                              key={k}
+                              variants={discoverVariants.filterChip}
+                              custom={i + 1}
+                              initial="hidden"
+                              animate="visible"
+                              onClick={() => setFilters((f) => ({ ...f, mode: k }))}
+                              className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${
+                                filters.mode === k
+                                  ? "border-accent bg-accent/10 text-accent"
+                                  : "border-border text-text-muted"
+                              }`}
+                            >
+                              {Icon && <Icon size={12} />}
+                              {MODES[k].name}
+                            </motion.button>
+                          );
+                        })}
+                      </div>
+                    </FilterSection>
 
-                {/* Distance filter */}
-                <FilterSection label="Distance">
-                  <div className="flex gap-2">
-                    {DISTANCE_OPTIONS.map((d, i) => (
-                      <motion.button
-                        key={d}
-                        variants={discoverVariants.filterChip}
-                        custom={i}
-                        initial="hidden"
-                        animate="visible"
-                        onClick={() =>
-                          setFilters((f) => ({
-                            ...f,
-                            distance: f.distance === d ? null : d,
-                          }))
-                        }
-                        className={`px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${
-                          filters.distance === d
-                            ? "border-accent bg-accent/10 text-accent"
-                            : "border-border text-text-muted"
-                        }`}
-                      >
-                        {d}km
-                      </motion.button>
-                    ))}
-                  </div>
-                </FilterSection>
+                    <FilterSection label="Distance">
+                      <div className="flex gap-2">
+                        {DISTANCE_OPTIONS.map((d, i) => (
+                          <motion.button
+                            key={d}
+                            variants={discoverVariants.filterChip}
+                            custom={i}
+                            initial="hidden"
+                            animate="visible"
+                            onClick={() =>
+                              setFilters((f) => ({
+                                ...f,
+                                distance: f.distance === d ? null : d,
+                              }))
+                            }
+                            className={`px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${
+                              filters.distance === d
+                                ? "border-accent bg-accent/10 text-accent"
+                                : "border-border text-text-muted"
+                            }`}
+                          >
+                            {d}km
+                          </motion.button>
+                        ))}
+                      </div>
+                    </FilterSection>
 
-                {/* Age filter */}
-                <FilterSection label="Age">
-                  <div className="flex gap-2">
-                    {AGE_OPTIONS.map((opt, i) => (
-                      <motion.button
-                        key={opt.value}
-                        variants={discoverVariants.filterChip}
-                        custom={i}
-                        initial="hidden"
-                        animate="visible"
-                        onClick={() =>
-                          setFilters((f) => ({
-                            ...f,
-                            age: f.age === opt.value ? null : opt.value,
-                          }))
-                        }
-                        className={`px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${
-                          filters.age === opt.value
-                            ? "border-accent bg-accent/10 text-accent"
-                            : "border-border text-text-muted"
-                        }`}
-                      >
-                        {opt.label}
-                      </motion.button>
-                    ))}
+                    <FilterSection label="Age">
+                      <div className="flex gap-2">
+                        {AGE_OPTIONS.map((opt, i) => (
+                          <motion.button
+                            key={opt.value}
+                            variants={discoverVariants.filterChip}
+                            custom={i}
+                            initial="hidden"
+                            animate="visible"
+                            onClick={() =>
+                              setFilters((f) => ({
+                                ...f,
+                                age: f.age === opt.value ? null : opt.value,
+                              }))
+                            }
+                            className={`px-3 py-1.5 rounded-full text-[11px] font-semibold border transition-all ${
+                              filters.age === opt.value
+                                ? "border-accent bg-accent/10 text-accent"
+                                : "border-border text-text-muted"
+                            }`}
+                          >
+                            {opt.label}
+                          </motion.button>
+                        ))}
+                      </div>
+                    </FilterSection>
                   </div>
-                </FilterSection>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-        {/* Active filter chips */}
-        <AnimatePresence>
-          {activeFilterCount > 0 && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={springs.snap}
-              className="overflow-hidden"
-            >
-              <div className="flex gap-2 px-5 pb-3 overflow-x-auto no-scrollbar">
-                {filters.mode !== "all" && (
-                  <ActiveChip
-                    label={MODES[filters.mode].name}
-                    onRemove={() => removeFilter("mode")}
-                  />
-                )}
-                {filters.distance !== null && (
-                  <ActiveChip
-                    label={`${filters.distance}km`}
-                    onRemove={() => removeFilter("distance")}
-                  />
-                )}
-                {filters.age !== null && (
-                  <ActiveChip
-                    label={filters.age}
-                    onRemove={() => removeFilter("age")}
-                  />
-                )}
-                <button
-                  onClick={resetFilters}
-                  className="shrink-0 text-[10px] text-accent font-semibold px-2 py-1"
+            {/* Active filter chips */}
+            <AnimatePresence>
+              {activeFilterCount > 0 && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={springs.snap}
+                  className="overflow-hidden"
                 >
-                  Tout effacer
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </header>
+                  <div className="flex gap-2 pt-2 overflow-x-auto no-scrollbar">
+                    {filters.mode !== "all" && (
+                      <ActiveChip
+                        label={MODES[filters.mode].name}
+                        onRemove={() => removeFilter("mode")}
+                      />
+                    )}
+                    {filters.distance !== null && (
+                      <ActiveChip
+                        label={`${filters.distance}km`}
+                        onRemove={() => removeFilter("distance")}
+                      />
+                    )}
+                    {filters.age !== null && (
+                      <ActiveChip
+                        label={filters.age}
+                        onRemove={() => removeFilter("age")}
+                      />
+                    )}
+                    <button
+                      onClick={resetFilters}
+                      className="shrink-0 text-[10px] text-accent font-semibold px-2 py-1"
+                    >
+                      Tout effacer
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        }
+      />
 
       {/* Trending ce soir */}
       <section className="px-4 pt-4 pb-2">

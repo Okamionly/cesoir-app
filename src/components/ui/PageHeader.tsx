@@ -4,6 +4,7 @@ import Link from "next/link";
 import { motion, useReducedMotion, type Transition, type TargetAndTransition } from "motion/react";
 import { springs, easings } from "@/lib/motion-design";
 import { RackFocus } from "@/components/motion/RackFocus";
+import { Magnetic } from "@/components/motion/Magnetic";
 
 // ─────────────────────────────────────────
 // Types
@@ -26,9 +27,13 @@ export type HairlineVariant =
   | "vert-violet"
   | "green-violet";
 
+export type HeaderTone = "default" | "white";
+
+export type BackIconVariant = "chevron" | "close";
+
 export interface PageHeaderProps {
   /** Page title (string or node for custom formatting) */
-  title: React.ReactNode;
+  title?: React.ReactNode;
   /** Extra class applied to the <h1> (useful for gradient-text, color tweaks) */
   titleClassName?: string;
   /** Optional subtitle shown below the title */
@@ -55,6 +60,25 @@ export interface PageHeaderProps {
   className?: string;
   /** Wrap title in <RackFocus> for cinematic reveal */
   rackFocus?: boolean;
+
+  // ─────────────────────────────────────────
+  // Advanced props (C2 extension)
+  // ─────────────────────────────────────────
+
+  /** Content slot rendered below title + above hairline, inside sticky viewport. */
+  slotBelowTitle?: React.ReactNode;
+  /** Alternative color scheme. "white" swaps bg-bg to bg-white and adjusts borders. */
+  tone?: HeaderTone;
+  /** Back button icon variant. "chevron" = "<" (default), "close" = "X" for modal-like pages. */
+  backIconVariant?: BackIconVariant;
+  /** Wrap back button with Magnetic pull-to-cursor (only on fine pointer + no reduced-motion). */
+  magneticBack?: boolean;
+  /** Render a custom left slot (replaces icon+back). Advanced use — e.g. avatar in chat/[id]. */
+  leftSlot?: React.ReactNode;
+  /** Disable title rendering (useful if leftSlot + rightSlot cover everything). */
+  hideTitle?: boolean;
+  /** No bottom padding/border — for pages wanting full-bleed content immediately. */
+  borderless?: boolean;
 }
 
 // ─────────────────────────────────────────
@@ -138,7 +162,7 @@ function getHairlineGradient(variant: HairlineVariant): string | null {
 // Back button
 // ─────────────────────────────────────────
 
-const backIcon = (
+const chevronIcon = (
   <svg
     width="18"
     height="18"
@@ -154,38 +178,75 @@ const backIcon = (
   </svg>
 );
 
+const closeIcon = (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M18 6L6 18M6 6l12 12" />
+  </svg>
+);
+
 function BackButton({
   href,
   onBack,
   label = "Retour",
+  variant = "chevron",
+  tone = "default",
+  magnetic = false,
 }: {
   href?: string;
   onBack?: () => void;
   label?: string;
+  variant?: BackIconVariant;
+  tone?: HeaderTone;
+  magnetic?: boolean;
 }) {
   const cls =
-    "flex items-center justify-center w-8 h-8 rounded-full bg-card border border-border text-text-muted hover:text-text transition-colors";
+    tone === "white"
+      ? "flex items-center justify-center w-8 h-8 rounded-full bg-white border border-neutral-200 text-neutral-500 hover:text-neutral-900 transition-colors"
+      : "flex items-center justify-center w-8 h-8 rounded-full bg-card border border-border text-text-muted hover:text-text transition-colors";
+  const iconNode = variant === "close" ? closeIcon : chevronIcon;
+
+  let node: React.ReactNode;
   if (href) {
-    return (
+    node = (
       <motion.div whileTap={{ scale: 0.9 }} transition={springs.micro}>
         <Link href={href} className={cls} aria-label={label}>
-          {backIcon}
+          {iconNode}
         </Link>
       </motion.div>
     );
+  } else {
+    node = (
+      <motion.button
+        type="button"
+        onClick={onBack}
+        whileTap={{ scale: 0.9 }}
+        transition={springs.micro}
+        className={cls}
+        aria-label={label}
+      >
+        {iconNode}
+      </motion.button>
+    );
   }
-  return (
-    <motion.button
-      type="button"
-      onClick={onBack}
-      whileTap={{ scale: 0.9 }}
-      transition={springs.micro}
-      className={cls}
-      aria-label={label}
-    >
-      {backIcon}
-    </motion.button>
-  );
+
+  if (magnetic) {
+    return (
+      <Magnetic strength={0.18} radius={70}>
+        {node}
+      </Magnetic>
+    );
+  }
+  return <>{node}</>;
 }
 
 // ─────────────────────────────────────────
@@ -225,6 +286,13 @@ function PageHeader({
   sticky = true,
   className,
   rackFocus = false,
+  slotBelowTitle,
+  tone = "default",
+  backIconVariant = "chevron",
+  magneticBack = false,
+  leftSlot,
+  hideTitle = false,
+  borderless = false,
 }: PageHeaderProps) {
   const reducedMotion = useReducedMotion();
 
@@ -235,6 +303,12 @@ function PageHeader({
   const iconMotion = getIconMotion(iconAnimation);
   const shouldAnimateIcon =
     !reducedMotion && iconAnimation !== "none" && icon != null;
+
+  const toneClass =
+    tone === "white"
+      ? "bg-white/90 border-neutral-200"
+      : "bg-bg/80 border-border";
+  const borderClass = borderless ? "" : "border-b";
 
   const titleNode = (
     <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -251,7 +325,8 @@ function PageHeader({
       <div className="flex-1 min-w-0">
         <h1
           className={[
-            "text-lg font-display font-bold text-text truncate",
+            "text-lg font-display font-bold truncate",
+            tone === "white" ? "text-neutral-900" : "text-text",
             titleClassName ?? "",
           ]
             .filter(Boolean)
@@ -260,17 +335,28 @@ function PageHeader({
           {title}
         </h1>
         {subtitle && (
-          <p className="text-xs text-text-muted truncate">{subtitle}</p>
+          <p
+            className={[
+              "text-xs truncate",
+              tone === "white" ? "text-neutral-500" : "text-text-muted",
+            ].join(" ")}
+          >
+            {subtitle}
+          </p>
         )}
       </div>
     </div>
   );
 
+  const showTitle = !hideTitle && title != null;
+
   return (
     <header
       className={[
         stickyClass,
-        "relative bg-bg/80 backdrop-blur-xl border-b border-border",
+        "relative backdrop-blur-xl",
+        toneClass,
+        borderClass,
         className ?? "",
       ]
         .filter(Boolean)
@@ -282,15 +368,42 @@ function PageHeader({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: easings.out }}
       >
-        {(backHref || onBack) && (
-          <BackButton href={backHref} onBack={onBack} label={backLabel} />
+        {leftSlot != null ? (
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            {(backHref || onBack) && (
+              <BackButton
+                href={backHref}
+                onBack={onBack}
+                label={backLabel}
+                variant={backIconVariant}
+                tone={tone}
+                magnetic={magneticBack}
+              />
+            )}
+            <div className="flex-1 min-w-0">{leftSlot}</div>
+          </div>
+        ) : (
+          <>
+            {(backHref || onBack) && (
+              <BackButton
+                href={backHref}
+                onBack={onBack}
+                label={backLabel}
+                variant={backIconVariant}
+                tone={tone}
+                magnetic={magneticBack}
+              />
+            )}
+            {showTitle && (rackFocus ? <RackFocus duration={0.5}>{titleNode}</RackFocus> : titleNode)}
+          </>
         )}
-        {rackFocus ? <RackFocus duration={0.5}>{titleNode}</RackFocus> : titleNode}
         {rightSlot && <div className="flex-shrink-0">{rightSlot}</div>}
       </motion.div>
 
+      {slotBelowTitle && <div className="px-4 pb-3">{slotBelowTitle}</div>}
+
       {/* Hairline gradient bottom */}
-      {hairline && !reducedMotion && (
+      {hairline && !reducedMotion && !borderless && (
         <motion.div
           aria-hidden="true"
           className="absolute bottom-0 left-0 right-0 h-px"

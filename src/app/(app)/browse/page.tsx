@@ -20,6 +20,7 @@ import SwipeCard from "@/components/app/SwipeCard";
 import ReportSheet from "@/components/app/ReportSheet";
 import NotificationPreview from "@/components/app/NotificationPreview";
 import MidnightReset from "@/components/app/MidnightReset";
+import PageHeader from "@/components/ui/PageHeader";
 import { playSound } from "@/lib/sounds";
 import { haptics } from "@/lib/haptics";
 import { useSwipeUndo } from "@/lib/useSwipeUndo";
@@ -207,11 +208,13 @@ export default function BrowsePage() {
         </div>
       )}
 
-      {/* Header */}
-      <header className="shrink-0 px-5 pt-3 pb-2">
-        <div className="flex items-center justify-between">
-          <h1 className="text-[18px] font-black tracking-tight text-text">CeSoir</h1>
-          <div className="flex items-center gap-2">
+      <div className="shrink-0">
+        <PageHeader
+          title="CeSoir"
+          titleClassName="text-[18px] font-black tracking-tight"
+          sticky={false}
+          borderless
+          actions={
             <Link
               href="/plans?type=flash"
               className="flex items-center justify-center w-8 h-8 rounded-full bg-accent/10 border border-accent/20 tap-target"
@@ -219,9 +222,9 @@ export default function BrowsePage() {
             >
               <span className="text-[12px]" aria-hidden="true">&#x26A1;</span>
             </Link>
-          </div>
-        </div>
-      </header>
+          }
+        />
+      </div>
 
       {/* Notification Preview — floating overlay */}
       <NotificationPreview />
