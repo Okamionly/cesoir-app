@@ -8,6 +8,9 @@ const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 
 const DAILY_LIMIT = 100;
 
+/** Postgres unique-constraint violation. */
+const PG_UNIQUE_VIOLATION = "23505";
+
 /** ISO timestamp of midnight UTC tonight (reset time). */
 function midnightUTC(): string {
   const d = new Date();
@@ -66,7 +69,10 @@ export async function POST(request: Request) {
     );
   }
   if (targetId === userId) {
-    return NextResponse.json({ error: "Impossible de swiper son propre profil" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Impossible de swiper son propre profil" },
+      { status: 400 },
+    );
   }
 
   const resetAt = midnightUTC();
@@ -94,7 +100,10 @@ export async function POST(request: Request) {
   }
 
   // --- Record the swipe ---
-  const { error: insertError } = await db.from("interactions").upsert({
+  // M5 — INSERT instead of UPSERT: a user re-swiping the same target
+  // (via UI bug, double-tap, or ill intent) used to silently overwrite
+  // the previous decision and flip match state. Now we reject as 409.
+  const { error: insertError } = await db.from("interactions").insert({
     from_user: userId,
     to_user: targetId,
     action: direction,
@@ -102,8 +111,17 @@ export async function POST(request: Request) {
   });
 
   if (insertError) {
+    if (insertError.code === PG_UNIQUE_VIOLATION) {
+      return NextResponse.json(
+        { error: "already_swiped", message: "Profil déjà swipé" },
+        { status: 409 },
+      );
+    }
     console.error("[/api/swipe] insert failed:", insertError.message);
-    return NextResponse.json({ error: "Erreur lors de l'enregistrement" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Erreur lors de l'enregistrement" },
+      { status: 500 },
+    );
   }
 
   const swipesRemaining = Math.max(0, DAILY_LIMIT - todayCount - 1);

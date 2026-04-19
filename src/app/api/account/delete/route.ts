@@ -1,6 +1,23 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient as createAnonClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
+/**
+ * POST /api/account/delete
+ *
+ * Deletes the user's profile + avatars + auth.users entry.
+ * Requires Bearer token in Authorization header.
+ *
+ * C2 — DELETE policies on profiles + storage.objects added in
+ * migration 003_security_hardening (2026-04-19). Before that migration
+ * this route silently returned success without deleting anything.
+ *
+ * C2bis — Now verifies row counts via .select() and uses
+ * SUPABASE_SERVICE_ROLE_KEY (when present) to also delete the auth.users
+ * entry — without it, the auth account is orphaned and the email can
+ * never be re-used until manual cleanup. The route still succeeds
+ * without service role (profile + avatars gone) but flags the orphan
+ * in the response.
+ */
 export async function POST(request: Request) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -10,42 +27,116 @@ export async function POST(request: Request) {
 
     const token = authHeader.split(" ")[1];
 
-    // Use anon client to verify the token
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!supabaseUrl || !supabaseKey) {
-      return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !anonKey) {
+      return NextResponse.json(
+        { error: "Server configuration error" },
+        { status: 500 },
+      );
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey, {
+    // Anon client with the user's token — used for profile + storage delete
+    // (constrained by RLS policies, only the user's own rows).
+    const userClient = createAnonClient(supabaseUrl, anonKey, {
       global: { headers: { Authorization: `Bearer ${token}` } },
     });
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await userClient.auth.getUser();
     if (authError || !user) {
       return NextResponse.json({ error: "Session invalide" }, { status: 401 });
     }
 
     const userId = user.id;
 
-    // Delete avatar from storage
-    const { data: files } = await supabase.storage.from("avatars").list(userId);
+    // ─── Delete avatar files first (irreversible but small risk if profile
+    //     delete fails — orphan files, easier to clean than orphan rows) ─
+    let avatarsDeleted = 0;
+    const { data: files } = await userClient.storage
+      .from("avatars")
+      .list(userId);
     if (files && files.length > 0) {
-      await supabase.storage.from("avatars").remove(files.map(f => `${userId}/${f.name}`));
+      const paths = files.map((f) => `${userId}/${f.name}`);
+      const { data: removed, error: rmError } = await userClient.storage
+        .from("avatars")
+        .remove(paths);
+      if (rmError) {
+        console.error("[/api/account/delete] avatar remove failed:", rmError.message);
+      }
+      avatarsDeleted = removed?.length ?? 0;
     }
 
-    // Delete profile (cascades to interactions, conversations, messages, reviews, reports, mode_activations)
-    await supabase.from("profiles").delete().eq("id", userId);
+    // ─── Delete profile row, verify it actually deleted (RLS could silently
+    //     drop the operation if policy mismatched). ──────────────────────
+    const { data: deletedRows, error: profileError } = await userClient
+      .from("profiles")
+      .delete()
+      .eq("id", userId)
+      .select("id");
 
-    // Sign out the user
-    await supabase.auth.signOut();
+    if (profileError) {
+      console.error("[/api/account/delete] profile delete failed:", profileError.message);
+      return NextResponse.json(
+        { error: "Échec de la suppression du profil" },
+        { status: 500 },
+      );
+    }
 
-    // Note: To fully delete from auth.users, we'd need service_role key
-    // For now, the profile is gone and the auth account is orphaned but harmless
-    // Add SUPABASE_SERVICE_ROLE_KEY as env var later for full deletion
+    if (!deletedRows || deletedRows.length === 0) {
+      // Should not happen with the new DELETE policy, but defend in depth.
+      console.error("[/api/account/delete] profile delete returned 0 rows for user", userId);
+      return NextResponse.json(
+        { error: "Profil non trouvé ou déjà supprimé" },
+        { status: 404 },
+      );
+    }
 
-    return NextResponse.json({ success: true, message: "Compte supprime" });
-  } catch {
+    // ─── Sign user out so any remaining session token is invalidated ────
+    await userClient.auth.signOut();
+
+    // ─── Delete auth.users via service role (if configured) ─────────────
+    let authDeleted = false;
+    let orphanWarning: string | null = null;
+    if (serviceRoleKey) {
+      const adminClient = createAnonClient(supabaseUrl, serviceRoleKey, {
+        auth: { autoRefreshToken: false, persistSession: false },
+      });
+      const { error: adminError } = await adminClient.auth.admin.deleteUser(
+        userId,
+      );
+      if (adminError) {
+        console.error(
+          "[/api/account/delete] admin.deleteUser failed:",
+          adminError.message,
+        );
+        orphanWarning =
+          "Compte auth orphelin — contacter le support pour cleanup complet.";
+      } else {
+        authDeleted = true;
+      }
+    } else {
+      orphanWarning =
+        "SUPABASE_SERVICE_ROLE_KEY non configurée — l'entrée auth.users reste (orphelin RGPD).";
+      console.warn("[/api/account/delete]", orphanWarning);
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Compte supprime",
+      details: {
+        profileDeleted: true,
+        avatarsDeleted,
+        authDeleted,
+        orphanWarning,
+      },
+    });
+  } catch (e) {
+    console.error("[/api/account/delete] unexpected error:", e);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }

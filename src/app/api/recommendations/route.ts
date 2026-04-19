@@ -7,6 +7,9 @@ import type { RecommendationsResponse } from "@/types/matching";
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 
+/** Whitelisted gender filter values (B1 — validate inputs at API boundary). */
+const GENDER_FILTERS = new Set(["men", "women", "all", "nonbinary"]);
+
 export async function GET(request: Request) {
   // --- Auth verification ---
   const authHeader = request.headers.get("authorization");
@@ -41,13 +44,38 @@ export async function GET(request: Request) {
     );
   }
 
+  // Sanity check ranges so a malformed client cannot push wild values into
+  // the SQL function (defence in depth — RLS already filters to authed user).
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+    return NextResponse.json(
+      { error: "lat/lng hors plage" },
+      { status: 400 },
+    );
+  }
+
   const rawMode = searchParams.get("mode");
   const mode: ModeKey | null = rawMode ? (rawMode as ModeKey) : null;
-  const maxDistance = Math.min(parseFloat(searchParams.get("maxDistance") ?? "10") || 10, 50);
+  const maxDistance = Math.min(
+    parseFloat(searchParams.get("maxDistance") ?? "10") || 10,
+    50,
+  );
   const minAge = parseInt(searchParams.get("minAge") ?? "") || undefined;
   const maxAge = parseInt(searchParams.get("maxAge") ?? "") || undefined;
   const limit = Math.min(parseInt(searchParams.get("limit") ?? "10") || 10, 50);
-  const genderFilter = searchParams.get("genderFilter") ?? null;
+
+  // B1 — validate against whitelist; reject unknown values rather than
+  // silently passing them to findMatches.
+  const rawGender = searchParams.get("genderFilter");
+  let genderFilter: string | null = null;
+  if (rawGender !== null) {
+    if (!GENDER_FILTERS.has(rawGender)) {
+      return NextResponse.json(
+        { error: "genderFilter invalide" },
+        { status: 400 },
+      );
+    }
+    genderFilter = rawGender === "all" ? null : rawGender;
+  }
 
   try {
     const candidates = await findMatches(user.id, lat, lng, {
