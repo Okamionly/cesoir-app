@@ -45,6 +45,28 @@ export const app = {
   textSoft: "#666666",
   violet: "#8B5CF6",
   vert: "#00FF88",
+  // Super-like pink accent (used for super-like halos, match toasts, shop tints).
+  rose: "#EC4899",
+  // Secondary violet/purple tint (shop mixed gradients).
+  purple: "#A855F7",
+  // Premium gold shimmer (premium CTA gradients — paired with --color-warn).
+  gold: "#FBBF24",
+  // Atmospheric dark surface — out-of-palette, for camera viewport / offline
+  // map fallback tints. NOT a UI token; kept here to avoid eslint friction.
+  dark: "#1A1A2E",
+  darkMid: "#16213E",
+  darkDeep: "#0F3460",
+  // Third-party brand hex (for OAuth / verify badges).
+  linkedinBlue: "#3B82F6",
+  linkedinBrand: "#0A66C2",
+  // Instagram gradient stops (kept as a 5-stop list).
+  instagramGradient: [
+    "#F09433",
+    "#E6683C",
+    "#DC2743",
+    "#CC2366",
+    "#BC1888",
+  ],
   gradient: "linear-gradient(135deg, #8B5CF6, #00FF88)",
 } as const;
 

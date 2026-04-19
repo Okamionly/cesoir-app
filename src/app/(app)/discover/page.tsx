@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 import { discoverVariants, springs, micro } from "@/lib/motion-design";
 import { ModeKey, MODES, MODE_KEYS } from "@/lib/modes";
@@ -430,7 +431,7 @@ export default function DiscoverPage() {
               >
                 <div className="relative aspect-square overflow-hidden">
                   {p.photo ? (
-                    <img src={p.photo} alt={p.name} loading="lazy" className="w-full h-full object-cover" />
+                    <Image src={p.photo} alt={p.name} fill sizes="(max-width: 640px) 50vw, 200px" className="object-cover" />
                   ) : (
                     <div className={`w-full h-full bg-gradient-to-br ${getGradient(p.id)}`} />
                   )}
@@ -531,12 +532,12 @@ function ProfileCard({ profile, index }: { profile: Profile; index: number }) {
         {/* Photo area */}
         <div className="relative aspect-[3/4] overflow-hidden">
           {profile.photo ? (
-            <img
+            <Image
               src={profile.photo}
               alt={`${profile.name}, ${profile.age} ans`}
-              loading="lazy"
-              decoding="async"
-              className="absolute inset-0 w-full h-full object-cover"
+              fill
+              sizes="(max-width: 640px) 100vw, 400px"
+              className="object-cover"
             />
           ) : (
             <div

@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { browseVariants, springs, micro, easings } from "@/lib/motion-design";
@@ -21,11 +22,13 @@ import ReportSheet from "@/components/app/ReportSheet";
 import NotificationPreview from "@/components/app/NotificationPreview";
 import MidnightReset from "@/components/app/MidnightReset";
 import PageHeader from "@/components/ui/PageHeader";
+import { RotateCcw } from "@/components/ui/lucide";
 import { playSound } from "@/lib/sounds";
 import { haptics } from "@/lib/haptics";
 import { useSwipeUndo } from "@/lib/useSwipeUndo";
 import { useMatchCap } from "@/lib/useMatchCap";
 import { useRoses } from "@/lib/useRoses";
+import { app as appTokens } from "@/lib/design-tokens";
 import ModeSwitcher from "@/components/app/ModeSwitcher";
 
 /** Map a MatchCandidate from the scoring pipeline to the Profile shape used by SwipeCard */
@@ -296,7 +299,7 @@ export default function BrowsePage() {
                     style={{ scale: swipe.nextScale }}
                   >
                     <div className="absolute inset-0 bg-[var(--color-bg-dark)]" />
-                    <img src={next1.photo} alt="" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover opacity-20 blur-[4px]" />
+                    <Image src={next1.photo} alt="" fill sizes="(max-width: 640px) 100vw, 400px" className="object-cover opacity-20 blur-[4px]" />
                   </motion.div>
                 )}
                 <SwipeCard
@@ -419,10 +422,7 @@ function ActionButtons({
           }`}
           whileTap={canUndo ? micro.tapScale : {}}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="1 4 1 10 7 10" />
-            <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
-          </svg>
+          <RotateCcw size={14} strokeWidth={2.5} />
         </motion.button>
       </div>
 
@@ -455,16 +455,16 @@ function ActionButtons({
             whileTap={canAffordRose ? micro.tapScale : {}}
             whileHover={
               canAffordRose
-                ? { ...micro.hoverLift, boxShadow: "0 0 24px color-mix(in srgb, #ec4899 40%, transparent)" }
+                ? { ...micro.hoverLift, boxShadow: `0 0 24px color-mix(in srgb, ${appTokens.rose} 40%, transparent)` }
                 : {}
             }
             animate={
               canAffordRose
                 ? {
                     boxShadow: [
-                      "0 0 0px color-mix(in srgb, #ec4899 0%, transparent)",
-                      "0 0 14px color-mix(in srgb, #ec4899 25%, transparent)",
-                      "0 0 0px color-mix(in srgb, #ec4899 0%, transparent)",
+                      `0 0 0px color-mix(in srgb, ${appTokens.rose} 0%, transparent)`,
+                      `0 0 14px color-mix(in srgb, ${appTokens.rose} 25%, transparent)`,
+                      `0 0 0px color-mix(in srgb, ${appTokens.rose} 0%, transparent)`,
                     ],
                   }
                 : {}
@@ -530,7 +530,7 @@ function MatchToast({ profile, conversationId, onDismiss }: { profile: Profile; 
         className="absolute -inset-1 rounded-3xl pointer-events-none"
         aria-hidden="true"
         style={{
-          background: "linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 40%, transparent), color-mix(in srgb, #ec4899 30%, transparent), color-mix(in srgb, var(--color-accent-2) 40%, transparent))",
+          background: `linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 40%, transparent), color-mix(in srgb, ${appTokens.rose} 30%, transparent), color-mix(in srgb, var(--color-accent-2) 40%, transparent))`,
           filter: "blur(16px)",
         }}
         initial={{ opacity: 0 }}

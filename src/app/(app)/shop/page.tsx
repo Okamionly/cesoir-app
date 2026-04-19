@@ -10,6 +10,8 @@ import { usePurchases } from "@/lib/usePurchases";
 import { SHOP_PRODUCTS, formatPrice, type ShopProduct } from "@/lib/stripe/plans";
 import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
+import { app as appTokens } from "@/lib/design-tokens";
+import { ChevronRight } from "@/components/ui/lucide";
 
 // ─────────────────────────────────────────
 // Variants
@@ -96,7 +98,7 @@ export default function ShopPage() {
         <motion.div
           variants={itemVariants}
           className="relative overflow-hidden rounded-2xl border border-accent/20 p-5"
-          style={{ background: "linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 10%, transparent), color-mix(in srgb, #ec4899 8%, transparent))" }}
+          style={{ background: `linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 10%, transparent), color-mix(in srgb, ${appTokens.rose} 8%, transparent))` }}
         >
           <motion.span
             variants={floatVariants}
@@ -190,7 +192,7 @@ export default function ShopPage() {
               className="relative overflow-hidden rounded-2xl border border-accent/30 p-5"
               style={{
                 background:
-                  "linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 12%, transparent), color-mix(in srgb, #a855f7 8%, transparent), color-mix(in srgb, #ec4899 6%, transparent))",
+                  `linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 12%, transparent), color-mix(in srgb, ${appTokens.purple} 8%, transparent), color-mix(in srgb, ${appTokens.rose} 6%, transparent))`,
               }}
             >
               <motion.div
@@ -224,9 +226,7 @@ export default function ShopPage() {
                     {isPremium ? "Gérer →" : "À partir de 4,99€/mois"}
                   </p>
                 </div>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-accent shrink-0" aria-hidden="true">
-                  <path d="M9 18l6-6-6-6" />
-                </svg>
+                <ChevronRight size={20} strokeWidth={2} className="text-accent shrink-0" aria-hidden="true" />
               </div>
             </motion.div>
           </Link>

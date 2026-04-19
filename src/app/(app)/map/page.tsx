@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo, useRef } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 import { mapVariants, springs, micro, ambient } from "@/lib/motion-design";
 import Link from "next/link";
@@ -9,10 +10,13 @@ import { useAuth } from "@/context/AuthContext";
 import { useProfiles } from "@/lib/useProfiles";
 import { MOCK_PROFILES, Profile } from "@/lib/mock-profiles";
 import { MODES, ModeKey, MODE_KEYS } from "@/lib/modes";
+import { MODE_COLORS } from "@/lib/mode-colors";
+import { app as appTokens } from "@/lib/design-tokens";
 import { useHotspots } from "@/lib/useHotspots";
 import HeatmapOverlay, { HeatmapFallback } from "@/components/map/HeatmapOverlay";
 import LiveActivityPanel from "@/components/map/LiveActivityPanel";
 import CrossLinkCard from "@/components/app/CrossLinkCard";
+import PageHeader from "@/components/ui/PageHeader";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
@@ -20,17 +24,6 @@ function fakePos(lat: number, lng: number, km: number) {
   const r = km / 111;
   return { lat: lat + (Math.random() - 0.5) * 2 * r, lng: lng + (Math.random() - 0.5) * 2 * r };
 }
-
-// Per-mode brand colors — domain meta array (matches src/lib/modes.ts semantics,
-// kept as raw hex because they encode product-specific mode identity, not UI
-// surface tokens. Do NOT map to the W&B palette.)
-const MODE_COLORS: Record<string, string> = {
-  "solo-diner": "#8B5CF6", "plus-one": "#EC4899", "tourist": "#06B6D4",
-  "night-owl": "#6366F1", "breakup": "#22C55E", "new-in-town": "#F59E0B",
-  "langue": "#06B6D4", "dog-date": "#F59E0B", "seasonal": "#EF4444",
-  "fit-date": "#F97316", "foodie-quest": "#DC2626", "culture-club": "#7C3AED",
-  "sober-tonight": "#059669", "gamer-night": "#2563EB",
-};
 
 interface OpenEvent {
   id: string;
@@ -210,13 +203,21 @@ export default function MapPage() {
 
   return (
     <div className="h-screen bg-bg flex flex-col">
-      {/* Header */}
-      <header className="shrink-0 px-4 pt-2 pb-1 border-b border-border z-[1000] bg-bg">
-        <div className="flex items-center justify-between mb-2">
+      {/* Header — PageHeader with leftSlot (logo+title compact), actions (chips row),
+          bottomSlot (mode-count chips). sticky=false because the parent is
+          h-screen flex flex-col — header sits in flow, map fills rest.
+          z-[1000] via className to stack above MapLibre DOM markers. */}
+      <PageHeader
+        sticky={false}
+        borderless={false}
+        className="shrink-0 !z-[1000] bg-bg"
+        leftSlot={
           <div className="flex items-center gap-2">
             <span className="text-lg text-accent" aria-hidden="true">☾</span>
             <span className="text-base font-bold">Carte</span>
           </div>
+        }
+        actions={
           <div className="flex items-center gap-2">
             <motion.div whileHover={micro.hoverLift} whileTap={micro.tapScale}>
               <Link
@@ -254,37 +255,39 @@ export default function MapPage() {
               {loading ? "Localisation..." : error ? <span className="text-danger">{error}</span> : <><span className="w-1.5 h-1.5 rounded-full bg-safe inline-block mr-1" /><motion.span key={`count-${filtered.length}`} initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={springs.snap}>{filtered.length}</motion.span></>}
             </div>
           </div>
-        </div>
-        <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-2">
-          <motion.button
-            onClick={() => setFilter("all")}
-            className={`shrink-0 px-3 py-1.5 rounded-full text-[10px] font-semibold border tap-target ${filter === "all" ? "border-accent gradient-bg-subtle text-accent" : "border-border text-text-muted"}`}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ ...springs.snap, delay: 0 }}
-            whileTap={micro.tapScale}
-          >
-            Tout ({MOCK_PROFILES.length})
-          </motion.button>
-          {MODE_KEYS.map((k, i) => {
-            const count = MOCK_PROFILES.filter(p => p.mode === k).length;
-            if (count === 0) return null;
-            return (
-              <motion.button
-                key={k}
-                onClick={() => setFilter(k)}
-                className={`shrink-0 px-3 py-1.5 rounded-full text-[10px] font-semibold border tap-target ${filter === k ? "border-accent gradient-bg-subtle text-accent" : "border-border text-text-muted"}`}
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ ...springs.snap, delay: (i + 1) * 0.04 }}
-                whileTap={micro.tapScale}
-              >
-                {MODES[k].icon} <motion.span key={`${k}-${count}`} initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={springs.snap}>{count}</motion.span>
-              </motion.button>
-            );
-          })}
-        </div>
-      </header>
+        }
+        bottomSlot={
+          <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-2">
+            <motion.button
+              onClick={() => setFilter("all")}
+              className={`shrink-0 px-3 py-1.5 rounded-full text-[10px] font-semibold border tap-target ${filter === "all" ? "border-accent gradient-bg-subtle text-accent" : "border-border text-text-muted"}`}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ ...springs.snap, delay: 0 }}
+              whileTap={micro.tapScale}
+            >
+              Tout ({MOCK_PROFILES.length})
+            </motion.button>
+            {MODE_KEYS.map((k, i) => {
+              const count = MOCK_PROFILES.filter(p => p.mode === k).length;
+              if (count === 0) return null;
+              return (
+                <motion.button
+                  key={k}
+                  onClick={() => setFilter(k)}
+                  className={`shrink-0 px-3 py-1.5 rounded-full text-[10px] font-semibold border tap-target ${filter === k ? "border-accent gradient-bg-subtle text-accent" : "border-border text-text-muted"}`}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ ...springs.snap, delay: (i + 1) * 0.04 }}
+                  whileTap={micro.tapScale}
+                >
+                  {MODES[k].icon} <motion.span key={`${k}-${count}`} initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={springs.snap}>{count}</motion.span>
+                </motion.button>
+              );
+            })}
+          </div>
+        }
+      />
 
       {/* Map */}
       <div className="flex-1 relative z-0" style={{ minHeight: "calc(100vh - 120px)" }}>
@@ -321,7 +324,7 @@ export default function MapPage() {
 
         {/* Offline fallback map */}
         {mapFailed && (
-          <div className="w-full h-full relative overflow-hidden" style={{ background: "#1a1a2e" /* dark atmospheric map tint — intentional out-of-palette offline fallback */ }}>
+          <div className="w-full h-full relative overflow-hidden" style={{ background: appTokens.dark /* dark atmospheric map tint — intentional out-of-palette offline fallback */ }}>
             {/* CSS Grid lines */}
             <div className="absolute inset-0" style={{
               backgroundImage: "linear-gradient(color-mix(in srgb, var(--color-accent) 6%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--color-accent) 6%, transparent) 1px, transparent 1px)",
@@ -358,7 +361,7 @@ export default function MapPage() {
                   whileTap={micro.tapScale}
                   onClick={() => { setSelected(p); setSelectedEvent(null); }}
                 >
-                  <img src={p.photo} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <Image src={p.photo} alt={p.name} fill sizes="40px" style={{ objectFit: "cover" }} />
                 </motion.button>
               );
             })}

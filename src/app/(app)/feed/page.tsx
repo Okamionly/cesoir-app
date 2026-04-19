@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 import { feedVariants, springs } from "@/lib/motion-design";
 import { MODES, type ModeKey } from "@/lib/modes";
@@ -10,6 +11,7 @@ import EmptyState from "@/components/ui/EmptyState";
 import { Magnetic } from "@/components/motion/Magnetic";
 import PageHeader from "@/components/ui/PageHeader";
 import { SkeletonChatRow } from "@/components/ui/skeletons";
+import { RotateCcw, MapPin, Flame } from "@/components/ui/lucide";
 
 // --- Types ---
 
@@ -186,10 +188,7 @@ export default function FeedPage() {
             transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
             className="inline-block"
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-              <path d="M21 12a9 9 0 1 1-2.64-6.36" />
-              <path d="M21 3v6h-6" />
-            </svg>
+            <RotateCcw size={14} strokeWidth={2} aria-hidden="true" />
           </motion.span>
         ) : (
           "Actualiser"
@@ -244,23 +243,18 @@ export default function FeedPage() {
                         aria-hidden="true"
                       >
                         {item.type === "area" ? (
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-text-muted">
-                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
-                            <circle cx="12" cy="9" r="2.5" />
-                          </svg>
+                          <MapPin size={16} strokeWidth={2} className="text-text-muted" />
                         ) : (
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-text-muted">
-                            <path d="M12 22c4.97 0 8-3.03 8-8 0-4-2.5-7-4-8-.5 2.5-2 4-4 5-1-1-2-3.5-1.5-6C8 7 5 10 5 14c0 4.97 3.03 8 7 8z" />
-                          </svg>
+                          <Flame size={16} strokeWidth={2} className="text-text-muted" />
                         )}
                       </div>
                     ) : (
                       <div className="relative flex-shrink-0">
-                        <img
+                        <Image
                           src={item.photo}
                           alt={`Photo de ${item.name}`}
-                          loading="lazy"
-                          decoding="async"
+                          width={40}
+                          height={40}
                           className="w-10 h-10 rounded-full object-cover"
                         />
                         {item.online && (
@@ -315,10 +309,7 @@ export default function FeedPage() {
                       transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
                       className="inline-block"
                     >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-                        <path d="M21 12a9 9 0 1 1-2.64-6.36" />
-                        <path d="M21 3v6h-6" />
-                      </svg>
+                      <RotateCcw size={14} strokeWidth={2} aria-hidden="true" />
                     </motion.span>
                   ) : (
                     "Charger plus"

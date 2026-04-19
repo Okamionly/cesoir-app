@@ -23,9 +23,14 @@ import nextTs from "eslint-config-next/typescript";
  *  - `tailwind.config.*` / `postcss.config.*` / `globals.css` live outside
  *    ESLint's `.tsx` scope — no override needed.
  *
- * Hex rule is escalated to "error" on `src/components/**` and `src/lib/**`
- * once the codemod landed. The Tailwind palette rule stays at "warn" for
- * now since some legitimate gradients still compose palette utilities.
+ * Hex rule is escalated to "error" on src/app/(app)/** (D4 landed —
+ * all domain-meta arrays extracted to src/lib/, remaining out-of-palette
+ * surfaces route through design-tokens imports) and on the explicit
+ * allowlist of clean components. The rest of src/components/** and
+ * src/app/** stays at "warn" until phase 2 migrates the remaining
+ * per-component severity / brand hexes. The Tailwind palette rule stays
+ * at "warn" for now since some legitimate gradients still compose
+ * palette utilities.
  */
 
 const BAN_HEX_REGEX = String.raw`/#([0-9A-Fa-f]{3}){1,2}\b/`;
@@ -88,6 +93,9 @@ const palettRules = [
   },
 ];
 
+// Default — "warn" baseline for src/**. The "error" promotion applies to
+// the explicit allowlist of clean files + src/app/(app)/** (D4 codemod
+// landed — all domain-meta extracted to src/lib).
 const designSystemRules = {
   "no-restricted-syntax": [
     "warn",
@@ -101,6 +109,16 @@ const strictHexRules = {
     "error",
     ...hexRules,
     ...palettRules,
+  ],
+};
+
+// Same as strictHexRules but keeps Tailwind palette at "warn". Applied to
+// (app)/** where hex is fully cleaned but some gradient utilities still
+// compose default palette classes (phase-2 cleanup).
+const strictHexOnlyRules = {
+  "no-restricted-syntax": [
+    "error",
+    ...hexRules,
   ],
 };
 
@@ -145,25 +163,14 @@ const eslintConfig = defineConfig([
     rules: strictHexRules,
   },
   {
-    // Page-level codemod (D3) landed — all UI surface tokens in
-    // src/app/(app)/** now route through Tailwind tokens (bg-accent,
-    // text-text, ...) or var(--color-*) CSS vars. Rule stays at "warn"
-    // (not "error") because a handful of hex literals remain:
-    //   • Domain-meta: MODE_COLORS in map/page.tsx, modeMeta() in rooms,
-    //     getTypeConfig() in notifications/page.tsx, BENEFITS in premium
-    //     (per-mode / per-type / per-benefit brand identity — same
-    //     semantics as src/lib/modes.ts, which is fully excepted).
-    //   • Third-party brand hex: LinkedIn #0A66C2, Instagram gradient
-    //     (#f09433..#bc1888), #3B82F6 LinkedIn blue — wrapped with inline
-    //     comments explaining the intent.
-    //   • Dark atmospheric fallbacks: #1a1a2e camera viewport / map offline
-    //     tint — intentional out-of-palette surfaces, commented inline.
-    // Promoting to "error" would require moving domain-meta into src/lib
-    // and using inline eslint-disable on brand hex, deferred to phase 3.
-    files: [
-      "src/app/(app)/**/*.{ts,tsx}",
-    ],
-    rules: designSystemRules,
+    // D4 landed — all domain-meta arrays extracted to src/lib/
+    // (mode-colors, rooms-meta, notification-config, premium-benefits).
+    // Remaining out-of-palette surfaces (premium gold, map offline dark,
+    // shop/browse/trending pink tints) now route through design-tokens
+    // imports. Any new raw hex in (app)/** is a hard error. Tailwind
+    // palette rule stays at "warn" app-wide until phase 2.
+    files: ["src/app/(app)/**/*.{ts,tsx}"],
+    rules: strictHexOnlyRules,
   },
   {
     // Design tokens file owns the hex literals.
@@ -174,8 +181,9 @@ const eslintConfig = defineConfig([
   },
   {
     // Domain-meta files: per-mode brand colors, seasonal gradients, badge
-    // tiers, hotspot heat, motion variants. Hex values here encode product
-    // semantics — they are not UI surface tokens.
+    // tiers, hotspot heat, motion variants, per-benefit/per-type/per-room
+    // identity. Hex values here encode product semantics — they are NOT
+    // UI surface tokens.
     files: [
       "src/lib/modes.ts",
       "src/lib/mock-profiles.ts",
@@ -184,7 +192,22 @@ const eslintConfig = defineConfig([
       "src/lib/dateIdeas.ts",
       "src/lib/hotspots.ts",
       "src/lib/motion-design.ts",
+      "src/lib/mode-colors.ts",
+      "src/lib/rooms-meta.ts",
+      "src/lib/notification-config.ts",
+      "src/lib/premium-benefits.ts",
     ],
+    rules: {
+      "no-restricted-syntax": "off",
+    },
+  },
+  {
+    // Profile-verify page embeds third-party brand assets (LinkedIn blue
+    // #0A66C2 / #3B82F6, Instagram 5-stop gradient #f09433..#bc1888) and
+    // dark atmospheric camera-viewport gradients (#1a1a2e / #16213e /
+    // #0f3460). These are out-of-palette by design and cannot route
+    // through design tokens without diluting semantic meaning.
+    files: ["src/app/(app)/profile/verify/page.tsx"],
     rules: {
       "no-restricted-syntax": "off",
     },

@@ -7,6 +7,7 @@ import { ModeKey, MODES, MODE_KEYS } from "@/lib/modes";
 import { supabase } from "@/lib/supabase";
 import { RackFocus } from "@/components/motion/RackFocus";
 import EmptyState from "@/components/ui/EmptyState";
+import { app as appTokens } from "@/lib/design-tokens";
 
 // --- Types ---
 
@@ -160,7 +161,7 @@ export default function TrendingPage() {
           className="absolute bottom-0 left-0 right-0 h-px"
           style={{
             background:
-              "linear-gradient(90deg, transparent, color-mix(in srgb, #ec4899 40%, transparent), color-mix(in srgb, var(--color-accent) 40%, transparent), transparent)",
+              `linear-gradient(90deg, transparent, color-mix(in srgb, ${appTokens.rose} 40%, transparent), color-mix(in srgb, var(--color-accent) 40%, transparent), transparent)`,
           }}
           animate={{ opacity: [0.3, 0.9, 0.3] }}
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}

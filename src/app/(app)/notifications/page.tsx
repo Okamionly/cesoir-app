@@ -14,6 +14,8 @@ import { useAuth } from "@/context/AuthContext";
 import { useNotifications, type AppNotification } from "@/lib/useNotifications";
 import { Magnetic } from "@/components/motion/Magnetic";
 import PageHeader from "@/components/ui/PageHeader";
+import { Heart, MessageCircle, Calendar, Star, Bell, X } from "@/components/ui/lucide";
+import { NOTIFICATION_TYPE_COLORS } from "@/lib/notification-config";
 
 // ---------- Extended notification types ----------
 
@@ -69,88 +71,28 @@ interface TypeConfig {
   bgColor: string;
 }
 
-// Per-notification-type colors — domain meta. Each type encodes a distinct
-// semantic (match=violet, like=pink, message=blue, event=amber, challenge=green,
-// review=gold, system=gray). Hex values kept raw because they are not UI surface
-// tokens but per-category identity, similar to src/lib/modes.ts.
+// Per-notification-type icon + colors. Colors come from the domain-meta
+// config in lib/notification-config.ts (see that file for the semantic
+// rationale). Icons live here because they are JSX, not data.
 function getTypeConfig(type: ExtendedNotifType): TypeConfig {
+  const palette = NOTIFICATION_TYPE_COLORS[type];
   switch (type) {
     case "match":
-      return {
-        icon: (
-          <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-          </svg>
-        ),
-        color: "#8B5CF6",
-        bgColor: "rgba(139,92,246,0.12)",
-      };
+      return { icon: <Heart size={18} fill="currentColor" strokeWidth={0} />, ...palette };
     case "like":
-      return {
-        icon: (
-          <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-          </svg>
-        ),
-        color: "#EC4899",
-        bgColor: "rgba(236,72,153,0.12)",
-      };
+      return { icon: <Heart size={18} fill="currentColor" strokeWidth={0} />, ...palette };
     case "message":
-      return {
-        icon: (
-          <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-          </svg>
-        ),
-        color: "#3B82F6",
-        bgColor: "rgba(59,130,246,0.12)",
-      };
+      return { icon: <MessageCircle size={18} />, ...palette };
     case "event":
-      return {
-        icon: (
-          <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-            <rect x={3} y={4} width={18} height={18} rx={2} ry={2} />
-            <line x1={16} y1={2} x2={16} y2={6} />
-            <line x1={8} y1={2} x2={8} y2={6} />
-            <line x1={3} y1={10} x2={21} y2={10} />
-          </svg>
-        ),
-        color: "#F59E0B",
-        bgColor: "rgba(245,158,11,0.12)",
-      };
+      return { icon: <Calendar size={18} />, ...palette };
     case "challenge":
-      return {
-        icon: (
-          <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor">
-            <path d="M5 3h14l-1.5 5H6.5L5 3zM12 15a3 3 0 100-6 3 3 0 000 6zm-7 6v-2c0-1.1.9-2 2-2h10a2 2 0 012 2v2H5z" />
-          </svg>
-        ),
-        color: "#00FF88",
-        bgColor: "rgba(0,255,136,0.12)",
-      };
+      return { icon: <Star size={18} fill="currentColor" strokeWidth={0} />, ...palette };
     case "review":
-      return {
-        icon: (
-          <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-          </svg>
-        ),
-        color: "#FBBF24",
-        bgColor: "rgba(251,191,36,0.12)",
-      };
+      return { icon: <Star size={18} fill="currentColor" strokeWidth={0} />, ...palette };
     case "system":
     case "feed":
     default:
-      return {
-        icon: (
-          <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
-            <path d="M13.73 21a2 2 0 01-3.46 0" />
-          </svg>
-        ),
-        color: "#6B7280",
-        bgColor: "rgba(107,114,128,0.12)",
-      };
+      return { icon: <Bell size={18} />, ...palette };
   }
 }
 
@@ -362,10 +304,7 @@ function SwipeableNotification({
 
         {/* Dismiss hint on hover */}
         <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-40 transition-opacity">
-          <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-            <line x1={18} y1={6} x2={6} y2={18} />
-            <line x1={6} y1={6} x2={18} y2={18} />
-          </svg>
+          <X size={16} />
         </div>
       </motion.button>
     </motion.div>
@@ -395,10 +334,7 @@ function EmptyState() {
         className="mb-6"
       >
         <div className="w-20 h-20 rounded-full bg-border/30 flex items-center justify-center">
-          <svg width={36} height={36} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className="text-text-muted/40">
-            <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
-            <path d="M13.73 21a2 2 0 01-3.46 0" />
-          </svg>
+          <Bell size={36} strokeWidth={1.5} className="text-text-muted/40" />
         </div>
       </motion.div>
       <p className="text-[17px] font-bold text-text-muted mb-1">Aucune notification</p>

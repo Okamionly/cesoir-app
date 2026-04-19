@@ -212,7 +212,13 @@ export default function OnboardingPage() {
     <div className="relative flex min-h-dvh flex-col overflow-hidden bg-bg">
       <MeshGradient intensity="low" />
 
-      {/* Skip button */}
+      {/* NOTE: PageHeader intentionally NOT used here.
+          Welcome is a full-bleed slideshow layout: the MeshGradient fills the
+          viewport, slides animate center-stage, and there is no top bar —
+          only a floating "Passer" chip absolutely positioned at top-right.
+          Wrapping in PageHeader would force a chrome row (backdrop-blur,
+          border, flex layout) that competes visually with the slideshow.
+          Skip-button stays as a bare absolute-positioned button. */}
       {!isLast && (
         <button
           onClick={skip}

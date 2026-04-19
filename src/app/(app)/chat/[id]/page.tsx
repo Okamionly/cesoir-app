@@ -2,6 +2,7 @@
 
 import { use, useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 import { chatVariants, springs, micro } from "@/lib/motion-design";
 import { useAuth } from "@/context/AuthContext";
@@ -26,6 +27,7 @@ import QuickReact from "@/components/chat/QuickReact";
 import WeMetFeedback from "@/components/app/WeMetFeedback";
 import { screenMessage } from "@/lib/messageScreening";
 import type { ScreeningResult } from "@/lib/messageScreening";
+import { ChevronRight } from "@/components/ui/lucide";
 import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
 
@@ -491,11 +493,11 @@ export default function ConversationPage({
             {/* Avatar */}
             <div className="relative shrink-0">
               {peer?.avatar_url ? (
-                <img
+                <Image
                   src={peer.avatar_url}
                   alt={peer.name}
-                  loading="lazy"
-                  decoding="async"
+                  width={40}
+                  height={40}
                   className="w-10 h-10 rounded-full object-cover"
                 />
               ) : (
@@ -566,9 +568,7 @@ export default function ConversationPage({
               <p className="text-[13px] font-bold text-text">Vous vous etes vus ?</p>
               <p className="text-[11px] text-text-muted">Dites-nous comment ca s&apos;est passe</p>
             </div>
-            <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="text-accent">
-              <path d="M9 18l6-6-6-6" />
-            </svg>
+            <ChevronRight size={16} strokeWidth={2} className="text-accent" />
           </button>
         </motion.div>
       )}

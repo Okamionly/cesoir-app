@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { motion, useReducedMotion } from "motion/react";
@@ -143,12 +144,15 @@ export default function ProfilePage() {
             }
             transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
           >
-            <div className="w-full h-full rounded-full bg-bg overflow-hidden">
+            <div className="relative w-full h-full rounded-full bg-bg overflow-hidden">
               {avatarUrl ? (
-                <img
+                <Image
                   src={avatarUrl}
                   alt={`Photo de ${profileName}`}
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="160px"
+                  className="object-cover"
+                  priority
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-bg-card">

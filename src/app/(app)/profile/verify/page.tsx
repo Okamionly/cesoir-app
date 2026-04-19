@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { springs, micro, ambient } from "@/lib/motion-design";
 import PageHeader from "@/components/ui/PageHeader";
+import { Camera, ChevronLeft, ChevronRight, Check, Info } from "@/components/ui/lucide";
 
 // ─── Types ───────────────────────────────────────────
 type VerifyMethod = "selfie" | "phone" | "social" | "video";
@@ -199,10 +200,7 @@ function SelfieVerification({ onComplete }: { onComplete: () => void }) {
 
             {/* Camera icon */}
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1" className="opacity-30" aria-hidden="true">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                <circle cx="12" cy="13" r="4" />
-              </svg>
+              <Camera size={48} strokeWidth={1} color="white" className="opacity-30" aria-hidden="true" />
               <p className="text-white/40 text-[12px] mt-2">Camera preview</p>
             </div>
 
@@ -941,9 +939,7 @@ export default function VerifyPage() {
                 className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-safe/15 mb-3"
                 animate={micro.successPop}
               >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-safe" aria-hidden="true">
-                  <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <Check size={24} strokeWidth={2.5} className="text-safe" aria-hidden="true" />
               </motion.div>
               <p className="text-[16px] font-black text-text mb-1">Profil verifie !</p>
               <p className="text-[12px] text-text-muted">
@@ -968,9 +964,7 @@ export default function VerifyPage() {
                 onClick={() => setActiveMethod(null)}
                 className="flex items-center gap-2 text-[13px] text-accent font-semibold mb-4 tap-target"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-accent" aria-hidden="true">
-                  <path d="M15 18l-6-6 6-6" />
-                </svg>
+                <ChevronLeft size={14} strokeWidth={2} className="text-accent" aria-hidden="true" />
                 Methodes de verification
               </button>
 
@@ -1025,9 +1019,7 @@ export default function VerifyPage() {
                         animate={{ scale: 1 }}
                         transition={springs.elastic}
                       >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="text-safe" aria-hidden="true">
-                          <path d="M20 6L9 17l-5-5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
+                        <Check size={20} strokeWidth={2.5} className="text-safe" aria-hidden="true" />
                       </motion.div>
                     ) : (
                       <span className="text-[22px]">{method.icon}</span>
@@ -1053,9 +1045,7 @@ export default function VerifyPage() {
 
                   {/* Chevron */}
                   {!isCompleted && (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-muted shrink-0" aria-hidden="true">
-                      <path d="M9 18l6-6-6-6" />
-                    </svg>
+                    <ChevronRight size={16} strokeWidth={1.5} className="text-text-muted shrink-0" aria-hidden="true" />
                   )}
                 </motion.button>
               );
@@ -1073,10 +1063,7 @@ export default function VerifyPage() {
           >
             <div className="flex gap-3">
               <div className="w-8 h-8 rounded-lg bg-accent/8 flex items-center justify-center shrink-0">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-accent" aria-hidden="true">
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M12 16v-4m0-4h.01" />
-                </svg>
+                <Info size={14} strokeWidth={2} className="text-accent" aria-hidden="true" />
               </div>
               <div>
                 <p className="text-[12px] font-bold text-text mb-1">Pourquoi se verifier ?</p>

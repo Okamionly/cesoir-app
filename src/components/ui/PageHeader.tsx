@@ -79,6 +79,48 @@ export interface PageHeaderProps {
   hideTitle?: boolean;
   /** No bottom padding/border — for pages wanting full-bleed content immediately. */
   borderless?: boolean;
+
+  // ─────────────────────────────────────────
+  // Advanced props (D3 extension)
+  // ─────────────────────────────────────────
+
+  /**
+   * Slot rendered SOUS le hairline gradient, still inside the sticky area.
+   * Use for secondary rows like mode-count chips, horizontal filters, etc.
+   * Distinct from `slotBelowTitle` which renders ABOVE the hairline.
+   */
+  bottomSlot?: React.ReactNode;
+  /**
+   * Replace the ENTIRE title area content (keeps icon + back visible).
+   * Use when the title region needs multi-line custom layout (badge row,
+   * mode pill + timer, etc.) that `title`/`subtitle` can't express.
+   * When provided, `title`, `subtitle`, `titleClassName`, `rackFocus`,
+   * and `hideTitle` are ignored for the title area.
+   */
+  titleSlot?: React.ReactNode;
+  /**
+   * Escape hatch render-prop: fully replace the header chrome while
+   * preserving the outer <header> shell (sticky/tone/hairline/borderless).
+   * Receives a `defaults` object with the standard layout nodes so callers
+   * can opt-in to reusing pieces.
+   *
+   * Usage: only reach for this when leftSlot/bottomSlot/titleSlot can't
+   * express the layout (e.g. live-room with pulsing indicators + multi-row
+   * controls). Most pages should use the declarative props instead.
+   */
+  onHeader?: (defaults: PageHeaderRenderDefaults) => React.ReactNode;
+}
+
+/**
+ * Default nodes passed to `onHeader` render-prop so callers can compose
+ * pieces of the standard chrome (back button, title, actions) without
+ * rebuilding them from scratch.
+ */
+export interface PageHeaderRenderDefaults {
+  backButton: React.ReactNode | null;
+  titleNode: React.ReactNode;
+  actions: React.ReactNode;
+  icon: React.ReactNode;
 }
 
 // ─────────────────────────────────────────
@@ -293,6 +335,9 @@ function PageHeader({
   leftSlot,
   hideTitle = false,
   borderless = false,
+  bottomSlot,
+  titleSlot,
+  onHeader,
 }: PageHeaderProps) {
   const reducedMotion = useReducedMotion();
 
@@ -348,56 +393,104 @@ function PageHeader({
     </div>
   );
 
-  const showTitle = !hideTitle && title != null;
+  const showTitle = !hideTitle && (titleSlot != null || title != null);
+
+  // Renderable slots passed to `onHeader` render-prop.
+  const backButtonNode =
+    (backHref || onBack) ? (
+      <BackButton
+        href={backHref}
+        onBack={onBack}
+        label={backLabel}
+        variant={backIconVariant}
+        tone={tone}
+        magnetic={magneticBack}
+      />
+    ) : null;
+
+  const renderedTitleArea: React.ReactNode = titleSlot != null ? (
+    <div className="flex items-center gap-2 flex-1 min-w-0">
+      {icon != null && (
+        <motion.span
+          className="inline-flex items-center justify-center shrink-0"
+          aria-hidden="true"
+          animate={shouldAnimateIcon ? iconMotion.animate : undefined}
+          transition={shouldAnimateIcon ? iconMotion.transition : undefined}
+        >
+          {icon}
+        </motion.span>
+      )}
+      <div className="flex-1 min-w-0">{titleSlot}</div>
+    </div>
+  ) : titleNode;
+
+  // Compose the default topbar row so render-prop callers can reuse it.
+  const defaultTopRow = (
+    <div className="flex items-center gap-3 px-4 py-3">
+      {leftSlot != null ? (
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          {backButtonNode}
+          <div className="flex-1 min-w-0">{leftSlot}</div>
+        </div>
+      ) : (
+        <>
+          {backButtonNode}
+          {showTitle && (rackFocus && titleSlot == null ? <RackFocus duration={0.5}>{renderedTitleArea}</RackFocus> : renderedTitleArea)}
+        </>
+      )}
+      {rightSlot && <div className="flex-shrink-0">{rightSlot}</div>}
+    </div>
+  );
+
+  const headerClassName = [
+    stickyClass,
+    "relative backdrop-blur-xl",
+    toneClass,
+    borderClass,
+    className ?? "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  // Render-prop escape hatch: gives callers full control over inner chrome
+  // while preserving the <header> shell + hairline semantics.
+  if (onHeader) {
+    const defaults: PageHeaderRenderDefaults = {
+      backButton: backButtonNode,
+      titleNode: renderedTitleArea,
+      actions: rightSlot ?? null,
+      icon: icon ?? null,
+    };
+    return (
+      <header className={headerClassName}>
+        <motion.div
+          initial={reducedMotion ? false : { opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: easings.out }}
+        >
+          {onHeader(defaults)}
+        </motion.div>
+        {hairline && !reducedMotion && !borderless && (
+          <motion.div
+            aria-hidden="true"
+            className="absolute bottom-0 left-0 right-0 h-px"
+            style={{ background: hairline }}
+            animate={{ opacity: [0.3, 0.9, 0.3] }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          />
+        )}
+      </header>
+    );
+  }
 
   return (
-    <header
-      className={[
-        stickyClass,
-        "relative backdrop-blur-xl",
-        toneClass,
-        borderClass,
-        className ?? "",
-      ]
-        .filter(Boolean)
-        .join(" ")}
-    >
+    <header className={headerClassName}>
       <motion.div
-        className="flex items-center gap-3 px-4 py-3"
         initial={reducedMotion ? false : { opacity: 0, y: -8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: easings.out }}
       >
-        {leftSlot != null ? (
-          <div className="flex items-center gap-3 min-w-0 flex-1">
-            {(backHref || onBack) && (
-              <BackButton
-                href={backHref}
-                onBack={onBack}
-                label={backLabel}
-                variant={backIconVariant}
-                tone={tone}
-                magnetic={magneticBack}
-              />
-            )}
-            <div className="flex-1 min-w-0">{leftSlot}</div>
-          </div>
-        ) : (
-          <>
-            {(backHref || onBack) && (
-              <BackButton
-                href={backHref}
-                onBack={onBack}
-                label={backLabel}
-                variant={backIconVariant}
-                tone={tone}
-                magnetic={magneticBack}
-              />
-            )}
-            {showTitle && (rackFocus ? <RackFocus duration={0.5}>{titleNode}</RackFocus> : titleNode)}
-          </>
-        )}
-        {rightSlot && <div className="flex-shrink-0">{rightSlot}</div>}
+        {defaultTopRow}
       </motion.div>
 
       {slotBelowTitle && <div className="px-4 pb-3">{slotBelowTitle}</div>}
@@ -412,6 +505,9 @@ function PageHeader({
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
         />
       )}
+
+      {/* Secondary row below the hairline (still inside sticky area). */}
+      {bottomSlot && <div className="px-4 pb-2">{bottomSlot}</div>}
     </header>
   );
 }

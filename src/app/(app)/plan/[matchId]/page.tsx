@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 import { useParams, useRouter } from "next/navigation";
 import { springs, achievementVariants } from "@/lib/motion-design";
@@ -134,11 +135,11 @@ function MatchHeader({ name, avatar }: { name: string; avatar: string | null }) 
     <div className="flex items-center gap-3">
       <div className="w-10 h-10 rounded-full gradient-bg p-[2px] shadow-glow shrink-0">
         {avatar ? (
-          <img
+          <Image
             src={avatar}
             alt={name}
-            loading="lazy"
-            decoding="async"
+            width={40}
+            height={40}
             className="w-full h-full rounded-full object-cover"
           />
         ) : (

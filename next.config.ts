@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "api.dicebear.com" },
       { protocol: "https", hostname: "ycyxmvzilzkusecpgvbi.supabase.co" },
       { protocol: "https", hostname: "randomuser.me" },
+      { protocol: "https", hostname: "i.pravatar.cc" },
     ],
   },
   async headers() {

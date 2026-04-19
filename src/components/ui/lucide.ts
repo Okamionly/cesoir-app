@@ -90,6 +90,20 @@ export {
   Compass,
   Navigation,
   Home,
+
+  // Documents / reports
+  FileText,
+  MessageSquare,
+
+  // Transfer
+  Upload,
+  Download,
+
+  // Misc product
+  RotateCcw,
+  Flame,
+  Filter,
+  LogOut,
 } from "lucide-react";
 
 export type { LucideIcon } from "lucide-react";

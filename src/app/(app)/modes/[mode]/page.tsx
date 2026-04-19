@@ -4,6 +4,7 @@ import { use, useState, useCallback } from "react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { MODES, type ModeKey } from "@/lib/modes";
 import { VENUES } from "@/lib/venues";
 import { MOCK_PROFILES } from "@/lib/mock-profiles";
@@ -294,11 +295,11 @@ export default function ModeDetailPage({
                     ...springs.elastic,
                   }}
                 >
-                  <img
+                  <Image
                     src={profile.photo}
                     alt={profile.name}
-                    loading="lazy"
-                    decoding="async"
+                    width={44}
+                    height={44}
                     className="w-11 h-11 rounded-full border-2 border-bg object-cover"
                   />
                   <div
@@ -528,11 +529,11 @@ export default function ModeDetailPage({
               transition={{ delay: 0.95 + i * 0.12, ...springs.cinematic }}
             >
               <div className="flex items-center gap-3 mb-3">
-                <img
+                <Image
                   src={review.avatar}
                   alt={review.name}
-                  loading="lazy"
-                  decoding="async"
+                  width={36}
+                  height={36}
                   className="w-9 h-9 rounded-full object-cover"
                 />
                 <div>

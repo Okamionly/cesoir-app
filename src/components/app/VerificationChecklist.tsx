@@ -3,6 +3,7 @@
 import { motion } from "motion/react";
 import Link from "next/link";
 import { springs } from "@/lib/motion-design";
+import { Check, Clock, X, ChevronRight } from "@/components/ui/lucide";
 
 // ─────────────────────────────────────────
 // Types
@@ -76,25 +77,12 @@ const STATUS_CONFIG: Record<
 
 function StatusIcon({ type }: { type: string }) {
   if (type === "check") {
-    return (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M20 6L9 17l-5-5" />
-      </svg>
-    );
+    return <Check size={14} strokeWidth={2.5} aria-hidden="true" />;
   }
   if (type === "clock") {
-    return (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M12 6v6l4 2" />
-      </svg>
-    );
+    return <Clock size={14} strokeWidth={2} aria-hidden="true" />;
   }
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M18 6L6 18M6 6l12 12" />
-    </svg>
-  );
+  return <X size={14} strokeWidth={2.5} aria-hidden="true" />;
 }
 
 // ─────────────────────────────────────────
@@ -102,11 +90,7 @@ function StatusIcon({ type }: { type: string }) {
 // ─────────────────────────────────────────
 
 function ArrowRight() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-text-muted" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M9 18l6-6-6-6" />
-    </svg>
-  );
+  return <ChevronRight size={16} strokeWidth={2} className="text-text-muted" aria-hidden="true" />;
 }
 
 // ─────────────────────────────────────────

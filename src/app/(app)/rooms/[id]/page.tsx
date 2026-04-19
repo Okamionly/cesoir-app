@@ -1,10 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import AudioWave from "@/components/app/AudioWave";
+import PageHeader from "@/components/ui/PageHeader";
 import { useParams, useRouter } from "next/navigation";
+import { ROOM_MODE_COLORS } from "@/lib/rooms-meta";
+import { ArrowLeft, ChevronDown, Mic, MicOff, LogOut } from "@/components/ui/lucide";
 
 // --- Types ---
 
@@ -47,7 +51,7 @@ const MOCK_ROOM_DATA: Record<string, RoomData> = {
     id: "r1",
     title: "Apero virtuel",
     modeLabel: "Night Owl",
-    modeColor: "#6366f1",
+    modeColor: ROOM_MODE_COLORS["night-owl"],
     modeIcon: "\uD83C\uDF19",
     speakers: [
       { name: "Sofia M.", avatar: "https://i.pravatar.cc/150?img=1", isSpeaking: true, isHost: true },
@@ -95,7 +99,7 @@ function getRoomData(id: string): RoomData {
     id,
     title: "Salon vocal",
     modeLabel: "Night Owl",
-    modeColor: "#6366f1",
+    modeColor: ROOM_MODE_COLORS["night-owl"],
     modeIcon: "\uD83C\uDF19",
     speakers: [
       { name: "Hote", avatar: "https://i.pravatar.cc/150?img=60", isSpeaking: true, isHost: true },
@@ -174,71 +178,62 @@ export default function RoomDetailPage() {
 
   return (
     <div className="min-h-screen bg-bg pb-36 flex flex-col">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-bg/95 backdrop-blur-md border-b border-border px-5 pt-3 pb-3">
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 min-w-0">
-              <motion.button
-                onClick={handleLeave}
-                whileTap={{ scale: 0.85, transition: springs.micro }}
-                className="p-1 -ml-1 shrink-0"
-                aria-label="Retour"
-              >
-                <svg
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="text-text-muted"
+      {/* Header — PageHeader with `onHeader` render-prop: live-room chrome
+          needs a bare-icon back button + multi-row title (title → mode pill +
+          timer) + pulsing live pill. `onHeader` preserves PageHeader's shell
+          (sticky/z-40/backdrop-blur/hairline) while giving us full control
+          over the inner layout. */}
+      <PageHeader
+        sticky
+        className="!z-40 bg-bg/95 !backdrop-blur-md"
+        onHeader={() => (
+          <div className="px-5 pt-3 pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 min-w-0">
+                <motion.button
+                  onClick={handleLeave}
+                  whileTap={{ scale: 0.85, transition: springs.micro }}
+                  className="p-1 -ml-1 shrink-0"
+                  aria-label="Retour"
                 >
-                  <path d="M19 12H5" />
-                  <path d="M12 19l-7-7 7-7" />
-                </svg>
-              </motion.button>
-              <div className="min-w-0">
-                <h1 className="text-[15px] font-display font-bold text-text truncate">
-                  {room.title}
-                </h1>
-                <div className="flex items-center gap-2">
-                  <span
-                    className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-semibold text-white"
-                    style={{ backgroundColor: room.modeColor }}
-                  >
-                    <span aria-hidden="true">{room.modeIcon}</span>
-                    {room.modeLabel}
-                  </span>
-                  <span className="text-[10px] text-text-muted font-mono">
-                    {elapsed}
-                  </span>
+                  <ArrowLeft size={20} strokeWidth={2} className="text-text-muted" />
+                </motion.button>
+                <div className="min-w-0">
+                  <h1 className="text-[15px] font-display font-bold text-text truncate">
+                    {room.title}
+                  </h1>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-semibold text-white"
+                      style={{ backgroundColor: room.modeColor }}
+                    >
+                      <span aria-hidden="true">{room.modeIcon}</span>
+                      {room.modeLabel}
+                    </span>
+                    <span className="text-[10px] text-text-muted font-mono">
+                      {elapsed}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Live pill */}
-            <motion.span
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white bg-red-500 shrink-0"
-              animate={{ scale: [1, 1.1, 1] }}
-              transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
-            >
+              {/* Live pill */}
               <motion.span
-                className="w-1.5 h-1.5 rounded-full bg-white"
-                animate={{ opacity: [1, 0.4, 1] }}
-                transition={{ duration: 1, repeat: Infinity }}
-              />
-              {totalListening} en ligne
-            </motion.span>
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold text-white bg-red-500 shrink-0"
+                animate={{ scale: [1, 1.1, 1] }}
+                transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <motion.span
+                  className="w-1.5 h-1.5 rounded-full bg-white"
+                  animate={{ opacity: [1, 0.4, 1] }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                />
+                {totalListening} en ligne
+              </motion.span>
+            </div>
           </div>
-        </motion.div>
-      </header>
+        )}
+      />
 
       {/* Speakers area */}
       <section className="px-4 pt-6" aria-label="Speakers">
@@ -287,17 +282,7 @@ export default function RoomDetailPage() {
             <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">
               Mains levees ({room.handRaises.length})
             </p>
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              className={`text-text-muted transition-transform ${showHandQueue ? "rotate-180" : ""}`}
-            >
-              <path d="M6 9l6 6 6-6" />
-            </svg>
+            <ChevronDown size={12} strokeWidth={2} className={`text-text-muted transition-transform ${showHandQueue ? "rotate-180" : ""}`} />
           </button>
           <AnimatePresence>
             {showHandQueue && (
@@ -318,11 +303,11 @@ export default function RoomDetailPage() {
                       transition={{ ...springs.elastic, delay: i * 0.1 }}
                     >
                       <div className="relative">
-                        <img
+                        <Image
                           src={hr.avatar}
                           alt={hr.name}
-                          loading="lazy"
-                          decoding="async"
+                          width={40}
+                          height={40}
                           className="w-10 h-10 rounded-full object-cover border-2 border-border"
                         />
                         <motion.span
@@ -364,11 +349,11 @@ export default function RoomDetailPage() {
               animate={{ scale: 1, opacity: 1 }}
               transition={{ ...springs.elastic, delay: i * 0.03 }}
             >
-              <img
+              <Image
                 src={listener.avatar}
                 alt={listener.name}
-                loading="lazy"
-                decoding="async"
+                width={36}
+                height={36}
                 className="w-9 h-9 rounded-full object-cover border border-border"
               />
               <span className="text-[9px] text-text-muted truncate max-w-[50px]">
@@ -394,38 +379,9 @@ export default function RoomDetailPage() {
             aria-label={isMuted ? "Activer le micro" : "Couper le micro"}
           >
             {isMuted ? (
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="1" y1="1" x2="23" y2="23" />
-                <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6" />
-                <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2c0 .76-.12 1.49-.34 2.17" />
-                <line x1="12" y1="19" x2="12" y2="23" />
-                <line x1="8" y1="23" x2="16" y2="23" />
-              </svg>
+              <MicOff size={22} strokeWidth={2} />
             ) : (
-              <svg
-                width="22"
-                height="22"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                <line x1="12" y1="19" x2="12" y2="23" />
-                <line x1="8" y1="23" x2="16" y2="23" />
-              </svg>
+              <Mic size={22} strokeWidth={2} />
             )}
           </motion.button>
 
@@ -469,20 +425,7 @@ export default function RoomDetailPage() {
             className="w-14 h-14 rounded-full flex items-center justify-center border-2 border-danger bg-danger/10 text-danger"
             aria-label="Quitter le salon"
           >
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
+            <LogOut size={22} strokeWidth={2} />
           </motion.button>
         </div>
       </div>

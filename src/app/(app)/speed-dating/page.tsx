@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence, type Variants } from "motion/react";
 import { springs, easings } from "@/lib/motion-design";
 import PageHeader from "@/components/ui/PageHeader";
+import { X, Heart } from "@/components/ui/lucide";
 
 // ─────────────────────────────────────────
 // Types
@@ -304,9 +306,11 @@ export default function SpeedDatingPage() {
                     className="absolute w-8 h-8 rounded-full border-2 border-accent/30 overflow-hidden"
                     style={{ left: x - 16, top: y - 16 }}
                   >
-                    <img
+                    <Image
                       src={photo(i % 2 === 0 ? "women" : "men", 10 + i * 7)}
                       alt=""
+                      width={32}
+                      height={32}
                       className="w-full h-full object-cover"
                     />
                   </motion.div>
@@ -374,10 +378,12 @@ export default function SpeedDatingPage() {
               >
                 {/* Photo */}
                 <div className="relative h-56">
-                  <img
+                  <Image
                     src={partner.photo}
                     alt={partner.name}
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="(max-width: 640px) 100vw, 400px"
+                    className="object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
                   <div className="absolute bottom-4 left-4">
@@ -436,9 +442,9 @@ export default function SpeedDatingPage() {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={springs.elastic}
-              className="w-20 h-20 rounded-full overflow-hidden border-3 border-accent/30 mb-4"
+              className="relative w-20 h-20 rounded-full overflow-hidden border-3 border-accent/30 mb-4"
             >
-              <img src={partner.photo} alt={partner.name} className="w-full h-full object-cover" />
+              <Image src={partner.photo} alt={partner.name} fill sizes="80px" className="object-cover" />
             </motion.div>
 
             <h2 className="text-lg font-display font-bold text-text">
@@ -457,10 +463,7 @@ export default function SpeedDatingPage() {
                 className="w-16 h-16 rounded-full bg-card border-2 border-border flex items-center justify-center text-2xl shadow-lg"
                 aria-label="Passer"
               >
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="text-text-muted" aria-hidden="true">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
+                <X size={28} strokeWidth={2.5} className="text-text-muted" aria-hidden="true" />
               </motion.button>
 
               {/* Like */}
@@ -471,9 +474,7 @@ export default function SpeedDatingPage() {
                 className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-2xl shadow-lg shadow-pink-500/20"
                 aria-label="Like"
               >
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="white" aria-hidden="true">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                </svg>
+                <Heart size={28} color="white" fill="white" strokeWidth={0} aria-hidden="true" />
               </motion.button>
             </div>
           </motion.div>
@@ -526,9 +527,11 @@ export default function SpeedDatingPage() {
                     className="flex items-center gap-3 p-3 bg-card border border-accent/30 rounded-2xl"
                   >
                     <div className="relative">
-                      <img
+                      <Image
                         src={m.photo}
                         alt={m.name}
+                        width={48}
+                        height={48}
                         className="w-12 h-12 rounded-full object-cover"
                       />
                       <motion.div
@@ -543,9 +546,7 @@ export default function SpeedDatingPage() {
                         }}
                         transition={{ duration: 1.5, repeat: Infinity }}
                       >
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="white" aria-hidden="true">
-                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                        </svg>
+                        <Heart size={10} color="white" fill="white" strokeWidth={0} aria-hidden="true" />
                       </motion.div>
                     </div>
                     <div className="flex-1 min-w-0">
@@ -581,9 +582,11 @@ export default function SpeedDatingPage() {
                     animate="visible"
                     className="flex items-center gap-3 p-3 bg-card border border-border rounded-xl"
                   >
-                    <img
+                    <Image
                       src={p.photo}
                       alt={p.name}
+                      width={36}
+                      height={36}
                       className="w-9 h-9 rounded-full object-cover"
                     />
                     <span className="text-sm font-medium text-text flex-1">{p.name}</span>

@@ -1,6 +1,7 @@
 "use client";
 
 import { forwardRef } from "react";
+import Image from "next/image";
 import { motion } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import MockQR from "./MockQR";
@@ -75,9 +76,9 @@ function MinimalCard({
         className="w-20 h-20 rounded-2xl p-[2px]"
         style={{ background: `linear-gradient(135deg, ${gradient.from}, ${gradient.to})` }}
       >
-        <div className="w-full h-full rounded-[14px] bg-white flex items-center justify-center overflow-hidden">
+        <div className="relative w-full h-full rounded-[14px] bg-white flex items-center justify-center overflow-hidden">
           {data.avatarUrl ? (
-            <img src={data.avatarUrl} alt="" className="w-full h-full object-cover" />
+            <Image src={data.avatarUrl} alt="" fill sizes="80px" className="object-cover" />
           ) : (
             <span className="text-[28px] font-black" style={{ color: gradient.from }}>
               {data.name.charAt(0).toUpperCase()}
@@ -159,9 +160,9 @@ function GradientCard({
 
       {/* Avatar */}
       <div className="w-24 h-24 rounded-2xl p-[3px] bg-white/20 backdrop-blur">
-        <div className="w-full h-full rounded-[13px] bg-white/10 backdrop-blur flex items-center justify-center overflow-hidden">
+        <div className="relative w-full h-full rounded-[13px] bg-white/10 backdrop-blur flex items-center justify-center overflow-hidden">
           {data.avatarUrl ? (
-            <img src={data.avatarUrl} alt="" className="w-full h-full object-cover" />
+            <Image src={data.avatarUrl} alt="" fill sizes="96px" className="object-cover" />
           ) : (
             <span className="text-[36px] font-black text-white">
               {data.name.charAt(0).toUpperCase()}
@@ -282,9 +283,9 @@ function NeonCard({
           boxShadow: `0 0 20px ${gradient.from}50, 0 0 40px ${gradient.to}25`,
         }}
       >
-        <div className="w-20 h-20 rounded-[14px] bg-[#0A0A0A] flex items-center justify-center overflow-hidden">
+        <div className="relative w-20 h-20 rounded-[14px] bg-[#0A0A0A] flex items-center justify-center overflow-hidden">
           {data.avatarUrl ? (
-            <img src={data.avatarUrl} alt="" className="w-full h-full object-cover" />
+            <Image src={data.avatarUrl} alt="" fill sizes="80px" className="object-cover" />
           ) : (
             <span
               className="text-[30px] font-black"

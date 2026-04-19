@@ -5,23 +5,14 @@ import { motion, AnimatePresence } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import { useSubscription } from "@/lib/useSubscription";
 import { SUBSCRIPTION_PLANS, formatPrice, type SubscriptionPlan } from "@/lib/stripe/plans";
+import { BENEFITS } from "@/lib/premium-benefits";
+import { app as appTokens } from "@/lib/design-tokens";
 import Link from "next/link";
 
-// ─────────────────────────────────────────
-// Benefits data
-// ─────────────────────────────────────────
-
-// Per-benefit brand colors — domain meta array (mapped to CSS vars where possible).
-// Blue (#3B82F6) and gray (#9CA3AF) kept as raw hex because they encode
-// per-benefit semantics outside the W&B palette.
-const BENEFITS = [
-  { icon: "👁️", iconColor: "var(--color-accent)", title: "Voir qui t'a like", description: "Decouvre qui s'interesse a toi avant meme de swiper." },
-  { icon: "💚", iconColor: "var(--color-accent-2)", title: "Likes illimites", description: "Plus aucune limite. Like autant que tu veux, chaque soir." },
-  { icon: "↩️", iconColor: "#3B82F6", title: "Retour en arriere", description: "Tu as passe quelqu'un trop vite ? Reviens en arriere." },
-  { icon: "🚀", iconColor: "var(--color-warn)", title: "Boost profil 1x/semaine", description: "Ton profil en tete pendant 30 minutes, chaque semaine." },
-  { icon: "👻", iconColor: "#9CA3AF", title: "Mode Invisible", description: "Navigue sans etre vu. Toi seul decides qui te voit." },
-  { icon: "👑", iconColor: "var(--color-warn)", title: "Badge Premium exclusif", description: "Un badge dore qui te distingue sur tous les profils." },
-] as const;
+// Premium gold shimmer — resolved via design tokens so the page stays
+// hex-free while preserving the gold gradient identity.
+const GOLD_SHIMMER = `linear-gradient(135deg, var(--color-warn), ${appTokens.gold}, var(--color-warn))`;
+const GOLD_GRADIENT = `linear-gradient(135deg, var(--color-warn), ${appTokens.gold})`;
 
 // ─────────────────────────────────────────
 // FAQ data
@@ -143,7 +134,7 @@ export default function PremiumPage() {
           transition={{ ...springs.elastic, delay: 0.1 }}
           className="text-[28px] font-display font-bold"
           style={{
-            background: "linear-gradient(135deg, var(--color-warn), #FBBF24, var(--color-warn))",
+            background: GOLD_SHIMMER,
             backgroundSize: "200% 200%",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
@@ -224,7 +215,7 @@ export default function PremiumPage() {
               disabled={busy === "portal"}
               onClick={handleManage}
               className="mt-4 w-full py-3 rounded-full text-[14px] font-bold text-white disabled:opacity-60"
-              style={{ background: "linear-gradient(135deg, var(--color-warn), #FBBF24)" }}
+              style={{ background: GOLD_GRADIENT }}
             >
               {busy === "portal" ? "Ouverture..." : "Gérer ma subscription"}
             </motion.button>
@@ -306,7 +297,7 @@ export default function PremiumPage() {
               disabled={busy === "checkout" || isLoading}
               onClick={handleSubscribe}
               className="w-full py-4 rounded-full text-[16px] font-bold text-white disabled:opacity-60"
-              style={{ background: "linear-gradient(135deg, var(--color-warn), #FBBF24)" }}
+              style={{ background: GOLD_GRADIENT }}
               aria-label={`S'abonner à ${selectedPlan?.name ?? "Premium"}`}
             >
               {busy === "checkout"

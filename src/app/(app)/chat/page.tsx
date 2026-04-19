@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 import { useAuth } from "@/context/AuthContext";
 import { useConversations } from "@/lib/useConversations";
@@ -232,9 +233,11 @@ function ConversationRow({
         {/* Avatar */}
         <div className="relative shrink-0">
           {convo.peer.avatar_url ? (
-            <img
+            <Image
               src={convo.peer.avatar_url}
               alt={convo.peer.name}
+              width={56}
+              height={56}
               className="w-14 h-14 rounded-full object-cover"
             />
           ) : (
@@ -309,9 +312,11 @@ function MatchBubble({ convo }: { convo: ConversationPreview }) {
     >
       <div className="relative">
         {convo.peer.avatar_url ? (
-          <img
+          <Image
             src={convo.peer.avatar_url}
             alt={convo.peer.name}
+            width={64}
+            height={64}
             className="w-16 h-16 rounded-full object-cover ring-2 ring-accent ring-offset-2 ring-offset-bg"
           />
         ) : (

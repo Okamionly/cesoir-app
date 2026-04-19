@@ -4,34 +4,15 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence, type Variants } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import Link from "next/link";
+import Image from "next/image";
 import { useRooms, type Room } from "@/lib/useRooms";
+import { modeMeta, ROOM_MODE_COLORS } from "@/lib/rooms-meta";
 import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
 
 // --- Helpers ---
 function minutesSince(iso: string): number {
   return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 60_000));
-}
-
-function modeMeta(mode: string | null): { label: string; color: string; icon: string; category: "discussion" | "debat" | "ambiance" } {
-  // Per-mode brand colors — domain meta (not UI surface tokens). Hex values
-  // encode product semantics, kept raw like src/lib/modes.ts.
-  switch (mode) {
-    case "night-owl":
-      return { label: "Night Owl", color: "#6366f1", icon: "\uD83C\uDF19", category: "discussion" };
-    case "culture-club":
-      return { label: "Culture Club", color: "#7c3aed", icon: "\uD83C\uDFAD", category: "debat" };
-    case "sober-tonight":
-      return { label: "Sober Tonight", color: "#059669", icon: "\uD83C\uDF75", category: "ambiance" };
-    case "plus-one":
-      return { label: "Plus-One", color: "#ec4899", icon: "\uD83C\uDFAC", category: "discussion" };
-    case "solo-diner":
-      return { label: "Solo Diner", color: "#a855f7", icon: "\uD83C\uDF7D\uFE0F", category: "debat" };
-    case "foodie-quest":
-      return { label: "Foodie Quest", color: "#dc2626", icon: "\uD83D\uDD25", category: "ambiance" };
-    default:
-      return { label: "CeSoir", color: "#8B5CF6", icon: "\uD83C\uDF99\uFE0F", category: "discussion" };
-  }
 }
 
 // --- Types ---
@@ -79,7 +60,7 @@ const MOCK_ROOMS: MockRoom[] = [
     listenerCount: 23,
     category: "discussion",
     modeLabel: "Night Owl",
-    modeColor: "#6366f1",
+    modeColor: ROOM_MODE_COLORS["night-owl"],
     modeIcon: "\uD83C\uDF19",
     startedMinutesAgo: 12,
   },
@@ -95,7 +76,7 @@ const MOCK_ROOMS: MockRoom[] = [
     listenerCount: 41,
     category: "debat",
     modeLabel: "Culture Club",
-    modeColor: "#7c3aed",
+    modeColor: ROOM_MODE_COLORS["culture-club"],
     modeIcon: "\uD83C\uDFAD",
     startedMinutesAgo: 34,
   },
@@ -109,7 +90,7 @@ const MOCK_ROOMS: MockRoom[] = [
     listenerCount: 15,
     category: "ambiance",
     modeLabel: "Sober Tonight",
-    modeColor: "#059669",
+    modeColor: ROOM_MODE_COLORS["sober-tonight"],
     modeIcon: "\uD83C\uDF75",
     startedMinutesAgo: 8,
   },
@@ -124,7 +105,7 @@ const MOCK_ROOMS: MockRoom[] = [
     listenerCount: 37,
     category: "discussion",
     modeLabel: "Plus-One",
-    modeColor: "#ec4899",
+    modeColor: ROOM_MODE_COLORS["plus-one"],
     modeIcon: "\uD83C\uDFAC",
     startedMinutesAgo: 19,
   },
@@ -140,7 +121,7 @@ const MOCK_ROOMS: MockRoom[] = [
     listenerCount: 29,
     category: "debat",
     modeLabel: "Solo Diner",
-    modeColor: "#a855f7",
+    modeColor: ROOM_MODE_COLORS["solo-diner"],
     modeIcon: "\uD83C\uDF7D\uFE0F",
     startedMinutesAgo: 45,
   },
@@ -154,7 +135,7 @@ const MOCK_ROOMS: MockRoom[] = [
     listenerCount: 11,
     category: "ambiance",
     modeLabel: "Foodie Quest",
-    modeColor: "#dc2626",
+    modeColor: ROOM_MODE_COLORS["foodie-quest"],
     modeIcon: "\uD83D\uDD25",
     startedMinutesAgo: 5,
   },
@@ -231,11 +212,11 @@ function RoomCard({ room }: { room: MockRoom }) {
               background: `linear-gradient(135deg, ${room.modeColor}, var(--color-accent))`,
             }}
           >
-            <img
+            <Image
               src={room.host.avatar}
               alt={room.host.name}
-              loading="lazy"
-              decoding="async"
+              width={32}
+              height={32}
               className="w-full h-full rounded-full object-cover border-2 border-card"
             />
           </div>
