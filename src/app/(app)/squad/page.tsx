@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { springs, micro, ambient } from "@/lib/motion-design";
+import { springs, ambient } from "@/lib/motion-design";
 import { RackFocus } from "@/components/motion/RackFocus";
+import { useSquad } from "@/lib/useSquad";
 
 // --- Types ---
 
@@ -27,13 +28,10 @@ function photo(gender: "women" | "men", id: number): string {
   return `https://randomuser.me/api/portraits/${gender}/${id}.jpg`;
 }
 
-function generateInviteCode(): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let code = "";
-  for (let i = 0; i < 6; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return code;
+function avatarFor(name: string, fallbackId: number): string {
+  // Deterministic randomuser avatar based on first char of name.
+  const code = name.charCodeAt(0) % 2 === 0 ? "women" : "men";
+  return photo(code, (fallbackId % 99) + 1);
 }
 
 // --- Mock Data (8 squads) ---
@@ -129,34 +127,71 @@ const MOCK_SQUADS: Squad[] = [
 // --- Component ---
 
 export default function SquadPage() {
-  const [inviteCode] = useState(generateInviteCode);
-  const [joinCode, setJoinCode] = useState("");
-  const [mySquad, setMySquad] = useState<SquadMember[]>([]);
-  const [copied, setCopied] = useState(false);
+  const { mySquad: dbSquad, activeSquads, myInvite, createSquad, generateInvite, joinByCode } = useSquad();
 
-  const inviteLink = `cesoir.app/invite/${inviteCode}`;
+  const [joinCode, setJoinCode] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [joinError, setJoinError] = useState<string | null>(null);
+
+  const inviteCode = myInvite?.code ?? null;
+  const inviteLink = inviteCode ? `cesoir.app/invite/${inviteCode}` : "Pas encore de squad";
+
+  // Derive a view-model compatible with existing UI
+  const mySquad: SquadMember[] = dbSquad
+    ? dbSquad.members.map((m, i) => ({
+        id: m.id,
+        name: m.name,
+        photo: m.avatar ?? avatarFor(m.name, i),
+      }))
+    : [];
+
+  // Map real DB squads to fallback view shape, with placeholder activity/distance
+  const MOCK_FALLBACK_SQUADS: Squad[] = activeSquads.map((s, idx) => ({
+    id: s.id,
+    members: s.members.map((m, i) => ({
+      id: m.id,
+      name: m.name,
+      photo: m.avatar ?? avatarFor(m.name, idx * 4 + i),
+    })),
+    activity: s.name,
+    distance: 1 + (idx % 4) * 0.7,
+    mode: s.mode ?? "CeSoir",
+  }));
 
   const handleCopy = async () => {
+    if (!inviteCode) return;
     try {
       await navigator.clipboard.writeText(inviteLink);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback for unsupported browsers
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
   };
 
-  const handleJoin = () => {
-    if (joinCode.trim().length === 6) {
-      // Simulate joining a squad
-      setMySquad([
-        { id: "me", name: "Moi", photo: photo("men", 10) },
-        { id: "friend1", name: "Alex", photo: photo("men", 32) },
-      ]);
+  const handleJoin = async () => {
+    if (joinCode.trim().length !== 6 || busy) return;
+    setBusy(true);
+    setJoinError(null);
+    const ok = await joinByCode(joinCode.trim());
+    setBusy(false);
+    if (ok) {
       setJoinCode("");
+    } else {
+      setJoinError("Code invalide ou squad complet");
     }
+  };
+
+  const handleCreateSquad = async () => {
+    if (busy) return;
+    setBusy(true);
+    const id = await createSquad("Mon squad");
+    if (id) {
+      await generateInvite(id);
+    }
+    setBusy(false);
   };
 
   return (
@@ -242,7 +277,7 @@ export default function SquadPage() {
           )}
 
           {/* Join with code */}
-          <div className="flex gap-2 mb-3">
+          <div className="flex gap-2 mb-2">
             <input
               type="text"
               value={joinCode}
@@ -255,7 +290,7 @@ export default function SquadPage() {
             {/* 4. "Rejoindre" button: whileHover scale:1.05 y:-2 with glow, whileTap scale:0.92 */}
             <motion.button
               onClick={handleJoin}
-              disabled={joinCode.length !== 6}
+              disabled={joinCode.length !== 6 || busy}
               whileHover={{ scale: 1.05, y: -2, boxShadow: "0 0 20px rgba(139,92,246,0.4)" }}
               whileTap={{ scale: 0.92 }}
               transition={springs.snap}
@@ -265,6 +300,19 @@ export default function SquadPage() {
               Rejoindre
             </motion.button>
           </div>
+          {joinError && (
+            <p className="text-[11px] text-red-400 mb-2">{joinError}</p>
+          )}
+          {!inviteCode && mySquad.length === 0 && (
+            <motion.button
+              onClick={handleCreateSquad}
+              disabled={busy}
+              whileTap={{ scale: 0.95 }}
+              className="w-full mb-3 py-2.5 rounded-xl border border-accent/30 text-accent text-sm font-semibold hover:bg-accent/10 transition-colors disabled:opacity-50"
+            >
+              {busy ? "Creation..." : "Creer mon squad"}
+            </motion.button>
+          )}
 
           {/* Share invite link — 8. Invite code section: slide from right */}
           <motion.div
@@ -326,7 +374,7 @@ export default function SquadPage() {
           </motion.h2>
 
           <div className="space-y-3">
-            {MOCK_SQUADS.map((squad, i) => (
+            {(MOCK_FALLBACK_SQUADS.length > 0 ? MOCK_FALLBACK_SQUADS : MOCK_SQUADS).map((squad, i) => (
               /* 2. Squad cards: initial={opacity:0, y:40, scale:0.9} with springs.heavy + stagger 0.1 */
               <motion.div
                 key={squad.id}

@@ -4,6 +4,32 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence, type Variants } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import Link from "next/link";
+import { useRooms, type Room } from "@/lib/useRooms";
+
+// --- Helpers ---
+function minutesSince(iso: string): number {
+  return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 60_000));
+}
+
+function modeMeta(mode: string | null): { label: string; color: string; icon: string; category: "discussion" | "debat" | "ambiance" } {
+  // Lightweight mapping — keeps UI consistent with prior mock.
+  switch (mode) {
+    case "night-owl":
+      return { label: "Night Owl", color: "#6366f1", icon: "\uD83C\uDF19", category: "discussion" };
+    case "culture-club":
+      return { label: "Culture Club", color: "#7c3aed", icon: "\uD83C\uDFAD", category: "debat" };
+    case "sober-tonight":
+      return { label: "Sober Tonight", color: "#059669", icon: "\uD83C\uDF75", category: "ambiance" };
+    case "plus-one":
+      return { label: "Plus-One", color: "#ec4899", icon: "\uD83C\uDFAC", category: "discussion" };
+    case "solo-diner":
+      return { label: "Solo Diner", color: "#a855f7", icon: "\uD83C\uDF7D\uFE0F", category: "debat" };
+    case "foodie-quest":
+      return { label: "Foodie Quest", color: "#dc2626", icon: "\uD83D\uDD25", category: "ambiance" };
+    default:
+      return { label: "CeSoir", color: "#8B5CF6", icon: "\uD83C\uDF99\uFE0F", category: "discussion" };
+  }
+}
 
 // --- Types ---
 
@@ -273,11 +299,35 @@ function RoomCard({ room }: { room: MockRoom }) {
 
 export default function RoomsPage() {
   const [activeCategory, setActiveCategory] = useState<RoomCategory>("tous");
+  const { rooms: dbRooms, loading } = useRooms();
+
+  // Map DB rooms to MockRoom shape (UI contract), fall back to mock if empty
+  const liveRooms: MockRoom[] = useMemo(() => {
+    if (dbRooms.length === 0) return MOCK_ROOMS;
+    return dbRooms.map((r: Room): MockRoom => {
+      const m = modeMeta(r.mode);
+      return {
+        id: r.id,
+        title: r.title,
+        host: {
+          name: r.hostName,
+          avatar: r.hostAvatar ?? `https://i.pravatar.cc/150?u=${r.hostId}`,
+        },
+        speakers: [],
+        listenerCount: r.currentListeners,
+        category: m.category,
+        modeLabel: m.label,
+        modeColor: m.color,
+        modeIcon: m.icon,
+        startedMinutesAgo: minutesSince(r.startedAt),
+      };
+    });
+  }, [dbRooms]);
 
   const filteredRooms = useMemo(() => {
-    if (activeCategory === "tous") return MOCK_ROOMS;
-    return MOCK_ROOMS.filter((r) => r.category === activeCategory);
-  }, [activeCategory]);
+    if (activeCategory === "tous") return liveRooms;
+    return liveRooms.filter((r) => r.category === activeCategory);
+  }, [activeCategory, liveRooms]);
 
   return (
     <div className="min-h-screen bg-bg pb-28">
@@ -297,7 +347,7 @@ export default function RoomsPage() {
                 Salons vocaux
               </h1>
               <span className="text-[10px] text-accent/70 font-medium ml-1">
-                {MOCK_ROOMS.length} live
+                {loading ? "..." : `${liveRooms.length} live`}
               </span>
             </div>
             <motion.button

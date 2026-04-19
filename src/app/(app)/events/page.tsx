@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence, type Variants } from "motion/react";
-import { springs, micro } from "@/lib/motion-design";
-import { MODES, type ModeKey } from "@/lib/modes";
-import { MOCK_EVENTS, type PopUpEvent } from "@/lib/popup-events";
+import { springs } from "@/lib/motion-design";
+import { MODES } from "@/lib/modes";
+import { type PopUpEvent } from "@/lib/popup-events";
+import { useEvents } from "@/lib/useEvents";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import CrossLinkCard from "@/components/app/CrossLinkCard";
@@ -262,46 +263,36 @@ function EventsSkeleton() {
 
 export default function EventsPage() {
   const [activeTab, setActiveTab] = useState<FilterTab>("tous");
-  const [joined, setJoined] = useState<Set<string>>(new Set());
   const [refreshing, setRefreshing] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [events, setEvents] = useState<PopUpEvent[]>([]);
+  const { events, loading, joinedIds, toggleRsvp, refresh } = useEvents();
 
-  // Simulate initial load
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setEvents(sortByTime(MOCK_EVENTS));
-      setLoading(false);
-    }, 600);
-    return () => clearTimeout(timer);
-  }, []);
+  const sortedEvents = useMemo(() => sortByTime(events), [events]);
 
   const filteredEvents = useMemo(() => {
     switch (activeTab) {
       case "pres":
-        return [...events].sort((a, b) => (DISTANCES[a.id] ?? 99) - (DISTANCES[b.id] ?? 99));
+        return [...sortedEvents].sort((a, b) => (DISTANCES[a.id] ?? 99) - (DISTANCES[b.id] ?? 99));
       case "mes":
-        return events.filter((e) => joined.has(e.id));
+        return sortedEvents.filter((e) => joinedIds.has(e.id));
       default:
-        return events;
+        return sortedEvents;
     }
-  }, [activeTab, events, joined]);
+  }, [activeTab, sortedEvents, joinedIds]);
 
-  const toggleJoin = useCallback((id: string) => {
-    setJoined((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
+  const toggleJoin = useCallback(
+    (id: string) => {
+      void toggleRsvp(id).catch(() => {
+        /* handled inside hook */
+      });
+    },
+    [toggleRsvp],
+  );
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    await new Promise((r) => setTimeout(r, 800));
-    setEvents(sortByTime(MOCK_EVENTS).sort(() => Math.random() - 0.5));
+    await refresh();
     setRefreshing(false);
-  }, []);
+  }, [refresh]);
 
   return (
     <div className="min-h-screen bg-bg pb-28">
@@ -320,7 +311,7 @@ export default function EventsPage() {
               </motion.span>
               <h1 className="text-base font-display font-bold text-text">Events ce soir</h1>
               <span className="text-[10px] text-accent/70 font-medium ml-1">
-                {events.length} events
+                {sortedEvents.length} events
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -452,7 +443,7 @@ export default function EventsPage() {
                 <EventCard
                   event={event}
                   distance={activeTab === "pres" ? DISTANCES[event.id] : undefined}
-                  isJoined={joined.has(event.id)}
+                  isJoined={joinedIds.has(event.id)}
                   onToggleJoin={() => toggleJoin(event.id)}
                 />
               </motion.div>

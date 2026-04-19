@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence, type Variants } from "motion/react";
 import { springs, micro, ambient } from "@/lib/motion-design";
 import { RackFocus } from "@/components/motion/RackFocus";
+import { useFlashPlans } from "@/lib/useFlashPlans";
 
 interface FlashPlan {
   id: string;
@@ -193,33 +194,70 @@ function AttendeeProgressBar({ count, max }: { count: number; max: number }) {
 
 export default function FlashPlansPage() {
   const [filter, setFilter] = useState("Tous");
-  const [interested, setInterested] = useState<Set<string>>(new Set());
-  const [plans, setPlans] = useState(PLANS);
+  const {
+    flashPlans: dbPlans,
+    myInterest,
+    toggleInterest: toggleInterestDb,
+    createFlashPlan,
+  } = useFlashPlans();
 
-  const filtered = filter === "Tous" ? plans : plans.filter(p => p.category === filter);
+  // Optimistic local toggles merge with DB state
+  const [optimisticInterest, setOptimisticInterest] = useState<Set<string>>(new Set());
 
-  const toggleInterest = useCallback((id: string) => {
-    setInterested(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
+  // Convert DB plans to UI shape. Fall back to mock when DB is empty.
+  const plans: FlashPlan[] = useMemo(() => {
+    if (dbPlans.length === 0) return PLANS;
+    return dbPlans.map((p) => {
+      const deadlineMs = new Date(p.deadline).getTime() - Date.now();
+      return {
+        id: p.id,
+        emoji: "\u26A1",
+        title: p.title,
+        venue: p.whereText || "A definir",
+        deadlineMin: Math.max(0, Math.floor(deadlineMs / 60_000)),
+        interested: p.participants.length,
+        category: p.mode ?? "Tous",
+        avatars: p.participants.slice(0, 6).map((x) => (x.name[0] ?? "?").toUpperCase()),
+      };
     });
-  }, []);
+  }, [dbPlans]);
 
-  const handleCreatePlan = useCallback(() => {
-    const newPlan: FlashPlan = {
-      id: `new-${Date.now()}`,
-      emoji: "\u{2728}",
+  const interested = myInterest.size > 0 || dbPlans.length > 0 ? myInterest : optimisticInterest;
+
+  const filtered = filter === "Tous" ? plans : plans.filter((p) => p.category === filter);
+
+  const toggleInterest = useCallback(
+    (id: string) => {
+      if (dbPlans.length > 0) {
+        void toggleInterestDb(id);
+      } else {
+        setOptimisticInterest((prev) => {
+          const next = new Set(prev);
+          if (next.has(id)) next.delete(id);
+          else next.add(id);
+          return next;
+        });
+      }
+    },
+    [dbPlans.length, toggleInterestDb],
+  );
+
+  const handleCreatePlan = useCallback(async () => {
+    const now = new Date();
+    const whenAt = new Date(now.getTime() + 60 * 60_000);
+    const deadline = new Date(now.getTime() + 30 * 60_000);
+    const id = await createFlashPlan({
       title: "Nouveau plan flash !",
-      venue: "A definir",
-      deadlineMin: 60,
-      interested: 1,
-      category: CATEGORIES[Math.floor(Math.random() * (CATEGORIES.length - 1)) + 1],
-      avatars: ["?"],
-    };
-    setPlans(prev => [newPlan, ...prev]);
-  }, []);
+      whenAt: whenAt.toISOString(),
+      deadline: deadline.toISOString(),
+      whereText: "A definir",
+      maxParticipants: 6,
+    });
+    if (!id) {
+      // Fallback to local-only when DB fails (e.g. not auth)
+      // Not adding to state here since `plans` is derived from DB
+    }
+  }, [createFlashPlan]);
 
   return (
     <div className="min-h-screen bg-bg relative">

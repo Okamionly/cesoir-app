@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { springs } from "@/lib/motion-design";
+import { useSubscription } from "@/lib/useSubscription";
+import { SUBSCRIPTION_PLANS, formatPrice, type SubscriptionPlan } from "@/lib/stripe/plans";
 import Link from "next/link";
 
 // ─────────────────────────────────────────
@@ -10,42 +12,12 @@ import Link from "next/link";
 // ─────────────────────────────────────────
 
 const BENEFITS = [
-  {
-    icon: "👁️",
-    iconColor: "#8B5CF6",
-    title: "Voir qui t'a like",
-    description: "Decouvre qui s'interesse a toi avant meme de swiper.",
-  },
-  {
-    icon: "💚",
-    iconColor: "#00FF88",
-    title: "Likes illimites",
-    description: "Plus aucune limite. Like autant que tu veux, chaque soir.",
-  },
-  {
-    icon: "↩️",
-    iconColor: "#3B82F6",
-    title: "Retour en arriere",
-    description: "Tu as passe quelqu'un trop vite ? Reviens en arriere.",
-  },
-  {
-    icon: "🚀",
-    iconColor: "#F59E0B",
-    title: "Boost profil 1x/semaine",
-    description: "Ton profil en tete pendant 30 minutes, chaque semaine.",
-  },
-  {
-    icon: "👻",
-    iconColor: "#9CA3AF",
-    title: "Mode Invisible",
-    description: "Navigue sans etre vu. Toi seul decides qui te voit.",
-  },
-  {
-    icon: "👑",
-    iconColor: "#F59E0B",
-    title: "Badge Premium exclusif",
-    description: "Un badge dore qui te distingue sur tous les profils.",
-  },
+  { icon: "👁️", iconColor: "#8B5CF6", title: "Voir qui t'a like", description: "Decouvre qui s'interesse a toi avant meme de swiper." },
+  { icon: "💚", iconColor: "#00FF88", title: "Likes illimites", description: "Plus aucune limite. Like autant que tu veux, chaque soir." },
+  { icon: "↩️", iconColor: "#3B82F6", title: "Retour en arriere", description: "Tu as passe quelqu'un trop vite ? Reviens en arriere." },
+  { icon: "🚀", iconColor: "#F59E0B", title: "Boost profil 1x/semaine", description: "Ton profil en tete pendant 30 minutes, chaque semaine." },
+  { icon: "👻", iconColor: "#9CA3AF", title: "Mode Invisible", description: "Navigue sans etre vu. Toi seul decides qui te voit." },
+  { icon: "👑", iconColor: "#F59E0B", title: "Badge Premium exclusif", description: "Un badge dore qui te distingue sur tous les profils." },
 ] as const;
 
 // ─────────────────────────────────────────
@@ -53,44 +25,18 @@ const BENEFITS = [
 // ─────────────────────────────────────────
 
 const FAQ = [
-  {
-    question: "Puis-je annuler a tout moment ?",
-    answer:
-      "Oui, tu peux annuler ton abonnement quand tu veux. Tu conserves les avantages jusqu'a la fin de la periode payee.",
-  },
-  {
-    question: "L'essai gratuit est-il vraiment gratuit ?",
-    answer:
-      "Absolument. Pendant 7 jours, tu as acces a toutes les fonctionnalites Premium sans etre debite. Annule avant la fin si ca ne te convient pas.",
-  },
-  {
-    question: "Comment fonctionne le boost profil ?",
-    answer:
-      "Chaque semaine, tu peux activer un boost qui place ton profil en priorite pendant 30 minutes. Les autres utilisateurs te voient en premier.",
-  },
+  { question: "Puis-je annuler a tout moment ?", answer: "Oui, tu peux annuler ton abonnement quand tu veux depuis le portail de facturation. Tu conserves les avantages jusqu'a la fin de la periode payee." },
+  { question: "L'essai gratuit est-il vraiment gratuit ?", answer: "Absolument. Pendant 7 jours, tu as acces a toutes les fonctionnalites Premium sans etre debite. Annule avant la fin si ca ne te convient pas." },
+  { question: "Comment fonctionne le boost profil ?", answer: "Chaque semaine, tu peux activer un boost qui place ton profil en priorite pendant 30 minutes. Les autres utilisateurs te voient en premier." },
+  { question: "Quels moyens de paiement acceptez-vous ?", answer: "Tous les paiements sont sécurisés via Stripe : carte bancaire, Apple Pay, Google Pay et plus. Aucune donnée bancaire n'est stockée chez nous." },
 ] as const;
 
 // ─────────────────────────────────────────
-// Plan type
+// FAQ Item
 // ─────────────────────────────────────────
 
-type Plan = "monthly" | "annual";
-
-// ─────────────────────────────────────────
-// FAQ Item component
-// ─────────────────────────────────────────
-
-function FAQItem({
-  question,
-  answer,
-  index,
-}: {
-  question: string;
-  answer: string;
-  index: number;
-}) {
+function FAQItem({ question, answer, index }: { question: string; answer: string; index: number }) {
   const [open, setOpen] = useState(false);
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -103,9 +49,7 @@ function FAQItem({
         className="w-full flex items-center justify-between px-5 py-4 text-left tap-target"
         aria-expanded={open}
       >
-        <span className="text-[14px] font-semibold text-text pr-4">
-          {question}
-        </span>
+        <span className="text-[14px] font-semibold text-text pr-4">{question}</span>
         <motion.span
           animate={{ rotate: open ? 180 : 0 }}
           transition={springs.snap}
@@ -124,9 +68,7 @@ function FAQItem({
             transition={springs.snap}
             className="overflow-hidden"
           >
-            <p className="px-5 pb-4 text-[13px] text-text-muted leading-relaxed">
-              {answer}
-            </p>
+            <p className="px-5 pb-4 text-[13px] text-text-muted leading-relaxed">{answer}</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -135,26 +77,54 @@ function FAQItem({
 }
 
 // ─────────────────────────────────────────
-// Page component
+// Page
 // ─────────────────────────────────────────
 
 export default function PremiumPage() {
-  const [selectedPlan, setSelectedPlan] = useState<Plan>("annual");
+  const { isPremium, subscription, isLoading, error, startCheckout, openPortal } = useSubscription();
+  const [busy, setBusy] = useState<string | null>(null);
+
+  // Only show paid plans in the picker
+  const paidPlans = useMemo(
+    () => SUBSCRIPTION_PLANS.filter((p) => p.tier === "premium"),
+    [],
+  );
+
+  const [selectedPlanId, setSelectedPlanId] = useState<string>(() => {
+    const recommended = paidPlans.find((p) => p.recommended);
+    return recommended?.id ?? paidPlans[0]?.id ?? "premium_annual";
+  });
+
+  const selectedPlan: SubscriptionPlan | undefined = paidPlans.find((p) => p.id === selectedPlanId);
+
+  const handleSubscribe = async () => {
+    if (!selectedPlan) return;
+    setBusy("checkout");
+    try {
+      await startCheckout(selectedPlan.priceId);
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const handleManage = async () => {
+    setBusy("portal");
+    try {
+      await openPortal();
+    } finally {
+      setBusy(null);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-bg max-w-lg mx-auto pb-safe">
       {/* ── Header ── */}
       <div className="relative px-6 pt-14 pb-10 text-center overflow-hidden">
-        {/* Background glow */}
         <div
           className="absolute inset-0 opacity-15 pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(ellipse at 50% 30%, #F59E0B 0%, transparent 70%)",
-          }}
+          style={{ background: "radial-gradient(ellipse at 50% 30%, #F59E0B 0%, transparent 70%)" }}
           aria-hidden="true"
         />
-
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -164,7 +134,6 @@ export default function PremiumPage() {
         >
           👑
         </motion.div>
-
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -180,7 +149,6 @@ export default function PremiumPage() {
         >
           CeSoir Premium
         </motion.h1>
-
         <motion.p
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -189,6 +157,21 @@ export default function PremiumPage() {
         >
           Debloques toutes les fonctionnalites. Fais la difference.
         </motion.p>
+
+        {isPremium && (
+          <motion.div
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[12px] font-semibold"
+            style={{ background: "rgba(245,158,11,0.12)", color: "#F59E0B" }}
+          >
+            <span>✨</span>
+            <span>
+              Premium actif
+              {subscription?.cancel_at_period_end ? " (annulation programmée)" : ""}
+            </span>
+          </motion.div>
+        )}
       </div>
 
       {/* ── Benefits ── */}
@@ -209,180 +192,137 @@ export default function PremiumPage() {
               {benefit.icon}
             </div>
             <div className="min-w-0">
-              <p className="text-[14px] font-semibold text-text">
-                {benefit.title}
-              </p>
-              <p className="text-[12px] text-text-muted mt-0.5 leading-relaxed">
-                {benefit.description}
-              </p>
+              <p className="text-[14px] font-semibold text-text">{benefit.title}</p>
+              <p className="text-[12px] text-text-muted mt-0.5 leading-relaxed">{benefit.description}</p>
             </div>
           </motion.div>
         ))}
       </div>
 
-      {/* ── Pricing cards ── */}
-      <div className="px-6 mt-10">
-        <motion.h2
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="text-[18px] font-display font-bold text-center mb-5"
-        >
-          Choisis ton plan
-        </motion.h2>
-
-        <div className="grid grid-cols-2 gap-3">
-          {/* Monthly */}
-          <motion.button
-            initial={{ opacity: 0, y: 30 }}
+      {/* ── Pricing / Manage ── */}
+      {isPremium ? (
+        <div className="px-6 mt-10">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ ...springs.elastic, delay: 0.65 }}
-            whileHover={{
-              rotateY: 3,
-              transition: springs.gentle,
-            }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setSelectedPlan("monthly")}
-            className="relative p-5 rounded-2xl border-2 text-left transition-colors"
-            style={{
-              perspective: "800px",
-              borderColor:
-                selectedPlan === "monthly" ? "#F59E0B" : "#EBEBEB",
-              backgroundColor:
-                selectedPlan === "monthly"
-                  ? "rgba(245,158,11,0.05)"
-                  : "transparent",
-              boxShadow:
-                selectedPlan === "monthly"
-                  ? "0 0 20px rgba(245,158,11,0.15)"
-                  : "none",
-            }}
-            aria-pressed={selectedPlan === "monthly"}
-            aria-label="Plan mensuel, 9 euros 99 par mois"
+            transition={springs.elastic}
+            className="p-5 rounded-2xl bg-bg-card border border-border text-center"
           >
-            {selectedPlan === "monthly" && (
-              <motion.div
-                layoutId="plan-glow"
-                className="absolute inset-0 rounded-2xl pointer-events-none"
-                style={{
-                  boxShadow: "0 0 25px rgba(245,158,11,0.2)",
-                }}
-                animate={{
-                  boxShadow: [
-                    "0 0 15px rgba(245,158,11,0.15)",
-                    "0 0 30px rgba(245,158,11,0.25)",
-                    "0 0 15px rgba(245,158,11,0.15)",
-                  ],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
+            <p className="text-[13px] text-text-muted mb-1">Ton abonnement est actif</p>
+            {subscription?.current_period_end && (
+              <p className="text-[12px] text-text-muted">
+                {subscription.cancel_at_period_end ? "Se termine" : "Prochain renouvellement"} le{" "}
+                {new Date(subscription.current_period_end).toLocaleDateString("fr-FR")}
+              </p>
             )}
-            <p className="text-[12px] text-text-muted font-medium">Mensuel</p>
-            <p className="text-[24px] font-display font-bold text-text mt-1">
-              9.99<span className="text-[14px] font-normal text-text-muted">/mois</span>
-            </p>
-          </motion.button>
-
-          {/* Annual */}
-          <motion.button
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ ...springs.elastic, delay: 0.7 }}
-            whileHover={{
-              rotateY: 3,
-              transition: springs.gentle,
-            }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => setSelectedPlan("annual")}
-            className="relative p-5 rounded-2xl border-2 text-left transition-colors"
-            style={{
-              perspective: "800px",
-              borderColor:
-                selectedPlan === "annual" ? "#F59E0B" : "#EBEBEB",
-              backgroundColor:
-                selectedPlan === "annual"
-                  ? "rgba(245,158,11,0.05)"
-                  : "transparent",
-              boxShadow:
-                selectedPlan === "annual"
-                  ? "0 0 20px rgba(245,158,11,0.15)"
-                  : "none",
-            }}
-            aria-pressed={selectedPlan === "annual"}
-            aria-label="Plan annuel, 4 euros 99 par mois, facture 59 euros 99 par an"
-          >
-            {selectedPlan === "annual" && (
-              <motion.div
-                layoutId="plan-glow"
-                className="absolute inset-0 rounded-2xl pointer-events-none"
-                style={{
-                  boxShadow: "0 0 25px rgba(245,158,11,0.2)",
-                }}
-                animate={{
-                  boxShadow: [
-                    "0 0 15px rgba(245,158,11,0.15)",
-                    "0 0 30px rgba(245,158,11,0.25)",
-                    "0 0 15px rgba(245,158,11,0.15)",
-                  ],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-            )}
-            {/* Save badge */}
-            <div
-              className="absolute -top-2.5 right-3 px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white"
-              style={{ backgroundColor: "#00FF88", color: "#111" }}
+            <motion.button
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.96 }}
+              disabled={busy === "portal"}
+              onClick={handleManage}
+              className="mt-4 w-full py-3 rounded-full text-[14px] font-bold text-white disabled:opacity-60"
+              style={{ background: "linear-gradient(135deg, #F59E0B, #FBBF24)" }}
             >
-              Economise 50%
-            </div>
-            <p className="text-[12px] text-text-muted font-medium">Annuel</p>
-            <p className="text-[24px] font-display font-bold text-text mt-1">
-              4.99<span className="text-[14px] font-normal text-text-muted">/mois</span>
-            </p>
-            <p className="text-[11px] text-text-muted mt-1">
-              Facture 59.99/an
-            </p>
-          </motion.button>
+              {busy === "portal" ? "Ouverture..." : "Gérer ma subscription"}
+            </motion.button>
+          </motion.div>
         </div>
-      </div>
+      ) : (
+        <>
+          <div className="px-6 mt-10">
+            <motion.h2
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="text-[18px] font-display font-bold text-center mb-5"
+            >
+              Choisis ton plan
+            </motion.h2>
 
-      {/* ── CTA ── */}
-      <div className="px-6 mt-8">
-        <motion.button
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ ...springs.elastic, delay: 0.75 }}
-          whileHover={{
-            y: -3,
-            boxShadow: "0 8px 30px rgba(245,158,11,0.35)",
-          }}
-          whileTap={{ scale: 0.95 }}
-          className="w-full py-4 rounded-full text-[16px] font-bold text-white"
-          style={{
-            background: "linear-gradient(135deg, #F59E0B, #FBBF24)",
-          }}
-          aria-label="Commencer l'essai gratuit de 7 jours"
-        >
-          Essai gratuit 7 jours
-        </motion.button>
+            <div className="grid grid-cols-2 gap-3">
+              {paidPlans.map((plan, idx) => {
+                const selected = selectedPlanId === plan.id;
+                const monthlyEquivalent =
+                  plan.interval === "year"
+                    ? plan.amountCents / 12
+                    : plan.amountCents;
+                return (
+                  <motion.button
+                    key={plan.id}
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ ...springs.elastic, delay: 0.65 + idx * 0.05 }}
+                    whileHover={{ rotateY: 3, transition: springs.gentle }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setSelectedPlanId(plan.id)}
+                    className="relative p-5 rounded-2xl border-2 text-left transition-colors"
+                    style={{
+                      perspective: "800px",
+                      borderColor: selected ? "#F59E0B" : "#EBEBEB",
+                      backgroundColor: selected ? "rgba(245,158,11,0.05)" : "transparent",
+                      boxShadow: selected ? "0 0 20px rgba(245,158,11,0.15)" : "none",
+                    }}
+                    aria-pressed={selected}
+                    aria-label={`${plan.name}, ${formatPrice(plan.amountCents, plan.currency)} ${plan.interval === "month" ? "par mois" : "par an"}`}
+                  >
+                    {plan.savePercent ? (
+                      <div
+                        className="absolute -top-2.5 right-3 px-2.5 py-0.5 rounded-full text-[10px] font-bold"
+                        style={{ backgroundColor: "#00FF88", color: "#111" }}
+                      >
+                        Economise {plan.savePercent}%
+                      </div>
+                    ) : null}
+                    <p className="text-[12px] text-text-muted font-medium">{plan.name}</p>
+                    <p className="text-[24px] font-display font-bold text-text mt-1">
+                      {formatPrice(monthlyEquivalent, plan.currency)}
+                      <span className="text-[14px] font-normal text-text-muted">/mois</span>
+                    </p>
+                    {plan.interval === "year" && (
+                      <p className="text-[11px] text-text-muted mt-1">
+                        Facturé {formatPrice(plan.amountCents, plan.currency)}/an
+                      </p>
+                    )}
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
 
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.85 }}
-          className="text-[11px] text-text-muted text-center mt-3"
-        >
-          Annule a tout moment. Aucun engagement.
-        </motion.p>
-      </div>
+          {/* ── CTA ── */}
+          <div className="px-6 mt-8">
+            {error && (
+              <p className="text-[12px] text-red-500 text-center mb-3">{error}</p>
+            )}
+            <motion.button
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...springs.elastic, delay: 0.75 }}
+              whileHover={{ y: -3, boxShadow: "0 8px 30px rgba(245,158,11,0.35)" }}
+              whileTap={{ scale: 0.95 }}
+              disabled={busy === "checkout" || isLoading}
+              onClick={handleSubscribe}
+              className="w-full py-4 rounded-full text-[16px] font-bold text-white disabled:opacity-60"
+              style={{ background: "linear-gradient(135deg, #F59E0B, #FBBF24)" }}
+              aria-label={`S'abonner à ${selectedPlan?.name ?? "Premium"}`}
+            >
+              {busy === "checkout"
+                ? "Redirection..."
+                : selectedPlan?.trialDays
+                  ? `Essai gratuit ${selectedPlan.trialDays} jours`
+                  : "S'abonner"}
+            </motion.button>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.85 }}
+              className="text-[11px] text-text-muted text-center mt-3"
+            >
+              Annule a tout moment. Aucun engagement. Paiement sécurisé Stripe.
+            </motion.p>
+          </div>
+        </>
+      )}
 
       {/* ── Social proof ── */}
       <motion.div
@@ -399,13 +339,9 @@ export default function PremiumPage() {
           ))}
         </div>
         <p className="text-[13px] font-semibold text-text">
-          Rejoint par{" "}
-          <span style={{ color: "#F59E0B" }}>1,247</span>{" "}
-          membres premium
+          Rejoint par <span style={{ color: "#F59E0B" }}>1,247</span> membres premium
         </p>
-        <p className="text-[11px] text-text-muted mt-0.5">
-          Les membres premium ont 3x plus de matchs
-        </p>
+        <p className="text-[11px] text-text-muted mt-0.5">Les membres premium ont 3x plus de matchs</p>
       </motion.div>
 
       {/* ── FAQ ── */}
@@ -418,25 +354,16 @@ export default function PremiumPage() {
         >
           Questions frequentes
         </motion.h2>
-
         <div className="space-y-2">
           {FAQ.map((faq, i) => (
-            <FAQItem
-              key={faq.question}
-              question={faq.question}
-              answer={faq.answer}
-              index={i}
-            />
+            <FAQItem key={faq.question} question={faq.question} answer={faq.answer} index={i} />
           ))}
         </div>
       </div>
 
       {/* ── Back link ── */}
       <div className="px-6 pb-6 text-center">
-        <Link
-          href="/browse"
-          className="text-[13px] text-text-muted underline underline-offset-2"
-        >
+        <Link href="/browse" className="text-[13px] text-text-muted underline underline-offset-2">
           Retour
         </Link>
       </div>

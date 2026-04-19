@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "motion/react";
-import { challengeVariants, springs, micro } from "@/lib/motion-design";
+import { challengeVariants, springs } from "@/lib/motion-design";
 import Link from "next/link";
 import { Magnetic } from "@/components/motion/Magnetic";
 import { RackFocus } from "@/components/motion/RackFocus";
+import { useChallenges } from "@/lib/useChallenges";
 
 interface DailyChallenge {
   id: string;
@@ -62,18 +63,42 @@ function useCountdown(): string {
 }
 
 export default function ChallengesPage() {
-  const [challenges, setChallenges] = useState(DAILY_CHALLENGES);
+  const { challenges: dbChallenges, totalXpToday: dbXp, completeChallenge } = useChallenges();
+  const [localChallenges, setLocalChallenges] = useState(DAILY_CHALLENGES);
   const countdown = useCountdown();
 
-  const totalXpToday = challenges.filter((c) => c.done).reduce((sum, c) => sum + c.xp, 0) + 45; // 45 bonus mock
+  // Map DB rows to UI shape, fallback to static when empty
+  const challenges = useMemo(() => {
+    if (dbChallenges.length === 0) return localChallenges;
+    return dbChallenges.map((c, i) => ({
+      id: c.id,
+      title: c.challengeType,
+      type: (c.total === 1 ? "checkbox" : "progress") as "progress" | "checkbox",
+      current: c.progress,
+      target: c.total,
+      xp: c.xpEarned || 20 + i * 5,
+      done: c.completed,
+    }));
+  }, [dbChallenges, localChallenges]);
+
+  const totalXpToday = dbChallenges.length > 0
+    ? dbXp
+    : localChallenges.filter((c) => c.done).reduce((sum, c) => sum + c.xp, 0) + 45;
 
   const toggleChallenge = (id: string) => {
-    setChallenges((prev) =>
+    // DB-backed
+    const dbMatch = dbChallenges.find((c) => c.id === id);
+    if (dbMatch && !dbMatch.completed) {
+      void completeChallenge(id);
+      return;
+    }
+    // Local fallback
+    setLocalChallenges((prev) =>
       prev.map((c) =>
         c.id === id && c.type === "checkbox"
           ? { ...c, done: !c.done, current: c.done ? 0 : 1 }
-          : c
-      )
+          : c,
+      ),
     );
   };
 

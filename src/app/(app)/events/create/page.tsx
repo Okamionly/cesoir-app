@@ -10,9 +10,25 @@ import {
   MAX_ATTENDEES_OPTIONS,
   getMaxAttendeesLabel,
 } from "@/lib/popup-events";
+import { useEvents } from "@/lib/useEvents";
 import { Confetti } from "@/components/ui/Confetti";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+
+// --- Convert a "21h" style slot to ISO datetime (today) ---
+function slotToIso(slot: string | null): string {
+  if (!slot) return new Date().toISOString();
+  const match = slot.match(/(\d{1,2})h/);
+  if (!match) return new Date().toISOString();
+  const hour = Math.min(23, Math.max(0, parseInt(match[1], 10)));
+  const d = new Date();
+  d.setHours(hour, 0, 0, 0);
+  // If that time already passed today, roll to tomorrow
+  if (d.getTime() < Date.now()) {
+    d.setDate(d.getDate() + 1);
+  }
+  return d.toISOString();
+}
 
 // --- Steps ---
 
@@ -62,6 +78,7 @@ function getArrondissementSuggestions(query: string): string[] {
 
 export default function CreateEventPage() {
   const router = useRouter();
+  const { createEvent } = useEvents();
 
   // Form state
   const [title, setTitle] = useState("");
@@ -77,6 +94,7 @@ export default function CreateEventPage() {
   const [direction, setDirection] = useState(1);
   const [showConfetti, setShowConfetti] = useState(false);
   const [published, setPublished] = useState(false);
+  const [publishing, setPublishing] = useState(false);
   const [showArrSuggestions, setShowArrSuggestions] = useState(false);
 
   const stepIndex = STEPS.indexOf(currentStep);
@@ -124,13 +142,42 @@ export default function CreateEventPage() {
     }
   }, [stepIndex]);
 
-  const handlePublish = useCallback(() => {
+  const handlePublish = useCallback(async () => {
+    if (!selectedMode || !selectedTime || publishing) return;
+    setPublishing(true);
+
+    const venueText = arrondissement
+      ? `${location}${location ? ", " : ""}${arrondissement}`
+      : location;
+
+    const id = await createEvent({
+      title: title.trim() || "Event ce soir",
+      description: description.trim(),
+      mode: selectedMode,
+      venue: venueText,
+      event_time: slotToIso(selectedTime),
+      max_attendees: maxAttendees,
+      tags: [],
+    });
+
+    setPublishing(false);
     setShowConfetti(true);
     setPublished(true);
     setTimeout(() => {
-      router.push("/events");
-    }, 2200);
-  }, [router]);
+      router.push(id ? `/events/${id}` : "/events");
+    }, 1800);
+  }, [
+    selectedMode,
+    selectedTime,
+    publishing,
+    arrondissement,
+    location,
+    title,
+    description,
+    maxAttendees,
+    createEvent,
+    router,
+  ]);
 
   const mode = selectedMode ? MODES[selectedMode] : null;
 

@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { motion, AnimatePresence, type Variants } from "motion/react";
-import { springs, micro } from "@/lib/motion-design";
-import { MODES, type ModeKey } from "@/lib/modes";
-import { MOCK_EVENTS, type PopUpEvent, type EventMessage } from "@/lib/popup-events";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { motion } from "motion/react";
+import { springs } from "@/lib/motion-design";
+import { MODES } from "@/lib/modes";
+import { type PopUpEvent, type EventMessage } from "@/lib/popup-events";
+import { useEvent } from "@/lib/useEvents";
 import { Confetti } from "@/components/ui/Confetti";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 
 // --- Helpers ---
 
@@ -105,12 +106,10 @@ function ChatBubble({ msg, isOwn }: { msg: EventMessage; isOwn: boolean }) {
 
 export default function EventDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const id = params.id as string;
 
-  const event = useMemo(() => MOCK_EVENTS.find((e) => e.id === id), [id]);
+  const { event, isJoined, toggleRsvp } = useEvent(id);
 
-  const [isJoined, setIsJoined] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [countdown, setCountdown] = useState({ h: 0, m: 0, s: 0, total: 0 });
   const [chatInput, setChatInput] = useState("");
@@ -143,8 +142,8 @@ export default function EventDetailPage() {
     if (!isJoined) {
       setShowConfetti(true);
     }
-    setIsJoined((prev) => !prev);
-  }, [isJoined]);
+    void toggleRsvp();
+  }, [isJoined, toggleRsvp]);
 
   const handleSendMessage = useCallback(() => {
     if (!chatInput.trim()) return;

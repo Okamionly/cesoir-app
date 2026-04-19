@@ -3,10 +3,11 @@
 import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useParams, useRouter } from "next/navigation";
-import { springs, welcomeVariants, achievementVariants } from "@/lib/motion-design";
-import { suggestVenuesByActivity, formatDistance, formatPrice } from "@/lib/venues";
+import { springs, achievementVariants } from "@/lib/motion-design";
+import { suggestVenuesByActivity, formatPrice } from "@/lib/venues";
 import type { Venue } from "@/lib/venues";
 import VenuePicker from "@/components/app/VenuePicker";
+import { usePlans } from "@/lib/usePlans";
 
 // ─────────────────────────────────────────
 // Types & constants
@@ -163,6 +164,8 @@ export default function DatePlannerPage() {
   const router = useRouter();
   const matchId = params.matchId as string;
 
+  const { proposePlan } = usePlans();
+
   // State
   const [step, setStep] = useState<Step>(1);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -206,13 +209,38 @@ export default function DatePlannerPage() {
     [goNext],
   );
 
-  const handleSend = useCallback(() => {
+  const handleSend = useCallback(async () => {
     setSent(true);
-    // In production: send plan proposal via Supabase
+
+    // Map selectedTime ("19h", "flexible", etc.) to an ISO datetime
+    const when = (() => {
+      const d = new Date();
+      if (selectedTime && selectedTime !== "flexible") {
+        const match = selectedTime.match(/(\d{1,2})h/);
+        if (match) {
+          d.setHours(parseInt(match[1], 10), 0, 0, 0);
+          if (d.getTime() < Date.now()) d.setDate(d.getDate() + 1);
+        }
+      } else {
+        d.setHours(20, 0, 0, 0);
+      }
+      return d.toISOString();
+    })();
+
+    const whereText = selectedVenue ? `${selectedVenue.name} - ${selectedVenue.address}` : "";
+
+    // Fire-and-forget persistence; UI proceeds regardless to preserve UX.
+    void proposePlan({
+      partnerId: matchId,
+      whenDate: when,
+      what: selectedActivity ?? "",
+      whereText,
+    });
+
     setTimeout(() => {
       router.push(`/chat/${matchId}`);
     }, 2000);
-  }, [matchId, router]);
+  }, [matchId, router, proposePlan, selectedTime, selectedActivity, selectedVenue]);
 
   // Activity label lookup
   const activityLabel =
