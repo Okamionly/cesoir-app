@@ -7,6 +7,8 @@ import { MODES, type ModeKey } from "@/lib/modes";
 import { MOCK_EVENTS, type PopUpEvent } from "@/lib/popup-events";
 import Link from "next/link";
 import CrossLinkCard from "@/components/app/CrossLinkCard";
+import { Magnetic } from "@/components/motion/Magnetic";
+import { RackFocus } from "@/components/motion/RackFocus";
 
 // --- Filter tabs ---
 
@@ -288,43 +290,55 @@ export default function EventsPage() {
 
   return (
     <div className="min-h-screen bg-bg pb-28">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-bg/95 backdrop-blur-md border-b border-border px-5 pt-3 pb-3">
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+      {/* Header — moon glow + hairline pulse */}
+      <header className="relative sticky top-0 z-40 bg-bg/95 backdrop-blur-md border-b border-border px-5 pt-3 pb-3">
+        <RackFocus duration={0.5}>
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
-              <span className="text-lg" aria-hidden="true">{"\u263E"}</span>
+              <motion.span
+                className="text-lg"
+                aria-hidden="true"
+                animate={{ rotate: [0, 4, -3, 0] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+              >
+                {"\u263E"}
+              </motion.span>
               <h1 className="text-base font-display font-bold text-text">Events ce soir</h1>
               <span className="text-[10px] text-accent/70 font-medium ml-1">
                 {events.length} events
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <Link href="/events/marketplace">
-                <motion.span
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.92 }}
-                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full border border-accent/30 text-accent text-[11px] font-bold"
-                >
-                  🛍️ Marketplace
-                </motion.span>
-              </Link>
-              <Link href="/events/create">
-                <motion.span
-                  whileHover={{ scale: 1.05, boxShadow: "0 0 15px rgba(139,92,246,0.4)" }}
-                  whileTap={{ scale: 0.92 }}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full gradient-bg text-white text-[11px] font-bold shadow-glow"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                  Creer
-                </motion.span>
-              </Link>
+              <Magnetic strength={0.16} radius={70}>
+                <Link href="/events/marketplace">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full border border-accent/30 text-accent text-[11px] font-bold hover:bg-accent/5 transition-colors">
+                    🛍️ Marketplace
+                  </span>
+                </Link>
+              </Magnetic>
+              <Magnetic strength={0.18} radius={80}>
+                <Link href="/events/create">
+                  <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full gradient-bg text-white text-[11px] font-bold shadow-glow hover:shadow-[0_0_20px_rgba(139,92,246,0.5)] transition-shadow">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    Creer
+                  </span>
+                </Link>
+              </Magnetic>
             </div>
           </div>
-        </motion.div>
+        </RackFocus>
+        <motion.div
+          className="absolute bottom-0 left-0 right-0 h-px"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, rgba(139,92,246,0.4), rgba(0,255,136,0.3), transparent)",
+          }}
+          animate={{ opacity: [0.3, 0.9, 0.3] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        />
 
         {/* Filter tabs */}
         <div className="flex gap-1.5 mt-2">

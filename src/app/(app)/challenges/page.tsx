@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { challengeVariants, springs, micro } from "@/lib/motion-design";
 import Link from "next/link";
+import { Magnetic } from "@/components/motion/Magnetic";
+import { RackFocus } from "@/components/motion/RackFocus";
 
 interface DailyChallenge {
   id: string;
@@ -77,34 +79,46 @@ export default function ChallengesPage() {
 
   return (
     <div className="max-w-lg mx-auto px-4 pt-6 pb-24">
-      {/* Header */}
+      {/* Header — flame pulse + Magnetic back */}
       <div className="flex items-center gap-3 mb-6">
-        <Link
-          href="/feed"
-          className="w-9 h-9 rounded-full flex items-center justify-center bg-bg-card"
-          aria-label="Retour"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="white" aria-hidden="true">
-            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
-          </svg>
-        </Link>
-        <div className="flex items-center gap-2">
-          <h1
-            className="text-white font-bold text-[22px]"
-            style={{ fontFamily: "var(--font-display, 'Space Grotesk')" }}
+        <Magnetic strength={0.2} radius={50}>
+          <Link
+            href="/feed"
+            className="w-9 h-9 rounded-full flex items-center justify-center bg-bg-card hover:border hover:border-accent/40 transition-all"
+            aria-label="Retour"
           >
-            Defis du jour
-          </h1>
-          <div
-            className="w-7 h-7 rounded-lg flex items-center justify-center"
-            style={{ background: "rgba(239,68,68,0.2)" }}
-            aria-hidden="true"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="#EF4444">
-              <path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z" />
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white" aria-hidden="true">
+              <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
             </svg>
+          </Link>
+        </Magnetic>
+        <RackFocus duration={0.5}>
+          <div className="flex items-center gap-2">
+            <h1
+              className="text-white font-bold text-[22px]"
+              style={{ fontFamily: "var(--font-display, 'Space Grotesk')" }}
+            >
+              Defis du jour
+            </h1>
+            <motion.div
+              className="w-7 h-7 rounded-lg flex items-center justify-center"
+              style={{ background: "rgba(239,68,68,0.2)" }}
+              aria-hidden="true"
+              animate={{
+                boxShadow: [
+                  "0 0 0px rgba(239,68,68,0)",
+                  "0 0 12px rgba(239,68,68,0.5)",
+                  "0 0 0px rgba(239,68,68,0)",
+                ],
+              }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="#EF4444">
+                <path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z" />
+              </svg>
+            </motion.div>
           </div>
-        </div>
+        </RackFocus>
       </div>
 
       {/* XP today */}

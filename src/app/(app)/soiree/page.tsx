@@ -8,6 +8,8 @@ import type { SoireeType, BudgetRange } from "@/lib/useSoiree";
 import { PARIS_ARRONDISSEMENTS } from "@/lib/popup-events";
 import SoireeCard from "@/components/app/SoireeCard";
 import Link from "next/link";
+import { Magnetic } from "@/components/motion/Magnetic";
+import { RackFocus } from "@/components/motion/RackFocus";
 
 // ---------- Filter types ----------
 
@@ -62,23 +64,34 @@ export default function SoireePage() {
 
   return (
     <div className="min-h-screen bg-bg pb-32">
-      {/* Header */}
-      <div className="sticky top-0 z-30 bg-bg/80 backdrop-blur-xl border-b border-border">
+      {/* Header — pulse moon + hairline */}
+      <div className="relative sticky top-0 z-30 bg-bg/80 backdrop-blur-xl border-b border-border">
         <div className="px-4 pt-4 pb-3">
           <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-2xl font-display font-bold text-text">Soirees</h1>
+            <RackFocus duration={0.5}>
+              <h1 className="text-2xl font-display font-bold text-text flex items-center gap-2">
+                <motion.span
+                  aria-hidden
+                  animate={{ rotate: [0, 5, -3, 0] }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  ☾
+                </motion.span>
+                Soirees
+              </h1>
               <p className="text-sm text-text-muted mt-0.5">Organisez, rejoignez, vivez</p>
-            </div>
-            <Link
-              href="/soiree/create"
-              className="flex items-center gap-1.5 bg-accent text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-accent/90 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Creer
-            </Link>
+            </RackFocus>
+            <Magnetic strength={0.18} radius={80}>
+              <Link
+                href="/soiree/create"
+                className="flex items-center gap-1.5 bg-accent text-white px-4 py-2 rounded-xl text-sm font-semibold hover:shadow-[0_0_20px_rgba(139,92,246,0.5)] transition-shadow"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Creer
+              </Link>
+            </Magnetic>
           </div>
 
           {/* View tabs */}
@@ -195,6 +208,15 @@ export default function SoireePage() {
             )}
           </AnimatePresence>
         </div>
+        <motion.div
+          className="absolute bottom-0 left-0 right-0 h-px"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, rgba(139,92,246,0.4), rgba(0,255,136,0.3), transparent)",
+          }}
+          animate={{ opacity: [0.3, 0.9, 0.3] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        />
       </div>
 
       {/* Soiree list */}
@@ -219,12 +241,14 @@ export default function SoireePage() {
                     : "Aucune soiree ne correspond a vos filtres"}
               </p>
               {viewTab !== "a-venir" && (
-                <Link
-                  href="/soiree/create"
-                  className="inline-flex items-center gap-1.5 mt-4 bg-accent text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-accent/90 transition-colors"
-                >
-                  Creer ma soiree
-                </Link>
+                <Magnetic strength={0.18} radius={90}>
+                  <Link
+                    href="/soiree/create"
+                    className="inline-flex items-center gap-1.5 mt-4 bg-accent text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:shadow-[0_0_24px_rgba(139,92,246,0.45)] transition-shadow"
+                  >
+                    Creer ma soiree
+                  </Link>
+                </Magnetic>
               )}
             </motion.div>
           ) : (
@@ -247,19 +271,33 @@ export default function SoireePage() {
         </AnimatePresence>
       </div>
 
-      {/* Floating CTA */}
-      <Link href="/soiree/create">
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={springs.elastic}
-          className="fixed bottom-24 right-4 z-40 w-14 h-14 rounded-full bg-accent text-white flex items-center justify-center shadow-glow"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-          </svg>
-        </motion.div>
-      </Link>
+      {/* Floating CTA — Magnetic + breathing glow */}
+      <div className="fixed bottom-24 right-4 z-40">
+        <Magnetic strength={0.22} radius={90}>
+          <Link href="/soiree/create">
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{
+                scale: 1,
+                boxShadow: [
+                  "0 0 0px rgba(139,92,246,0)",
+                  "0 0 28px rgba(139,92,246,0.55)",
+                  "0 0 0px rgba(139,92,246,0)",
+                ],
+              }}
+              transition={{
+                scale: springs.elastic,
+                boxShadow: { duration: 2.4, repeat: Infinity, ease: "easeInOut" },
+              }}
+              className="w-14 h-14 rounded-full bg-accent text-white flex items-center justify-center"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+              </svg>
+            </motion.div>
+          </Link>
+        </Magnetic>
+      </div>
     </div>
   );
 }

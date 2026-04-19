@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { MODES } from "@/lib/modes";
 import { MeshGradient } from "@/components/ui/MeshGradient";
 import { welcomeVariants, springs } from "@/lib/motion-design";
+import { Magnetic } from "@/components/motion/Magnetic";
 
 // ---------------------------------------------------------------------------
 // Slide data
@@ -285,16 +286,31 @@ export default function OnboardingPage() {
           ))}
         </div>
 
-        {/* CTA button */}
-        <motion.button
-          onClick={goNext}
-          whileHover={{ y: -2 }}
-          whileTap={{ scale: 0.95 }}
-          transition={springs.snap}
-          className="w-full max-w-xs rounded-2xl py-4 text-center text-base font-semibold text-white shadow-lg gradient-bg"
-        >
-          {isLast ? "Commencer" : "Suivant"}
-        </motion.button>
+        {/* CTA button — Magnetic + glow pulse */}
+        <Magnetic as="div" strength={0.16} radius={120} className="w-full max-w-xs">
+          <motion.button
+            onClick={goNext}
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.95 }}
+            transition={springs.snap}
+            className="w-full rounded-2xl py-4 text-center text-base font-semibold text-white gradient-bg relative overflow-hidden"
+            style={{
+              boxShadow:
+                "0 8px 30px rgba(139,92,246,0.35), 0 0 0 1px rgba(255,255,255,0.05) inset",
+            }}
+          >
+            <motion.span
+              className="absolute inset-0 rounded-2xl"
+              style={{
+                background:
+                  "linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.18) 50%, transparent 70%)",
+              }}
+              animate={{ x: ["-120%", "120%"] }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }}
+            />
+            <span className="relative z-10">{isLast ? "Commencer" : "Suivant"}</span>
+          </motion.button>
+        </Magnetic>
       </div>
     </div>
   );

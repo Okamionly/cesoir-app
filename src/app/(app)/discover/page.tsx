@@ -11,6 +11,8 @@ import CrossLinkCard from "@/components/app/CrossLinkCard";
 import { MOCK_EVENTS, type PopUpEvent } from "@/lib/popup-events";
 import { useProfiles } from "@/lib/useProfiles";
 import { useGeolocation } from "@/lib/useGeolocation";
+import { Magnetic } from "@/components/motion/Magnetic";
+import { RackFocus } from "@/components/motion/RackFocus";
 
 // ─────────────────────────────────────────
 // Types
@@ -198,10 +200,29 @@ export default function DiscoverPage() {
 
   return (
     <div className="min-h-screen bg-bg max-w-lg mx-auto pb-24">
-      {/* Header */}
+      {/* Header — hairline gradient bottom signals "alive" */}
       <header className="sticky top-0 z-30 bg-bg/80 backdrop-blur-xl border-b border-border/50">
+        {/* Hairline pulse line */}
+        <motion.div
+          className="absolute bottom-0 left-0 right-0 h-px"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, rgba(139,92,246,0.4), rgba(0,255,136,0.3), transparent)",
+          }}
+          animate={{ opacity: [0.4, 1, 0.4] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        />
         <div className="flex items-center justify-between px-5 pt-4 pb-3">
-          <h1 className="text-[20px] font-black tracking-tight text-text">Decouvrir</h1>
+          <RackFocus duration={0.6}>
+            <h1 className="text-[20px] font-black tracking-tight text-text flex items-center gap-2">
+              <motion.span
+                className="inline-block w-1.5 h-1.5 rounded-full bg-accent"
+                animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              />
+              Decouvrir
+            </h1>
+          </RackFocus>
           <motion.button
             onClick={() => setShowFilters(!showFilters)}
             className={`relative w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${
@@ -670,12 +691,14 @@ function EmptyState({ onReset }: { onReset: () => void }) {
       <p className="text-[12px] text-text-muted mb-6 text-center">
         Essaie d&apos;elargir tes criteres
       </p>
-      <button
-        onClick={onReset}
-        className="gradient-bg text-white px-6 py-2.5 rounded-full text-[13px] font-semibold"
-      >
-        Reinitialiser les filtres
-      </button>
+      <Magnetic strength={0.18} radius={90}>
+        <button
+          onClick={onReset}
+          className="gradient-bg text-white px-6 py-2.5 rounded-full text-[13px] font-semibold shadow-[0_8px_30px_rgba(139,92,246,0.3)] hover:shadow-[0_12px_40px_rgba(139,92,246,0.5)] transition-shadow"
+        >
+          Reinitialiser les filtres
+        </button>
+      </Magnetic>
     </motion.div>
   );
 }

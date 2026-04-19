@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { trendingVariants, springs } from "@/lib/motion-design";
 import { ModeKey, MODES, MODE_KEYS } from "@/lib/modes";
 import { supabase } from "@/lib/supabase";
+import { RackFocus } from "@/components/motion/RackFocus";
 
 // --- Types ---
 
@@ -126,14 +127,43 @@ export default function TrendingPage() {
 
   return (
     <div className="min-h-screen bg-bg pb-24">
-      {/* Header */}
-      <header className="sticky top-0 z-30 bg-bg/80 backdrop-blur-xl border-b border-border px-4 py-3">
-        <div className="flex items-center gap-2">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M12 22c4.97 0 8-3.03 8-8 0-4-2.5-7-4-8-.5 2.5-2 4-4 5-1-1-2-3.5-1.5-6C8 7 5 10 5 14c0 4.97 3.03 8 7 8z" />
-          </svg>
-          <h1 className="text-lg font-display font-bold text-text">Trending ce soir</h1>
-        </div>
+      {/* Header — flame pulse + hairline */}
+      <header className="relative sticky top-0 z-30 bg-bg/80 backdrop-blur-xl border-b border-border px-4 py-3">
+        <RackFocus duration={0.5}>
+          <div className="flex items-center gap-2">
+            <motion.svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#8B5CF6"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+              animate={{
+                filter: [
+                  "drop-shadow(0 0 0px rgba(139,92,246,0))",
+                  "drop-shadow(0 0 8px rgba(139,92,246,0.7))",
+                  "drop-shadow(0 0 0px rgba(139,92,246,0))",
+                ],
+              }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+            >
+              <path d="M12 22c4.97 0 8-3.03 8-8 0-4-2.5-7-4-8-.5 2.5-2 4-4 5-1-1-2-3.5-1.5-6C8 7 5 10 5 14c0 4.97 3.03 8 7 8z" />
+            </motion.svg>
+            <h1 className="text-lg font-display font-bold text-text">Trending ce soir</h1>
+          </div>
+        </RackFocus>
+        <motion.div
+          className="absolute bottom-0 left-0 right-0 h-px"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, rgba(236,72,153,0.4), rgba(139,92,246,0.4), transparent)",
+          }}
+          animate={{ opacity: [0.3, 0.9, 0.3] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        />
       </header>
 
       {/* Mode filter pills */}

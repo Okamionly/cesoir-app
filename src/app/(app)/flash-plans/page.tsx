@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, type Variants } from "motion/react";
 import { springs, micro, ambient } from "@/lib/motion-design";
+import { RackFocus } from "@/components/motion/RackFocus";
 
 interface FlashPlan {
   id: string;
@@ -222,11 +223,18 @@ export default function FlashPlansPage() {
 
   return (
     <div className="min-h-screen bg-bg relative">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-bg/95 backdrop-blur-md border-b border-border px-5 pt-3 pb-3">
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+      {/* Header — moon pulse + hairline */}
+      <header className="relative sticky top-0 z-40 bg-bg/95 backdrop-blur-md border-b border-border px-5 pt-3 pb-3">
+        <RackFocus duration={0.5}>
           <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-lg text-accent" aria-hidden="true">{"\u263E"}</span>
+            <motion.span
+              className="text-lg text-accent"
+              aria-hidden="true"
+              animate={{ rotate: [0, 5, -3, 0], scale: [1, 1.1, 1] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            >
+              {"\u263E"}
+            </motion.span>
             <span className="text-base font-bold">Flash Plans</span>
             <motion.span
               animate={ambient.breathe(3)}
@@ -236,7 +244,16 @@ export default function FlashPlansPage() {
             </motion.span>
           </div>
           <p className="text-[11px] text-text-muted">Ce soir pres de toi — le temps presse</p>
-        </motion.div>
+        </RackFocus>
+        <motion.div
+          className="absolute bottom-0 left-0 right-0 h-px"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, rgba(236,72,153,0.4), rgba(139,92,246,0.4), transparent)",
+          }}
+          animate={{ opacity: [0.3, 0.9, 0.3] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        />
 
         {/* Filter chips */}
         <div className="flex gap-1.5 mt-3 overflow-x-auto no-scrollbar">

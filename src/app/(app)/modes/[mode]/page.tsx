@@ -10,6 +10,8 @@ import { MOCK_PROFILES } from "@/lib/mock-profiles";
 import { springs, ambient } from "@/lib/motion-design";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { Magnetic } from "@/components/motion/Magnetic";
+import { RackFocus } from "@/components/motion/RackFocus";
 
 // ─────────────────────────────────────────
 // Mock testimonials per mode
@@ -200,16 +202,18 @@ export default function ModeDetailPage({
           style={{ background: modeData.color }}
         />
 
-        {/* Back button */}
+        {/* Back button — Magnetic */}
         <div className="relative z-10 px-4 pt-4">
-          <Link
-            href="/modes"
-            className="inline-flex items-center gap-1 text-sm text-text-muted hover:text-text transition-colors tap-target"
-            aria-label="Retour aux modes"
-          >
-            <BackArrow />
-            <span>Modes</span>
-          </Link>
+          <Magnetic strength={0.18} radius={70}>
+            <Link
+              href="/modes"
+              className="inline-flex items-center gap-1 text-sm text-text-muted hover:text-text transition-colors tap-target"
+              aria-label="Retour aux modes"
+            >
+              <BackArrow />
+              <span>Modes</span>
+            </Link>
+          </Magnetic>
         </div>
 
         {/* Hero content */}
@@ -548,8 +552,9 @@ export default function ModeDetailPage({
         </div>
       </section>
 
-      {/* ─── CTA: ACTIVER CE MODE ─── */}
+      {/* ─── CTA: ACTIVER CE MODE — Magnetic + glow ─── */}
       <div className="fixed bottom-0 left-0 right-0 z-50 px-5 pb-6 pt-4 bg-gradient-to-t from-bg via-bg/95 to-transparent">
+        <Magnetic as="div" strength={0.14} radius={140}>
         <motion.button
           onClick={handleActivate}
           disabled={activating || activated}
@@ -604,6 +609,7 @@ export default function ModeDetailPage({
             )}
           </span>
         </motion.button>
+        </Magnetic>
       </div>
     </div>
   );

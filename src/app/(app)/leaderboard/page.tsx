@@ -5,6 +5,8 @@ import { motion } from "motion/react";
 import Link from "next/link";
 import { leaderboardVariants, springs, micro } from "@/lib/motion-design";
 import { supabase } from "@/lib/supabase";
+import { Magnetic } from "@/components/motion/Magnetic";
+import { RackFocus } from "@/components/motion/RackFocus";
 
 interface LeaderEntry {
   rank: number;
@@ -115,14 +117,30 @@ export default function LeaderboardPage() {
 
   return (
     <div className="min-h-screen bg-bg">
-      <header className="sticky top-0 z-40 bg-bg/95 backdrop-blur-md border-b border-border px-5 pt-3 pb-3">
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+      <header className="relative sticky top-0 z-40 bg-bg/95 backdrop-blur-md border-b border-border px-5 pt-3 pb-3">
+        <RackFocus duration={0.5}>
           <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-lg text-accent" aria-hidden="true">☾</span>
+            <motion.span
+              className="text-lg text-accent"
+              aria-hidden="true"
+              animate={{ rotate: [0, 5, -3, 0], scale: [1, 1.1, 1] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            >
+              ☾
+            </motion.span>
             <span className="text-base font-bold">Top CeSoir</span>
           </div>
           <p className="text-[11px] text-text-muted">Les rencontres reelles comptent</p>
-        </motion.div>
+        </RackFocus>
+        <motion.div
+          className="absolute bottom-0 left-0 right-0 h-px"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, rgba(245,158,11,0.4), rgba(139,92,246,0.4), transparent)",
+          }}
+          animate={{ opacity: [0.3, 0.9, 0.3] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        />
 
         {/* Tabs */}
         <div className="flex gap-1.5 mt-3" role="tablist" aria-label="Periode">

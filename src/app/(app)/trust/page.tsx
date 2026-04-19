@@ -11,6 +11,8 @@ import TrustGauge from "@/components/app/TrustGauge";
 import VerificationChecklist from "@/components/app/VerificationChecklist";
 import TrustBadge from "@/components/app/TrustBadge";
 import type { DbReport, DbProfile } from "@/lib/supabase-types";
+import { Magnetic } from "@/components/motion/Magnetic";
+import { RackFocus } from "@/components/motion/RackFocus";
 
 // ─────────────────────────────────────────
 // Types
@@ -282,9 +284,15 @@ export default function TrustCenterPage() {
     return (
       <div className="min-h-screen bg-bg flex items-center justify-center">
         <motion.div
+          className="w-9 h-9 rounded-full"
+          style={{
+            background:
+              "conic-gradient(from 0deg, rgba(59,130,246,0), rgba(59,130,246,1), rgba(139,92,246,0.6), rgba(59,130,246,0))",
+            mask: "radial-gradient(circle, transparent 50%, black 53%)",
+            WebkitMask: "radial-gradient(circle, transparent 50%, black 53%)",
+          }}
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full"
         />
       </div>
     );
@@ -292,18 +300,28 @@ export default function TrustCenterPage() {
 
   return (
     <div className="min-h-screen bg-bg pb-24">
-      {/* Header */}
+      {/* Header — pulse line + rack-focus title */}
       <motion.header
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={{ opacity: 0, y: -16, filter: "blur(4px)" }}
+        animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
         transition={springs.heavy}
         className="sticky top-0 z-30 bg-bg/80 backdrop-blur-xl border-b border-border px-4 py-3"
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#3B82F6]/10 border border-[#3B82F6]/20 flex items-center justify-center">
+            <motion.div
+              className="w-9 h-9 rounded-xl bg-[#3B82F6]/10 border border-[#3B82F6]/20 flex items-center justify-center"
+              animate={{
+                boxShadow: [
+                  "0 0 0px rgba(59,130,246,0)",
+                  "0 0 14px rgba(59,130,246,0.4)",
+                  "0 0 0px rgba(59,130,246,0)",
+                ],
+              }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            >
               <ShieldIcon />
-            </div>
+            </motion.div>
             <div>
               <h1 className="text-[17px] font-bold text-text">Centre de confiance</h1>
               <p className="text-[11px] text-text-muted">Ta securite, notre priorite</p>
@@ -311,6 +329,15 @@ export default function TrustCenterPage() {
           </div>
           <TrustBadge trustScore={trustScore} isVerified={isVerified} />
         </div>
+        <motion.div
+          className="absolute bottom-0 left-0 right-0 h-px"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, rgba(59,130,246,0.4), rgba(139,92,246,0.4), transparent)",
+          }}
+          animate={{ opacity: [0.3, 0.9, 0.3] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        />
       </motion.header>
 
       <div className="px-4 py-6 space-y-8 max-w-lg mx-auto">

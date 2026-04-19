@@ -3,12 +3,16 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { motion } from "motion/react";
 import { useAuth } from "@/context/AuthContext";
 import { setMuted, isMuted } from "@/lib/sounds";
 import { useDarkMode } from "@/components/ui/DarkModeProvider";
 import { useAccessibility, type FontSize } from "@/components/ui/ReducedMotion";
 import { useTranslation, type Locale } from "@/lib/i18n";
 import { useWomenFirstSettings } from "@/lib/useWomenFirst";
+import { springs } from "@/lib/motion-design";
+import { Magnetic } from "@/components/motion/Magnetic";
+import { RackFocus } from "@/components/motion/RackFocus";
 
 // ── Types ──────────────────────────────────────────
 
@@ -100,19 +104,26 @@ function Toggle({
 function Section({
   title,
   children,
+  index = 0,
 }: {
   title: string;
   children: React.ReactNode;
+  index?: number;
 }) {
   return (
-    <div className="px-5 mb-6">
+    <motion.div
+      className="px-5 mb-6"
+      initial={{ opacity: 0, y: 12, filter: "blur(4px)" }}
+      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      transition={{ ...springs.heavy, delay: 0.1 + index * 0.06 }}
+    >
       <p className="text-[11px] text-text-muted uppercase tracking-[0.12em] font-semibold mb-2 px-1">
         {title}
       </p>
       <div className="bg-bg-card border border-border rounded-2xl overflow-hidden divide-y divide-border">
         {children}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -275,39 +286,57 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-bg pb-24">
-      {/* Header — simple, no blur */}
-      <div className="flex items-center gap-3 px-5 py-3 border-b border-border bg-bg">
-        <button
-          onClick={() => router.back()}
-          className="w-9 h-9 rounded-full bg-bg-card border border-border flex items-center justify-center tap-target"
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            className="text-text"
+      {/* Header — hairline gradient + pulse dot */}
+      <div className="relative flex items-center gap-3 px-5 py-3 border-b border-border bg-bg">
+        <Magnetic strength={0.2} radius={50}>
+          <button
+            onClick={() => router.back()}
+            className="w-9 h-9 rounded-full bg-bg-card border border-border flex items-center justify-center tap-target hover:border-accent/50 transition-colors"
           >
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
-        </button>
-        <h1 className="text-[16px] font-black text-text tracking-tight">
-          Reglages
-        </h1>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              className="text-text"
+            >
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+        </Magnetic>
+        <RackFocus duration={0.5}>
+          <h1 className="text-[16px] font-black text-text tracking-tight flex items-center gap-2">
+            <motion.span
+              className="inline-block w-1.5 h-1.5 rounded-full bg-accent"
+              animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.2, 1] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            />
+            Reglages
+          </h1>
+        </RackFocus>
+        <motion.div
+          className="absolute bottom-0 left-0 right-0 h-px"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, rgba(139,92,246,0.4), rgba(0,255,136,0.3), transparent)",
+          }}
+          animate={{ opacity: [0.3, 0.9, 0.3] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        />
       </div>
 
       <div className="pt-5">
         {/* ── 1. Compte ─────────────────────────────── */}
-        <Section title="Compte">
+        <Section title="Compte" index={0}>
           <InfoRow label="Email" value={user?.email ?? "Non connecte"} />
           <LinkRow label="Changer le mot de passe" href="/profile/edit" />
           <LinkRow label="Supprimer mon compte" href="/profile/delete" danger />
         </Section>
 
         {/* ── 2. Notifications ──────────────────────── */}
-        <Section title="Notifications">
+        <Section title="Notifications" index={1}>
           <ToggleRow
             label="Nouveaux messages"
             value={settings.notifications.messages}
@@ -336,7 +365,7 @@ export default function SettingsPage() {
         </Section>
 
         {/* ── 3. Confidentialite ────────────────────── */}
-        <Section title="Confidentialite">
+        <Section title="Confidentialite" index={2}>
           <ToggleRow
             label="Profil visible"
             value={settings.privacy.profilVisible}
@@ -366,7 +395,7 @@ export default function SettingsPage() {
         </Section>
 
         {/* ── 4. Apparence ──────────────────────────── */}
-        <Section title="Apparence">
+        <Section title="Apparence" index={3}>
           <div className="px-4 py-3.5">
             <p className="text-[13px] font-semibold text-text mb-3">Theme</p>
             <PillSelector

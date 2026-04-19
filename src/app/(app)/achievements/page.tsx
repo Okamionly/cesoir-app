@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { achievementVariants, springs, micro } from "@/lib/motion-design";
 import { playSound } from "@/lib/sounds";
 import { haptics } from "@/lib/haptics";
+import { Magnetic } from "@/components/motion/Magnetic";
+import { RackFocus } from "@/components/motion/RackFocus";
 import {
   ALL_BADGES,
   RARITY_CONFIG,
@@ -114,14 +116,33 @@ export default function AchievementsPage() {
 
   return (
     <div className="min-h-screen bg-bg max-w-lg mx-auto pb-safe">
-      {/* Header */}
-      <header className="px-5 pt-6 pb-4">
-        <h1 className="text-[22px] font-black text-text font-display">
-          Mes trophees
-        </h1>
-        <p className="text-[13px] text-text-muted mt-1">
-          {totalEarned}/{ALL_BADGES.length} debloques
-        </p>
+      {/* Header — pulse moon + hairline gradient */}
+      <header className="relative px-5 pt-6 pb-4">
+        <RackFocus duration={0.7}>
+          <h1 className="text-[22px] font-black text-text font-display flex items-center gap-2.5">
+            <motion.span
+              aria-hidden
+              className="inline-block text-[18px]"
+              animate={{ rotate: [0, 6, -4, 0], scale: [1, 1.1, 1] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            >
+              ☾
+            </motion.span>
+            Mes trophees
+          </h1>
+          <p className="text-[13px] text-text-muted mt-1">
+            {totalEarned}/{ALL_BADGES.length} debloques
+          </p>
+        </RackFocus>
+        <motion.div
+          className="absolute bottom-0 left-5 right-5 h-px"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, rgba(139,92,246,0.4), rgba(0,255,136,0.3), transparent)",
+          }}
+          animate={{ opacity: [0.3, 0.9, 0.3] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        />
       </header>
 
       {/* Level card */}
@@ -171,9 +192,24 @@ export default function AchievementsPage() {
 
       {/* Loading */}
       {loading && (
-        <div className="flex items-center justify-center py-12">
-          <div className="w-6 h-6 rounded-full border-2 border-accent border-t-transparent animate-spin" />
-        </div>
+        <motion.div
+          className="flex items-center justify-center py-12"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <motion.div
+            className="w-7 h-7 rounded-full"
+            style={{
+              background:
+                "conic-gradient(from 0deg, rgba(139,92,246,0), rgba(139,92,246,1), rgba(0,255,136,0.6), rgba(139,92,246,0))",
+              mask: "radial-gradient(circle, transparent 50%, black 53%)",
+              WebkitMask: "radial-gradient(circle, transparent 50%, black 53%)",
+            }}
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          />
+        </motion.div>
       )}
 
       {/* Categories with collapsible sections */}

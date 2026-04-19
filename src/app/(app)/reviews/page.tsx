@@ -8,6 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import TrustBadge from "@/components/app/TrustBadge";
 import type { DbReview, DbProfile } from "@/lib/supabase-types";
+import { RackFocus } from "@/components/motion/RackFocus";
 
 // ─────────────────────────────────────────
 // Constants
@@ -337,22 +338,43 @@ export default function ReviewsPage() {
 
   return (
     <div className="min-h-screen bg-bg max-w-lg mx-auto pb-safe">
-      {/* Header */}
-      <header className="px-5 pt-6 pb-4">
-        <h1 className="text-[22px] font-black text-text font-display">Mes Avis</h1>
-        {totalReviews > 0 ? (
-          <div className="flex items-center gap-3 mt-2">
-            <Stars rating={averageRating} size={18} />
-            <span className="text-[14px] font-bold text-text">
-              {averageRating.toFixed(1)}
-            </span>
-            <span className="text-[12px] text-text-muted">
-              ({totalReviews} avis)
-            </span>
-          </div>
-        ) : (
-          <p className="text-[13px] text-text-muted mt-1">Aucun avis pour le moment</p>
-        )}
+      {/* Header — moon icon + hairline */}
+      <header className="relative px-5 pt-6 pb-4">
+        <RackFocus duration={0.6}>
+          <h1 className="text-[22px] font-black text-text font-display flex items-center gap-2">
+            <motion.span
+              aria-hidden
+              className="text-[18px]"
+              animate={{ rotate: [0, 4, -3, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            >
+              ☾
+            </motion.span>
+            Mes Avis
+          </h1>
+          {totalReviews > 0 ? (
+            <div className="flex items-center gap-3 mt-2">
+              <Stars rating={averageRating} size={18} />
+              <span className="text-[14px] font-bold text-text">
+                {averageRating.toFixed(1)}
+              </span>
+              <span className="text-[12px] text-text-muted">
+                ({totalReviews} avis)
+              </span>
+            </div>
+          ) : (
+            <p className="text-[13px] text-text-muted mt-1">Aucun avis pour le moment</p>
+          )}
+        </RackFocus>
+        <motion.div
+          className="absolute bottom-0 left-5 right-5 h-px"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, rgba(245,158,11,0.4), rgba(139,92,246,0.4), transparent)",
+          }}
+          animate={{ opacity: [0.3, 0.9, 0.3] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        />
       </header>
 
       {/* Trust Score Gauge */}

@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { springs, ambient, micro } from "@/lib/motion-design";
 import Link from "next/link";
+import { RackFocus } from "@/components/motion/RackFocus";
 import {
   GUIDE_NEIGHBORHOODS,
   type GuideNeighborhood,
@@ -116,23 +117,37 @@ export default function GuidePage() {
 
   return (
     <div className="min-h-screen bg-bg max-w-lg mx-auto pb-24">
-      {/* Header */}
-      <header className="sticky top-0 z-30 bg-bg/80 backdrop-blur-xl border-b border-border/50">
+      {/* Header — pulse hairline + active dot */}
+      <header className="relative sticky top-0 z-30 bg-bg/80 backdrop-blur-xl border-b border-border/50">
         <div className="flex items-center justify-between px-5 pt-4 pb-2">
-          <div>
+          <RackFocus duration={0.5}>
             <h1 className="text-[20px] font-black tracking-tight text-text">
               Guide du quartier
             </h1>
             <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="w-2 h-2 rounded-full bg-[#00FF88]" />
+              <motion.span
+                className="w-2 h-2 rounded-full bg-[#00FF88]"
+                animate={{ opacity: [0.6, 1, 0.6], scale: [1, 1.2, 1] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              />
               <span className="text-[11px] text-text-muted font-medium">
                 {neighborhood.name}, {neighborhood.arrondissement}
               </span>
             </div>
-          </div>
-          <div className="w-10 h-10 rounded-full bg-border/30 flex items-center justify-center">
+          </RackFocus>
+          <motion.div
+            className="w-10 h-10 rounded-full bg-border/30 flex items-center justify-center"
+            animate={{
+              boxShadow: [
+                "0 0 0px rgba(0,255,136,0)",
+                "0 0 12px rgba(0,255,136,0.35)",
+                "0 0 0px rgba(0,255,136,0)",
+              ],
+            }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          >
             <IconLocation size={18} />
-          </div>
+          </motion.div>
         </div>
 
         {/* Neighborhood pills — horizontal scroll */}
@@ -168,6 +183,15 @@ export default function GuidePage() {
             ))}
           </motion.div>
         </div>
+        <motion.div
+          className="absolute bottom-0 left-0 right-0 h-px"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent, rgba(0,255,136,0.4), rgba(139,92,246,0.4), transparent)",
+          }}
+          animate={{ opacity: [0.3, 0.9, 0.3] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        />
       </header>
 
       {/* Content — crossfade on neighborhood switch */}
