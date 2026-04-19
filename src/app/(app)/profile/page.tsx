@@ -125,7 +125,7 @@ export default function ProfilePage() {
               aria-hidden="true"
               className="absolute -inset-2 rounded-full pointer-events-none"
               style={{
-                background: "linear-gradient(135deg, #8B5CF6, #00FF88)",
+                background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-2))",
                 filter: "blur(14px)",
                 opacity: 0.35,
               }}
@@ -135,7 +135,7 @@ export default function ProfilePage() {
           )}
           <motion.div
             className="relative w-32 h-32 rounded-full p-[3px]"
-            style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)" }}
+            style={{ background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-2))" }}
             animate={
               reducedMotion
                 ? undefined
@@ -155,7 +155,7 @@ export default function ProfilePage() {
                   <span
                     className="text-[52px] font-bold tracking-tight"
                     style={{
-                      background: "linear-gradient(135deg, #8B5CF6, #00FF88)",
+                      background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-2))",
                       WebkitBackgroundClip: "text",
                       WebkitTextFillColor: "transparent",
                     }}
@@ -169,16 +169,16 @@ export default function ProfilePage() {
           {/* Online indicator with soft pulse */}
           <motion.span
             className="absolute bottom-1.5 right-1.5 block w-4 h-4 rounded-full ring-[3px] ring-bg"
-            style={{ background: "#00FF88" }}
+            style={{ background: "var(--color-accent-2)" }}
             aria-label="En ligne ce soir"
             animate={
               reducedMotion
                 ? undefined
                 : {
                     boxShadow: [
-                      "0 0 0 0 rgba(0,255,136,0.5)",
-                      "0 0 0 8px rgba(0,255,136,0)",
-                      "0 0 0 0 rgba(0,255,136,0.5)",
+                      "0 0 0 0 color-mix(in srgb, var(--color-accent-2) 50%, transparent)",
+                      "0 0 0 8px color-mix(in srgb, var(--color-accent-2) 0%, transparent)",
+                      "0 0 0 0 color-mix(in srgb, var(--color-accent-2) 50%, transparent)",
                     ],
                   }
             }
@@ -211,7 +211,7 @@ export default function ProfilePage() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ ...springs.elastic, delay: 0.5 }}
         >
-          <span className="block w-1.5 h-1.5 rounded-full" style={{ background: "#00FF88" }} aria-hidden="true" />
+          <span className="block w-1.5 h-1.5 rounded-full" style={{ background: "var(--color-accent-2)" }} aria-hidden="true" />
           <span className="text-[12px] font-medium text-text">Disponible ce soir</span>
         </motion.div>
 

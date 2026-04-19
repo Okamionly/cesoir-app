@@ -116,7 +116,6 @@ const eslintConfig = defineConfig([
     // files are now under hard "error" to prevent regression. The rest of
     // src/components/** and src/lib/** stays at "warn" until phase 2 of
     // the audit migrates the remaining per-component severity/brand hexes.
-    // src/app/** stays at "warn" until the parallel page codemod (C1).
     files: [
       "src/components/ui/Confetti.tsx",
       "src/components/ui/EmptyState.tsx",
@@ -144,6 +143,27 @@ const eslintConfig = defineConfig([
       "src/lib/useProfiles.ts",
     ],
     rules: strictHexRules,
+  },
+  {
+    // Page-level codemod (D3) landed — all UI surface tokens in
+    // src/app/(app)/** now route through Tailwind tokens (bg-accent,
+    // text-text, ...) or var(--color-*) CSS vars. Rule stays at "warn"
+    // (not "error") because a handful of hex literals remain:
+    //   • Domain-meta: MODE_COLORS in map/page.tsx, modeMeta() in rooms,
+    //     getTypeConfig() in notifications/page.tsx, BENEFITS in premium
+    //     (per-mode / per-type / per-benefit brand identity — same
+    //     semantics as src/lib/modes.ts, which is fully excepted).
+    //   • Third-party brand hex: LinkedIn #0A66C2, Instagram gradient
+    //     (#f09433..#bc1888), #3B82F6 LinkedIn blue — wrapped with inline
+    //     comments explaining the intent.
+    //   • Dark atmospheric fallbacks: #1a1a2e camera viewport / map offline
+    //     tint — intentional out-of-palette surfaces, commented inline.
+    // Promoting to "error" would require moving domain-meta into src/lib
+    // and using inline eslint-disable on brand hex, deferred to phase 3.
+    files: [
+      "src/app/(app)/**/*.{ts,tsx}",
+    ],
+    rules: designSystemRules,
   },
   {
     // Design tokens file owns the hex literals.
@@ -174,6 +194,12 @@ const eslintConfig = defineConfig([
     files: [
       "src/components/landing/**/*.{ts,tsx}",
       "src/app/(landing)/**/*.{ts,tsx}",
+      // src/app/(auth)/** renders on the same dark cinematic landing bg
+      // (uses `landing.*` tokens + glassy rgba white overlays), so it is
+      // scoped out of the W&B page rule.
+      "src/app/(auth)/**/*.{ts,tsx}",
+      // Root landing page itself.
+      "src/app/page.tsx",
     ],
     rules: {
       "no-restricted-syntax": "off",

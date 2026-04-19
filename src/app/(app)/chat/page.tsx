@@ -71,7 +71,7 @@ function getModeInfo(mode: string | null) {
 
 function getAvatarColor(mode: string | null): string {
   const info = getModeInfo(mode);
-  return info?.color ?? "#8B5CF6";
+  return info?.color ?? "var(--color-accent)";
 }
 
 // ---------- Sub-components ----------
@@ -130,7 +130,7 @@ function ConversationRow({
       initial={{ opacity: 0, x: -30, filter: "blur(4px)" }}
       animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
       transition={{ ...springs.heavy, delay: index * 0.06 }}
-      whileHover={{ y: -1, boxShadow: "0 6px 18px rgba(139,92,246,0.12)", transition: springs.gentle }}
+      whileHover={{ y: -1, boxShadow: "0 6px 18px color-mix(in srgb, var(--color-accent) 12%, transparent)", transition: springs.gentle }}
       whileTap={{ scale: 0.98, transition: springs.micro }}
     >
       {/* Swipe reveal actions */}

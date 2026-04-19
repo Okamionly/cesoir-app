@@ -561,7 +561,7 @@ export default function ModeDetailPage({
           className="w-full relative overflow-hidden rounded-2xl py-4 text-white font-bold text-base shadow-glow disabled:opacity-60 disabled:cursor-not-allowed"
           style={{
             background: activated
-              ? "#22c55e"
+              ? "var(--color-safe)"
               : `linear-gradient(135deg, ${modeData.color}, ${modeData.color}CC)`,
           }}
           initial={{ opacity: 0, y: 20 }}

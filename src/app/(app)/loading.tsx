@@ -4,7 +4,7 @@ export default function Loading() {
       {/* Pulsing logo */}
       <div className="flex flex-col items-center gap-1 mb-10">
         <span
-          className="text-5xl text-accent drop-shadow-[0_0_20px_rgba(139,92,246,0.4)]"
+          className="text-5xl text-accent drop-shadow-[0_0_20px_color-mix(in_srgb,var(--color-accent)_40%,transparent)]"
           style={{ animation: "pulse-dot 2s ease-in-out infinite" }}
         >
           ☾
@@ -53,7 +53,7 @@ export default function Loading() {
         <div
           className="w-full h-full"
           style={{
-            background: "linear-gradient(90deg, transparent, #8B5CF6, #00FF88, transparent)",
+            background: "linear-gradient(90deg, transparent, var(--color-accent), var(--color-accent-2), transparent)",
             backgroundSize: "200% 100%",
             animation: "shimmer 1.5s ease-in-out infinite",
           }}

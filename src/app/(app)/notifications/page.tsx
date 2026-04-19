@@ -69,6 +69,10 @@ interface TypeConfig {
   bgColor: string;
 }
 
+// Per-notification-type colors — domain meta. Each type encodes a distinct
+// semantic (match=violet, like=pink, message=blue, event=amber, challenge=green,
+// review=gold, system=gray). Hex values kept raw because they are not UI surface
+// tokens but per-category identity, similar to src/lib/modes.ts.
 function getTypeConfig(type: ExtendedNotifType): TypeConfig {
   switch (type) {
     case "match":
@@ -502,7 +506,7 @@ export default function NotificationsPage() {
                   exit={{ scale: 0 }}
                   transition={springs.elastic}
                   className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-full text-[11px] font-bold text-white"
-                  style={{ backgroundColor: "#8B5CF6" }}
+                  style={{ backgroundColor: "var(--color-accent)" }}
                 >
                   {unreadCount}
                 </motion.span>
@@ -520,7 +524,7 @@ export default function NotificationsPage() {
                 transition={springs.snap}
                 onClick={handleMarkAllRead}
                 whileTap={micro.tapScale}
-                whileHover={{ color: "#8B5CF6", transition: springs.gentle }}
+                whileHover={{ color: "var(--color-accent)", transition: springs.gentle }}
                 className="text-[13px] font-semibold text-accent whitespace-nowrap"
               >
                 <span className="hidden sm:inline">Tout marquer comme lu</span>

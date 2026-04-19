@@ -40,6 +40,8 @@ interface RoomData {
 
 // --- Mock data ---
 
+// Per-mode brand colors encoded on mock rooms — domain meta (matches modeMeta
+// semantics in src/app/(app)/rooms/page.tsx). Not UI surface tokens.
 const MOCK_ROOM_DATA: Record<string, RoomData> = {
   r1: {
     id: "r1",

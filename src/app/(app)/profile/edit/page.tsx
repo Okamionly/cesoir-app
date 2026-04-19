@@ -269,7 +269,7 @@ export default function EditProfilePage() {
               animate={btnControls}
               whileHover={{
                 y: -2,
-                boxShadow: "0 12px 32px rgba(139,92,246,0.45), 0 0 24px rgba(0,255,136,0.18)",
+                boxShadow: "0 12px 32px color-mix(in srgb, var(--color-accent) 45%, transparent), 0 0 24px color-mix(in srgb, var(--color-accent-2) 18%, transparent)",
                 transition: springs.gentle,
               }}
               whileTap={{ scale: 0.95, transition: springs.micro }}

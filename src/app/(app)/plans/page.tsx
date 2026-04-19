@@ -146,7 +146,7 @@ export default function PlansPage() {
                     }}
                     aria-label={`Voir ${plan.title}`}
                     className="bg-card border border-border rounded-2xl p-4 hover:border-accent/20 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent/40"
-                    whileHover={{ y: -3, boxShadow: "0 8px 25px rgba(0,0,0,0.15)", transition: springs.gentle }}
+                    whileHover={{ y: -3, boxShadow: "0 8px 25px color-mix(in srgb, var(--color-text) 15%, transparent)", transition: springs.gentle }}
                     whileTap={{ scale: 0.98, transition: springs.micro }}
                   >
                     <div className="flex items-start gap-3">

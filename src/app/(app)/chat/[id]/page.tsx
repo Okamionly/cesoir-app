@@ -109,7 +109,7 @@ function ChatBubble({ content, isOwn, time, showTail, readAt }: { content: strin
           className={`relative w-full px-3.5 py-2.5 text-[15px] leading-relaxed ${
             isOwn
               ? "gradient-bg text-white rounded-2xl rounded-br-md"
-              : "bg-[#F2F2F2] text-text rounded-2xl rounded-bl-md"
+              : "bg-bg-card text-text rounded-2xl rounded-bl-md"
           }`}
         >
           <p className="whitespace-pre-wrap break-words">{content}</p>
@@ -121,7 +121,7 @@ function ChatBubble({ content, isOwn, time, showTail, readAt }: { content: strin
             {time}
             {isOwn && (
               readAt
-                ? <CheckDouble className="text-[#34B7F1] ml-0.5" />
+                ? <CheckDouble className="text-accent ml-0.5" />
                 : <CheckSingle className="text-white/50 ml-0.5" />
             )}
           </span>
@@ -134,7 +134,7 @@ function ChatBubble({ content, isOwn, time, showTail, readAt }: { content: strin
 function TypingIndicator() {
   return (
     <div className="flex justify-start mt-2" role="status" aria-label="Envoi en cours">
-      <div className="bg-[#F2F2F2] rounded-2xl rounded-bl-md px-4 py-3 flex gap-1 items-center">
+      <div className="bg-bg-card rounded-2xl rounded-bl-md px-4 py-3 flex gap-1 items-center">
         {[0, 1, 2].map((i) => (
           <motion.div
             key={i}
@@ -339,7 +339,7 @@ export default function ConversationPage({
   const modeInfo = convoMode && convoMode in MODES ? MODES[convoMode as ModeKey] : null;
 
   // determine avatar color from mode or fallback
-  const avatarColor = modeInfo?.color ?? "#8B5CF6";
+  const avatarColor = modeInfo?.color ?? "var(--color-accent)";
 
   // ---------- Feature handlers ----------
 
@@ -715,7 +715,7 @@ export default function ConversationPage({
 
         {peerTyping && (
           <div className="flex justify-start mt-2">
-            <div className="bg-[#F2F2F2] rounded-2xl rounded-bl-md px-4 py-3 flex gap-1.5 items-center">
+            <div className="bg-bg-card rounded-2xl rounded-bl-md px-4 py-3 flex gap-1.5 items-center">
               <span className="text-xs text-text-muted font-medium">{peerTyping} ecrit</span>
               {[0, 1, 2].map((i) => (
                 <motion.div

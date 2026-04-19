@@ -137,16 +137,16 @@ export default function TrendingPage() {
               height="20"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="#8B5CF6"
+              stroke="var(--color-accent)"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
               aria-hidden="true"
               animate={{
                 filter: [
-                  "drop-shadow(0 0 0px rgba(139,92,246,0))",
-                  "drop-shadow(0 0 8px rgba(139,92,246,0.7))",
-                  "drop-shadow(0 0 0px rgba(139,92,246,0))",
+                  "drop-shadow(0 0 0px color-mix(in srgb, var(--color-accent) 0%, transparent))",
+                  "drop-shadow(0 0 8px color-mix(in srgb, var(--color-accent) 70%, transparent))",
+                  "drop-shadow(0 0 0px color-mix(in srgb, var(--color-accent) 0%, transparent))",
                 ],
               }}
               transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
@@ -160,7 +160,7 @@ export default function TrendingPage() {
           className="absolute bottom-0 left-0 right-0 h-px"
           style={{
             background:
-              "linear-gradient(90deg, transparent, rgba(236,72,153,0.4), rgba(139,92,246,0.4), transparent)",
+              "linear-gradient(90deg, transparent, color-mix(in srgb, #ec4899 40%, transparent), color-mix(in srgb, var(--color-accent) 40%, transparent), transparent)",
           }}
           animate={{ opacity: [0.3, 0.9, 0.3] }}
           transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
@@ -240,7 +240,7 @@ export default function TrendingPage() {
               variants={cardVariants}
               custom={index}
               layout
-              whileHover={{ scale: 1.02, y: -2, boxShadow: "0 10px 30px rgba(0,0,0,0.18)", transition: springs.gentle }}
+              whileHover={{ scale: 1.02, y: -2, boxShadow: "0 10px 30px color-mix(in srgb, var(--color-text) 18%, transparent)", transition: springs.gentle }}
               className="bg-card border border-border rounded-2xl overflow-hidden"
               aria-label={`${venue.name} - ${venue.type}`}
             >
@@ -248,7 +248,7 @@ export default function TrendingPage() {
               <div
                 className="h-32 w-full"
                 style={{
-                  background: `linear-gradient(135deg, ${MODES[venue.modes[0]].color}33, #8B5CF633)`,
+                  background: `linear-gradient(135deg, ${MODES[venue.modes[0]].color}33, color-mix(in srgb, var(--color-accent) 20%, transparent))`,
                 }}
                 aria-hidden="true"
               >
@@ -266,12 +266,12 @@ export default function TrendingPage() {
                     </p>
                   </div>
                   <motion.div
-                    className="flex items-center gap-1 flex-shrink-0 bg-[#00FF88]/10 px-2 py-1 rounded-full"
+                    className="flex items-center gap-1 flex-shrink-0 bg-accent-2/10 px-2 py-1 rounded-full"
                     animate={{ scale: [1, 1.08, 1] }}
                     transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
                   >
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#00FF88]" aria-hidden="true" />
-                    <span className="text-[11px] font-bold text-[#00FF88]">{venue.people}</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-accent-2" aria-hidden="true" />
+                    <span className="text-[11px] font-bold text-accent-2">{venue.people}</span>
                   </motion.div>
                 </div>
 
@@ -291,7 +291,7 @@ export default function TrendingPage() {
                 {/* CTA */}
                 <button
                   className="mt-3 w-full py-2.5 rounded-xl text-sm font-bold text-white"
-                  style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)" }}
+                  style={{ background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-2))" }}
                   aria-label={`Y aller a ${venue.name}`}
                 >
                   Y aller

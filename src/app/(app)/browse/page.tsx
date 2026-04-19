@@ -38,7 +38,7 @@ function candidateToProfile(c: MatchCandidate): Profile {
     bio: c.bio,
     distance: c.distance_km,
     time: c.availableTime ?? "Dispo maintenant",
-    color: "#8B5CF6",
+    color: "var(--color-accent)",
     photo: c.avatar_url ?? `https://randomuser.me/api/portraits/lego/${Math.floor(Math.random() * 10)}.jpg`,
   };
 }
@@ -295,7 +295,7 @@ export default function BrowsePage() {
                     animate={browseVariants.stack.behind(1)}
                     style={{ scale: swipe.nextScale }}
                   >
-                    <div className="absolute inset-0 bg-[#111]" />
+                    <div className="absolute inset-0 bg-[var(--color-bg-dark)]" />
                     <img src={next1.photo} alt="" loading="lazy" decoding="async" className="absolute inset-0 w-full h-full object-cover opacity-20 blur-[4px]" />
                   </motion.div>
                 )}
@@ -435,7 +435,7 @@ function ActionButtons({
             aria-label="Passer"
             className="w-[56px] h-[56px] rounded-full bg-bg border-2 border-border flex items-center justify-center text-text-muted"
             whileTap={micro.tapScale}
-            whileHover={{ ...micro.hoverLift, borderColor: "rgba(17,17,17,0.4)" }}
+            whileHover={{ ...micro.hoverLift, borderColor: "color-mix(in srgb, var(--color-text) 40%, transparent)" }}
           >
             <IconX size={24} />
           </motion.button>
@@ -455,16 +455,16 @@ function ActionButtons({
             whileTap={canAffordRose ? micro.tapScale : {}}
             whileHover={
               canAffordRose
-                ? { ...micro.hoverLift, boxShadow: "0 0 24px rgba(236,72,153,0.4)" }
+                ? { ...micro.hoverLift, boxShadow: "0 0 24px color-mix(in srgb, #ec4899 40%, transparent)" }
                 : {}
             }
             animate={
               canAffordRose
                 ? {
                     boxShadow: [
-                      "0 0 0px rgba(236,72,153,0)",
-                      "0 0 14px rgba(236,72,153,0.25)",
-                      "0 0 0px rgba(236,72,153,0)",
+                      "0 0 0px color-mix(in srgb, #ec4899 0%, transparent)",
+                      "0 0 14px color-mix(in srgb, #ec4899 25%, transparent)",
+                      "0 0 0px color-mix(in srgb, #ec4899 0%, transparent)",
                     ],
                   }
                 : {}
@@ -488,7 +488,7 @@ function ActionButtons({
             whileTap={micro.tapScale}
             whileHover={{
               y: -3,
-              boxShadow: "0 12px 40px rgba(0,255,136,0.45)",
+              boxShadow: "0 12px 40px color-mix(in srgb, var(--color-accent-2) 45%, transparent)",
               transition: springs.gentle,
             }}
           >
@@ -530,7 +530,7 @@ function MatchToast({ profile, conversationId, onDismiss }: { profile: Profile; 
         className="absolute -inset-1 rounded-3xl pointer-events-none"
         aria-hidden="true"
         style={{
-          background: "linear-gradient(135deg, rgba(139,92,246,0.4), rgba(236,72,153,0.3), rgba(0,255,136,0.4))",
+          background: "linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 40%, transparent), color-mix(in srgb, #ec4899 30%, transparent), color-mix(in srgb, var(--color-accent-2) 40%, transparent))",
           filter: "blur(16px)",
         }}
         initial={{ opacity: 0 }}

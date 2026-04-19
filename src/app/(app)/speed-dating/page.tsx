@@ -466,7 +466,7 @@ export default function SpeedDatingPage() {
               {/* Like */}
               <motion.button
                 onClick={() => handleVote(true)}
-                whileHover={{ scale: 1.08, boxShadow: "0 0 30px rgba(239,68,68,0.4)" }}
+                whileHover={{ scale: 1.08, boxShadow: "0 0 30px color-mix(in srgb, var(--color-danger) 40%, transparent)" }}
                 whileTap={{ scale: 0.88 }}
                 className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center text-2xl shadow-lg shadow-pink-500/20"
                 aria-label="Like"
@@ -536,9 +536,9 @@ export default function SpeedDatingPage() {
                         animate={{
                           scale: [1, 1.2, 1],
                           boxShadow: [
-                            "0 0 0px rgba(139,92,246,0)",
-                            "0 0 12px rgba(139,92,246,0.6)",
-                            "0 0 0px rgba(139,92,246,0)",
+                            "0 0 0px color-mix(in srgb, var(--color-accent) 0%, transparent)",
+                            "0 0 12px color-mix(in srgb, var(--color-accent) 60%, transparent)",
+                            "0 0 0px color-mix(in srgb, var(--color-accent) 0%, transparent)",
                           ],
                         }}
                         transition={{ duration: 1.5, repeat: Infinity }}
@@ -589,7 +589,7 @@ export default function SpeedDatingPage() {
                     <span className="text-sm font-medium text-text flex-1">{p.name}</span>
                     <span className="text-xs">
                       {isMutual ? (
-                        <span className="text-[#00FF88] font-bold">Match !</span>
+                        <span className="text-accent-2 font-bold">Match !</span>
                       ) : result?.liked ? (
                         <span className="text-pink-400">Like</span>
                       ) : (

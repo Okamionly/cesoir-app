@@ -88,7 +88,7 @@ function Toggle({
       aria-checked={value}
       onClick={() => onChange(!value)}
       className="relative w-[44px] h-[26px] rounded-full shrink-0 tap-target transition-colors duration-200"
-      style={{ backgroundColor: value ? "#34C759" : "var(--color-border)" }}
+      style={{ backgroundColor: value ? "var(--color-safe)" : "var(--color-border)" }}
     >
       <span
         className="absolute top-[3px] left-[3px] w-[20px] h-[20px] rounded-full bg-white shadow-md transition-transform duration-200"

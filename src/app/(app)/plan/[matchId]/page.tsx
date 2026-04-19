@@ -443,7 +443,7 @@ export default function DatePlannerPage() {
                 className="w-full max-w-sm rounded-2xl border border-accent/30 bg-bg-card p-6 relative overflow-hidden"
                 style={{
                   boxShadow:
-                    "0 0 40px rgba(139,92,246,0.15), 0 0 80px rgba(139,92,246,0.05)",
+                    "0 0 40px color-mix(in srgb, var(--color-accent) 15%, transparent), 0 0 80px color-mix(in srgb, var(--color-accent) 5%, transparent)",
                 }}
               >
                 {/* Glow effect */}

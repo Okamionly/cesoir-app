@@ -11,13 +11,16 @@ import Link from "next/link";
 // Benefits data
 // ─────────────────────────────────────────
 
+// Per-benefit brand colors — domain meta array (mapped to CSS vars where possible).
+// Blue (#3B82F6) and gray (#9CA3AF) kept as raw hex because they encode
+// per-benefit semantics outside the W&B palette.
 const BENEFITS = [
-  { icon: "👁️", iconColor: "#8B5CF6", title: "Voir qui t'a like", description: "Decouvre qui s'interesse a toi avant meme de swiper." },
-  { icon: "💚", iconColor: "#00FF88", title: "Likes illimites", description: "Plus aucune limite. Like autant que tu veux, chaque soir." },
+  { icon: "👁️", iconColor: "var(--color-accent)", title: "Voir qui t'a like", description: "Decouvre qui s'interesse a toi avant meme de swiper." },
+  { icon: "💚", iconColor: "var(--color-accent-2)", title: "Likes illimites", description: "Plus aucune limite. Like autant que tu veux, chaque soir." },
   { icon: "↩️", iconColor: "#3B82F6", title: "Retour en arriere", description: "Tu as passe quelqu'un trop vite ? Reviens en arriere." },
-  { icon: "🚀", iconColor: "#F59E0B", title: "Boost profil 1x/semaine", description: "Ton profil en tete pendant 30 minutes, chaque semaine." },
+  { icon: "🚀", iconColor: "var(--color-warn)", title: "Boost profil 1x/semaine", description: "Ton profil en tete pendant 30 minutes, chaque semaine." },
   { icon: "👻", iconColor: "#9CA3AF", title: "Mode Invisible", description: "Navigue sans etre vu. Toi seul decides qui te voit." },
-  { icon: "👑", iconColor: "#F59E0B", title: "Badge Premium exclusif", description: "Un badge dore qui te distingue sur tous les profils." },
+  { icon: "👑", iconColor: "var(--color-warn)", title: "Badge Premium exclusif", description: "Un badge dore qui te distingue sur tous les profils." },
 ] as const;
 
 // ─────────────────────────────────────────
@@ -122,7 +125,7 @@ export default function PremiumPage() {
       <div className="relative px-6 pt-14 pb-10 text-center overflow-hidden">
         <div
           className="absolute inset-0 opacity-15 pointer-events-none"
-          style={{ background: "radial-gradient(ellipse at 50% 30%, #F59E0B 0%, transparent 70%)" }}
+          style={{ background: "radial-gradient(ellipse at 50% 30%, var(--color-warn) 0%, transparent 70%)" }}
           aria-hidden="true"
         />
         <motion.div
@@ -140,7 +143,7 @@ export default function PremiumPage() {
           transition={{ ...springs.elastic, delay: 0.1 }}
           className="text-[28px] font-display font-bold"
           style={{
-            background: "linear-gradient(135deg, #F59E0B, #FBBF24, #F59E0B)",
+            background: "linear-gradient(135deg, var(--color-warn), #FBBF24, var(--color-warn))",
             backgroundSize: "200% 200%",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
@@ -163,7 +166,7 @@ export default function PremiumPage() {
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[12px] font-semibold"
-            style={{ background: "rgba(245,158,11,0.12)", color: "#F59E0B" }}
+            style={{ background: "color-mix(in srgb, var(--color-warn) 12%, transparent)", color: "var(--color-warn)" }}
           >
             <span>✨</span>
             <span>
@@ -221,7 +224,7 @@ export default function PremiumPage() {
               disabled={busy === "portal"}
               onClick={handleManage}
               className="mt-4 w-full py-3 rounded-full text-[14px] font-bold text-white disabled:opacity-60"
-              style={{ background: "linear-gradient(135deg, #F59E0B, #FBBF24)" }}
+              style={{ background: "linear-gradient(135deg, var(--color-warn), #FBBF24)" }}
             >
               {busy === "portal" ? "Ouverture..." : "Gérer ma subscription"}
             </motion.button>
@@ -258,9 +261,9 @@ export default function PremiumPage() {
                     className="relative p-5 rounded-2xl border-2 text-left transition-colors"
                     style={{
                       perspective: "800px",
-                      borderColor: selected ? "#F59E0B" : "#EBEBEB",
-                      backgroundColor: selected ? "rgba(245,158,11,0.05)" : "transparent",
-                      boxShadow: selected ? "0 0 20px rgba(245,158,11,0.15)" : "none",
+                      borderColor: selected ? "var(--color-warn)" : "var(--color-border)",
+                      backgroundColor: selected ? "color-mix(in srgb, var(--color-warn) 5%, transparent)" : "transparent",
+                      boxShadow: selected ? "0 0 20px color-mix(in srgb, var(--color-warn) 15%, transparent)" : "none",
                     }}
                     aria-pressed={selected}
                     aria-label={`${plan.name}, ${formatPrice(plan.amountCents, plan.currency)} ${plan.interval === "month" ? "par mois" : "par an"}`}
@@ -268,7 +271,7 @@ export default function PremiumPage() {
                     {plan.savePercent ? (
                       <div
                         className="absolute -top-2.5 right-3 px-2.5 py-0.5 rounded-full text-[10px] font-bold"
-                        style={{ backgroundColor: "#00FF88", color: "#111" }}
+                        style={{ backgroundColor: "var(--color-accent-2)", color: "var(--color-bg-dark)" }}
                       >
                         Economise {plan.savePercent}%
                       </div>
@@ -298,12 +301,12 @@ export default function PremiumPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ ...springs.elastic, delay: 0.75 }}
-              whileHover={{ y: -3, boxShadow: "0 8px 30px rgba(245,158,11,0.35)" }}
+              whileHover={{ y: -3, boxShadow: "0 8px 30px color-mix(in srgb, var(--color-warn) 35%, transparent)" }}
               whileTap={{ scale: 0.95 }}
               disabled={busy === "checkout" || isLoading}
               onClick={handleSubscribe}
               className="w-full py-4 rounded-full text-[16px] font-bold text-white disabled:opacity-60"
-              style={{ background: "linear-gradient(135deg, #F59E0B, #FBBF24)" }}
+              style={{ background: "linear-gradient(135deg, var(--color-warn), #FBBF24)" }}
               aria-label={`S'abonner à ${selectedPlan?.name ?? "Premium"}`}
             >
               {busy === "checkout"
@@ -333,13 +336,13 @@ export default function PremiumPage() {
       >
         <div className="flex items-center justify-center gap-1 mb-1">
           {[...Array(5)].map((_, i) => (
-            <span key={i} className="text-[14px]" style={{ color: "#F59E0B" }} aria-hidden="true">
+            <span key={i} className="text-[14px]" style={{ color: "var(--color-warn)" }} aria-hidden="true">
               ★
             </span>
           ))}
         </div>
         <p className="text-[13px] font-semibold text-text">
-          Rejoint par <span style={{ color: "#F59E0B" }}>1,247</span> membres premium
+          Rejoint par <span style={{ color: "var(--color-warn)" }}>1,247</span> membres premium
         </p>
         <p className="text-[11px] text-text-muted mt-0.5">Les membres premium ont 3x plus de matchs</p>
       </motion.div>

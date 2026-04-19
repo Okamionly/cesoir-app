@@ -96,7 +96,7 @@ export default function ShopPage() {
         <motion.div
           variants={itemVariants}
           className="relative overflow-hidden rounded-2xl border border-accent/20 p-5"
-          style={{ background: "linear-gradient(135deg, rgba(139,92,246,0.1), rgba(236,72,153,0.08))" }}
+          style={{ background: "linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 10%, transparent), color-mix(in srgb, #ec4899 8%, transparent))" }}
         >
           <motion.span
             variants={floatVariants}
@@ -185,17 +185,17 @@ export default function ShopPage() {
         <motion.div variants={itemVariants}>
           <Link href="/premium">
             <motion.div
-              whileHover={{ y: -3, boxShadow: "0 12px 30px rgba(139,92,246,0.2)" }}
+              whileHover={{ y: -3, boxShadow: "0 12px 30px color-mix(in srgb, var(--color-accent) 20%, transparent)" }}
               whileTap={{ scale: 0.98 }}
               className="relative overflow-hidden rounded-2xl border border-accent/30 p-5"
               style={{
                 background:
-                  "linear-gradient(135deg, rgba(139,92,246,0.12), rgba(168,85,247,0.08), rgba(236,72,153,0.06))",
+                  "linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 12%, transparent), color-mix(in srgb, #a855f7 8%, transparent), color-mix(in srgb, #ec4899 6%, transparent))",
               }}
             >
               <motion.div
                 className="absolute -top-10 -right-10 w-32 h-32 rounded-full"
-                style={{ background: "radial-gradient(circle, rgba(139,92,246,0.15), transparent 70%)" }}
+                style={{ background: "radial-gradient(circle, color-mix(in srgb, var(--color-accent) 15%, transparent), transparent 70%)" }}
                 animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3] }}
                 transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               />

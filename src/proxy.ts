@@ -36,6 +36,13 @@ const publicRoutes = [
   "/robots.txt",
   "/sitemap.xml",
   "/favicon.ico",
+  // Next.js file conventions that render metadata images — must be
+  // reachable by crawlers (Facebook, Twitter, LinkedIn, Slack) WITHOUT
+  // an auth session. Previously proxied to /login → OG cards 404'd.
+  "/opengraph-image",
+  "/twitter-image",
+  "/apple-icon",
+  "/icon",
 ];
 
 /** Path prefixes that are public (e.g. /p/<id> public profile, /invite/<code>). */

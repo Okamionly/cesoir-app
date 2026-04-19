@@ -14,7 +14,8 @@ function minutesSince(iso: string): number {
 }
 
 function modeMeta(mode: string | null): { label: string; color: string; icon: string; category: "discussion" | "debat" | "ambiance" } {
-  // Lightweight mapping — keeps UI consistent with prior mock.
+  // Per-mode brand colors — domain meta (not UI surface tokens). Hex values
+  // encode product semantics, kept raw like src/lib/modes.ts.
   switch (mode) {
     case "night-owl":
       return { label: "Night Owl", color: "#6366f1", icon: "\uD83C\uDF19", category: "discussion" };
@@ -209,7 +210,7 @@ function RoomCard({ room }: { room: MockRoom }) {
         className="bg-card border border-border rounded-2xl p-4 hover:border-accent/20 transition-colors"
         whileHover={{
           y: -3,
-          boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
+          boxShadow: "0 8px 25px color-mix(in srgb, var(--color-text) 15%, transparent)",
           transition: springs.gentle,
         }}
         whileTap={{ scale: 0.98, transition: springs.micro }}
@@ -227,7 +228,7 @@ function RoomCard({ room }: { room: MockRoom }) {
           <div
             className="w-8 h-8 rounded-full p-[2px] shrink-0"
             style={{
-              background: `linear-gradient(135deg, ${room.modeColor}, #8B5CF6)`,
+              background: `linear-gradient(135deg, ${room.modeColor}, var(--color-accent))`,
             }}
           >
             <img
@@ -347,7 +348,7 @@ export default function RoomsPage() {
           <motion.button
             whileHover={{
               scale: 1.05,
-              boxShadow: "0 0 15px rgba(139,92,246,0.4)",
+              boxShadow: "0 0 15px color-mix(in srgb, var(--color-accent) 40%, transparent)",
             }}
             whileTap={{ scale: 0.92 }}
             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full gradient-bg text-white text-[11px] font-bold shadow-glow"

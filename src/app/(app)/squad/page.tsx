@@ -200,7 +200,7 @@ export default function SquadPage() {
         title={
           <span
             className="bg-clip-text text-transparent"
-            style={{ backgroundImage: "linear-gradient(135deg, #8B5CF6, #00FF88)" }}
+            style={{ backgroundImage: "linear-gradient(135deg, var(--color-accent), var(--color-accent-2))" /* Squad gradient heading */ }}
           >
             Squad Mode
           </span>
@@ -280,11 +280,11 @@ export default function SquadPage() {
             <motion.button
               onClick={handleJoin}
               disabled={joinCode.length !== 6 || busy}
-              whileHover={{ scale: 1.05, y: -2, boxShadow: "0 0 20px rgba(139,92,246,0.4)" }}
+              whileHover={{ scale: 1.05, y: -2, boxShadow: "0 0 20px color-mix(in srgb, var(--color-accent) 40%, transparent)" }}
               whileTap={{ scale: 0.92 }}
               transition={springs.snap}
               className="px-4 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40 transition-opacity"
-              style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)" }}
+              style={{ background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-2))" }}
             >
               Rejoindre
             </motion.button>
@@ -314,11 +314,11 @@ export default function SquadPage() {
             {/* 4. Action button: whileHover glow + whileTap */}
             <motion.button
               onClick={handleCopy}
-              whileHover={{ scale: 1.05, y: -2, boxShadow: "0 0 20px rgba(139,92,246,0.4)" }}
+              whileHover={{ scale: 1.05, y: -2, boxShadow: "0 0 20px color-mix(in srgb, var(--color-accent) 40%, transparent)" }}
               whileTap={{ scale: 0.92 }}
               transition={springs.snap}
               className="flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all"
-              style={{ background: copied ? "#00FF88" : "#8B5CF6" }}
+              style={{ background: copied ? "var(--color-accent-2)" : "var(--color-accent)" }}
               aria-label={copied ? "Lien copie" : "Copier le lien d'invitation"}
             >
               <AnimatePresence mode="wait">
@@ -330,7 +330,7 @@ export default function SquadPage() {
                     exit={{ scale: 0 }}
                     className="inline-flex items-center gap-1"
                   >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-text)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <path d="M20 6L9 17l-5-5" />
                     </svg>
                     Copie
@@ -410,7 +410,7 @@ export default function SquadPage() {
                     {/* 5. Online indicator dot: ambient.breathe(3) for living pulse */}
                     <motion.span
                       animate={ambient.breathe(3)}
-                      className="inline-block w-1.5 h-1.5 rounded-full bg-[#00FF88]"
+                      className="inline-block w-1.5 h-1.5 rounded-full bg-accent-2"
                     />
                     <span className="text-[10px] text-text-muted">{squad.distance} km</span>
                   </div>
@@ -421,11 +421,11 @@ export default function SquadPage() {
 
                 {/* 4. "Proposer" button: whileHover scale:1.05 y:-2 with glow, whileTap scale:0.92 */}
                 <motion.button
-                  whileHover={{ scale: 1.05, y: -2, boxShadow: "0 0 20px rgba(139,92,246,0.4)" }}
+                  whileHover={{ scale: 1.05, y: -2, boxShadow: "0 0 20px color-mix(in srgb, var(--color-accent) 40%, transparent)" }}
                   whileTap={{ scale: 0.92 }}
                   transition={springs.snap}
                   className="flex-shrink-0 px-3.5 py-2 rounded-xl text-xs font-bold text-white"
-                  style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)" }}
+                  style={{ background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-2))" }}
                   aria-label={`Proposer un plan au squad de ${squad.members[0].name}`}
                 >
                   Proposer

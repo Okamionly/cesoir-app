@@ -27,8 +27,8 @@ function MoonIcon({ size = 64 }: { size?: number }) {
       />
       <defs>
         <linearGradient id="onboardMoon" x1="0" y1="0" x2="64" y2="64">
-          <stop offset="0%" stopColor="#8B5CF6" />
-          <stop offset="100%" stopColor="#00FF88" />
+          <stop offset="0%" stopColor="var(--color-accent)" />
+          <stop offset="100%" stopColor="var(--color-accent-2)" />
         </linearGradient>
       </defs>
     </svg>
@@ -37,8 +37,8 @@ function MoonIcon({ size = 64 }: { size?: number }) {
 
 function ShieldIcon() {
   return (
-    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="#8B5CF6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M32 6L8 18v14c0 14.4 10.2 27.8 24 32 13.8-4.2 24-17.6 24-32V18L32 6z" fill="rgba(139,92,246,0.08)" />
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="var(--color-accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M32 6L8 18v14c0 14.4 10.2 27.8 24 32 13.8-4.2 24-17.6 24-32V18L32 6z" fill="color-mix(in srgb, var(--color-accent) 8%, transparent)" />
       <path d="M22 32l6 6 14-14" />
     </svg>
   );
@@ -46,8 +46,8 @@ function ShieldIcon() {
 
 function ClockIcon() {
   return (
-    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="#00FF88" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="32" cy="32" r="26" fill="rgba(0,255,136,0.06)" />
+    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="var(--color-accent-2)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="32" cy="32" r="26" fill="color-mix(in srgb, var(--color-accent-2) 6%, transparent)" />
       <path d="M32 16v16l10 6" />
     </svg>
   );
@@ -296,14 +296,14 @@ export default function OnboardingPage() {
             className="w-full rounded-2xl py-4 text-center text-base font-semibold text-white gradient-bg relative overflow-hidden"
             style={{
               boxShadow:
-                "0 8px 30px rgba(139,92,246,0.35), 0 0 0 1px rgba(255,255,255,0.05) inset",
+                "0 8px 30px color-mix(in srgb, var(--color-accent) 35%, transparent), 0 0 0 1px color-mix(in srgb, var(--color-bg) 5%, transparent) inset",
             }}
           >
             <motion.span
               className="absolute inset-0 rounded-2xl"
               style={{
                 background:
-                  "linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.18) 50%, transparent 70%)",
+                  "linear-gradient(120deg, transparent 30%, color-mix(in srgb, var(--color-bg) 18%, transparent) 50%, transparent 70%)",
               }}
               animate={{ x: ["-120%", "120%"] }}
               transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }}

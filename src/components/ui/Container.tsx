@@ -22,8 +22,9 @@ interface ContainerProps {
  * Page-level width container. Replaces the ~96 inline
  * `max-w-lg mx-auto px-4` repetitions called out in the UI audit.
  *
- * Horizontal padding is safe-area aware via Tailwind's `pl-[env(safe-area-...)]`
- * fallbacks; we keep it simple here and rely on the parent layout for inset.
+ * Horizontal padding is safe-area aware via Tailwind safe-area utilities
+ * (pl-safe, pr-safe); we keep it simple here and rely on the parent
+ * layout for inset.
  */
 const sizeMap: Record<ContainerSize, string> = {
   sm: "max-w-sm",

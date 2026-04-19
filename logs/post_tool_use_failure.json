@@ -2083,5 +2083,73 @@
       "is_interrupt": false,
       "logged_at": "2026-04-19T17:56:13.949043"
     }
+  },
+  {
+    "timestamp": "2026-04-19T19:04:06.287068",
+    "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01Cq19T1jbiWqgdmp7sLS8dx",
+    "tool_input": {
+      "command": "cd \"C:/Users/mrgue/CLAUDE CODE/cesoir-app\" && ls src/app/globals.css 2>/dev/null && ls tailwind.config* 2>/dev/null && ls eslint.config* 2>/dev/null",
+      "description": "Check config files"
+    },
+    "error": "Exit code 2\nsrc/app/globals.css",
+    "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+    "raw_input": {
+      "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+      "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+      "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+      "permission_mode": "bypassPermissions",
+      "agent_id": "a8292dbd574716496",
+      "agent_type": "builder",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "cd \"C:/Users/mrgue/CLAUDE CODE/cesoir-app\" && ls src/app/globals.css 2>/dev/null && ls tailwind.config* 2>/dev/null && ls eslint.config* 2>/dev/null",
+        "description": "Check config files"
+      },
+      "tool_use_id": "toolu_01Cq19T1jbiWqgdmp7sLS8dx",
+      "error": "Exit code 2\nsrc/app/globals.css",
+      "is_interrupt": false,
+      "logged_at": "2026-04-19T19:04:06.287068"
+    }
+  },
+  {
+    "timestamp": "2026-04-19T19:07:23.520823",
+    "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01SJWecCLm1dCSfUHwBwQzwx",
+    "tool_input": {
+      "command": "curl -s http://localhost:3000/ -o /tmp/landing.html && echo \"bytes=$(wc -c < /tmp/landing.html)\" && grep -c '<main' /tmp/landing.html && grep -c '<h1' /tmp/landing.html && grep -c 'id=\"main-content\"' /tmp/landing.html && grep -oE 'Ce soir,[^<]*' /tmp/landing.html | head -3",
+      "timeout": 30000,
+      "description": "Check SSR output for main, h1, id=main-content, hero text"
+    },
+    "error": "Exit code 1\nbytes=5284\n0",
+    "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+    "raw_input": {
+      "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+      "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+      "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+      "permission_mode": "bypassPermissions",
+      "agent_id": "a75528553a7f1a820",
+      "agent_type": "builder",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "curl -s http://localhost:3000/ -o /tmp/landing.html && echo \"bytes=$(wc -c < /tmp/landing.html)\" && grep -c '<main' /tmp/landing.html && grep -c '<h1' /tmp/landing.html && grep -c 'id=\"main-content\"' /tmp/landing.html && grep -oE 'Ce soir,[^<]*' /tmp/landing.html | head -3",
+        "timeout": 30000,
+        "description": "Check SSR output for main, h1, id=main-content, hero text"
+      },
+      "tool_use_id": "toolu_01SJWecCLm1dCSfUHwBwQzwx",
+      "error": "Exit code 1\nbytes=5284\n0",
+      "is_interrupt": false,
+      "logged_at": "2026-04-19T19:07:23.520823"
+    }
   }
 ]

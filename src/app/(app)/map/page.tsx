@@ -21,6 +21,9 @@ function fakePos(lat: number, lng: number, km: number) {
   return { lat: lat + (Math.random() - 0.5) * 2 * r, lng: lng + (Math.random() - 0.5) * 2 * r };
 }
 
+// Per-mode brand colors — domain meta array (matches src/lib/modes.ts semantics,
+// kept as raw hex because they encode product-specific mode identity, not UI
+// surface tokens. Do NOT map to the W&B palette.)
 const MODE_COLORS: Record<string, string> = {
   "solo-diner": "#8B5CF6", "plus-one": "#EC4899", "tourist": "#06B6D4",
   "night-owl": "#6366F1", "breakup": "#22C55E", "new-in-town": "#F59E0B",
@@ -135,7 +138,7 @@ export default function MapPage() {
     }
 
     filtered.forEach((p, idx) => {
-      const color = MODE_COLORS[p.mode] || "#8B5CF6";
+      const color = MODE_COLORS[p.mode] || "var(--color-accent)";
 
       const el = document.createElement("div");
       el.style.cssText = `
@@ -170,9 +173,9 @@ export default function MapPage() {
       const el = document.createElement("div");
       el.style.cssText = `
         width: 48px; height: 48px; border-radius: 50%; cursor: pointer;
-        background: linear-gradient(135deg, #8B5CF6, #00FF88);
+        background: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
         display: flex; align-items: center; justify-content: center;
-        box-shadow: 0 0 20px rgba(139,92,246,0.4);
+        box-shadow: 0 0 20px color-mix(in srgb, var(--color-accent) 40%, transparent);
         animation: pulse-event 2s ease-in-out infinite;
       `;
       el.innerHTML = `<span style="font-size:22px;">🎉</span>`;
@@ -184,8 +187,8 @@ export default function MapPage() {
         style.id = "event-marker-styles";
         style.textContent = `
           @keyframes pulse-event {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(139,92,246,0.4); }
-            50% { transform: scale(1.1); box-shadow: 0 0 30px rgba(139,92,246,0.6); }
+            0%, 100% { transform: scale(1); box-shadow: 0 0 20px color-mix(in srgb, var(--color-accent) 40%, transparent); }
+            50% { transform: scale(1.1); box-shadow: 0 0 30px color-mix(in srgb, var(--color-accent) 60%, transparent); }
           }
         `;
         document.head.appendChild(style);
@@ -291,7 +294,7 @@ export default function MapPage() {
         {latitude && longitude && !mapFailed && (
           <motion.div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none"
-            style={{ width: 18, height: 18, borderRadius: "50%", background: "#8B5CF6" }}
+            style={{ width: 18, height: 18, borderRadius: "50%", background: "var(--color-accent)" }}
             animate={mapVariants.userDot.idle}
           />
         )}
@@ -318,15 +321,15 @@ export default function MapPage() {
 
         {/* Offline fallback map */}
         {mapFailed && (
-          <div className="w-full h-full relative overflow-hidden" style={{ background: "#1a1a2e" }}>
+          <div className="w-full h-full relative overflow-hidden" style={{ background: "#1a1a2e" /* dark atmospheric map tint — intentional out-of-palette offline fallback */ }}>
             {/* CSS Grid lines */}
             <div className="absolute inset-0" style={{
-              backgroundImage: "linear-gradient(rgba(139,92,246,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(139,92,246,0.06) 1px, transparent 1px)",
+              backgroundImage: "linear-gradient(color-mix(in srgb, var(--color-accent) 6%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--color-accent) 6%, transparent) 1px, transparent 1px)",
               backgroundSize: "60px 60px",
             }} />
             {/* Larger grid */}
             <div className="absolute inset-0" style={{
-              backgroundImage: "linear-gradient(rgba(139,92,246,0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(139,92,246,0.12) 1px, transparent 1px)",
+              backgroundImage: "linear-gradient(color-mix(in srgb, var(--color-accent) 12%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--color-accent) 12%, transparent) 1px, transparent 1px)",
               backgroundSize: "300px 300px",
             }} />
 
@@ -335,7 +338,7 @@ export default function MapPage() {
 
             {/* Profile markers on fallback — radial burst */}
             {filtered.slice(0, 12).map((p, i) => {
-              const color = MODE_COLORS[p.mode] || "#8B5CF6";
+              const color = MODE_COLORS[p.mode] || "var(--color-accent)";
               return (
                 <motion.button
                   key={`fb-${i}`}
@@ -367,8 +370,8 @@ export default function MapPage() {
                 className="absolute flex items-center justify-center cursor-pointer"
                 style={{
                   width: 48, height: 48, borderRadius: "50%",
-                  background: "linear-gradient(135deg, #8B5CF6, #00FF88)",
-                  boxShadow: "0 0 20px rgba(139,92,246,0.4)",
+                  background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-2))",
+                  boxShadow: "0 0 20px color-mix(in srgb, var(--color-accent) 40%, transparent)",
                   top: `${20 + ((ev.lat - center.lat + 0.015) / 0.03) * 60}%`,
                   left: `${10 + ((ev.lng - center.lng + 0.015) / 0.03) * 80}%`,
                 }}

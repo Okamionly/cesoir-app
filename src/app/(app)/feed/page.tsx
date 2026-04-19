@@ -305,7 +305,7 @@ export default function FeedPage() {
                 <motion.button
                   onClick={handleLoadMore}
                   disabled={loadingMore}
-                  whileHover={{ borderColor: "rgba(139,92,246,0.4)", transition: springs.gentle }}
+                  whileHover={{ borderColor: "color-mix(in srgb, var(--color-accent) 40%, transparent)", transition: springs.gentle }}
                   whileTap={{ scale: 0.97, transition: springs.micro }}
                   className="w-full py-3 text-center text-sm font-medium text-text-muted bg-card border border-border rounded-2xl transition-colors disabled:opacity-50"
                 >

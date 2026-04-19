@@ -122,7 +122,7 @@ export default function SafetyPage() {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#FFFFFF" }}>
+    <div className="min-h-screen" style={{ backgroundColor: "var(--color-bg)" }}>
       <PageHeader
         title="Securite"
         tone="white"
@@ -134,7 +134,7 @@ export default function SafetyPage() {
             height="20"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="#22c55e"
+            stroke="var(--color-safe)"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -157,15 +157,15 @@ export default function SafetyPage() {
           <h1
             className="text-[28px] font-bold leading-tight mb-3"
             style={{
-              color: "#111111",
+              color: "var(--color-text)",
               fontFamily: "var(--font-display, 'Space Grotesk', sans-serif)",
             }}
           >
             Ta securite est notre
             <br />
-            <span style={{ color: "#22c55e" }}>priorite absolue.</span>
+            <span style={{ color: "var(--color-safe)" }}>priorite absolue.</span>
           </h1>
-          <p className="text-[14px] leading-relaxed" style={{ color: "#666666" }}>
+          <p className="text-[14px] leading-relaxed" style={{ color: "var(--color-text-soft)" }}>
             Tous tes outils de securite au meme endroit. SOS, check-in,
             contacts de confiance.
           </p>
@@ -183,14 +183,14 @@ export default function SafetyPage() {
             onClick={handleSOSPress}
             disabled={sosActive}
             className="w-full relative overflow-hidden rounded-2xl py-6 flex flex-col items-center gap-3 text-white font-bold shadow-lg disabled:opacity-70"
-            style={{ backgroundColor: "#ef4444" }}
+            style={{ backgroundColor: "var(--color-danger)" }}
             whileTap={{ scale: 0.97 }}
             aria-label="Declencher l'alerte SOS"
           >
             {/* Breathing pulse behind the button */}
             <motion.div
               className="absolute inset-0 rounded-2xl"
-              style={{ backgroundColor: "rgba(255,255,255,0.1)" }}
+              style={{ backgroundColor: "color-mix(in srgb, var(--color-bg) 10%, transparent)" }}
               animate={ambient.breathe(3)}
             />
 
@@ -220,7 +220,7 @@ export default function SafetyPage() {
             </span>
             <span
               className="text-xs relative z-10"
-              style={{ color: "rgba(255,255,255,0.7)" }}
+              style={{ color: "color-mix(in srgb, var(--color-bg) 70%, transparent)" }}
             >
               Envoie ta position a tes contacts
             </span>
@@ -235,7 +235,7 @@ export default function SafetyPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 z-[150] flex items-center justify-center p-6"
-              style={{ backgroundColor: "rgba(0,0,0,0.7)" }}
+              style={{ backgroundColor: "color-mix(in srgb, var(--color-text) 70%, transparent)" }}
             >
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
@@ -243,20 +243,20 @@ export default function SafetyPage() {
                 exit={{ scale: 0.9, opacity: 0 }}
                 transition={springs.heavy}
                 className="w-full max-w-sm rounded-2xl p-6 text-center"
-                style={{ backgroundColor: "#FFFFFF" }}
+                style={{ backgroundColor: "var(--color-bg)" }}
                 role="alertdialog"
                 aria-label="Confirmer l'alerte SOS"
               >
                 <div
                   className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full"
-                  style={{ backgroundColor: "rgba(239,68,68,0.1)" }}
+                  style={{ backgroundColor: "color-mix(in srgb, var(--color-danger) 10%, transparent)" }}
                 >
                   <svg
                     width="32"
                     height="32"
                     viewBox="0 0 24 24"
                     fill="none"
-                    stroke="#ef4444"
+                    stroke="var(--color-danger)"
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -268,11 +268,11 @@ export default function SafetyPage() {
                 </div>
                 <h3
                   className="text-lg font-bold mb-2"
-                  style={{ color: "#111111" }}
+                  style={{ color: "var(--color-text)" }}
                 >
                   Confirmer l&apos;alerte SOS ?
                 </h3>
-                <p className="text-sm mb-6" style={{ color: "#666666" }}>
+                <p className="text-sm mb-6" style={{ color: "var(--color-text-soft)" }}>
                   Ta position sera envoyee a tous tes contacts de confiance
                   ({trustedContacts.length} contact
                   {trustedContacts.length !== 1 ? "s" : ""}).
@@ -283,8 +283,8 @@ export default function SafetyPage() {
                     onClick={() => setSosConfirm(false)}
                     className="flex-1 rounded-xl py-3 text-sm font-semibold"
                     style={{
-                      backgroundColor: "rgba(0,0,0,0.05)",
-                      color: "#666666",
+                      backgroundColor: "color-mix(in srgb, var(--color-text) 5%, transparent)",
+                      color: "var(--color-text-soft)",
                     }}
                   >
                     Annuler
@@ -293,7 +293,7 @@ export default function SafetyPage() {
                     type="button"
                     onClick={handleSOSConfirm}
                     className="flex-1 rounded-xl py-3 text-sm font-bold text-white"
-                    style={{ backgroundColor: "#ef4444" }}
+                    style={{ backgroundColor: "var(--color-danger)" }}
                   >
                     Confirmer SOS
                   </button>
@@ -308,9 +308,9 @@ export default function SafetyPage() {
           className="mb-6 rounded-2xl p-5"
           style={{
             backgroundColor: isCheckInActive
-              ? "rgba(34,197,94,0.06)"
-              : "rgba(139,92,246,0.04)",
-            border: `1px solid ${isCheckInActive ? "rgba(34,197,94,0.15)" : "rgba(139,92,246,0.1)"}`,
+              ? "color-mix(in srgb, var(--color-safe) 6%, transparent)"
+              : "color-mix(in srgb, var(--color-accent) 4%, transparent)",
+            border: `1px solid ${isCheckInActive ? "color-mix(in srgb, var(--color-safe) 15%, transparent)" : "color-mix(in srgb, var(--color-accent) 10%, transparent)"}`,
           }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -322,8 +322,8 @@ export default function SafetyPage() {
                 className="flex h-10 w-10 items-center justify-center rounded-full"
                 style={{
                   backgroundColor: isCheckInActive
-                    ? "rgba(34,197,94,0.15)"
-                    : "rgba(139,92,246,0.1)",
+                    ? "color-mix(in srgb, var(--color-safe) 15%, transparent)"
+                    : "color-mix(in srgb, var(--color-accent) 10%, transparent)",
                 }}
               >
                 <svg
@@ -331,7 +331,7 @@ export default function SafetyPage() {
                   height="18"
                   viewBox="0 0 24 24"
                   fill="none"
-                  stroke={isCheckInActive ? "#22c55e" : "#8B5CF6"}
+                  stroke={isCheckInActive ? "var(--color-safe)" : "var(--color-accent)"}
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -343,13 +343,13 @@ export default function SafetyPage() {
               <div>
                 <h2
                   className="text-sm font-bold"
-                  style={{ color: "#111111" }}
+                  style={{ color: "var(--color-text)" }}
                 >
                   Check-in de securite
                 </h2>
                 <p
                   className="text-xs"
-                  style={{ color: "#666666" }}
+                  style={{ color: "var(--color-text-soft)" }}
                 >
                   {isCheckInActive
                     ? `Prochain dans ${formatTimeLeft(checkInTimeLeft)}`
@@ -361,7 +361,7 @@ export default function SafetyPage() {
             {isCheckInActive && (
               <motion.div
                 className="h-2.5 w-2.5 rounded-full"
-                style={{ backgroundColor: "#22c55e" }}
+                style={{ backgroundColor: "var(--color-safe)" }}
                 animate={{ scale: [1, 1.4, 1] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
                 aria-label="Check-in actif"
@@ -375,7 +375,7 @@ export default function SafetyPage() {
                 type="button"
                 onClick={handleCheckIn}
                 className="flex-1 rounded-xl py-2.5 text-sm font-semibold text-white"
-                style={{ backgroundColor: "#22c55e" }}
+                style={{ backgroundColor: "var(--color-safe)" }}
               >
                 Je vais bien
               </button>
@@ -384,8 +384,8 @@ export default function SafetyPage() {
                 onClick={handleCancelCheckIn}
                 className="rounded-xl px-4 py-2.5 text-sm font-medium"
                 style={{
-                  backgroundColor: "rgba(239,68,68,0.08)",
-                  color: "#ef4444",
+                  backgroundColor: "color-mix(in srgb, var(--color-danger) 8%, transparent)",
+                  color: "var(--color-danger)",
                 }}
               >
                 Arreter
@@ -396,7 +396,7 @@ export default function SafetyPage() {
               type="button"
               onClick={handleStartCheckIn}
               className="w-full rounded-xl py-2.5 text-sm font-semibold text-white"
-              style={{ backgroundColor: "#8B5CF6" }}
+              style={{ backgroundColor: "var(--color-accent)" }}
             >
               Activer le check-in (30 min)
             </button>
@@ -412,7 +412,7 @@ export default function SafetyPage() {
         >
           <h2
             className="text-[11px] uppercase tracking-[0.2em] font-bold mb-3"
-            style={{ color: "#999999" }}
+            style={{ color: "var(--color-text-muted)" }}
           >
             Cercle de confiance
           </h2>
@@ -428,7 +428,7 @@ export default function SafetyPage() {
         >
           <h2
             className="text-[11px] uppercase tracking-[0.2em] font-bold mb-3"
-            style={{ color: "#999999" }}
+            style={{ color: "var(--color-text-muted)" }}
           >
             Historique de securite
           </h2>
@@ -436,21 +436,21 @@ export default function SafetyPage() {
           <div
             className="rounded-2xl overflow-hidden"
             style={{
-              backgroundColor: "rgba(0,0,0,0.02)",
-              border: "1px solid rgba(0,0,0,0.06)",
+              backgroundColor: "color-mix(in srgb, var(--color-text) 2%, transparent)",
+              border: "1px solid color-mix(in srgb, var(--color-text) 6%, transparent)",
             }}
           >
             {recentActions.length === 0 ? (
               <div className="p-6 text-center">
-                <p className="text-sm" style={{ color: "#999999" }}>
+                <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
                   Aucune action recente.
                 </p>
-                <p className="text-xs mt-1" style={{ color: "#cccccc" }}>
+                <p className="text-xs mt-1" style={{ color: "var(--color-border)" }}>
                   Tes alertes SOS et check-ins apparaitront ici.
                 </p>
               </div>
             ) : (
-              <div className="divide-y" style={{ borderColor: "rgba(0,0,0,0.04)" }}>
+              <div className="divide-y" style={{ borderColor: "color-mix(in srgb, var(--color-text) 4%, transparent)" }}>
                 {recentActions.slice(0, 8).map((action) => (
                   <div
                     key={action.id}
@@ -466,11 +466,11 @@ export default function SafetyPage() {
                     <div className="flex-1 min-w-0">
                       <p
                         className="text-sm font-medium truncate"
-                        style={{ color: "#111111" }}
+                        style={{ color: "var(--color-text)" }}
                       >
                         {action.description}
                       </p>
-                      <p className="text-xs" style={{ color: "#999999" }}>
+                      <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
                         {formatTimestamp(action.timestamp)}
                       </p>
                     </div>
@@ -492,21 +492,21 @@ export default function SafetyPage() {
             href="/settings"
             className="flex items-center justify-between rounded-2xl p-4"
             style={{
-              backgroundColor: "rgba(0,0,0,0.02)",
-              border: "1px solid rgba(0,0,0,0.06)",
+              backgroundColor: "color-mix(in srgb, var(--color-text) 2%, transparent)",
+              border: "1px solid color-mix(in srgb, var(--color-text) 6%, transparent)",
             }}
           >
             <div className="flex items-center gap-3">
               <div
                 className="flex h-10 w-10 items-center justify-center rounded-full"
-                style={{ backgroundColor: "rgba(245,158,11,0.1)" }}
+                style={{ backgroundColor: "color-mix(in srgb, var(--color-warn) 10%, transparent)" }}
               >
                 <svg
                   width="18"
                   height="18"
                   viewBox="0 0 24 24"
                   fill="none"
-                  stroke="#f59e0b"
+                  stroke="var(--color-warn)"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -519,10 +519,10 @@ export default function SafetyPage() {
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-semibold" style={{ color: "#111111" }}>
+                <p className="text-sm font-semibold" style={{ color: "var(--color-text)" }}>
                   Mes signalements
                 </p>
-                <p className="text-xs" style={{ color: "#666666" }}>
+                <p className="text-xs" style={{ color: "var(--color-text-soft)" }}>
                   Voir l&apos;historique des profils signales
                 </p>
               </div>
@@ -532,7 +532,7 @@ export default function SafetyPage() {
               height="16"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="#cccccc"
+              stroke="var(--color-border)"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -558,21 +558,21 @@ export default function SafetyPage() {
             }}
             className="w-full flex items-center justify-between rounded-2xl p-4"
             style={{
-              backgroundColor: "rgba(34,197,94,0.04)",
-              border: "1px solid rgba(34,197,94,0.1)",
+              backgroundColor: "color-mix(in srgb, var(--color-safe) 4%, transparent)",
+              border: "1px solid color-mix(in srgb, var(--color-safe) 10%, transparent)",
             }}
           >
             <div className="flex items-center gap-3">
               <div
                 className="flex h-10 w-10 items-center justify-center rounded-full"
-                style={{ backgroundColor: "rgba(34,197,94,0.1)" }}
+                style={{ backgroundColor: "color-mix(in srgb, var(--color-safe) 10%, transparent)" }}
               >
                 <svg
                   width="18"
                   height="18"
                   viewBox="0 0 24 24"
                   fill="none"
-                  stroke="#22c55e"
+                  stroke="var(--color-safe)"
                   strokeWidth="2"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -583,7 +583,7 @@ export default function SafetyPage() {
                   <line x1="12" y1="8" x2="12.01" y2="8" />
                 </svg>
               </div>
-              <span className="text-sm font-semibold" style={{ color: "#111111" }}>
+              <span className="text-sm font-semibold" style={{ color: "var(--color-text)" }}>
                 Conseils de securite
               </span>
             </div>
@@ -592,7 +592,7 @@ export default function SafetyPage() {
               height="16"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="#999999"
+              stroke="var(--color-text-muted)"
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -616,10 +616,10 @@ export default function SafetyPage() {
                 <div
                   className="rounded-b-2xl p-5 space-y-3 -mt-1"
                   style={{
-                    backgroundColor: "rgba(34,197,94,0.04)",
-                    borderLeft: "1px solid rgba(34,197,94,0.1)",
-                    borderRight: "1px solid rgba(34,197,94,0.1)",
-                    borderBottom: "1px solid rgba(34,197,94,0.1)",
+                    backgroundColor: "color-mix(in srgb, var(--color-safe) 4%, transparent)",
+                    borderLeft: "1px solid color-mix(in srgb, var(--color-safe) 10%, transparent)",
+                    borderRight: "1px solid color-mix(in srgb, var(--color-safe) 10%, transparent)",
+                    borderBottom: "1px solid color-mix(in srgb, var(--color-safe) 10%, transparent)",
                   }}
                   role="list"
                 >
@@ -631,14 +631,14 @@ export default function SafetyPage() {
                     >
                       <span
                         className="font-bold text-[13px] shrink-0 mt-0.5"
-                        style={{ color: "#22c55e" }}
+                        style={{ color: "var(--color-safe)" }}
                         aria-hidden="true"
                       >
                         {"\u2713"}
                       </span>
                       <p
                         className="text-[13px] leading-relaxed"
-                        style={{ color: "#444444" }}
+                        style={{ color: "color-mix(in srgb, var(--color-text) 85%, transparent)" }}
                       >
                         {tip}
                       </p>
@@ -654,8 +654,8 @@ export default function SafetyPage() {
         <motion.div
           className="mb-6 rounded-2xl p-5 text-center"
           style={{
-            backgroundColor: "rgba(0,0,0,0.02)",
-            border: "1px solid rgba(0,0,0,0.06)",
+            backgroundColor: "color-mix(in srgb, var(--color-text) 2%, transparent)",
+            border: "1px solid color-mix(in srgb, var(--color-text) 6%, transparent)",
           }}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -663,18 +663,18 @@ export default function SafetyPage() {
         >
           <p
             className="text-[11px] uppercase tracking-widest font-bold mb-2"
-            style={{ color: "#999999" }}
+            style={{ color: "var(--color-text-muted)" }}
           >
             Urgence
           </p>
           <a
             href="tel:3919"
             className="text-[24px] font-black block mb-1"
-            style={{ color: "#ef4444" }}
+            style={{ color: "var(--color-danger)" }}
           >
             3919
           </a>
-          <p className="text-[11px]" style={{ color: "#999999" }}>
+          <p className="text-[11px]" style={{ color: "var(--color-text-muted)" }}>
             Violences conjugales -- appel gratuit et anonyme
           </p>
         </motion.div>
@@ -683,7 +683,7 @@ export default function SafetyPage() {
         <Link
           href="/browse"
           className="block text-center text-[13px] font-semibold mb-20 tap-target py-2"
-          style={{ color: "#8B5CF6" }}
+          style={{ color: "var(--color-accent)" }}
         >
           {"\u2190"} Retour a l&apos;exploration
         </Link>

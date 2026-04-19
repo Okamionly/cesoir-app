@@ -143,10 +143,10 @@ export default function SceneController() {
     setPulseKey((k) => k + 1);
   }, []);
 
-  // Auto-play
+  // Auto-play — WCAG 2.2.2: respect prefers-reduced-motion (no auto-rotate).
   usePausableInterval(
     () => setScene((s) => ((s + 1) % SCENE_COUNT) as SceneIndex),
-    paused ? null : SCENE_DURATION_MS
+    paused || reducedMotion ? null : SCENE_DURATION_MS
   );
 
   // Reset progress clock on scene change
@@ -438,7 +438,7 @@ export default function SceneController() {
                   type="button"
                   onClick={() => goTo(i as SceneIndex)}
                   aria-label={`Aller à la scène ${i + 1} — ${SCENE_NAMES[i]}`}
-                  className="group relative flex items-center justify-center h-5 px-1"
+                  className="group relative flex items-center justify-center min-w-11 min-h-11"
                 >
                   <motion.span
                     className="block h-1.5 rounded-full"
@@ -458,11 +458,11 @@ export default function SceneController() {
             })}
           </div>
 
-          {/* Hint: scroll / swipe / pause */}
+          {/* Hint: scroll / swipe / pause — AA contrast: white/70 on #0A0A0D */}
           <AnimatePresence mode="wait">
             <motion.span
               key={paused ? "paused" : "hint"}
-              className="text-[9px] text-white/30 uppercase tracking-[0.3em]"
+              className="text-[9px] text-white/70 uppercase tracking-[0.3em]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -474,36 +474,40 @@ export default function SceneController() {
             </motion.span>
           </AnimatePresence>
 
-          {/* Micro legal links — subtle */}
-          <div className="flex items-center gap-4 mt-1.5 opacity-40 hover:opacity-70 transition-opacity">
+          {/* Micro legal links — WCAG 2.5.5 tap targets (min 44px via py-3)
+              and AA contrast (white/70 on #0A0A0D ≈ 4.8:1). */}
+          <nav
+            aria-label="Liens légaux"
+            className="flex items-center gap-3 sm:gap-4 mt-1.5"
+          >
             <Link
               href="/about"
-              className="text-[9px] text-white/60 hover:text-white/90 transition-colors tracking-wide"
+              className="text-[10px] text-white/70 hover:text-white transition-colors tracking-wide px-2 py-3 inline-flex items-center min-h-11"
             >
               À propos
             </Link>
-            <span className="text-white/20 text-[8px]">·</span>
+            <span className="text-white/60 text-[8px]" aria-hidden="true">·</span>
             <Link
               href="/safety"
-              className="text-[9px] text-white/60 hover:text-white/90 transition-colors tracking-wide"
+              className="text-[10px] text-white/70 hover:text-white transition-colors tracking-wide px-2 py-3 inline-flex items-center min-h-11"
             >
               Sécurité
             </Link>
-            <span className="text-white/20 text-[8px]">·</span>
+            <span className="text-white/60 text-[8px]" aria-hidden="true">·</span>
             <Link
               href="/cgu"
-              className="text-[9px] text-white/60 hover:text-white/90 transition-colors tracking-wide"
+              className="text-[10px] text-white/70 hover:text-white transition-colors tracking-wide px-2 py-3 inline-flex items-center min-h-11"
             >
               CGU
             </Link>
-            <span className="text-white/20 text-[8px]">·</span>
+            <span className="text-white/60 text-[8px]" aria-hidden="true">·</span>
             <Link
               href="/privacy"
-              className="text-[9px] text-white/60 hover:text-white/90 transition-colors tracking-wide"
+              className="text-[10px] text-white/70 hover:text-white transition-colors tracking-wide px-2 py-3 inline-flex items-center min-h-11"
             >
               Confidentialité
             </Link>
-          </div>
+          </nav>
         </div>
       </div>
     </div>
@@ -519,7 +523,9 @@ function SceneIntroCTA() {
   return (
     <motion.div
       className="relative flex flex-col items-center justify-center text-center max-w-4xl"
-      initial={rackFocus.initial}
+      // First mount: paint immediately (LCP must fire <2.5s). Subsequent
+      // scene transitions still use rackFocus on exit and re-entry via key.
+      initial={false}
       animate={rackFocus.animate}
       exit={rackFocus.exit}
       transition={rackTransition}
@@ -527,12 +533,17 @@ function SceneIntroCTA() {
       {/* Reserve space for Moon above (size 180, offset y=-18vh) */}
       <div className="h-[140px] sm:h-[160px]" aria-hidden />
 
+      {/*
+        LCP hero — rendered SSR-paintable (no initial hidden state, no delay)
+        so Chrome picks this as the stable LCP candidate under 2.5s.
+        Keep exit animation for smooth scene morph; suppress entrance anim.
+      */}
       <motion.h1
         className="font-display text-[44px] sm:text-[64px] md:text-[80px] lg:text-[92px] font-black leading-[0.95] tracking-tight mb-10 sm:mb-12"
-        initial={{ opacity: 0, y: 20 }}
+        initial={false}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
-        transition={{ duration: 0.9, delay: 0.25, ease: easings.out }}
+        transition={{ duration: 0.4, ease: easings.out }}
       >
         Ce soir,
         <br />
@@ -540,20 +551,20 @@ function SceneIntroCTA() {
       </motion.h1>
 
       <motion.div
-        initial={{ opacity: 0, y: 20, scale: 0.9 }}
+        initial={false}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -10 }}
-        transition={{ ...springs.cinematic, delay: 0.55 }}
+        transition={{ ...springs.cinematic }}
         className="flex flex-col items-center gap-3"
       >
         <MagneticCTA />
 
         <motion.p
           className="text-[11px] sm:text-[12px] text-white/45 uppercase tracking-[0.3em]"
-          initial={{ opacity: 0 }}
+          initial={false}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.5, delay: 0.85 }}
+          transition={{ duration: 0.5 }}
         >
           Gratuit <span className="mx-2">·</span> 30 secondes
         </motion.p>

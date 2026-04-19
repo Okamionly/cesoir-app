@@ -425,7 +425,7 @@ export default function DiscoverPage() {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ ...springs.snap, delay: i * 0.05 }}
-                whileHover={{ y: -2, boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }}
+                whileHover={{ y: -2, boxShadow: "0 8px 24px color-mix(in srgb, var(--color-text) 12%, transparent)" }}
                 whileTap={{ scale: 0.97 }}
               >
                 <div className="relative aspect-square overflow-hidden">
@@ -550,7 +550,7 @@ function ProfileCard({ profile, index }: { profile: Profile; index: number }) {
           {/* Online dot */}
           {online && (
             <div className="absolute top-2.5 right-2.5">
-              <div className="w-2.5 h-2.5 rounded-full bg-[#00FF88] border-2 border-black/30" />
+              <div className="w-2.5 h-2.5 rounded-full bg-accent-2 border-2 border-black/30" />
             </div>
           )}
 
@@ -648,7 +648,7 @@ function EmptyState({ onReset }: { onReset: () => void }) {
       <Magnetic strength={0.18} radius={90}>
         <button
           onClick={onReset}
-          className="gradient-bg text-white px-6 py-2.5 rounded-full text-[13px] font-semibold shadow-[0_8px_30px_rgba(139,92,246,0.3)] hover:shadow-[0_12px_40px_rgba(139,92,246,0.5)] transition-shadow"
+          className="gradient-bg text-white px-6 py-2.5 rounded-full text-[13px] font-semibold shadow-[0_8px_30px_color-mix(in_srgb,var(--color-accent)_30%,transparent)] hover:shadow-[0_12px_40px_color-mix(in_srgb,var(--color-accent)_50%,transparent)] transition-shadow"
         >
           Reinitialiser les filtres
         </button>
