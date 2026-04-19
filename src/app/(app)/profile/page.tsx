@@ -286,8 +286,8 @@ export default function ProfilePage() {
         <div className="bg-bg-card border border-border rounded-2xl overflow-hidden">
           {[
             { label: "Recommandations", desc: "Profils selectionnes pour toi", href: "/pour-toi" },
-            { label: "Soirees", desc: "Organiser ou rejoindre", href: "/soiree" },
-            { label: "Confiance", desc: "Verification et securite", href: "/trust" },
+            { label: "Plans ce soir", desc: "Organiser ou rejoindre", href: "/plans" },
+            { label: "Progression", desc: "Badges, defis, confiance", href: "/progress" },
           ].map((item, i, arr) => (
             <Link
               key={item.href}

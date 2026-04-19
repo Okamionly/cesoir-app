@@ -69,10 +69,10 @@ const FAB_ACTIONS: FABAction[] = [
     href: "/speed-dating",
   },
   {
-    label: "Creer un event",
+    label: "Creer un plan",
     color: "#00FF88",
     icon: <CalendarPlusIcon />,
-    href: "/events/create",
+    href: "/plans/create",
   },
 ];
 

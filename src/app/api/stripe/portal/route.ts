@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { stripe, isStripeConfigured } from "@/lib/stripe/server";
+import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 /**
  * POST /api/stripe/portal
@@ -59,6 +60,10 @@ export async function POST(request: Request) {
   if (authError || !user) {
     return NextResponse.json({ error: "Session invalide" }, { status: 401 });
   }
+
+  // Rate limit 10/min per user.
+  const rl = checkRateLimit(`stripe-portal:${user.id}`, 10, 60_000);
+  if (!rl.ok) return rateLimitResponse(rl);
 
   // --- Body ---
   let body: PortalBody = {};

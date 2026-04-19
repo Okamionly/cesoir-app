@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
+import PageHeader from "@/components/ui/PageHeader";
 import ProfileShareCard, {
   GRADIENT_PRESETS,
   type CardStyle,
@@ -167,18 +167,7 @@ export default function ShareProfilePage() {
 
   return (
     <div className="min-h-screen bg-bg">
-      {/* Header */}
-      <div className="sticky top-0 z-20 bg-bg/80 backdrop-blur-xl border-b border-border">
-        <div className="flex items-center justify-between px-5 py-3">
-          <Link href="/profile" className="w-9 h-9 rounded-full bg-bg-card border border-border flex items-center justify-center tap-target">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-muted">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </Link>
-          <h1 className="text-[16px] font-black text-text tracking-tight">Partager mon profil</h1>
-          <div className="w-9" />
-        </div>
-      </div>
+      <PageHeader title="Partager mon profil" backHref="/profile" />
 
       {/* Card Preview with 3D tilt */}
       <div className="px-5 pt-6 pb-4 flex justify-center">

@@ -535,7 +535,7 @@ export function getSmartNotifications(prefs: UserPreferences): SmartNotification
       icon: "\uD83C\uDF89", // party popper
       priority: 7,
       actionLabel: "Voir l'event",
-      actionRoute: "/events",
+      actionRoute: "/plans",
     });
   }
 

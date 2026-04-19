@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { motion } from "motion/react";
+import PageHeader from "@/components/ui/PageHeader";
 
 interface PrivacySetting {
   key: string;
@@ -56,21 +56,7 @@ export default function PrivacySettingsPage() {
 
   return (
     <div className="min-h-screen bg-bg">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-bg/80 backdrop-blur-lg border-b border-border">
-        <div className="flex items-center gap-3 px-5 py-4">
-          <Link
-            href="/profile"
-            className="w-9 h-9 rounded-full bg-bg-card border border-border flex items-center justify-center tap-target"
-            aria-label="Retour au profil"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-text">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </Link>
-          <h1 className="text-[16px] font-black text-text tracking-tight">Confidentialite</h1>
-        </div>
-      </div>
+      <PageHeader title="Confidentialite" backHref="/profile" />
 
       {/* Settings list */}
       <div className="px-5 py-6 space-y-3">

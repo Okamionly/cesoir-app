@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
@@ -24,6 +25,12 @@ interface InviteRow {
 const MAX_SQUAD_SIZE = 4;
 
 export async function POST(request: Request) {
+  // Rate limit 5/min per IP — blocks brute-force of 6-char invite codes
+  // (36^6 = 2.2G combinations but attacker can still spray).
+  const ip = getClientIp(request);
+  const rl = checkRateLimit(`squad-join:${ip}`, 5, 60_000);
+  if (!rl.ok) return rateLimitResponse(rl);
+
   const authHeader = request.headers.get("authorization");
   if (!authHeader?.startsWith("Bearer ")) {
     return NextResponse.json({ error: "Non authentifie" }, { status: 401 });

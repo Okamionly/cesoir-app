@@ -8,7 +8,6 @@ import { ModeKey, MODES, MODE_KEYS } from "@/lib/modes";
 import { MOCK_PROFILES, type Profile } from "@/lib/mock-profiles";
 import { MODE_ICONS, IconSearch, IconX } from "@/components/ui/Icons";
 import CrossLinkCard from "@/components/app/CrossLinkCard";
-import { MOCK_EVENTS, type PopUpEvent } from "@/lib/popup-events";
 import { useProfiles } from "@/lib/useProfiles";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { Magnetic } from "@/components/motion/Magnetic";
@@ -459,48 +458,13 @@ export default function DiscoverPage() {
         </div>
       </section>
 
-      {/* Events pres de toi */}
-      <section className="px-4 pb-2">
-        <div className="flex items-center justify-between mb-2.5">
-          <h2 className="text-[14px] font-bold text-text">Events pres de toi</h2>
-          <Link href="/events" className="text-[11px] text-accent font-semibold">
-            Voir tout
-          </Link>
-        </div>
-        <div className="space-y-2">
-          {MOCK_EVENTS.slice(0, 3).map((event, i) => (
-            <Link key={event.id} href={`/events/${event.id}`} className="block">
-              <motion.div
-                className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border/50"
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ ...springs.heavy, delay: i * 0.08 }}
-                whileHover={{ y: -2, boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-accent to-[#00FF88] flex items-center justify-center shrink-0">
-                  <span className="text-base">🎉</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[12px] font-bold text-text truncate">{event.title}</p>
-                  <p className="text-[10px] text-text-muted">{event.time} · {event.venue}</p>
-                </div>
-                <span className="text-[10px] text-accent font-semibold shrink-0">
-                  {event.currentAttendees}/{event.maxAttendees}
-                </span>
-              </motion.div>
-            </Link>
-          ))}
-        </div>
-      </section>
-
-      {/* Guide du quartier link */}
+      {/* Plans link */}
       <div className="px-4 pb-4">
         <CrossLinkCard
-          emoji="📍"
-          title="Guide du quartier"
-          subtitle="Les meilleurs spots, bars et restos a cote"
-          href="/guide"
+          emoji="🔥"
+          title="Plans ce soir"
+          subtitle="Flash, soirees, events — rejoins-en un"
+          href="/plans"
         />
       </div>
 

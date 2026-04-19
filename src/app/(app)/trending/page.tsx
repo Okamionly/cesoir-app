@@ -6,6 +6,7 @@ import { trendingVariants, springs } from "@/lib/motion-design";
 import { ModeKey, MODES, MODE_KEYS } from "@/lib/modes";
 import { supabase } from "@/lib/supabase";
 import { RackFocus } from "@/components/motion/RackFocus";
+import EmptyState from "@/components/ui/EmptyState";
 
 // --- Types ---
 
@@ -301,10 +302,11 @@ export default function TrendingPage() {
         </AnimatePresence>
 
         {filtered.length === 0 && (
-          <div className="text-center py-16" role="status">
-            <p className="text-sm font-semibold text-text-muted">Aucun lieu pour ce filtre</p>
-            <p className="text-xs text-text-muted mt-1">Essaie un autre mode</p>
-          </div>
+          <EmptyState
+            emoji="📍"
+            title="Aucun lieu pour ce filtre"
+            subtitle="Essaie un autre mode"
+          />
         )}
       </motion.div>
     </div>

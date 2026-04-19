@@ -7,6 +7,7 @@ import {
   SUBSCRIPTION_PLANS,
   SHOP_PRODUCTS,
 } from "@/lib/stripe/plans";
+import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 /**
  * POST /api/stripe/checkout
@@ -70,6 +71,10 @@ export async function POST(request: Request) {
   if (authError || !user) {
     return NextResponse.json({ error: "Session invalide" }, { status: 401 });
   }
+
+  // Rate limit 10/min per user (prevent spam customer creation).
+  const rl = checkRateLimit(`stripe-checkout:${user.id}`, 10, 60_000);
+  if (!rl.ok) return rateLimitResponse(rl);
 
   // --- Parse body ---
   let body: CheckoutBody;

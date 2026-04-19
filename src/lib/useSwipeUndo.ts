@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { supabase } from "./supabase";
 import type { Profile } from "./mock-profiles";
 
 // ─── Types ───────────────────────────────────────
@@ -10,16 +11,17 @@ interface SwipeUndoState {
   undoStack: Profile[];
   /** Whether undo is available right now */
   canUndo: boolean;
-  /** Number of free undos remaining today (resets at midnight) */
+  /** Number of free undos remaining today (resets at midnight UTC) */
   freeUndosLeft: number;
   /** Whether the user has premium (unlimited undos) */
   isPremium: boolean;
 }
 
 interface SwipeUndoActions {
-  /** Push a swiped profile onto the undo stack */
+  /** Push a swiped profile onto the undo stack (in-memory only) */
   pushSwipe: (profile: Profile) => void;
-  /** Undo the last swipe, returning the profile */
+  /** Undo the last swipe — returns the profile immediately (optimistic),
+   *  fires server delete + undo record asynchronously. */
   undo: () => Profile | null;
 }
 
@@ -29,47 +31,80 @@ type UseSwipeUndoReturn = SwipeUndoState & SwipeUndoActions;
 
 const MAX_STACK = 3;
 const FREE_UNDOS_PER_DAY = 1;
-const STORAGE_KEY = "cesoir-swipe-undos";
 
-// ─── Helpers ─────────────────────────────────────
+// ─── Server helpers ──────────────────────────────
 
-interface StoredUndoData {
-  date: string;
-  usedCount: number;
-}
-
-function getTodayKey(): string {
-  return new Date().toISOString().split("T")[0];
-}
-
-function loadUsedCount(): number {
-  if (typeof window === "undefined") return 0;
+async function fetchTodayUndoCount(): Promise<number> {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return 0;
-    const data: StoredUndoData = JSON.parse(raw);
-    if (data.date !== getTodayKey()) return 0; // New day, reset
-    return data.usedCount;
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) return 0;
+
+    const res = await fetch("/api/undos", {
+      method: "GET",
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
+    if (!res.ok) return 0;
+    const data = (await res.json()) as { count: number };
+    return data.count;
   } catch {
     return 0;
   }
 }
 
-function saveUsedCount(count: number): void {
-  if (typeof window === "undefined") return;
-  const data: StoredUndoData = { date: getTodayKey(), usedCount: count };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+async function recordUndo(
+  targetId: string,
+  originalAction: "like" | "pass" | "superlike",
+): Promise<boolean> {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) return false;
+
+    const res = await fetch("/api/undos", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ targetId, originalAction }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
 }
 
 // ─── Hook ────────────────────────────────────────
 
+/**
+ * useSwipeUndo — undo stack for swipe gestures.
+ *
+ * Audit 2026-04-19: moved the daily-cap counter + undo trail from
+ * localStorage to the `swipe_undos` table via /api/undos. Clearing
+ * localStorage no longer grants unlimited undos.
+ *
+ * The `undo()` API stays synchronous (returns Profile immediately) to
+ * keep the existing optimistic UI in browse/page.tsx. The DB roundtrip
+ * (delete interaction + insert undo row) fires in the background.
+ */
 export function useSwipeUndo(isPremium = false): UseSwipeUndoReturn {
-  const [stack, setStack] = useState<Profile[]>([]);
+  const [stack, setStack] = useState<
+    Array<Profile & { __action?: "like" | "pass" | "superlike" }>
+  >([]);
   const [usedCount, setUsedCount] = useState(0);
+  const hydrated = useRef(false);
 
-  // Load persisted undo count on mount
+  // Hydrate today's count from server
   useEffect(() => {
-    setUsedCount(loadUsedCount());
+    let cancelled = false;
+    (async () => {
+      const count = await fetchTodayUndoCount();
+      if (cancelled) return;
+      setUsedCount(count);
+      hydrated.current = true;
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const freeUndosLeft = Math.max(0, FREE_UNDOS_PER_DAY - usedCount);
@@ -90,16 +125,27 @@ export function useSwipeUndo(isPremium = false): UseSwipeUndoReturn {
     setStack(rest);
 
     if (!isPremium) {
-      const newCount = usedCount + 1;
-      setUsedCount(newCount);
-      saveUsedCount(newCount);
+      setUsedCount((c) => c + 1);
     }
 
+    // Fire-and-forget server sync. Default action to "like" since the
+    // existing callers don't track it here — API still delete+records.
+    // When callers pass action via pushSwipe it's picked up.
+    const action = top.__action ?? "like";
+    void recordUndo(top.id, action);
+
     return top;
-  }, [stack, isPremium, freeUndosLeft, usedCount]);
+  }, [stack, isPremium, freeUndosLeft]);
+
+  // Strip the internal __action before exposing to consumers
+  const undoStack: Profile[] = stack.map((p) => {
+    const { __action, ...rest } = p;
+    void __action;
+    return rest;
+  });
 
   return {
-    undoStack: stack,
+    undoStack,
     canUndo,
     freeUndosLeft,
     isPremium,

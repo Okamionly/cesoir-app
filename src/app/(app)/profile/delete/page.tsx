@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
-import { IconX } from "@/components/ui/Icons";
+import PageHeader from "@/components/ui/PageHeader";
 
 export default function DeleteAccountPage() {
   const router = useRouter();
@@ -47,13 +47,7 @@ export default function DeleteAccountPage() {
 
   return (
     <div className="min-h-screen bg-bg">
-      <header className="sticky top-0 z-40 bg-bg/95 backdrop-blur-md border-b border-border px-5 py-3 flex items-center justify-between">
-        <button onClick={() => router.back()} className="tap-target p-1" aria-label="Retour">
-          <IconX size={20} className="text-text-muted" />
-        </button>
-        <h1 className="text-[15px] font-bold text-danger">Supprimer mon compte</h1>
-        <div className="w-8" />
-      </header>
+      <PageHeader title="Supprimer mon compte" backHref="/profile" />
 
       <div className="px-5 py-8 max-w-sm mx-auto">
         <div className="text-center mb-8">

@@ -1,6 +1,5 @@
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
 import { NextResponse, type NextRequest } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
 /**
  * OAuth callback for Supabase Auth.
@@ -8,6 +7,9 @@ import { NextResponse, type NextRequest } from "next/server";
  * B6 — `next` is user-controlled. Even if the current `${origin}${next}`
  * concat protects against classic open redirect (//evil.com resolves
  * same-origin), we still whitelist to avoid future regressions.
+ *
+ * Uses `createClient` from `@/lib/supabase/server` (SSR cookies pattern) so
+ * the exchanged session is persisted to cookies for subsequent SSR calls.
  */
 function safeNext(raw: string | null): string {
   const fallback = "/browse";
@@ -25,24 +27,7 @@ export async function GET(request: NextRequest) {
   const next = safeNext(searchParams.get("next"));
 
   if (code) {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          getAll() {
-            return cookieStore.getAll();
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
-            );
-          },
-        },
-      },
-    );
-
+    const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
       return NextResponse.redirect(`${origin}${next}`);

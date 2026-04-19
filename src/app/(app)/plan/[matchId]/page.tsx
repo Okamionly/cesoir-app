@@ -7,7 +7,7 @@ import { springs, achievementVariants } from "@/lib/motion-design";
 import { suggestVenuesByActivity, formatPrice } from "@/lib/venues";
 import type { Venue } from "@/lib/venues";
 import VenuePicker from "@/components/app/VenuePicker";
-import { usePlans } from "@/lib/usePlans";
+import { usePlans } from "@/lib/useMatchPlan";
 
 // ─────────────────────────────────────────
 // Types & constants

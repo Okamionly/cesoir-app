@@ -247,9 +247,9 @@ function getNotifRoute(notif: NotificationItem): string {
         ? `/chat/${notif.data.conversationId}`
         : `/chat`;
     case "event":
-      return `/flash-plans`;
+      return `/plans`;
     case "challenge":
-      return `/achievements`;
+      return `/progress`;
     case "review":
       return `/profile`;
     case "system":

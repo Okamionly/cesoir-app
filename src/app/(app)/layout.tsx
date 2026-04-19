@@ -1,7 +1,5 @@
 import { Suspense } from "react";
-import BottomNav from "@/components/app/BottomNav";
-import SOSButton from "@/components/app/SOSButton";
-import { FABMenu } from "@/components/app/FABMenu";
+import AppChrome from "@/components/app/AppChrome";
 import OfflineBanner from "@/components/app/OfflineBanner";
 import PageLoader from "@/components/app/PageLoader";
 import { DarkModeProvider } from "@/components/ui/DarkModeProvider";
@@ -11,6 +9,15 @@ import { AccessibilityProvider } from "@/components/ui/ReducedMotion";
 import { AuthProvider } from "@/context/AuthContext";
 import PageTransition from "@/components/ui/PageTransition";
 
+/**
+ * AppLayout — providers + chrome for the (app) route group.
+ *
+ * Audit 2026-04-19 (QA sprint 5 regression): this layout had the bottom
+ * nav + FAB + SOS imported directly, which leaked on anonymous public
+ * pages (/about, /cgu, /privacy, /why-free) that live in the same route
+ * group. `AppChrome` wraps those floating elements and gates them on
+ * `useAuth().user` — nothing renders pre-login.
+ */
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
@@ -28,9 +35,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   </PageTransition>
                 </ErrorBoundary>
               </main>
-              <FABMenu />
-              <BottomNav />
-              <SOSButton />
+              <AppChrome />
             </div>
           </ToastProvider>
         </AccessibilityProvider>

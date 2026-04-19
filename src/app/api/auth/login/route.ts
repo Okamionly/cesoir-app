@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { apiError, apiRaw } from "@/lib/api/response";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 /**
@@ -12,6 +12,9 @@ import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
  * Hardening (audit 2026-04-19):
  *   H3 — In-memory rate limit: 5 attempts / 60s per (ip, email).
  *   M6 — Generic error message; no leaking "user exists vs wrong password".
+ *
+ * Note: uses `apiRaw` (not `apiOk`) to preserve the existing `{ ok, user }`
+ * shape clients already consume. New endpoints should use `apiOk(data)`.
  */
 
 const RATE_LIMIT_MAX = 5;
@@ -22,15 +25,13 @@ export async function POST(request: Request) {
     const { email, password } = await request.json();
 
     if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email et mot de passe requis" },
-        { status: 400 },
-      );
+      return apiError("Email et mot de passe requis", 400, {
+        code: "missing_credentials",
+      });
     }
 
     // H3 — rate limit by (ip, email) so neither a single IP nor a single
-    // account can be brute-forced. Supabase Auth has its own ~5-10/h limit
-    // but at the app layer we get faster lockout + custom error response.
+    // account can be brute-forced.
     const ip = getClientIp(request);
     const normalizedEmail = String(email).toLowerCase().trim();
     const rl = checkRateLimit(
@@ -39,13 +40,12 @@ export async function POST(request: Request) {
       RATE_LIMIT_WINDOW_MS,
     );
     if (!rl.ok) {
-      return NextResponse.json(
+      return apiError(
+        "Trop de tentatives. Réessaye dans quelques instants.",
+        429,
         {
-          error: "Trop de tentatives. Réessaye dans quelques instants.",
-          retryAfter: rl.retryAfter,
-        },
-        {
-          status: 429,
+          code: "rate_limited",
+          details: { retryAfter: rl.retryAfter },
           headers: rl.retryAfter
             ? { "Retry-After": String(rl.retryAfter) }
             : undefined,
@@ -60,15 +60,13 @@ export async function POST(request: Request) {
     });
 
     if (error || !data.session) {
-      // M6 — single generic message regardless of failure type. Do not
-      // leak whether the email exists in the database.
-      return NextResponse.json(
-        { error: "Email ou mot de passe incorrect" },
-        { status: 401 },
-      );
+      // M6 — single generic message regardless of failure type.
+      return apiError("Email ou mot de passe incorrect", 401, {
+        code: "invalid_credentials",
+      });
     }
 
-    return NextResponse.json({
+    return apiRaw({
       ok: true,
       user: {
         id: data.user.id,
@@ -76,8 +74,7 @@ export async function POST(request: Request) {
       },
     });
   } catch {
-    // Avoid leaking error.message to the client — log server-side instead.
     console.error("[/api/auth/login] unexpected error");
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+    return apiError("Erreur serveur", 500, { code: "internal_error" });
   }
 }

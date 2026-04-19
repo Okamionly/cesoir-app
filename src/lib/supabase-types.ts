@@ -1,7 +1,18 @@
 // ========================================
-// CeSoir Supabase Database Types
-// Auto-generated from schema + migration 002
+// CeSoir Supabase Database Types — hand-written canonical types
 // ========================================
+//
+// NOTE: A freshly generated types file lives at
+//   `src/lib/supabase-types.generated.ts`
+// That file is the source-of-truth for table column types. To regenerate:
+//   npx supabase gen types typescript --project-id ycyxmvzilzkusecpgvbi \
+//     > src/lib/supabase-types.generated.ts
+//
+// This file is kept because it also exports domain enums (Gender,
+// InteractionAction, ModeType, etc.) and aliased row types (DbProfile,
+// DbFeedActivity, ...) used throughout the app. A later refactor could
+// migrate callers to `Database["public"]["Tables"]["X"]["Row"]` from the
+// generated file and remove this hand-written layer.
 
 // ----------------------------------------
 // Enums / Union Types

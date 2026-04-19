@@ -9,6 +9,7 @@ import type { ConversationPreview } from "@/lib/useConversations";
 import { MODES } from "@/lib/modes";
 import type { ModeKey } from "@/lib/modes";
 import { springs, ambient } from "@/lib/motion-design";
+import EmptyState from "@/components/ui/EmptyState";
 import SparkTimer from "@/components/chat/SparkTimer";
 import ExpiryTimer from "@/components/chat/ExpiryTimer";
 import { FlashNoteReceived } from "@/components/chat/FlashNote";
@@ -534,16 +535,11 @@ export default function ChatPage() {
         <div role="list" aria-label="Conversations">
           <p className="text-[10px] text-text-muted uppercase tracking-widest font-semibold px-4 pt-4 pb-2">Conversations</p>
           {conversations.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-16 text-center px-4">
-              <motion.div
-                className="w-16 h-16 rounded-full gradient-bg-subtle border border-accent/20 flex items-center justify-center mb-4"
-                animate={ambient.float(5)}
-              >
-                <span className="text-2xl">💬</span>
-              </motion.div>
-              <p className="text-sm text-text-muted">Aucune conversation</p>
-              <p className="text-xs text-text-muted mt-1">Explore les profils et envoie un message !</p>
-            </div>
+            <EmptyState
+              emoji="💬"
+              title="Aucune conversation"
+              subtitle="Explore les profils et envoie un message !"
+            />
           )}
           {conversations.map((convo, i) => (
             <ConversationRow

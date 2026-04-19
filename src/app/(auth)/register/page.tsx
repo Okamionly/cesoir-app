@@ -4,8 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { MODES, MODE_KEYS } from "@/lib/modes";
-import { MODE_ICONS } from "@/components/ui/Icons";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import PhotoUpload from "@/components/app/PhotoUpload";
@@ -46,14 +44,10 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [gender, setGender] = useState("");
   const [lookingFor, setLookingFor] = useState("");
-  const [modes, setModes] = useState<string[]>([]);
   const [bio, setBio] = useState("");
   const [error, setError] = useState("");
   const [tempUserId, setTempUserId] = useState<string | null>(null);
   const [photoUploaded, setPhotoUploaded] = useState(false);
-
-  const toggleMode = (k: string) =>
-    setModes((p) => (p.includes(k) ? p.filter((m) => m !== k) : [...p, k]));
 
   async function handleCreateAccount() {
     setError("");
@@ -70,17 +64,9 @@ export default function RegisterPage() {
       return;
     }
 
-    for (const mode of modes) {
-      await supabase.from("mode_activations").insert({
-        user_id: user.id,
-        mode,
-        is_active: true,
-        available_time: "Dispo maintenant",
-      });
-    }
-
+    // Modes are picked on /onboarding — not duplicated here.
     setTempUserId(user.id);
-    setStep(3);
+    setStep(2);
   }
 
   async function handleFinish(e: React.FormEvent) {
@@ -142,10 +128,10 @@ export default function RegisterPage() {
           role="progressbar"
           aria-valuenow={step}
           aria-valuemin={1}
-          aria-valuemax={4}
-          aria-label={`Etape ${step} sur 4`}
+          aria-valuemax={3}
+          aria-label={`Etape ${step} sur 3`}
         >
-          {[1, 2, 3, 4].map((s) => (
+          {[1, 2, 3].map((s) => (
             <div
               key={s}
               className="h-1 flex-1 rounded-full overflow-hidden"
@@ -346,14 +332,15 @@ export default function RegisterPage() {
                 </fieldset>
                 <motion.button
                   type="button"
-                  onClick={() => setStep(2)}
+                  onClick={handleCreateAccount}
                   disabled={
                     !gender ||
                     !lookingFor ||
                     !name ||
                     !email ||
                     !password ||
-                    !age
+                    !age ||
+                    authLoading
                   }
                   whileHover={{ y: -1 }}
                   whileTap={{ scale: 0.98 }}
@@ -364,134 +351,19 @@ export default function RegisterPage() {
                     boxShadow: landing.shadow,
                   }}
                 >
-                  Suivant
+                  {authLoading ? "Creation..." : "Creer mon compte"}
                 </motion.button>
+                <p className="text-[10px] text-white/40 text-center mt-2 leading-relaxed">
+                  En t&apos;inscrivant, tu acceptes nos{" "}
+                  <Link href="/cgu" className="underline" style={{ color: landing.violet }}>CGU</Link>{" "}et notre{" "}
+                  <Link href="/privacy" className="underline" style={{ color: landing.violet }}>Politique de confidentialite</Link>.
+                </p>
               </div>
             </motion.div>
           )}
 
-          {/* Step 2 — modes */}
-          {step === 2 && (
-            <motion.div
-              key="step2"
-              variants={stepVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-            >
-              <h1 className="font-display text-2xl font-bold mb-1 tracking-tight">
-                Tes modes ce soir
-              </h1>
-              <p className="text-sm text-white/60 mb-6">
-                Choisis un ou plusieurs modes.
-              </p>
-              <div
-                className="grid grid-cols-3 gap-2 mb-6"
-                role="group"
-                aria-label="Selection des modes"
-              >
-                {MODE_KEYS.map((k) => {
-                  const m = MODES[k];
-                  const on = modes.includes(k);
-                  const Icon = MODE_ICONS[k];
-                  return (
-                    <button
-                      key={k}
-                      type="button"
-                      onClick={() => toggleMode(k)}
-                      aria-pressed={on}
-                      className="flex flex-col items-center gap-1 p-3 rounded-xl transition-all tap-target"
-                      style={
-                        on
-                          ? {
-                              background:
-                                "linear-gradient(135deg, rgba(139,92,246,0.22), rgba(0,255,136,0.15))",
-                              border: `1px solid ${landing.violet}`,
-                              boxShadow: "0 0 18px rgba(139,92,246,0.3)",
-                            }
-                          : {
-                              background: "rgba(255,255,255,0.03)",
-                              border: "1px solid rgba(255,255,255,0.08)",
-                            }
-                      }
-                    >
-                      {Icon ? (
-                        <span
-                          style={{
-                            color: on ? landing.violet : "rgba(255,255,255,0.55)",
-                            display: "inline-flex",
-                          }}
-                        >
-                          <Icon size={20} />
-                        </span>
-                      ) : (
-                        <span className="text-xl">{m.icon}</span>
-                      )}
-                      <span
-                        className="text-[9px] font-medium"
-                        style={{
-                          color: on ? landing.violet : "rgba(255,255,255,0.55)",
-                        }}
-                      >
-                        {m.name}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setStep(1)}
-                  className="flex-1 py-3.5 rounded-full text-sm font-medium tap-target transition-colors"
-                  style={{
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.12)",
-                    color: "rgba(255,255,255,0.75)",
-                  }}
-                >
-                  Retour
-                </button>
-                <motion.button
-                  type="button"
-                  onClick={handleCreateAccount}
-                  disabled={modes.length === 0 || authLoading}
-                  whileHover={{ y: -1 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={springs.snap}
-                  className="flex-1 text-white py-3.5 rounded-full text-sm font-semibold disabled:opacity-40 tap-target"
-                  style={{
-                    background: landing.gradient,
-                    boxShadow: landing.shadow,
-                  }}
-                >
-                  {authLoading ? "Creation..." : "Suivant"}
-                </motion.button>
-              </div>
-              <p className="text-[10px] text-white/40 text-center mt-4 leading-relaxed">
-                En t&apos;inscrivant, tu acceptes nos{" "}
-                <Link
-                  href="/cgu"
-                  className="underline"
-                  style={{ color: landing.violet }}
-                >
-                  CGU
-                </Link>{" "}
-                et notre{" "}
-                <Link
-                  href="/privacy"
-                  className="underline"
-                  style={{ color: landing.violet }}
-                >
-                  Politique de confidentialite
-                </Link>
-                .
-              </p>
-            </motion.div>
-          )}
-
-          {/* Step 3 — photo */}
-          {step === 3 && tempUserId && (
+          {/* Step 2 — photo (modes moved to /onboarding) */}
+          {step === 2 && tempUserId && (
             <motion.div
               key="step3"
               variants={stepVariants}
@@ -512,7 +384,7 @@ export default function RegisterPage() {
               <div className="flex gap-3 mt-8">
                 <button
                   type="button"
-                  onClick={() => setStep(4)}
+                  onClick={() => setStep(3)}
                   className="flex-1 py-3.5 rounded-full text-sm font-medium tap-target"
                   style={{
                     background: "rgba(255,255,255,0.04)",
@@ -524,7 +396,7 @@ export default function RegisterPage() {
                 </button>
                 <motion.button
                   type="button"
-                  onClick={() => setStep(4)}
+                  onClick={() => setStep(3)}
                   disabled={!photoUploaded}
                   whileHover={{ y: -1 }}
                   whileTap={{ scale: 0.98 }}
@@ -541,10 +413,10 @@ export default function RegisterPage() {
             </motion.div>
           )}
 
-          {/* Step 4 — bio */}
-          {step === 4 && (
+          {/* Step 3 — bio */}
+          {step === 3 && (
             <motion.form
-              key="step4"
+              key="step3"
               onSubmit={handleFinish}
               variants={stepVariants}
               initial="enter"
@@ -578,7 +450,7 @@ export default function RegisterPage() {
                 <div className="flex gap-3">
                   <button
                     type="button"
-                    onClick={() => setStep(3)}
+                    onClick={() => setStep(2)}
                     className="flex-1 py-3.5 rounded-full text-sm font-medium tap-target"
                     style={{
                       background: "rgba(255,255,255,0.04)",

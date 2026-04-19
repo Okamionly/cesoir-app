@@ -1,5 +1,6 @@
 import { createClient as createAnonClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 /**
  * POST /api/account/delete
@@ -53,6 +54,11 @@ export async function POST(request: Request) {
     }
 
     const userId = user.id;
+
+    // Rate limit 1/hour per user — prevents accidental spam / double-click.
+    // Placed AFTER auth so we key on userId (anonymous attackers are 401'd).
+    const rl = checkRateLimit(`account-delete:${userId}`, 1, 60 * 60_000);
+    if (!rl.ok) return rateLimitResponse(rl);
 
     // ─── Delete avatar files first (irreversible but small risk if profile
     //     delete fails — orphan files, easier to clean than orphan rows) ─

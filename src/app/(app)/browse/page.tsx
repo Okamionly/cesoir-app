@@ -213,7 +213,7 @@ export default function BrowsePage() {
           <h1 className="text-[18px] font-black tracking-tight text-text">CeSoir</h1>
           <div className="flex items-center gap-2">
             <Link
-              href="/flash-plans"
+              href="/plans?type=flash"
               className="flex items-center justify-center w-8 h-8 rounded-full bg-accent/10 border border-accent/20 tap-target"
               aria-label="Flash Plans"
             >

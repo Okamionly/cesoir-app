@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import { springs, micro, ambient } from "@/lib/motion-design";
+import PageHeader from "@/components/ui/PageHeader";
 
 // ─── Types ───────────────────────────────────────────
 type VerifyMethod = "selfie" | "phone" | "social" | "video";
@@ -917,24 +917,7 @@ export default function VerifyPage() {
 
   return (
     <div className="min-h-screen bg-bg">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-bg/95 backdrop-blur-md border-b border-border px-5 pt-3 pb-3">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/profile"
-            className="w-9 h-9 rounded-full bg-bg-card border border-border flex items-center justify-center tap-target"
-            aria-label="Retour"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-muted" aria-hidden="true">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </Link>
-          <div>
-            <h1 className="text-base font-bold text-text">Verification</h1>
-            <p className="text-[11px] text-text-muted">Obtiens le badge Verifie</p>
-          </div>
-        </div>
-      </header>
+      <PageHeader title="Verification" subtitle="Obtiens le badge Verifie" backHref="/profile" />
 
       <div className="px-5 pt-5 pb-24">
         {/* Progress bar */}

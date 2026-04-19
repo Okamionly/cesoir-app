@@ -70,5 +70,27 @@ export function getClientIp(request: Request): string {
   );
 }
 
+/**
+ * Standard 429 JSON response with Retry-After header.
+ *
+ * Shared shape so clients can dispatch uniformly across endpoints that
+ * enforce a quota (wallet, undos, squad/join, account/delete, stripe).
+ */
+export function rateLimitResponse(result: RateLimitResult): Response {
+  return new Response(
+    JSON.stringify({
+      error: "rate_limited",
+      retryAfter: result.retryAfter,
+    }),
+    {
+      status: 429,
+      headers: {
+        "Content-Type": "application/json",
+        "Retry-After": String(result.retryAfter ?? 60),
+      },
+    },
+  );
+}
+
 // TODO production: replace this in-memory map with Upstash KV / Redis
 // to share state across Vercel serverless instances. See @upstash/ratelimit.

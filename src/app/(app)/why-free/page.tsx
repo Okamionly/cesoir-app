@@ -1,5 +1,5 @@
-import Link from "next/link";
 import type { Metadata } from "next";
+import PageHeader from "@/components/ui/PageHeader";
 
 export const metadata: Metadata = {
   title: "Pourquoi CeSoir est gratuit",
@@ -42,21 +42,7 @@ const SECTIONS = [
 export default function WhyFreePage() {
   return (
     <div className="min-h-screen bg-bg">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-bg/80 backdrop-blur-lg border-b border-border">
-        <div className="flex items-center gap-3 px-5 py-4">
-          <Link
-            href="/profile"
-            className="w-9 h-9 rounded-full bg-bg-card border border-border flex items-center justify-center tap-target"
-            aria-label="Retour"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-text">
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </Link>
-          <h1 className="text-[16px] font-black text-text tracking-tight">Pourquoi gratuit ?</h1>
-        </div>
-      </div>
+      <PageHeader title="Pourquoi gratuit ?" backHref="/profile" />
 
       {/* Hero */}
       <div className="px-5 pt-8 pb-4 max-w-lg mx-auto text-center">

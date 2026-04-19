@@ -226,7 +226,7 @@ export default function MapPage() {
             </motion.div>
             <motion.div whileHover={micro.hoverLift} whileTap={micro.tapScale}>
               <Link
-                href="/flash-plans"
+                href="/plans?type=flash"
                 className="flex items-center gap-1 bg-accent/10 border border-accent/20 px-2.5 py-1 rounded-full tap-target"
               >
                 <span className="text-[10px]" aria-hidden="true">⚡</span>
@@ -398,14 +398,11 @@ export default function MapPage() {
           </div>
         )}
 
-        {/* Cross-link buttons — Guide + Events */}
+        {/* Cross-link button — Plans */}
         {!selected && !selectedEvent && (
           <div className="absolute bottom-28 left-3 right-3 z-[900] flex gap-2">
-            <motion.div className="flex-1" initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ ...springs.heavy, delay: 0.3 }}>
-              <CrossLinkCard emoji="📍" title="Guide du quartier" subtitle="Spots, bars, restos" href="/guide" />
-            </motion.div>
             <motion.div className="flex-1" initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ ...springs.heavy, delay: 0.4 }}>
-              <CrossLinkCard emoji="🔥" title="Events ce soir" subtitle={`${openEvents.length} events`} href="/events" />
+              <CrossLinkCard emoji="🔥" title="Plans ce soir" subtitle={`${openEvents.length} plans`} href="/plans" />
             </motion.div>
           </div>
         )}

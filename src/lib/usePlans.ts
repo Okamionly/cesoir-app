@@ -1,150 +1,462 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { supabase } from "./supabase";
 import { useAuth } from "@/context/AuthContext";
 
 // ---------- Types ----------
 
-export interface Plan {
+export type PlanType = "flash" | "soiree" | "popup" | "match";
+
+export interface PlanParticipant {
   id: string;
-  userA: string;
-  userB: string;
-  whenDate: string;
+  userId: string;
+  name: string;
+  avatar: string | null;
+  status: "candidate" | "accepted" | "rejected";
+  joinedAt: string;
+}
+
+export interface PlanDb {
+  id: string;
+  type: PlanType;
+  creatorId: string;
+  title: string;
   what: string;
   whereText: string;
-  status: "proposed" | "confirmed" | "done" | "cancelled";
-  proposedBy: string | null;
+  whenAt: string;
+  deadline: string;
+  maxParticipants: number;
+  mode: string | null;
+  status: "open" | "closed" | "done";
   createdAt: string;
+  description: string | null;
+  lat: number | null;
+  lng: number | null;
+  venue: string | null;
+  tags: string[];
+  ambiance: string | null;
+  dressCode: string | null;
+  budget: string | null;
+  participants: PlanParticipant[];
 }
 
 interface PlanRow {
   id: string;
-  user_a: string;
-  user_b: string;
-  when_date: string;
+  type: PlanType | null;
+  creator_id: string;
+  title: string;
   what: string | null;
   where_text: string | null;
-  status: "proposed" | "confirmed" | "done" | "cancelled" | null;
-  proposed_by: string | null;
+  when_at: string;
+  deadline: string;
+  max_participants: number | null;
+  mode: string | null;
+  status: "open" | "closed" | "done" | null;
   created_at: string | null;
+  description: string | null;
+  lat: number | null;
+  lng: number | null;
+  venue: string | null;
+  tags: string[] | null;
+  ambiance: string | null;
+  dress_code: string | null;
+  budget: string | null;
+}
+
+interface ParticipantRow {
+  id: string;
+  flash_plan_id: string;
+  user_id: string;
+  status: "candidate" | "accepted" | "rejected" | null;
+  joined_at: string | null;
+}
+
+interface ProfileRow {
+  id: string;
+  name: string;
+  avatar_url: string | null;
 }
 
 export interface CreatePlanPayload {
-  partnerId: string;
-  whenDate: string; // ISO
-  what: string;
-  whereText: string;
-}
-
-function toPlan(row: PlanRow): Plan {
-  return {
-    id: row.id,
-    userA: row.user_a,
-    userB: row.user_b,
-    whenDate: row.when_date,
-    what: row.what ?? "",
-    whereText: row.where_text ?? "",
-    status: row.status ?? "proposed",
-    proposedBy: row.proposed_by,
-    createdAt: row.created_at ?? new Date().toISOString(),
-  };
+  type: PlanType;
+  title: string;
+  what?: string;
+  whereText?: string;
+  whenAt: string; // ISO
+  deadline?: string; // ISO; defaults to whenAt if omitted
+  maxParticipants?: number;
+  mode?: string;
+  description?: string;
+  lat?: number;
+  lng?: number;
+  venue?: string;
+  tags?: string[];
+  ambiance?: string;
+  dressCode?: string;
+  budget?: string;
 }
 
 // ---------- Hook ----------
 
-interface UsePlansReturn {
-  plans: Plan[];
-  loading: boolean;
-  error: string | null;
-  refresh: () => Promise<void>;
-  proposePlan: (payload: CreatePlanPayload) => Promise<string | null>;
-  respondPlan: (planId: string, status: "confirmed" | "cancelled") => Promise<boolean>;
+interface UsePlansOptions {
+  /** Filter by type. Omit to fetch all types (flash, soiree, popup). */
+  type?: PlanType;
 }
 
-export function usePlans(): UsePlansReturn {
+interface UsePlansReturn {
+  plans: PlanDb[];
+  loading: boolean;
+  error: string | null;
+  myInterest: Set<string>;
+  refresh: () => Promise<void>;
+  createPlan: (payload: CreatePlanPayload) => Promise<string | null>;
+  toggleInterest: (planId: string) => Promise<void>;
+}
+
+export function usePlans(options: UsePlansOptions = {}): UsePlansReturn {
   const { user } = useAuth();
-  const [plans, setPlans] = useState<Plan[]>([]);
+  const [plans, setPlans] = useState<PlanDb[]>([]);
+  const [myInterest, setMyInterest] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const typeFilter = options.type;
+
   const fetchPlans = useCallback(async () => {
-    if (!user) {
-      setPlans([]);
-      setLoading(false);
-      return;
-    }
     setLoading(true);
     setError(null);
 
-    const { data, error: err } = await supabase
-      .from("plans")
+    let query = supabase
+      .from("flash_plans")
       .select("*")
-      .or(`user_a.eq.${user.id},user_b.eq.${user.id}`)
-      .order("when_date", { ascending: true });
+      .eq("status", "open");
+
+    if (typeFilter) {
+      query = query.eq("type", typeFilter);
+    } else {
+      // Public plans only — exclude 1:1 match plans from list views
+      query = query.in("type", ["flash", "soiree", "popup"]);
+    }
+
+    const { data: rows, error: err } = await query.order("when_at", { ascending: true });
 
     if (err) {
       console.error("[usePlans] fetch failed:", err.message);
       setError(err.message);
+      setPlans([]);
       setLoading(false);
       return;
     }
 
-    setPlans(((data ?? []) as PlanRow[]).map(toPlan));
+    const planRows = (rows ?? []) as PlanRow[];
+    if (planRows.length === 0) {
+      setPlans([]);
+      setLoading(false);
+      return;
+    }
+
+    const planIds = planRows.map((p) => p.id);
+    const { data: participants } = await supabase
+      .from("flash_plan_participants")
+      .select("*")
+      .in("flash_plan_id", planIds);
+
+    const participantRows = (participants ?? []) as ParticipantRow[];
+    const userIds = Array.from(new Set(participantRows.map((p) => p.user_id)));
+
+    let profileMap = new Map<string, ProfileRow>();
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, name, avatar_url")
+        .in("id", userIds);
+      profileMap = new Map(((profiles ?? []) as ProfileRow[]).map((p) => [p.id, p]));
+    }
+
+    const byPlan = new Map<string, PlanParticipant[]>();
+    for (const p of participantRows) {
+      const profile = profileMap.get(p.user_id);
+      const entry: PlanParticipant = {
+        id: p.id,
+        userId: p.user_id,
+        name: profile?.name ?? "?",
+        avatar: profile?.avatar_url ?? null,
+        status: p.status ?? "candidate",
+        joinedAt: p.joined_at ?? new Date().toISOString(),
+      };
+      if (!byPlan.has(p.flash_plan_id)) byPlan.set(p.flash_plan_id, []);
+      byPlan.get(p.flash_plan_id)!.push(entry);
+    }
+
+    const mapped: PlanDb[] = planRows.map((row) => ({
+      id: row.id,
+      type: (row.type ?? "flash") as PlanType,
+      creatorId: row.creator_id,
+      title: row.title,
+      what: row.what ?? "",
+      whereText: row.where_text ?? "",
+      whenAt: row.when_at,
+      deadline: row.deadline,
+      maxParticipants: row.max_participants ?? 4,
+      mode: row.mode,
+      status: row.status ?? "open",
+      createdAt: row.created_at ?? new Date().toISOString(),
+      description: row.description,
+      lat: row.lat,
+      lng: row.lng,
+      venue: row.venue,
+      tags: row.tags ?? [],
+      ambiance: row.ambiance,
+      dressCode: row.dress_code,
+      budget: row.budget,
+      participants: byPlan.get(row.id) ?? [],
+    }));
+
+    setPlans(mapped);
+
+    if (user) {
+      setMyInterest(
+        new Set(
+          participantRows.filter((p) => p.user_id === user.id).map((p) => p.flash_plan_id),
+        ),
+      );
+    }
+
     setLoading(false);
-  }, [user]);
+  }, [user, typeFilter]);
 
   useEffect(() => {
     void fetchPlans();
   }, [fetchPlans]);
 
-  const proposePlan = useCallback(
+  const createPlan = useCallback(
     async (payload: CreatePlanPayload): Promise<string | null> => {
       if (!user) return null;
 
-      const userA = user.id < payload.partnerId ? user.id : payload.partnerId;
-      const userB = user.id < payload.partnerId ? payload.partnerId : user.id;
+      const deadline = payload.deadline ?? payload.whenAt;
 
       const { data, error: err } = await supabase
-        .from("plans")
+        .from("flash_plans")
         .insert({
-          user_a: userA,
-          user_b: userB,
-          when_date: payload.whenDate,
-          what: payload.what,
-          where_text: payload.whereText,
-          status: "proposed",
-          proposed_by: user.id,
+          creator_id: user.id,
+          type: payload.type,
+          title: payload.title,
+          what: payload.what ?? "",
+          where_text: payload.whereText ?? "",
+          when_at: payload.whenAt,
+          deadline,
+          max_participants: payload.maxParticipants ?? 4,
+          mode: payload.mode ?? null,
+          status: "open",
+          description: payload.description ?? null,
+          lat: payload.lat ?? null,
+          lng: payload.lng ?? null,
+          venue: payload.venue ?? null,
+          tags: payload.tags ?? [],
+          ambiance: payload.ambiance ?? null,
+          dress_code: payload.dressCode ?? null,
+          budget: payload.budget ?? null,
         })
         .select("id")
         .single();
 
       if (err) {
-        console.error("[usePlans] proposePlan failed:", err.message);
+        console.error("[usePlans] create failed:", err.message);
         return null;
       }
+
+      if (data?.id) {
+        await supabase.from("flash_plan_participants").insert({
+          flash_plan_id: data.id,
+          user_id: user.id,
+          status: "accepted",
+        });
+      }
+
       void fetchPlans();
       return data?.id ?? null;
     },
     [user, fetchPlans],
   );
 
-  const respondPlan = useCallback(
-    async (planId: string, status: "confirmed" | "cancelled"): Promise<boolean> => {
-      if (!user) return false;
-      const { error: err } = await supabase
-        .from("plans")
-        .update({ status })
-        .eq("id", planId);
-      if (err) {
-        console.error("[usePlans] respondPlan failed:", err.message);
-        return false;
+  const toggleInterest = useCallback(
+    async (planId: string) => {
+      if (!user) return;
+      const isInterested = myInterest.has(planId);
+
+      setMyInterest((prev) => {
+        const next = new Set(prev);
+        if (isInterested) next.delete(planId);
+        else next.add(planId);
+        return next;
+      });
+
+      if (isInterested) {
+        await supabase
+          .from("flash_plan_participants")
+          .delete()
+          .eq("flash_plan_id", planId)
+          .eq("user_id", user.id);
+      } else {
+        await supabase.from("flash_plan_participants").insert({
+          flash_plan_id: planId,
+          user_id: user.id,
+          status: "candidate",
+        });
       }
+
       void fetchPlans();
-      return true;
     },
-    [user, fetchPlans],
+    [user, myInterest, fetchPlans],
   );
 
-  return { plans, loading, error, refresh: fetchPlans, proposePlan, respondPlan };
+  return {
+    plans,
+    loading,
+    error,
+    myInterest,
+    refresh: fetchPlans,
+    createPlan,
+    toggleInterest,
+  };
+}
+
+// ---------- Single plan hook ----------
+
+export function usePlan(planId: string | undefined): {
+  plan: PlanDb | null;
+  loading: boolean;
+  error: string | null;
+  isInterested: boolean;
+  refresh: () => Promise<void>;
+  toggleInterest: () => Promise<void>;
+} {
+  const { user } = useAuth();
+  const [plan, setPlan] = useState<PlanDb | null>(null);
+  const [isInterested, setIsInterested] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchOne = useCallback(async () => {
+    if (!planId) {
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+
+    const { data: row, error: err } = await supabase
+      .from("flash_plans")
+      .select("*")
+      .eq("id", planId)
+      .maybeSingle();
+
+    if (err || !row) {
+      setPlan(null);
+      setError(err?.message ?? null);
+      setLoading(false);
+      return;
+    }
+
+    const p = row as PlanRow;
+
+    const { data: partRows } = await supabase
+      .from("flash_plan_participants")
+      .select("*")
+      .eq("flash_plan_id", planId);
+
+    const participantRows = (partRows ?? []) as ParticipantRow[];
+    const userIds = Array.from(new Set(participantRows.map((x) => x.user_id)));
+
+    let profileMap = new Map<string, ProfileRow>();
+    if (userIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, name, avatar_url")
+        .in("id", userIds);
+      profileMap = new Map(((profiles ?? []) as ProfileRow[]).map((x) => [x.id, x]));
+    }
+
+    const participants: PlanParticipant[] = participantRows.map((pr) => {
+      const profile = profileMap.get(pr.user_id);
+      return {
+        id: pr.id,
+        userId: pr.user_id,
+        name: profile?.name ?? "?",
+        avatar: profile?.avatar_url ?? null,
+        status: pr.status ?? "candidate",
+        joinedAt: pr.joined_at ?? new Date().toISOString(),
+      };
+    });
+
+    setPlan({
+      id: p.id,
+      type: (p.type ?? "flash") as PlanType,
+      creatorId: p.creator_id,
+      title: p.title,
+      what: p.what ?? "",
+      whereText: p.where_text ?? "",
+      whenAt: p.when_at,
+      deadline: p.deadline,
+      maxParticipants: p.max_participants ?? 4,
+      mode: p.mode,
+      status: p.status ?? "open",
+      createdAt: p.created_at ?? new Date().toISOString(),
+      description: p.description,
+      lat: p.lat,
+      lng: p.lng,
+      venue: p.venue,
+      tags: p.tags ?? [],
+      ambiance: p.ambiance,
+      dressCode: p.dress_code,
+      budget: p.budget,
+      participants,
+    });
+
+    setIsInterested(user ? participantRows.some((x) => x.user_id === user.id) : false);
+    setLoading(false);
+  }, [planId, user]);
+
+  useEffect(() => {
+    void fetchOne();
+  }, [fetchOne]);
+
+  const toggleInterest = useCallback(async () => {
+    if (!planId || !user) return;
+    const wasInterested = isInterested;
+    setIsInterested(!wasInterested);
+
+    if (wasInterested) {
+      await supabase
+        .from("flash_plan_participants")
+        .delete()
+        .eq("flash_plan_id", planId)
+        .eq("user_id", user.id);
+    } else {
+      await supabase.from("flash_plan_participants").insert({
+        flash_plan_id: planId,
+        user_id: user.id,
+        status: "candidate",
+      });
+    }
+
+    void fetchOne();
+  }, [planId, user, isInterested, fetchOne]);
+
+  return { plan, loading, error, isInterested, refresh: fetchOne, toggleInterest };
+}
+
+// ---------- Helpers ----------
+
+export const PLAN_TYPE_META: Record<PlanType, { label: string; emoji: string; description: string }> = {
+  flash: { label: "Flash", emoji: "\u26A1", description: "Plan urgent ce soir" },
+  soiree: { label: "Soiree", emoji: "\uD83C\uDF7B", description: "Soiree thematique" },
+  popup: { label: "Event", emoji: "\uD83C\uDF89", description: "Pop-up event public" },
+  match: { label: "Match", emoji: "\uD83D\uDC95", description: "Plan prive 1:1" },
+};
+
+export function usePlansByType(type: PlanType | undefined): UsePlansReturn {
+  const options = useMemo(() => ({ type }), [type]);
+  return usePlans(options);
 }
