@@ -140,6 +140,12 @@ export function usePlans(options: UsePlansOptions = {}): UsePlansReturn {
         .abortSignal(signal);
 
       if (err) {
+        // Abort errors come from React strict-mode double-mount or deps change
+        // re-run in useAsyncResource — they're not real failures. Throw silently
+        // so useAsyncResource can swallow; don't spam the console.
+        if (err.message?.toLowerCase().includes("abort")) {
+          throw new Error(err.message);
+        }
         console.error("[usePlans] fetch failed:", err.message);
         throw new Error(err.message);
       }
