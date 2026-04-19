@@ -2,11 +2,10 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import type { SwipeRequest, SwipeResponse } from "@/types/matching";
+import { getDailyLikeCap } from "@/lib/premium-gate";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
-
-const DAILY_LIMIT = 100;
 
 /** Postgres unique-constraint violation. */
 const PG_UNIQUE_VIOLATION = "23505";
@@ -92,7 +91,11 @@ export async function POST(request: Request) {
 
   const todayCount = count ?? 0;
 
-  if (todayCount >= DAILY_LIMIT) {
+  // Premium-gate (2026-04-19): free tier = 100/day, premium = Infinity.
+  // Premium status comes from the `subscriptions` table (via Stripe webhook).
+  const dailyCap = await getDailyLikeCap(userId);
+
+  if (todayCount >= dailyCap) {
     return NextResponse.json(
       { error: "rate_limited", swipesRemaining: 0, resetAt },
       { status: 429 },
@@ -124,7 +127,11 @@ export async function POST(request: Request) {
     );
   }
 
-  const swipesRemaining = Math.max(0, DAILY_LIMIT - todayCount - 1);
+  // Premium users: Infinity → return a large finite number for JSON safety.
+  const swipesRemaining =
+    dailyCap === Infinity
+      ? 9999
+      : Math.max(0, dailyCap - todayCount - 1);
 
   // --- Check mutual match (only for likes) ---
   let matched = false;

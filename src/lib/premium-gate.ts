@@ -49,8 +49,12 @@ export async function isPremium(userId: string): Promise<boolean> {
 /**
  * Free tier daily swipe/like limit.
  * Premium users get unlimited (Infinity).
+ *
+ * 100 is the cap used by /api/swipe before premium-gate wiring —
+ * keeping parity so existing free users don't see a regression. Adjust
+ * if product wants a tighter free tier to encourage upgrades.
  */
-export const FREE_TIER_DAILY_LIKES = 20;
+export const FREE_TIER_DAILY_LIKES = 100;
 export const PREMIUM_TIER_DAILY_LIKES = Infinity;
 
 /** Return the daily like cap for a user based on their tier. */
