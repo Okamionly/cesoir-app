@@ -3,17 +3,19 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
+import { Magnetic } from "@/components/motion/Magnetic";
+import { springs, profileVariants } from "@/lib/motion-design";
 
 const TONIGHT_CHIPS = ["Diner", "Boire un verre", "Cinema", "Balade", "Concert", "Sport"];
 
 const ease = [0.16, 1, 0.3, 1] as [number, number, number, number];
 const fade = (delay = 0) => ({
-  initial: { opacity: 0, y: 6 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.4, ease, delay },
+  initial: { opacity: 0, y: 12, filter: "blur(4px)" },
+  animate: { opacity: 1, y: 0, filter: "blur(0px)" },
+  transition: { duration: 0.55, ease, delay },
 });
 
 // ────────────────────────────────────────────────
@@ -73,6 +75,8 @@ export default function ProfilePage() {
     setSelectedChips(prev => prev.includes(chip) ? prev.filter(c => c !== chip) : [...prev, chip]);
   };
 
+  const reducedMotion = useReducedMotion();
+
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" }).catch((err) => {
       // Client sign-out still proceeds; surface the server-side issue for observability
@@ -102,13 +106,40 @@ export default function ProfilePage() {
       {/* ── HERO ── Avatar + Name + Edit button ── */}
       <motion.section
         className="px-6 pt-8 pb-10 flex flex-col items-center text-center"
-        {...fade(0.05)}
+        variants={profileVariants.hero}
+        initial="hidden"
+        animate="visible"
       >
-        {/* Avatar with subtle gradient ring */}
-        <div className="relative mb-6">
-          <div
-            className="w-32 h-32 rounded-full p-[3px]"
+        {/* Avatar with breathing gradient ring */}
+        <motion.div
+          className="relative mb-6"
+          initial={{ scale: 0.6, opacity: 0, rotate: -8 }}
+          animate={{ scale: 1, opacity: 1, rotate: 0 }}
+          transition={{ ...springs.elastic, delay: 0.1 }}
+        >
+          {/* Outer animated halo (skipped on reduced-motion) */}
+          {!reducedMotion && (
+            <motion.div
+              aria-hidden="true"
+              className="absolute -inset-2 rounded-full pointer-events-none"
+              style={{
+                background: "linear-gradient(135deg, #8B5CF6, #00FF88)",
+                filter: "blur(14px)",
+                opacity: 0.35,
+              }}
+              animate={{ opacity: [0.25, 0.45, 0.25], scale: [1, 1.04, 1] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+            />
+          )}
+          <motion.div
+            className="relative w-32 h-32 rounded-full p-[3px]"
             style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)" }}
+            animate={
+              reducedMotion
+                ? undefined
+                : { backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"] }
+            }
+            transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
           >
             <div className="w-full h-full rounded-full bg-bg overflow-hidden">
               {avatarUrl ? (
@@ -132,34 +163,77 @@ export default function ProfilePage() {
                 </div>
               )}
             </div>
-          </div>
-          {/* Online indicator */}
-          <span
+          </motion.div>
+          {/* Online indicator with soft pulse */}
+          <motion.span
             className="absolute bottom-1.5 right-1.5 block w-4 h-4 rounded-full ring-[3px] ring-bg"
             style={{ background: "#00FF88" }}
             aria-label="En ligne ce soir"
+            animate={
+              reducedMotion
+                ? undefined
+                : {
+                    boxShadow: [
+                      "0 0 0 0 rgba(0,255,136,0.5)",
+                      "0 0 0 8px rgba(0,255,136,0)",
+                      "0 0 0 0 rgba(0,255,136,0.5)",
+                    ],
+                  }
+            }
+            transition={{ duration: 2, repeat: Infinity }}
           />
-        </div>
+        </motion.div>
 
         {/* Name */}
-        <h2 className="text-[28px] font-bold tracking-tight text-text leading-none">
+        <motion.h2
+          className="text-[28px] font-bold tracking-tight text-text leading-none"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...springs.heavy, delay: 0.25 }}
+        >
           {profileName}, <span className="font-normal text-text-muted">{age}</span>
-        </h2>
-        <p className="text-[13px] text-text-muted mt-2 tracking-wide">Paris, France</p>
+        </motion.h2>
+        <motion.p
+          className="text-[13px] text-text-muted mt-2 tracking-wide"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          Paris, France
+        </motion.p>
 
         {/* Status pill */}
-        <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-bg-card border border-border">
+        <motion.div
+          className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-bg-card border border-border"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ ...springs.elastic, delay: 0.5 }}
+        >
           <span className="block w-1.5 h-1.5 rounded-full" style={{ background: "#00FF88" }} aria-hidden="true" />
           <span className="text-[12px] font-medium text-text">Disponible ce soir</span>
-        </div>
+        </motion.div>
 
-        {/* Edit profile — primary action button */}
-        <Link
-          href="/profile/edit"
-          className="mt-7 inline-flex items-center justify-center px-7 py-3 rounded-full bg-text text-bg text-[14px] font-semibold tracking-tight hover:opacity-90 active:scale-[0.98] transition-all tap-target focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg focus-visible:outline-none"
+        {/* Edit profile — magnetic primary action */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...springs.cinematic, delay: 0.6 }}
+          className="mt-7"
         >
-          Modifier le profil
-        </Link>
+          <Magnetic strength={0.16} radius={90}>
+            <motion.span
+              className="inline-block"
+              whileTap={{ scale: 0.96, transition: springs.micro }}
+            >
+              <Link
+                href="/profile/edit"
+                className="inline-flex items-center justify-center px-7 py-3 rounded-full bg-text text-bg text-[14px] font-semibold tracking-tight hover:opacity-90 transition-all tap-target focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg focus-visible:outline-none"
+              >
+                Modifier le profil
+              </Link>
+            </motion.span>
+          </Magnetic>
+        </motion.div>
       </motion.section>
 
       {/* ── INTENT: What do you want tonight? ── */}
@@ -175,21 +249,26 @@ export default function ProfilePage() {
           Mes envies ce soir
         </h3>
         <div className="flex flex-wrap gap-2" role="group" aria-label="Selection des envies de ce soir">
-          {TONIGHT_CHIPS.map(chip => {
+          {TONIGHT_CHIPS.map((chip, i) => {
             const on = selectedChips.includes(chip);
             return (
-              <button
+              <motion.button
                 key={chip}
                 onClick={() => toggleChip(chip)}
                 aria-pressed={on}
-                className={`px-4 py-2 rounded-full text-[13px] font-medium transition-all tap-target focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg focus-visible:outline-none ${
+                custom={i}
+                variants={profileVariants.chip}
+                initial="hidden"
+                animate="visible"
+                whileTap="tap"
+                className={`px-4 py-2 rounded-full text-[13px] font-medium transition-colors tap-target focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg focus-visible:outline-none ${
                   on
                     ? "bg-text text-bg border border-text"
                     : "bg-bg-card text-text border border-border hover:border-text/30"
                 }`}
               >
                 {chip}
-              </button>
+              </motion.button>
             );
           })}
         </div>

@@ -4,7 +4,8 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
-import { browseVariants, springs, micro } from "@/lib/motion-design";
+import { browseVariants, springs, micro, easings } from "@/lib/motion-design";
+import { Magnetic } from "@/components/motion/Magnetic";
 import { ModeKey, MODES } from "@/lib/modes";
 import { MOCK_PROFILES, Profile } from "@/lib/mock-profiles";
 import { useSwipe } from "@/lib/useSwipe";
@@ -422,45 +423,75 @@ function ActionButtons({
         </motion.button>
       </div>
 
-      {/* 3 clean buttons: Pass, SuperLike, Like */}
+      {/* 3 clean buttons: Pass, SuperLike, Like — magnetic on fine pointers */}
       <div className="flex items-center justify-center gap-5">
         {/* Pass */}
-        <motion.button
-          onClick={onPass}
-          aria-label="Passer"
-          className="w-[56px] h-[56px] rounded-full bg-bg border-2 border-border flex items-center justify-center text-text-muted"
-          whileTap={micro.tapScale}
-          whileHover={micro.hoverLift}
-        >
-          <IconX size={24} />
-        </motion.button>
+        <Magnetic strength={0.18} radius={70}>
+          <motion.button
+            onClick={onPass}
+            aria-label="Passer"
+            className="w-[56px] h-[56px] rounded-full bg-bg border-2 border-border flex items-center justify-center text-text-muted"
+            whileTap={micro.tapScale}
+            whileHover={{ ...micro.hoverLift, borderColor: "rgba(17,17,17,0.4)" }}
+          >
+            <IconX size={24} />
+          </motion.button>
+        </Magnetic>
 
-        {/* Super Like */}
-        <motion.button
-          onClick={onSuperLike}
-          disabled={!canAffordRose}
-          aria-label="Super like"
-          className={`w-[46px] h-[46px] rounded-full border-2 flex items-center justify-center ${
-            canAffordRose
-              ? "bg-bg border-pink-500/40 text-pink-400"
-              : "bg-bg border-border text-text-muted/30 cursor-not-allowed"
-          }`}
-          whileTap={canAffordRose ? micro.tapScale : {}}
-          whileHover={canAffordRose ? micro.hoverLift : {}}
-        >
-          <IconStar size={18} />
-        </motion.button>
+        {/* Super Like — subtle pulse glow when affordable */}
+        <Magnetic strength={0.22} radius={60}>
+          <motion.button
+            onClick={onSuperLike}
+            disabled={!canAffordRose}
+            aria-label="Super like"
+            className={`w-[46px] h-[46px] rounded-full border-2 flex items-center justify-center ${
+              canAffordRose
+                ? "bg-bg border-pink-500/40 text-pink-400"
+                : "bg-bg border-border text-text-muted/30 cursor-not-allowed"
+            }`}
+            whileTap={canAffordRose ? micro.tapScale : {}}
+            whileHover={
+              canAffordRose
+                ? { ...micro.hoverLift, boxShadow: "0 0 24px rgba(236,72,153,0.4)" }
+                : {}
+            }
+            animate={
+              canAffordRose
+                ? {
+                    boxShadow: [
+                      "0 0 0px rgba(236,72,153,0)",
+                      "0 0 14px rgba(236,72,153,0.25)",
+                      "0 0 0px rgba(236,72,153,0)",
+                    ],
+                  }
+                : {}
+            }
+            transition={
+              canAffordRose
+                ? { duration: 2.4, repeat: Infinity, ease: "easeInOut" }
+                : undefined
+            }
+          >
+            <IconStar size={18} />
+          </motion.button>
+        </Magnetic>
 
-        {/* Like */}
-        <motion.button
-          onClick={onLike}
-          aria-label="Liker"
-          className="w-[56px] h-[56px] rounded-full gradient-bg flex items-center justify-center text-white shadow-glow"
-          whileTap={micro.tapScale}
-          whileHover={micro.hoverLift}
-        >
-          <IconHeart size={24} />
-        </motion.button>
+        {/* Like — gradient with magnetic + violet→green glow on hover */}
+        <Magnetic strength={0.18} radius={70}>
+          <motion.button
+            onClick={onLike}
+            aria-label="Liker"
+            className="w-[56px] h-[56px] rounded-full gradient-bg flex items-center justify-center text-white shadow-glow"
+            whileTap={micro.tapScale}
+            whileHover={{
+              y: -3,
+              boxShadow: "0 12px 40px rgba(0,255,136,0.45)",
+              transition: springs.gentle,
+            }}
+          >
+            <IconHeart size={24} />
+          </motion.button>
+        </Magnetic>
       </div>
     </div>
   );
@@ -486,27 +517,73 @@ function MatchToast({ profile, conversationId, onDismiss }: { profile: Profile; 
     <motion.div
       role="alert" aria-live="assertive"
       className="fixed bottom-24 left-4 right-4 z-50"
-      initial={{ y: 100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={springs.elastic}
+      initial={{ y: 120, opacity: 0, scale: 0.92, filter: "blur(8px)" }}
+      animate={{ y: 0, opacity: 1, scale: 1, filter: "blur(0px)" }}
+      exit={{ y: 60, opacity: 0, scale: 0.95, transition: { duration: 0.25, ease: easings.dramatic } }}
+      transition={{ ...springs.cinematic, stiffness: 140, damping: 22 }}
     >
-      <div className="bg-bg border border-accent/20 rounded-2xl p-4 shadow-glow">
+      {/* Outer glow halo — subtle gradient pulse */}
+      <motion.div
+        className="absolute -inset-1 rounded-3xl pointer-events-none"
+        aria-hidden="true"
+        style={{
+          background: "linear-gradient(135deg, rgba(139,92,246,0.4), rgba(236,72,153,0.3), rgba(0,255,136,0.4))",
+          filter: "blur(16px)",
+        }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: [0.3, 0.55, 0.3] }}
+        transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <div className="relative bg-bg border border-accent/20 rounded-2xl p-4 shadow-glow">
         <div className="flex items-center gap-3">
           <div className="flex -space-x-3">
-            <div className="w-12 h-12 rounded-full gradient-bg p-[2px] z-10">
+            <motion.div
+              className="w-12 h-12 rounded-full gradient-bg p-[2px] z-10"
+              initial={{ scale: 0, rotate: -90 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ ...springs.elastic, delay: 0.1 }}
+            >
               <div className="w-full h-full rounded-full bg-bg flex items-center justify-center text-[14px] font-bold text-accent">Y</div>
-            </div>
-            <img src={profile.photo} alt={profile.name} loading="lazy" decoding="async" className="w-12 h-12 rounded-full object-cover border-2 border-bg" />
+            </motion.div>
+            <motion.img
+              src={profile.photo}
+              alt={profile.name}
+              loading="lazy"
+              decoding="async"
+              className="w-12 h-12 rounded-full object-cover border-2 border-bg"
+              initial={{ scale: 0, rotate: 90 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ ...springs.elastic, delay: 0.2 }}
+            />
           </div>
-          <div className="flex-1 min-w-0">
+          <motion.div
+            className="flex-1 min-w-0"
+            initial={{ opacity: 0, x: 12 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ ...springs.heavy, delay: 0.25 }}
+          >
             <p className="text-[14px] font-bold text-text"><span className="gradient-text">Match !</span> {profile.name}</p>
             <p className="text-[11px] text-text-muted">Vous etes dispos ce soir</p>
-          </div>
-          {conversationId ? (
-            <Link href={`/chat/${conversationId}`} onClick={onDismiss} className="gradient-bg text-white px-4 py-2 rounded-full text-[12px] font-bold">Ecrire</Link>
-          ) : (
-            <button onClick={onDismiss} className="gradient-bg text-white px-4 py-2 rounded-full text-[12px] font-bold">Ecrire</button>
-          )}
+          </motion.div>
+          <Magnetic strength={0.22} radius={50}>
+            {conversationId ? (
+              <Link
+                href={`/chat/${conversationId}`}
+                onClick={onDismiss}
+                className="gradient-bg text-white px-4 py-2 rounded-full text-[12px] font-bold inline-block"
+              >
+                Ecrire
+              </Link>
+            ) : (
+              <motion.button
+                onClick={onDismiss}
+                whileTap={micro.tapScale}
+                className="gradient-bg text-white px-4 py-2 rounded-full text-[12px] font-bold"
+              >
+                Ecrire
+              </motion.button>
+            )}
+          </Magnetic>
         </div>
       </div>
     </motion.div>

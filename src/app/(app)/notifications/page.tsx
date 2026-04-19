@@ -9,9 +9,10 @@ import {
   useTransform,
   type PanInfo,
 } from "motion/react";
-import { springs, micro } from "@/lib/motion-design";
+import { springs, micro, easings } from "@/lib/motion-design";
 import { useAuth } from "@/context/AuthContext";
 import { useNotifications, type AppNotification } from "@/lib/useNotifications";
+import { Magnetic } from "@/components/motion/Magnetic";
 
 // ---------- Extended notification types ----------
 
@@ -290,8 +291,8 @@ function SwipeableNotification({
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: -40 }}
-      animate={{ opacity: 1, x: 0 }}
+      initial={{ opacity: 0, x: -40, filter: "blur(4px)" }}
+      animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
       exit={{ x: -300, opacity: 0, transition: springs.rubber }}
       transition={{ ...springs.heavy, delay: index * 0.04 }}
       layout
@@ -490,7 +491,12 @@ export default function NotificationsPage() {
     <div className="min-h-screen bg-bg max-w-lg mx-auto pb-safe">
       {/* Header */}
       <header className="px-5 pt-6 pb-4">
-        <div className="flex items-center justify-between">
+        <motion.div
+          className="flex items-center justify-between"
+          initial={{ opacity: 0, y: -8, filter: "blur(4px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 0.5, ease: easings.out }}
+        >
           <div className="flex items-center gap-3">
             <h1 className="text-[22px] font-black text-text font-display">
               Notifications
@@ -512,18 +518,21 @@ export default function NotificationsPage() {
           </div>
 
           {unreadCount > 0 && (
-            <motion.button
-              initial={{ opacity: 0, x: 10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={springs.snap}
-              onClick={handleMarkAllRead}
-              whileTap={micro.tapScale}
-              className="text-[13px] font-semibold text-accent"
-            >
-              Tout marquer comme lu
-            </motion.button>
+            <Magnetic strength={0.18} radius={70}>
+              <motion.button
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={springs.snap}
+                onClick={handleMarkAllRead}
+                whileTap={micro.tapScale}
+                whileHover={{ color: "#8B5CF6", transition: springs.gentle }}
+                className="text-[13px] font-semibold text-accent"
+              >
+                Tout marquer comme lu
+              </motion.button>
+            </Magnetic>
           )}
-        </div>
+        </motion.div>
       </header>
 
       {/* Filter tabs */}

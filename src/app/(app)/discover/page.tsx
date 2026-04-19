@@ -9,6 +9,8 @@ import { MOCK_PROFILES, type Profile } from "@/lib/mock-profiles";
 import { MODE_ICONS, IconSearch, IconX } from "@/components/ui/Icons";
 import CrossLinkCard from "@/components/app/CrossLinkCard";
 import { MOCK_EVENTS, type PopUpEvent } from "@/lib/popup-events";
+import { useProfiles } from "@/lib/useProfiles";
+import { useGeolocation } from "@/lib/useGeolocation";
 
 // ─────────────────────────────────────────
 // Types
@@ -128,11 +130,21 @@ export default function DiscoverPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
+  // Real profiles via Supabase RPC (nearby_profiles); MOCK_PROFILES bootstrap when empty.
+  const { latitude, longitude } = useGeolocation();
+  const modeFilter = filters.mode === "all" ? undefined : filters.mode;
+  const { profiles: realProfiles, isReal } = useProfiles(
+    latitude ?? undefined,
+    longitude ?? undefined,
+    modeFilter,
+  );
+  const sourceProfiles: Profile[] = isReal && realProfiles.length > 0 ? realProfiles : MOCK_PROFILES;
+
   // Filter + sort profiles
   const filteredProfiles = useMemo(() => {
-    const filtered = applyFilters(MOCK_PROFILES, filters);
+    const filtered = applyFilters(sourceProfiles, filters);
     return applySort(filtered, sort);
-  }, [filters, sort]);
+  }, [sourceProfiles, filters, sort]);
 
   const displayedProfiles = filteredProfiles.slice(0, displayCount);
   const hasMore = displayCount < filteredProfiles.length;
@@ -396,7 +408,7 @@ export default function DiscoverPage() {
           </Link>
         </div>
         <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
-          {MOCK_PROFILES.filter(p => p.distance < 3).slice(0, 6).map((p, i) => (
+          {sourceProfiles.filter(p => p.distance < 3).slice(0, 6).map((p, i) => (
             <Link key={p.id} href={`/p/${p.id}`} className="shrink-0">
               <motion.div
                 className="w-[100px] rounded-xl overflow-hidden border border-border/50 bg-card"

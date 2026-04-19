@@ -11,6 +11,7 @@ import { supabase } from "@/lib/supabase";
 import PhotoUpload from "@/components/app/PhotoUpload";
 import { landing } from "@/lib/design-tokens";
 import { springs, easings } from "@/lib/motion-design";
+import { Magnetic } from "@/components/motion/Magnetic";
 
 // Dark-mode input style shared by every step
 const INPUT_STYLE: React.CSSProperties = {
@@ -119,15 +120,17 @@ export default function RegisterPage() {
         transition={{ duration: 0.5, ease: easings.out }}
         className="relative w-full max-w-sm"
       >
-        {/* Logo */}
+        {/* Logo with breathing moon */}
         <div className="flex items-center justify-center gap-2 mb-6">
-          <span
-            className="text-2xl"
+          <motion.span
+            className="text-2xl drop-shadow-[0_0_14px_rgba(139,92,246,0.5)]"
             aria-hidden="true"
             style={{ color: landing.violet }}
+            animate={{ rotate: [0, 6, 0, -6, 0], scale: [1, 1.05, 1] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
           >
             ☾
-          </span>
+          </motion.span>
           <span className="font-display text-xl font-bold tracking-tight">
             CeSoir
           </span>
@@ -585,19 +588,25 @@ export default function RegisterPage() {
                   >
                     Retour
                   </button>
-                  <motion.button
-                    type="submit"
-                    whileHover={{ y: -1 }}
-                    whileTap={{ scale: 0.98 }}
-                    transition={springs.snap}
-                    className="flex-1 text-white py-3.5 rounded-full text-sm font-semibold tap-target"
-                    style={{
-                      background: landing.gradient,
-                      boxShadow: landing.shadow,
-                    }}
-                  >
-                    C&apos;est parti !
-                  </motion.button>
+                  <Magnetic as="div" strength={0.12} radius={120} className="flex-1">
+                    <motion.button
+                      type="submit"
+                      whileHover={{
+                        y: -2,
+                        boxShadow: "0 14px 60px rgba(0,255,136,0.35)",
+                        transition: springs.gentle,
+                      }}
+                      whileTap={{ scale: 0.98 }}
+                      transition={springs.snap}
+                      className="w-full text-white py-3.5 rounded-full text-sm font-semibold tap-target"
+                      style={{
+                        background: landing.gradient,
+                        boxShadow: landing.shadow,
+                      }}
+                    >
+                      C&apos;est parti !
+                    </motion.button>
+                  </Magnetic>
                 </div>
               </div>
             </motion.form>

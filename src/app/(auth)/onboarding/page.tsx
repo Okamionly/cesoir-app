@@ -4,9 +4,11 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { MODES, MODE_KEYS } from "@/lib/modes";
+import { MODES, MODE_KEYS, type ModeKey } from "@/lib/modes";
 import { MODE_ICONS } from "@/components/ui/Icons";
 import { springs, welcomeVariants, ambient, easings } from "@/lib/motion-design";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
 
 const POPULAR_MODES = MODE_KEYS.slice(0, 6);
 
@@ -37,16 +39,61 @@ const STEP_GRADIENTS = [
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const [screen, setScreen] = useState(0);
   const [direction, setDirection] = useState(1);
   const [selectedModes, setSelectedModes] = useState<string[]>([]);
   const [reminders, setReminders] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const goNext = () => {
+  /**
+   * Persist selected modes to Supabase before completing onboarding.
+   * - Insert one row per selected mode in `mode_activations` (12h expiry default).
+   * - Mark `user_settings.onboarding_completed = true` (upsert).
+   * Silently no-ops if user is unauthenticated (skip path).
+   */
+  async function persistOnboarding() {
+    if (!user || selectedModes.length === 0) return;
+    setSaving(true);
+    try {
+      // Cast filters out invalid keys defensively (selectedModes is string[]).
+      const validModes = selectedModes.filter((m): m is ModeKey =>
+        (MODE_KEYS as string[]).includes(m),
+      );
+      if (validModes.length > 0) {
+        const rows = validModes.map((mode) => ({
+          user_id: user.id,
+          mode,
+          is_active: true,
+          available_time: "Dispo maintenant",
+        }));
+        await supabase.from("mode_activations").insert(rows);
+      }
+
+      await supabase
+        .from("user_settings")
+        .upsert(
+          {
+            user_id: user.id,
+            onboarding_completed: true,
+            smart_notifications: reminders,
+            mode_alerts: reminders,
+          },
+          { onConflict: "user_id" },
+        );
+    } catch (err) {
+      console.warn("[onboarding] persist failed", err);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const goNext = async () => {
     if (screen < 3) {
       setDirection(1);
       setScreen(screen + 1);
     } else {
+      await persistOnboarding();
       router.push("/browse");
     }
   };
@@ -373,12 +420,14 @@ export default function OnboardingPage() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ ...springs.elastic, delay: 0.7 }}
               >
-                <Link
-                  href="/browse"
-                  className="inline-block gradient-bg text-white px-10 py-3.5 rounded-full text-[16px] font-bold shadow-glow tap-target"
+                <button
+                  type="button"
+                  onClick={goNext}
+                  disabled={saving}
+                  className="inline-block gradient-bg text-white px-10 py-3.5 rounded-full text-[16px] font-bold shadow-glow tap-target disabled:opacity-60"
                 >
-                  Explorer
-                </Link>
+                  {saving ? "Enregistrement..." : "Explorer"}
+                </button>
               </motion.div>
             </motion.div>
           )}

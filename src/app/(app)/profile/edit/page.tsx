@@ -8,6 +8,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useProfile } from "@/lib/useProfile";
 import PhotoUpload from "@/components/app/PhotoUpload";
 import { IconX } from "@/components/ui/Icons";
+import { Magnetic } from "@/components/motion/Magnetic";
 
 const BIO_MAX = 200;
 
@@ -265,18 +266,39 @@ export default function EditProfilePage() {
           />
         </motion.div>
 
-        {/* --- Save button --- */}
+        {/* --- Save button — magnetic + gradient glow --- */}
         <motion.div {...fieldMotion(7)}>
-          <motion.button
-            type="submit"
-            disabled={saving}
-            animate={btnControls}
-            whileHover={{ y: -2, boxShadow: "0 8px 25px rgba(139,92,246,0.3)" }}
-            whileTap={{ scale: 0.95 }}
-            className="w-full gradient-bg text-white font-semibold py-3.5 rounded-full text-sm disabled:opacity-50 tap-target transition-shadow"
-          >
-            {saving ? "Sauvegarde..." : "Sauvegarder"}
-          </motion.button>
+          <Magnetic as="div" strength={0.1} radius={140}>
+            <motion.button
+              type="submit"
+              disabled={saving}
+              animate={btnControls}
+              whileHover={{
+                y: -2,
+                boxShadow: "0 12px 32px rgba(139,92,246,0.45), 0 0 24px rgba(0,255,136,0.18)",
+                transition: springs.gentle,
+              }}
+              whileTap={{ scale: 0.95, transition: springs.micro }}
+              className="w-full gradient-bg text-white font-semibold py-3.5 rounded-full text-sm disabled:opacity-50 tap-target transition-shadow"
+            >
+              {saving ? (
+                <motion.span
+                  className="inline-flex items-center gap-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
+                  <motion.span
+                    className="inline-block w-3.5 h-3.5 rounded-full border-2 border-white/40 border-t-white"
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
+                  />
+                  Sauvegarde...
+                </motion.span>
+              ) : (
+                "Sauvegarder"
+              )}
+            </motion.button>
+          </Magnetic>
         </motion.div>
       </form>
 

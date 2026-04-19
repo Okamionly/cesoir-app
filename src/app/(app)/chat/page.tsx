@@ -125,10 +125,10 @@ function ConversationRow({
     <motion.div
       className="relative overflow-hidden"
       role="listitem"
-      initial={{ opacity: 0, x: -30 }}
-      animate={{ opacity: 1, x: 0 }}
+      initial={{ opacity: 0, x: -30, filter: "blur(4px)" }}
+      animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
       transition={{ ...springs.heavy, delay: index * 0.06 }}
-      whileHover={{ y: -1, boxShadow: "0 4px 12px rgba(0,0,0,0.08)" }}
+      whileHover={{ y: -1, boxShadow: "0 6px 18px rgba(139,92,246,0.12)", transition: springs.gentle }}
       whileTap={{ scale: 0.98, transition: springs.micro }}
     >
       {/* Swipe reveal actions */}
@@ -399,9 +399,21 @@ export default function ChatPage() {
 
       {/* Header */}
       <header className="sticky top-0 z-40 bg-bg/95 backdrop-blur-md border-b border-border px-4 pt-2 pb-3">
-        <div className="flex items-center justify-between">
+        <motion.div
+          className="flex items-center justify-between"
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        >
           <div className="flex items-center gap-2">
-            <span className="text-lg text-accent" aria-hidden="true">&#9790;</span>
+            <motion.span
+              className="text-lg text-accent"
+              aria-hidden="true"
+              animate={{ rotate: [0, 6, 0, -6, 0] }}
+              transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+            >
+              ☾
+            </motion.span>
             <span className="text-base font-bold">Messages</span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -419,7 +431,7 @@ export default function ChatPage() {
               </motion.span>
             )}
           </div>
-        </div>
+        </motion.div>
       </header>
 
       {/* FlashNotes recus */}

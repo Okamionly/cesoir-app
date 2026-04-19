@@ -7,6 +7,7 @@ import { motion } from "motion/react";
 import { useAuth } from "@/context/AuthContext";
 import { landing } from "@/lib/design-tokens";
 import { springs, easings } from "@/lib/motion-design";
+import { Magnetic } from "@/components/motion/Magnetic";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -75,15 +76,17 @@ export default function LoginPage() {
         transition={{ duration: 0.6, ease: easings.out }}
         className="relative w-full max-w-sm"
       >
-        {/* Logo */}
+        {/* Logo with breathing moon */}
         <div className="flex items-center justify-center gap-2 mb-10">
-          <span
-            className="text-3xl"
+          <motion.span
+            className="text-3xl drop-shadow-[0_0_18px_rgba(139,92,246,0.6)]"
             aria-hidden="true"
             style={{ color: landing.violet }}
+            animate={{ rotate: [0, 6, 0, -6, 0], scale: [1, 1.05, 1] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
           >
             ☾
-          </span>
+          </motion.span>
           <span className="font-display text-2xl font-bold tracking-tight">
             CeSoir
           </span>
@@ -180,20 +183,37 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          <motion.button
-            type="submit"
-            disabled={loading}
-            whileHover={{ y: -1 }}
-            whileTap={{ scale: 0.98 }}
-            transition={springs.snap}
-            className="w-full font-semibold py-3.5 rounded-full text-sm text-white disabled:opacity-50 tap-target"
-            style={{
-              background: landing.gradient,
-              boxShadow: landing.shadow,
-            }}
-          >
-            {loading ? "Connexion..." : "Se connecter"}
-          </motion.button>
+          <Magnetic as="div" strength={0.1} radius={120}>
+            <motion.button
+              type="submit"
+              disabled={loading}
+              whileHover={{
+                y: -2,
+                boxShadow: "0 14px 60px rgba(0,255,136,0.35)",
+                transition: springs.gentle,
+              }}
+              whileTap={{ scale: 0.98 }}
+              transition={springs.snap}
+              className="w-full font-semibold py-3.5 rounded-full text-sm text-white disabled:opacity-50 tap-target"
+              style={{
+                background: landing.gradient,
+                boxShadow: landing.shadow,
+              }}
+            >
+              {loading ? (
+                <span className="inline-flex items-center gap-2">
+                  <motion.span
+                    className="inline-block w-3.5 h-3.5 rounded-full border-2 border-white/40 border-t-white"
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }}
+                  />
+                  Connexion...
+                </span>
+              ) : (
+                "Se connecter"
+              )}
+            </motion.button>
+          </Magnetic>
         </form>
 
         <p className="text-sm text-white/60 text-center mt-8">

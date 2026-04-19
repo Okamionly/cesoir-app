@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { trendingVariants, springs } from "@/lib/motion-design";
-import { ModeKey, MODES } from "@/lib/modes";
+import { ModeKey, MODES, MODE_KEYS } from "@/lib/modes";
+import { supabase } from "@/lib/supabase";
 
 // --- Types ---
 
@@ -15,6 +16,14 @@ interface Venue {
   distance: number;
   people: number;
   modes: ModeKey[];
+}
+
+interface TrendingRow {
+  venue_name: string;
+  visits: number;
+  unique_visitors: number;
+  last_visit_at: string;
+  modes: string[] | null;
 }
 
 type SortOption = "popular" | "closest" | "new";
@@ -53,6 +62,39 @@ const cardVariants = trendingVariants.spot;
 export default function TrendingPage() {
   const [activeMode, setActiveMode] = useState<ModeKey | null>(null);
   const [sort, setSort] = useState<SortOption>("popular");
+  const [liveVenues, setLiveVenues] = useState<Venue[] | null>(null);
+
+  // Pull `trending_venues_view` aggregations; fallback to MOCK when empty.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("trending_venues_view")
+        .select("venue_name, visits, unique_visitors, last_visit_at, modes");
+      if (cancelled || error || !data || data.length === 0) return;
+      const validModes = new Set(MODE_KEYS as string[]);
+      const venues: Venue[] = (data as TrendingRow[]).map((row, i) => {
+        const cleanModes = (row.modes ?? []).filter((m): m is ModeKey =>
+          validModes.has(m),
+        );
+        return {
+          id: `live-${i}-${row.venue_name}`,
+          name: row.venue_name,
+          type: "Lieu",
+          neighborhood: "Paris",
+          distance: 1, // No geo on view; placeholder so existing UI keeps working.
+          people: row.unique_visitors,
+          modes: cleanModes.length > 0 ? cleanModes : ["solo-diner"],
+        };
+      });
+      setLiveVenues(venues);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const sourceVenues: Venue[] = liveVenues && liveVenues.length > 0 ? liveVenues : MOCK_VENUES;
 
   const sortOptions: { key: SortOption; label: string }[] = [
     { key: "popular", label: "Plus populaire" },
@@ -61,7 +103,7 @@ export default function TrendingPage() {
   ];
 
   const filtered = useMemo(() => {
-    let list = [...MOCK_VENUES];
+    let list = [...sourceVenues];
 
     if (activeMode) {
       list = list.filter((v) => v.modes.includes(activeMode));
@@ -80,7 +122,7 @@ export default function TrendingPage() {
     }
 
     return list;
-  }, [activeMode, sort]);
+  }, [sourceVenues, activeMode, sort]);
 
   return (
     <div className="min-h-screen bg-bg pb-24">

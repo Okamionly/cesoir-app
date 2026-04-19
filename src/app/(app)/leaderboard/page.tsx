@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { leaderboardVariants, springs, micro } from "@/lib/motion-design";
+import { supabase } from "@/lib/supabase";
 
 interface LeaderEntry {
   rank: number;
@@ -13,11 +14,23 @@ interface LeaderEntry {
   karma: number;
 }
 
+interface LeaderboardRow {
+  id: string;
+  name: string | null;
+  avatar_url: string | null;
+  is_verified: boolean | null;
+  total_meetups: number | null;
+  reliability_score: number | null;
+  likes_received: number;
+  conversations: number;
+  karma: number;
+}
+
 function photo(gender: "women" | "men", id: number): string {
   return `https://randomuser.me/api/portraits/${gender}/${id}.jpg`;
 }
 
-const LEADERBOARD: LeaderEntry[] = [
+const FALLBACK_LEADERBOARD: LeaderEntry[] = [
   { rank: 1, name: "Claire", photo: photo("women", 25), meetups: 42, karma: 4.9 },
   { rank: 2, name: "Thomas", photo: photo("men", 75), meetups: 38, karma: 4.8 },
   { rank: 3, name: "Priya", photo: photo("women", 64), meetups: 35, karma: 4.9 },
@@ -54,9 +67,51 @@ const GLOW_SHADOWS: Record<number, string> = {
 
 export default function LeaderboardPage() {
   const [tab, setTab] = useState<"month" | "week" | "all">("month");
+  const [entries, setEntries] = useState<LeaderEntry[]>(FALLBACK_LEADERBOARD);
+  const [isReal, setIsReal] = useState(false);
 
-  const top3 = LEADERBOARD.slice(0, 3);
-  const rest = LEADERBOARD.slice(3);
+  // Fetch live leaderboard rows; keep MOCK fallback when DB returns empty.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data, error } = await supabase
+        .from("leaderboard_view")
+        .select("id, name, avatar_url, is_verified, total_meetups, reliability_score, likes_received, conversations, karma");
+      if (cancelled || error || !data || data.length === 0) return;
+      const rows = (data as LeaderboardRow[]).map((row, i) => ({
+        rank: i + 1,
+        name: row.name ?? "Anonyme",
+        photo: row.avatar_url ?? photo(i % 2 === 0 ? "women" : "men", (i * 7) % 99),
+        meetups: row.total_meetups ?? 0,
+        karma: row.karma,
+      }));
+      setEntries(rows);
+      setIsReal(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Tab is currently a UI affordance; same dataset for now (view is global).
+  void tab;
+  void isReal;
+
+  const top3 = entries.slice(0, 3);
+  const rest = entries.slice(3);
+
+  // Defensive: avoid crashes when DB returns <3 rows.
+  if (top3.length < 3) {
+    while (top3.length < 3) {
+      top3.push({
+        rank: top3.length + 1,
+        name: "—",
+        photo: photo(top3.length % 2 === 0 ? "women" : "men", 30 + top3.length),
+        meetups: 0,
+        karma: 0,
+      });
+    }
+  }
 
   return (
     <div className="min-h-screen bg-bg">
