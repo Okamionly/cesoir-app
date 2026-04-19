@@ -81,8 +81,13 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 .no-scrollbar { scrollbar-width:none; }
 /* Reserve space for the mobile-only BottomNav. Desktop has no nav so
    no padding is needed (BottomNav is md:hidden as of QA UI audit fix). */
+/* Mobile: reserve space for the fixed BottomNav (~60px + safe-area).
+   Desktop (md+): BottomNav is md:hidden, but TopNav is md:flex at top (56px),
+   so pages need top padding instead of bottom. */
 .pb-safe { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
-@media (min-width: 768px) { .pb-safe { padding-bottom: 0; } }
+@media (min-width: 768px) {
+  .pb-safe { padding-bottom: 0; padding-top: 56px; }
+}
 .font-display { font-family: var(--font-display); }
 .tap-target { min-height: 44px; min-width: 44px; }
 
