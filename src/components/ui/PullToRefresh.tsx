@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect, type ReactNode } from "react";
 import { motion, useMotionValue, useTransform, animate, type MotionValue } from "motion/react";
+import { app } from "@/lib/design-tokens";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -33,7 +34,7 @@ function MoonIndicator({ progress }: { progress: number }) {
       <path
         d="M16 4C9.4 4 4 9.4 4 16s5.4 12 12 12c4.9 0 9.1-2.9 11-7.1-1.3.5-2.6.7-4 .7C16.4 25.6 11 20.2 11 13.6c0-3.5 1.5-6.7 3.9-8.9C15.3 4.3 15.6 4 16 4z"
         fill="none"
-        stroke="#8B5CF6"
+        stroke={app.violet}
         strokeWidth="1.5"
       />
       {/* Fill moon with gradient */}
@@ -44,8 +45,8 @@ function MoonIndicator({ progress }: { progress: number }) {
       />
       <defs>
         <linearGradient id="moonGradient" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#8B5CF6" />
-          <stop offset="100%" stopColor="#00FF88" />
+          <stop offset="0%" stopColor={app.violet} />
+          <stop offset="100%" stopColor={app.vert} />
         </linearGradient>
       </defs>
     </svg>

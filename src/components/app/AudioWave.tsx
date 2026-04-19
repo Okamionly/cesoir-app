@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
+import { app } from "@/lib/design-tokens";
 
 interface AudioWaveProps {
   /** Size of the central avatar area in px */
@@ -22,7 +23,7 @@ interface AudioWaveProps {
  */
 export default function AudioWave({
   size = 72,
-  color = "#8B5CF6",
+  color = app.violet,
   active = false,
   avatar,
   name = "",

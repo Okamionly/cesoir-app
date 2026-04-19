@@ -3,6 +3,7 @@
 import { motion } from "motion/react";
 import { useCallback } from "react";
 import { Confetti } from "./Confetti";
+import { app } from "@/lib/design-tokens";
 
 /* ── PulsingHeart ── */
 export function PulsingHeart({ active = false, size = 24 }: { active?: boolean; size?: number }) {
@@ -15,13 +16,13 @@ export function PulsingHeart({ active = false, size = 24 }: { active?: boolean; 
         width={size}
         height={size}
         viewBox="0 0 24 24"
-        fill={active ? "#8B5CF6" : "none"}
+        fill={active ? app.violet : "none"}
         aria-hidden="true"
         focusable="false"
       >
         <path
           d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-          stroke={active ? "#8B5CF6" : "currentColor"}
+          stroke={active ? app.violet : "currentColor"}
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -43,7 +44,7 @@ export function FlyingHeart({ trigger }: { trigger: boolean }) {
       transition={{ duration: 1.2, ease: "easeOut" }}
       aria-hidden="true"
     >
-      <svg width={28} height={28} viewBox="0 0 24 24" fill="#8B5CF6">
+      <svg width={28} height={28} viewBox="0 0 24 24" fill={app.violet}>
         <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
       </svg>
     </motion.div>
@@ -62,8 +63,8 @@ export function SpinStar({ trigger, size = 28 }: { trigger: boolean; size?: numb
         width={size}
         height={size}
         viewBox="0 0 24 24"
-        fill={trigger ? "#8B5CF6" : "none"}
-        stroke={trigger ? "#8B5CF6" : "currentColor"}
+        fill={trigger ? app.violet : "none"}
+        stroke={trigger ? app.violet : "currentColor"}
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"

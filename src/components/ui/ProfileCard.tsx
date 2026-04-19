@@ -25,7 +25,7 @@ export default function ProfileCard({ profile, onClick }: { profile: Profile; on
         <div>
           <div className="font-bold text-base">
             {profile.name}, {profile.age}
-            <span className="inline-block w-2 h-2 rounded-full bg-safe ml-1.5 shadow-[0_0_6px_#22c55e]" />
+            <span className="inline-block w-2 h-2 rounded-full bg-safe ml-1.5 shadow-[0_0_6px_var(--color-safe)]" />
           </div>
         </div>
       </div>
@@ -61,7 +61,7 @@ export default function ProfileCard({ profile, onClick }: { profile: Profile; on
       {profile.speaks && (
         <div className="flex flex-wrap gap-1 mb-2">
           {profile.speaks.map((l) => (
-            <span key={l} className="text-[10px] bg-[#06b6d4]/10 border border-[#06b6d4]/20 px-2 py-0.5 rounded-full text-[#06b6d4] font-semibold">{l}</span>
+            <span key={l} className="text-[10px] bg-accent/10 border border-accent/20 px-2 py-0.5 rounded-full text-accent font-semibold">{l}</span>
           ))}
           {profile.learns && (
             <span className="text-[10px] bg-accent/10 border border-accent/20 px-2 py-0.5 rounded-full text-accent font-semibold">→ {profile.learns} ({profile.level})</span>
@@ -82,7 +82,7 @@ export default function ProfileCard({ profile, onClick }: { profile: Profile; on
       )}
       {profile.from && (
         <div className="mb-2 flex items-center gap-1.5 flex-wrap">
-          <span className="text-xs bg-[#06b6d4]/10 border border-[#06b6d4]/20 px-2.5 py-0.5 rounded-full text-[#06b6d4]">
+          <span className="text-xs bg-accent/10 border border-accent/20 px-2.5 py-0.5 rounded-full text-accent">
             {profile.badge === "Guide local" ? "🏅" : "✈️"} {profile.badge}
           </span>
           <span className="text-xs text-text-muted">{profile.from}</span>

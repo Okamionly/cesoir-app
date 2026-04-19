@@ -52,7 +52,7 @@ export default function OfflineBanner() {
           exit={{ y: -60, opacity: 0, transition: springs.snap }}
           transition={springs.heavy}
           className="fixed top-0 right-0 left-0 z-50 flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium"
-          style={{ backgroundColor: "#fbbf24", color: "#111111" }}
+          style={{ backgroundColor: "var(--color-warn)", color: "var(--color-text)" }}
           role="alert"
           aria-live="polite"
         >
@@ -91,7 +91,7 @@ export default function OfflineBanner() {
 
           <button
             onClick={() => window.location.reload()}
-            className="ml-3 px-3 py-1 rounded-full text-xs font-semibold bg-[#111111] text-[#fbbf24] hover:opacity-80 transition-opacity"
+            className="ml-3 px-3 py-1 rounded-full text-xs font-semibold bg-text text-warn hover:opacity-80 transition-opacity"
           >
             Reessayer
           </button>

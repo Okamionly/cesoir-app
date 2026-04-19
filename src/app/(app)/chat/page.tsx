@@ -8,11 +8,12 @@ import { useConversations } from "@/lib/useConversations";
 import type { ConversationPreview } from "@/lib/useConversations";
 import { MODES } from "@/lib/modes";
 import type { ModeKey } from "@/lib/modes";
-import { springs, ambient } from "@/lib/motion-design";
+import { springs } from "@/lib/motion-design";
 import EmptyState from "@/components/ui/EmptyState";
 import SparkTimer from "@/components/chat/SparkTimer";
 import ExpiryTimer from "@/components/chat/ExpiryTimer";
 import { FlashNoteReceived } from "@/components/chat/FlashNote";
+import PageHeader from "@/components/ui/PageHeader";
 
 // Mock matched-at times for demo (each convo matched at different times)
 const MOCK_MATCHED_AT: Record<string, string> = {
@@ -398,42 +399,26 @@ export default function ChatPage() {
         </div>
       )}
 
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-bg/95 backdrop-blur-md border-b border-border px-4 pt-2 pb-3">
-        <motion.div
-          className="flex items-center justify-between"
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <div className="flex items-center gap-2">
+      <PageHeader
+        title="Messages"
+        icon={<span className="text-lg text-accent">☾</span>}
+        iconAnimation="rotate"
+        actions={
+          displayUnread > 0 ? (
             <motion.span
-              className="text-lg text-accent"
-              aria-hidden="true"
-              animate={{ rotate: [0, 6, 0, -6, 0] }}
-              transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+              className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-accent/15"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={springs.elastic}
             >
-              ☾
+              <span className="w-2 h-2 rounded-full bg-accent animate-pulse" aria-hidden="true" />
+              <span className="text-[11px] text-accent font-semibold">
+                {displayUnread} nouveau{displayUnread > 1 ? "x" : ""}
+              </span>
             </motion.span>
-            <span className="text-base font-bold">Messages</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            {displayUnread > 0 && (
-              <motion.span
-                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-accent/15"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={springs.elastic}
-              >
-                <span className="w-2 h-2 rounded-full bg-accent animate-pulse" aria-hidden="true" />
-                <span className="text-[11px] text-accent font-semibold">
-                  {displayUnread} nouveau{displayUnread > 1 ? "x" : ""}
-                </span>
-              </motion.span>
-            )}
-          </div>
-        </motion.div>
-      </header>
+          ) : null
+        }
+      />
 
       {/* FlashNotes recus */}
       {MOCK_FLASH_NOTES.length > 0 && (

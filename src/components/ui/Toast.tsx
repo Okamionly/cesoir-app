@@ -45,24 +45,24 @@ export function useToast(): ToastContextValue {
 
 const TYPE_STYLES: Record<ToastType, { bg: string; border: string; bar: string }> = {
   success: {
-    bg: "bg-[#22c55e]/10",
-    border: "border-[#22c55e]/30",
-    bar: "bg-[#22c55e]",
+    bg: "bg-safe/10",
+    border: "border-safe/30",
+    bar: "bg-safe",
   },
   error: {
-    bg: "bg-[#ef4444]/10",
-    border: "border-[#ef4444]/30",
-    bar: "bg-[#ef4444]",
+    bg: "bg-danger/10",
+    border: "border-danger/30",
+    bar: "bg-danger",
   },
   info: {
-    bg: "bg-[#8B5CF6]/10",
-    border: "border-[#8B5CF6]/30",
-    bar: "bg-[#8B5CF6]",
+    bg: "bg-accent/10",
+    border: "border-accent/30",
+    bar: "bg-accent",
   },
   match: {
-    bg: "bg-gradient-to-r from-[#8B5CF6]/10 to-[#00FF88]/10",
-    border: "border-[#8B5CF6]/30",
-    bar: "bg-gradient-to-r from-[#8B5CF6] to-[#00FF88]",
+    bg: "bg-gradient-to-r from-accent/10 to-accent-2/10",
+    border: "border-accent/30",
+    bar: "bg-gradient-to-r from-accent to-accent-2",
   },
 };
 

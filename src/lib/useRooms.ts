@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import { supabase } from "./supabase";
 import { useAuth } from "@/context/AuthContext";
-import type { RealtimeChannel } from "@supabase/supabase-js";
+import { useAsyncResource } from "@/lib/hooks/useAsyncResource";
+import { useRealtimeChannel } from "@/lib/hooks/useSupabaseQuery";
 
 // ---------- Types ----------
 
@@ -69,63 +70,51 @@ interface UseRoomsReturn {
 
 export function useRooms(): UseRoomsReturn {
   const { user } = useAuth();
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
-  const fetchRooms = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const { data, loading, error, refetch } = useAsyncResource<Room[]>(
+    async (signal) => {
+      const { data: rows, error: err } = await supabase
+        .from("rooms")
+        .select("*")
+        .eq("status", "live")
+        .order("started_at", { ascending: false })
+        .abortSignal(signal);
 
-    const { data: rows, error: err } = await supabase
-      .from("rooms")
-      .select("*")
-      .eq("status", "live")
-      .order("started_at", { ascending: false });
+      if (err) {
+        console.error("[useRooms] fetch failed:", err.message);
+        throw new Error(err.message);
+      }
 
-    if (err) {
-      console.error("[useRooms] fetch failed:", err.message);
-      setError(err.message);
-      setRooms([]);
-      setLoading(false);
-      return;
-    }
+      const roomRows = (rows ?? []) as RoomRow[];
+      const hostIds = Array.from(new Set(roomRows.map((r) => r.host_id)));
 
-    const roomRows = (rows ?? []) as RoomRow[];
-    const hostIds = Array.from(new Set(roomRows.map((r) => r.host_id)));
+      let hostMap = new Map<string, ProfileRow>();
+      if (hostIds.length > 0) {
+        const { data: hosts } = await supabase
+          .from("profiles")
+          .select("id, name, avatar_url")
+          .in("id", hostIds)
+          .abortSignal(signal);
+        hostMap = new Map(((hosts ?? []) as ProfileRow[]).map((p) => [p.id, p]));
+      }
 
-    let hostMap = new Map<string, ProfileRow>();
-    if (hostIds.length > 0) {
-      const { data: hosts } = await supabase
-        .from("profiles")
-        .select("id, name, avatar_url")
-        .in("id", hostIds);
-      hostMap = new Map(((hosts ?? []) as ProfileRow[]).map((p) => [p.id, p]));
-    }
+      return roomRows.map((r) => toRoom(r, hostMap.get(r.host_id)));
+    },
+    [],
+  );
 
-    setRooms(roomRows.map((r) => toRoom(r, hostMap.get(r.host_id))));
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    void fetchRooms();
-
-    // Realtime: listen for new rooms
-    const channel: RealtimeChannel = supabase
-      .channel("rooms-live")
-      .on(
+  // Realtime: listen for any rooms-table change and refetch
+  useRealtimeChannel(
+    (client) =>
+      client.channel("rooms-live").on(
         "postgres_changes",
         { event: "*", schema: "public", table: "rooms" },
         () => {
-          void fetchRooms();
+          void refetch();
         },
-      )
-      .subscribe();
-
-    return () => {
-      void channel.unsubscribe();
-    };
-  }, [fetchRooms]);
+      ),
+    [refetch],
+  );
 
   const createRoom = useCallback(
     async (title: string, mode?: string, maxSpeakers = 5): Promise<string | null> => {
@@ -147,13 +136,21 @@ export function useRooms(): UseRoomsReturn {
         console.error("[useRooms] createRoom failed:", err.message);
         return null;
       }
-      void fetchRooms();
+      void refetch();
       return data?.id ?? null;
     },
-    [user, fetchRooms],
+    [user, refetch],
   );
 
-  return { rooms, loading, error, refresh: fetchRooms, createRoom };
+  return {
+    rooms: data ?? [],
+    loading,
+    error: error?.message ?? null,
+    refresh: async () => {
+      await refetch();
+    },
+    createRoom,
+  };
 }
 
 // ---------- Hook (single room) ----------
@@ -167,62 +164,52 @@ interface UseRoomReturn {
 }
 
 export function useRoom(roomId: string | undefined): UseRoomReturn {
-  const [room, setRoom] = useState<Room | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data, loading, error, refetch } = useAsyncResource<Room | null>(
+    async (signal) => {
+      if (!roomId) return null;
 
-  const fetchOne = useCallback(async () => {
-    if (!roomId) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setError(null);
+      const { data: row, error: err } = await supabase
+        .from("rooms")
+        .select("*")
+        .eq("id", roomId)
+        .abortSignal(signal)
+        .maybeSingle();
 
-    const { data: row, error: err } = await supabase
-      .from("rooms")
-      .select("*")
-      .eq("id", roomId)
-      .maybeSingle();
+      if (err || !row) {
+        throw new Error(err?.message ?? "Salon introuvable");
+      }
 
-    if (err || !row) {
-      setError(err?.message ?? "Salon introuvable");
-      setRoom(null);
-      setLoading(false);
-      return;
-    }
+      const roomRow = row as RoomRow;
+      const { data: host } = await supabase
+        .from("profiles")
+        .select("id, name, avatar_url")
+        .eq("id", roomRow.host_id)
+        .abortSignal(signal)
+        .maybeSingle();
 
-    const roomRow = row as RoomRow;
-    const { data: host } = await supabase
-      .from("profiles")
-      .select("id, name, avatar_url")
-      .eq("id", roomRow.host_id)
-      .maybeSingle();
+      return toRoom(roomRow, host as ProfileRow | undefined);
+    },
+    [roomId],
+  );
 
-    setRoom(toRoom(roomRow, host as ProfileRow | undefined));
-    setLoading(false);
-  }, [roomId]);
-
-  useEffect(() => {
-    void fetchOne();
-
-    if (!roomId) return;
-
-    const channel: RealtimeChannel = supabase
-      .channel(`room-${roomId}`)
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "rooms", filter: `id=eq.${roomId}` },
-        () => {
-          void fetchOne();
-        },
-      )
-      .subscribe();
-
-    return () => {
-      void channel.unsubscribe();
-    };
-  }, [roomId, fetchOne]);
+  useRealtimeChannel(
+    (client) =>
+      roomId
+        ? client.channel(`room-${roomId}`).on(
+            "postgres_changes",
+            {
+              event: "UPDATE",
+              schema: "public",
+              table: "rooms",
+              filter: `id=eq.${roomId}`,
+            },
+            () => {
+              void refetch();
+            },
+          )
+        : null,
+    [roomId, refetch],
+  );
 
   const endRoom = useCallback(async () => {
     if (!roomId) return;
@@ -230,8 +217,16 @@ export function useRoom(roomId: string | undefined): UseRoomReturn {
       .from("rooms")
       .update({ status: "ended", ended_at: new Date().toISOString() })
       .eq("id", roomId);
-    void fetchOne();
-  }, [roomId, fetchOne]);
+    void refetch();
+  }, [roomId, refetch]);
 
-  return { room, loading, error, refresh: fetchOne, endRoom };
+  return {
+    room: data ?? null,
+    loading,
+    error: error?.message ?? null,
+    refresh: async () => {
+      await refetch();
+    },
+    endRoom,
+  };
 }

@@ -9,6 +9,7 @@ import { useSubscription } from "@/lib/useSubscription";
 import { usePurchases } from "@/lib/usePurchases";
 import { SHOP_PRODUCTS, formatPrice, type ShopProduct } from "@/lib/stripe/plans";
 import Link from "next/link";
+import PageHeader from "@/components/ui/PageHeader";
 
 // ─────────────────────────────────────────
 // Variants
@@ -75,22 +76,15 @@ export default function ShopPage() {
 
   return (
     <div className="min-h-screen bg-bg pb-28">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-bg/95 backdrop-blur-md border-b border-border px-5 pt-3 pb-3">
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-lg" aria-hidden="true">🛍️</span>
-              <h1 className="text-base font-display font-bold text-text">Boutique</h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-1 rounded-full bg-pink-500/10 border border-pink-500/30 text-[11px] font-semibold text-pink-400">
-                🌹 {roses} Roses
-              </span>
-            </div>
-          </div>
-        </motion.div>
-      </header>
+      <PageHeader
+        title="Boutique"
+        icon={<span className="text-lg" aria-hidden="true">🛍️</span>}
+        actions={
+          <span className="px-2.5 py-1 rounded-full bg-pink-500/10 border border-pink-500/30 text-[11px] font-semibold text-pink-400">
+            🌹 {roses} Roses
+          </span>
+        }
+      />
 
       <motion.div
         className="px-5 pt-6 space-y-8"

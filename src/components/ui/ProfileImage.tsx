@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { app } from "@/lib/design-tokens";
 
 interface ProfileImageProps {
   src: string | null | undefined;
@@ -12,7 +13,7 @@ interface ProfileImageProps {
   fallbackColor?: string;
 }
 
-const FALLBACK_BG = "#8B5CF6";
+const FALLBACK_BG = app.violet;
 
 /**
  * Wrapper around next/image optimized for profile photos.

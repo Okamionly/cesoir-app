@@ -65,7 +65,7 @@ export function FlashNoteButton({
         onClick={() => canSend && setIsOpen(true)}
         className={`flex items-center gap-2 px-4 py-2 rounded-full text-[13px] font-semibold transition-colors ${
           canSend
-            ? "bg-[#8B5CF6]/15 border border-[#8B5CF6]/30 text-[#8B5CF6] hover:bg-[#8B5CF6]/25"
+            ? "bg-accent/15 border border-accent/30 text-accent hover:bg-accent/25"
             : "bg-white/5 border border-white/10 text-white/30 cursor-not-allowed"
         } ${className}`}
         whileTap={canSend ? { scale: 0.95 } : undefined}
@@ -107,7 +107,7 @@ export function FlashNoteButton({
               <div className="px-5 pb-4">
                 {/* Header */}
                 <div className="flex items-center gap-2 mb-1">
-                  <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+                  <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
                     <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
                   </svg>
                   <h3 className="text-[16px] font-bold text-white">FlashNote</h3>
@@ -123,12 +123,12 @@ export function FlashNoteButton({
                     onChange={(e) => setMessage(e.target.value.slice(0, MAX_CHARS))}
                     placeholder="Ton message..."
                     rows={3}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[14px] text-white placeholder:text-white/30 focus:outline-none focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/15 resize-none"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-[14px] text-white placeholder:text-white/30 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/15 resize-none"
                     autoFocus
                   />
                   <span
                     className={`absolute bottom-2 right-3 text-[10px] font-semibold tabular-nums ${
-                      charsLeft < 20 ? "text-[#EF4444]" : "text-white/20"
+                      charsLeft < 20 ? "text-danger" : "text-white/20"
                     }`}
                   >
                     {charsLeft}
@@ -139,7 +139,7 @@ export function FlashNoteButton({
                 <motion.button
                   onClick={handleSend}
                   disabled={!isValid}
-                  className="w-full mt-3 py-3 rounded-2xl bg-[#8B5CF6] text-white font-bold text-[15px] disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="w-full mt-3 py-3 rounded-2xl bg-accent text-white font-bold text-[15px] disabled:opacity-30 disabled:cursor-not-allowed"
                   whileTap={{ scale: 0.98 }}
                   transition={springs.micro}
                 >
@@ -177,13 +177,13 @@ export function FlashNoteReceived({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={springs.elastic}
     >
-      <div className="bg-[#8B5CF6]/10 border border-[#8B5CF6]/20 rounded-2xl p-4">
+      <div className="bg-accent/10 border border-accent/20 rounded-2xl p-4">
         {/* Header */}
         <div className="flex items-center gap-2 mb-2">
-          <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+          <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
             <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
           </svg>
-          <span className="text-[12px] text-[#8B5CF6] font-bold">
+          <span className="text-[12px] text-accent font-bold">
             FlashNote de {senderName}
           </span>
         </div>
@@ -199,7 +199,7 @@ export function FlashNoteReceived({
           {onReply && (
             <motion.button
               onClick={onReply}
-              className="text-[12px] text-[#8B5CF6] font-bold"
+              className="text-[12px] text-accent font-bold"
               whileTap={{ scale: 0.95 }}
               transition={springs.micro}
             >

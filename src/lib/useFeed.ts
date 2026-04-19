@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "./supabase";
+import { useAsyncResource } from "@/lib/hooks/useAsyncResource";
+import { useRealtimeChannel } from "@/lib/hooks/useSupabaseQuery";
 import type { DbFeedActivity, DbProfile, FeedActivityType } from "./supabase-types";
-import type { RealtimeChannel } from "@supabase/supabase-js";
 
 // ---------- Types ----------
 
@@ -56,61 +57,83 @@ function mapRow(
   };
 }
 
+interface FeedPayload {
+  activities: FeedActivity[];
+  nextOffset: number;
+  hasMore: boolean;
+}
+
 // ---------- Hook ----------
 
 export function useFeed(): UseFeedReturn {
-  const [activities, setActivities] = useState<FeedActivity[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Augmented/mutated state (extra items from pagination or realtime inserts)
+  const [extra, setExtra] = useState<FeedActivity[]>([]);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState(true);
-  const channelRef = useRef<RealtimeChannel | null>(null);
+  const [hasMoreOverride, setHasMoreOverride] = useState<boolean | null>(null);
   const offsetRef = useRef(0);
 
-  // ---- Fetch first page ----
-  const fetchFeed = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    offsetRef.current = 0;
+  // Initial page fetch (unified shape + AbortSignal)
+  const { data, loading, error, refetch } = useAsyncResource<FeedPayload>(
+    async (signal) => {
+      const { data: rows, error: fetchErr } = await supabase
+        .from("feed_activities")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .range(0, PAGE_SIZE - 1)
+        .abortSignal(signal);
 
-    const { data: rows, error: fetchErr } = await supabase
-      .from("feed_activities")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .range(0, PAGE_SIZE - 1);
+      if (fetchErr) throw new Error(fetchErr.message);
 
-    if (fetchErr) {
-      setError(fetchErr.message);
-      setLoading(false);
-      return;
+      if (!rows || rows.length === 0) {
+        return { activities: [], nextOffset: 0, hasMore: false };
+      }
+
+      const userIds = [...new Set(rows.map((r: DbFeedActivity) => r.user_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, name, avatar_url, is_online")
+        .in("id", userIds)
+        .abortSignal(signal);
+
+      const profileMap = new Map(
+        (profiles ?? []).map(
+          (p: Pick<DbProfile, "id" | "name" | "avatar_url" | "is_online">) => [p.id, p],
+        ),
+      );
+
+      const mapped = rows.map((r: DbFeedActivity) => mapRow(r, profileMap.get(r.user_id)));
+      return {
+        activities: mapped,
+        nextOffset: rows.length,
+        hasMore: rows.length >= PAGE_SIZE,
+      };
+    },
+    [],
+  );
+
+  // Sync offset + reset extras when fresh base data arrives
+  useEffect(() => {
+    if (data) {
+      offsetRef.current = data.nextOffset;
+      setExtra([]);
+      setHasMoreOverride(null);
     }
+  }, [data]);
 
-    if (!rows || rows.length === 0) {
-      setActivities([]);
-      setHasMore(false);
-      setLoading(false);
-      return;
-    }
+  const baseActivities = data?.activities ?? [];
+  // Prepend realtime extras at top (they have newest timestamps), dedupe by id
+  const merged = [
+    ...extra.filter((a) => a.isNew || !baseActivities.some((b) => b.id === a.id)),
+    ...baseActivities,
+  ];
+  const seen = new Set<string>();
+  const finalActivities = merged.filter((a) => {
+    if (seen.has(a.id)) return false;
+    seen.add(a.id);
+    return true;
+  });
 
-    // Collect unique user IDs and fetch profiles
-    const userIds = [...new Set(rows.map((r: DbFeedActivity) => r.user_id))];
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("id, name, avatar_url, is_online")
-      .in("id", userIds);
-
-    const profileMap = new Map(
-      (profiles ?? []).map(
-        (p: Pick<DbProfile, "id" | "name" | "avatar_url" | "is_online">) => [p.id, p],
-      ),
-    );
-
-    const mapped = rows.map((r: DbFeedActivity) => mapRow(r, profileMap.get(r.user_id)));
-    setActivities(mapped);
-    setHasMore(rows.length >= PAGE_SIZE);
-    offsetRef.current = rows.length;
-    setLoading(false);
-  }, []);
+  const hasMore = hasMoreOverride ?? data?.hasMore ?? true;
 
   // ---- Load more (pagination) ----
   const loadMore = useCallback(async () => {
@@ -132,7 +155,7 @@ export function useFeed(): UseFeedReturn {
     }
 
     if (rows.length === 0) {
-      setHasMore(false);
+      setHasMoreOverride(false);
       setLoadingMore(false);
       return;
     }
@@ -151,28 +174,22 @@ export function useFeed(): UseFeedReturn {
 
     const mapped = rows.map((r: DbFeedActivity) => mapRow(r, profileMap.get(r.user_id)));
 
-    setActivities((prev) => {
+    setExtra((prev) => {
       const existingIds = new Set(prev.map((a) => a.id));
-      const unique = mapped.filter((a) => !existingIds.has(a.id));
+      const baseIds = new Set(baseActivities.map((a) => a.id));
+      const unique = mapped.filter((a) => !existingIds.has(a.id) && !baseIds.has(a.id));
       return [...prev, ...unique];
     });
 
-    setHasMore(rows.length >= PAGE_SIZE);
+    setHasMoreOverride(rows.length >= PAGE_SIZE);
     offsetRef.current = start + rows.length;
     setLoadingMore(false);
-  }, [loadingMore, hasMore]);
-
-  // ---- Initial fetch ----
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- initial data load is the intended use
-    void fetchFeed();
-  }, [fetchFeed]);
+  }, [loadingMore, hasMore, baseActivities]);
 
   // ---- Realtime subscription ----
-  useEffect(() => {
-    const channel = supabase
-      .channel("feed-realtime")
-      .on(
+  useRealtimeChannel(
+    (client) =>
+      client.channel("feed-realtime").on(
         "postgres_changes",
         {
           event: "INSERT",
@@ -182,7 +199,6 @@ export function useFeed(): UseFeedReturn {
         async (payload) => {
           const row = payload.new as DbFeedActivity;
 
-          // Fetch the profile for this new activity
           const { data: profiles } = await supabase
             .from("profiles")
             .select("id, name, avatar_url, is_online")
@@ -194,29 +210,32 @@ export function useFeed(): UseFeedReturn {
             | undefined;
           const newActivity = mapRow(row, profile, true);
 
-          setActivities((prev) => {
-            // Avoid duplicates
+          setExtra((prev) => {
             if (prev.some((a) => a.id === newActivity.id)) return prev;
             return [newActivity, ...prev];
           });
 
           // Clear the isNew flag after 3 seconds so the glow fades
           setTimeout(() => {
-            setActivities((prev) =>
+            setExtra((prev) =>
               prev.map((a) => (a.id === newActivity.id ? { ...a, isNew: false } : a)),
             );
           }, 3000);
         },
-      )
-      .subscribe();
+      ),
+    [],
+  );
 
-    channelRef.current = channel;
-
-    return () => {
-      channel.unsubscribe();
-      channelRef.current = null;
-    };
-  }, []);
-
-  return { activities, loading, error, refresh: fetchFeed, loadMore, hasMore, loadingMore };
+  return {
+    activities: finalActivities,
+    loading,
+    error: error?.message ?? null,
+    refresh: async () => {
+      offsetRef.current = 0;
+      await refetch();
+    },
+    loadMore,
+    hasMore,
+    loadingMore,
+  };
 }

@@ -2,6 +2,7 @@
 
 import { motion } from "motion/react";
 import { springs } from "@/lib/motion-design";
+import { app } from "@/lib/design-tokens";
 
 interface MockQRProps {
   userId?: string;
@@ -61,7 +62,7 @@ function generatePattern(userId: string): boolean[][] {
 export default function MockQR({
   userId = "demo-user",
   size = 120,
-  color = "#8B5CF6",
+  color = app.violet,
   showLabel = true,
 }: MockQRProps) {
   const pattern = generatePattern(userId);

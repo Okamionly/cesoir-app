@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "motion/react";
-import { feedVariants, springs, easings } from "@/lib/motion-design";
+import { motion, AnimatePresence } from "motion/react";
+import { feedVariants, springs } from "@/lib/motion-design";
 import { MODES, type ModeKey } from "@/lib/modes";
 import { useFeed, type FeedActivity } from "@/lib/useFeed";
 import StoriesBar from "@/components/app/StoriesBar";
 import EmptyState from "@/components/ui/EmptyState";
-import { RackFocus } from "@/components/motion/RackFocus";
 import { Magnetic } from "@/components/motion/Magnetic";
+import PageHeader from "@/components/ui/PageHeader";
 
 // --- Types ---
 
@@ -134,8 +134,6 @@ export default function FeedPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activities, useDemoMode, timestampTick, demoSeed]);
 
-  const reducedMotion = useReducedMotion();
-
   useEffect(() => {
     if (useDemoMode) return;
     const interval = setInterval(() => {
@@ -165,37 +163,16 @@ export default function FeedPage() {
 
   return (
     <div className="min-h-screen bg-bg pb-24">
-      {/* Header — sticky, with subtle gradient under-stripe on scroll */}
-      <header className="sticky top-0 z-30 bg-bg/80 backdrop-blur-xl border-b border-border">
-        <motion.div
-          className="flex items-center gap-3 px-4 py-3"
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: easings.out }}
-        >
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <h1 className="text-lg font-display font-bold text-text">En direct</h1>
-            <span className="relative flex h-2 w-2" aria-label="Activité en direct">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-2 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-accent-2" />
-            </span>
-          </div>
-        </motion.div>
-        {/* Hairline gradient — purple → green flicker as live signal */}
-        {!reducedMotion && (
-          <motion.div
-            aria-hidden="true"
-            className="absolute bottom-0 left-0 right-0 h-[1px] origin-left"
-            style={{
-              background:
-                "linear-gradient(90deg, transparent 0%, #8B5CF6 30%, #00FF88 70%, transparent 100%)",
-              opacity: 0.45,
-            }}
-            animate={{ scaleX: [0.4, 1, 0.4], opacity: [0.25, 0.55, 0.25] }}
-            transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
-          />
-        )}
-      </header>
+      <PageHeader
+        title="En direct"
+        hairlineVariant="vert-violet"
+        actions={
+          <span className="relative flex h-2 w-2" aria-label="Activité en direct">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-2 opacity-75" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-accent-2" />
+          </span>
+        }
+      />
 
       {/* Stories bar */}
       <StoriesBar />

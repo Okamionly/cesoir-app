@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { supabase } from "./supabase";
 import { useAuth } from "@/context/AuthContext";
+import { useAsyncResource } from "@/lib/hooks/useAsyncResource";
 
 // ---------- Types ----------
 
@@ -97,6 +98,11 @@ export interface CreatePlanPayload {
   budget?: string;
 }
 
+interface PlansPayload {
+  plans: PlanDb[];
+  myInterest: Set<string>;
+}
+
 // ---------- Hook ----------
 
 interface UsePlansOptions {
@@ -116,119 +122,104 @@ interface UsePlansReturn {
 
 export function usePlans(options: UsePlansOptions = {}): UsePlansReturn {
   const { user } = useAuth();
-  const [plans, setPlans] = useState<PlanDb[]>([]);
-  const [myInterest, setMyInterest] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
+  const userId = user?.id;
   const typeFilter = options.type;
 
-  const fetchPlans = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const { data, loading, error, refetch } = useAsyncResource<PlansPayload>(
+    async (signal) => {
+      let query = supabase.from("flash_plans").select("*").eq("status", "open");
 
-    let query = supabase
-      .from("flash_plans")
-      .select("*")
-      .eq("status", "open");
+      if (typeFilter) {
+        query = query.eq("type", typeFilter);
+      } else {
+        query = query.in("type", ["flash", "soiree", "popup"]);
+      }
 
-    if (typeFilter) {
-      query = query.eq("type", typeFilter);
-    } else {
-      // Public plans only — exclude 1:1 match plans from list views
-      query = query.in("type", ["flash", "soiree", "popup"]);
-    }
+      const { data: rows, error: err } = await query
+        .order("when_at", { ascending: true })
+        .abortSignal(signal);
 
-    const { data: rows, error: err } = await query.order("when_at", { ascending: true });
+      if (err) {
+        console.error("[usePlans] fetch failed:", err.message);
+        throw new Error(err.message);
+      }
 
-    if (err) {
-      console.error("[usePlans] fetch failed:", err.message);
-      setError(err.message);
-      setPlans([]);
-      setLoading(false);
-      return;
-    }
+      const planRows = (rows ?? []) as PlanRow[];
+      if (planRows.length === 0) {
+        return { plans: [], myInterest: new Set<string>() };
+      }
 
-    const planRows = (rows ?? []) as PlanRow[];
-    if (planRows.length === 0) {
-      setPlans([]);
-      setLoading(false);
-      return;
-    }
+      const planIds = planRows.map((p) => p.id);
+      const { data: participants } = await supabase
+        .from("flash_plan_participants")
+        .select("*")
+        .in("flash_plan_id", planIds)
+        .abortSignal(signal);
 
-    const planIds = planRows.map((p) => p.id);
-    const { data: participants } = await supabase
-      .from("flash_plan_participants")
-      .select("*")
-      .in("flash_plan_id", planIds);
+      const participantRows = (participants ?? []) as ParticipantRow[];
+      const userIds = Array.from(new Set(participantRows.map((p) => p.user_id)));
 
-    const participantRows = (participants ?? []) as ParticipantRow[];
-    const userIds = Array.from(new Set(participantRows.map((p) => p.user_id)));
+      let profileMap = new Map<string, ProfileRow>();
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, name, avatar_url")
+          .in("id", userIds)
+          .abortSignal(signal);
+        profileMap = new Map(((profiles ?? []) as ProfileRow[]).map((p) => [p.id, p]));
+      }
 
-    let profileMap = new Map<string, ProfileRow>();
-    if (userIds.length > 0) {
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, name, avatar_url")
-        .in("id", userIds);
-      profileMap = new Map(((profiles ?? []) as ProfileRow[]).map((p) => [p.id, p]));
-    }
+      const byPlan = new Map<string, PlanParticipant[]>();
+      for (const p of participantRows) {
+        const profile = profileMap.get(p.user_id);
+        const entry: PlanParticipant = {
+          id: p.id,
+          userId: p.user_id,
+          name: profile?.name ?? "?",
+          avatar: profile?.avatar_url ?? null,
+          status: p.status ?? "candidate",
+          joinedAt: p.joined_at ?? new Date().toISOString(),
+        };
+        if (!byPlan.has(p.flash_plan_id)) byPlan.set(p.flash_plan_id, []);
+        byPlan.get(p.flash_plan_id)!.push(entry);
+      }
 
-    const byPlan = new Map<string, PlanParticipant[]>();
-    for (const p of participantRows) {
-      const profile = profileMap.get(p.user_id);
-      const entry: PlanParticipant = {
-        id: p.id,
-        userId: p.user_id,
-        name: profile?.name ?? "?",
-        avatar: profile?.avatar_url ?? null,
-        status: p.status ?? "candidate",
-        joinedAt: p.joined_at ?? new Date().toISOString(),
-      };
-      if (!byPlan.has(p.flash_plan_id)) byPlan.set(p.flash_plan_id, []);
-      byPlan.get(p.flash_plan_id)!.push(entry);
-    }
+      const mapped: PlanDb[] = planRows.map((row) => ({
+        id: row.id,
+        type: (row.type ?? "flash") as PlanType,
+        creatorId: row.creator_id,
+        title: row.title,
+        what: row.what ?? "",
+        whereText: row.where_text ?? "",
+        whenAt: row.when_at,
+        deadline: row.deadline,
+        maxParticipants: row.max_participants ?? 4,
+        mode: row.mode,
+        status: row.status ?? "open",
+        createdAt: row.created_at ?? new Date().toISOString(),
+        description: row.description,
+        lat: row.lat,
+        lng: row.lng,
+        venue: row.venue,
+        tags: row.tags ?? [],
+        ambiance: row.ambiance,
+        dressCode: row.dress_code,
+        budget: row.budget,
+        participants: byPlan.get(row.id) ?? [],
+      }));
 
-    const mapped: PlanDb[] = planRows.map((row) => ({
-      id: row.id,
-      type: (row.type ?? "flash") as PlanType,
-      creatorId: row.creator_id,
-      title: row.title,
-      what: row.what ?? "",
-      whereText: row.where_text ?? "",
-      whenAt: row.when_at,
-      deadline: row.deadline,
-      maxParticipants: row.max_participants ?? 4,
-      mode: row.mode,
-      status: row.status ?? "open",
-      createdAt: row.created_at ?? new Date().toISOString(),
-      description: row.description,
-      lat: row.lat,
-      lng: row.lng,
-      venue: row.venue,
-      tags: row.tags ?? [],
-      ambiance: row.ambiance,
-      dressCode: row.dress_code,
-      budget: row.budget,
-      participants: byPlan.get(row.id) ?? [],
-    }));
+      const interest = userId
+        ? new Set(
+            participantRows
+              .filter((p) => p.user_id === userId)
+              .map((p) => p.flash_plan_id),
+          )
+        : new Set<string>();
 
-    setPlans(mapped);
-
-    if (user) {
-      setMyInterest(
-        new Set(
-          participantRows.filter((p) => p.user_id === user.id).map((p) => p.flash_plan_id),
-        ),
-      );
-    }
-
-    setLoading(false);
-  }, [user, typeFilter]);
-
-  useEffect(() => {
-    void fetchPlans();
-  }, [fetchPlans]);
+      return { plans: mapped, myInterest: interest };
+    },
+    [userId, typeFilter],
+  );
 
   const createPlan = useCallback(
     async (payload: CreatePlanPayload): Promise<string | null> => {
@@ -236,7 +227,7 @@ export function usePlans(options: UsePlansOptions = {}): UsePlansReturn {
 
       const deadline = payload.deadline ?? payload.whenAt;
 
-      const { data, error: err } = await supabase
+      const { data: inserted, error: err } = await supabase
         .from("flash_plans")
         .insert({
           creator_id: user.id,
@@ -266,31 +257,25 @@ export function usePlans(options: UsePlansOptions = {}): UsePlansReturn {
         return null;
       }
 
-      if (data?.id) {
+      if (inserted?.id) {
         await supabase.from("flash_plan_participants").insert({
-          flash_plan_id: data.id,
+          flash_plan_id: inserted.id,
           user_id: user.id,
           status: "accepted",
         });
       }
 
-      void fetchPlans();
-      return data?.id ?? null;
+      void refetch();
+      return inserted?.id ?? null;
     },
-    [user, fetchPlans],
+    [user, refetch],
   );
 
   const toggleInterest = useCallback(
     async (planId: string) => {
       if (!user) return;
-      const isInterested = myInterest.has(planId);
-
-      setMyInterest((prev) => {
-        const next = new Set(prev);
-        if (isInterested) next.delete(planId);
-        else next.add(planId);
-        return next;
-      });
+      const current = data?.myInterest ?? new Set<string>();
+      const isInterested = current.has(planId);
 
       if (isInterested) {
         await supabase
@@ -306,17 +291,19 @@ export function usePlans(options: UsePlansOptions = {}): UsePlansReturn {
         });
       }
 
-      void fetchPlans();
+      void refetch();
     },
-    [user, myInterest, fetchPlans],
+    [user, data, refetch],
   );
 
   return {
-    plans,
+    plans: data?.plans ?? [],
     loading,
-    error,
-    myInterest,
-    refresh: fetchPlans,
+    error: error?.message ?? null,
+    myInterest: data?.myInterest ?? new Set<string>(),
+    refresh: async () => {
+      await refetch();
+    },
     createPlan,
     toggleInterest,
   };
@@ -333,99 +320,95 @@ export function usePlan(planId: string | undefined): {
   toggleInterest: () => Promise<void>;
 } {
   const { user } = useAuth();
-  const [plan, setPlan] = useState<PlanDb | null>(null);
-  const [isInterested, setIsInterested] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const userId = user?.id;
 
-  const fetchOne = useCallback(async () => {
-    if (!planId) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setError(null);
+  const { data, loading, error, refetch } = useAsyncResource<{
+    plan: PlanDb | null;
+    isInterested: boolean;
+  }>(
+    async (signal) => {
+      if (!planId) return { plan: null, isInterested: false };
 
-    const { data: row, error: err } = await supabase
-      .from("flash_plans")
-      .select("*")
-      .eq("id", planId)
-      .maybeSingle();
+      const { data: row, error: err } = await supabase
+        .from("flash_plans")
+        .select("*")
+        .eq("id", planId)
+        .abortSignal(signal)
+        .maybeSingle();
 
-    if (err || !row) {
-      setPlan(null);
-      setError(err?.message ?? null);
-      setLoading(false);
-      return;
-    }
+      if (err || !row) {
+        throw new Error(err?.message ?? "Plan introuvable");
+      }
 
-    const p = row as PlanRow;
+      const p = row as PlanRow;
 
-    const { data: partRows } = await supabase
-      .from("flash_plan_participants")
-      .select("*")
-      .eq("flash_plan_id", planId);
+      const { data: partRows } = await supabase
+        .from("flash_plan_participants")
+        .select("*")
+        .eq("flash_plan_id", planId)
+        .abortSignal(signal);
 
-    const participantRows = (partRows ?? []) as ParticipantRow[];
-    const userIds = Array.from(new Set(participantRows.map((x) => x.user_id)));
+      const participantRows = (partRows ?? []) as ParticipantRow[];
+      const userIds = Array.from(new Set(participantRows.map((x) => x.user_id)));
 
-    let profileMap = new Map<string, ProfileRow>();
-    if (userIds.length > 0) {
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, name, avatar_url")
-        .in("id", userIds);
-      profileMap = new Map(((profiles ?? []) as ProfileRow[]).map((x) => [x.id, x]));
-    }
+      let profileMap = new Map<string, ProfileRow>();
+      if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, name, avatar_url")
+          .in("id", userIds)
+          .abortSignal(signal);
+        profileMap = new Map(((profiles ?? []) as ProfileRow[]).map((x) => [x.id, x]));
+      }
 
-    const participants: PlanParticipant[] = participantRows.map((pr) => {
-      const profile = profileMap.get(pr.user_id);
-      return {
-        id: pr.id,
-        userId: pr.user_id,
-        name: profile?.name ?? "?",
-        avatar: profile?.avatar_url ?? null,
-        status: pr.status ?? "candidate",
-        joinedAt: pr.joined_at ?? new Date().toISOString(),
+      const participants: PlanParticipant[] = participantRows.map((pr) => {
+        const profile = profileMap.get(pr.user_id);
+        return {
+          id: pr.id,
+          userId: pr.user_id,
+          name: profile?.name ?? "?",
+          avatar: profile?.avatar_url ?? null,
+          status: pr.status ?? "candidate",
+          joinedAt: pr.joined_at ?? new Date().toISOString(),
+        };
+      });
+
+      const plan: PlanDb = {
+        id: p.id,
+        type: (p.type ?? "flash") as PlanType,
+        creatorId: p.creator_id,
+        title: p.title,
+        what: p.what ?? "",
+        whereText: p.where_text ?? "",
+        whenAt: p.when_at,
+        deadline: p.deadline,
+        maxParticipants: p.max_participants ?? 4,
+        mode: p.mode,
+        status: p.status ?? "open",
+        createdAt: p.created_at ?? new Date().toISOString(),
+        description: p.description,
+        lat: p.lat,
+        lng: p.lng,
+        venue: p.venue,
+        tags: p.tags ?? [],
+        ambiance: p.ambiance,
+        dressCode: p.dress_code,
+        budget: p.budget,
+        participants,
       };
-    });
 
-    setPlan({
-      id: p.id,
-      type: (p.type ?? "flash") as PlanType,
-      creatorId: p.creator_id,
-      title: p.title,
-      what: p.what ?? "",
-      whereText: p.where_text ?? "",
-      whenAt: p.when_at,
-      deadline: p.deadline,
-      maxParticipants: p.max_participants ?? 4,
-      mode: p.mode,
-      status: p.status ?? "open",
-      createdAt: p.created_at ?? new Date().toISOString(),
-      description: p.description,
-      lat: p.lat,
-      lng: p.lng,
-      venue: p.venue,
-      tags: p.tags ?? [],
-      ambiance: p.ambiance,
-      dressCode: p.dress_code,
-      budget: p.budget,
-      participants,
-    });
+      const isInterested = userId
+        ? participantRows.some((x) => x.user_id === userId)
+        : false;
 
-    setIsInterested(user ? participantRows.some((x) => x.user_id === user.id) : false);
-    setLoading(false);
-  }, [planId, user]);
-
-  useEffect(() => {
-    void fetchOne();
-  }, [fetchOne]);
+      return { plan, isInterested };
+    },
+    [planId, userId],
+  );
 
   const toggleInterest = useCallback(async () => {
     if (!planId || !user) return;
-    const wasInterested = isInterested;
-    setIsInterested(!wasInterested);
+    const wasInterested = data?.isInterested ?? false;
 
     if (wasInterested) {
       await supabase
@@ -441,15 +424,27 @@ export function usePlan(planId: string | undefined): {
       });
     }
 
-    void fetchOne();
-  }, [planId, user, isInterested, fetchOne]);
+    void refetch();
+  }, [planId, user, data, refetch]);
 
-  return { plan, loading, error, isInterested, refresh: fetchOne, toggleInterest };
+  return {
+    plan: data?.plan ?? null,
+    loading,
+    error: error?.message ?? null,
+    isInterested: data?.isInterested ?? false,
+    refresh: async () => {
+      await refetch();
+    },
+    toggleInterest,
+  };
 }
 
 // ---------- Helpers ----------
 
-export const PLAN_TYPE_META: Record<PlanType, { label: string; emoji: string; description: string }> = {
+export const PLAN_TYPE_META: Record<
+  PlanType,
+  { label: string; emoji: string; description: string }
+> = {
   flash: { label: "Flash", emoji: "\u26A1", description: "Plan urgent ce soir" },
   soiree: { label: "Soiree", emoji: "\uD83C\uDF7B", description: "Soiree thematique" },
   popup: { label: "Event", emoji: "\uD83C\uDF89", description: "Pop-up event public" },

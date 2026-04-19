@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { app } from "@/lib/design-tokens";
 
-const COLORS = ["#8B5CF6", "#00FF88", "#FFFFFF"];
+const COLORS = [app.violet, app.vert, app.bg];
 const PARTICLE_COUNT = 35;
 
 interface Particle {

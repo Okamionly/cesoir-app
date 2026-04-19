@@ -1,5 +1,7 @@
 "use client";
 
+import { app } from "@/lib/design-tokens";
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -29,11 +31,13 @@ export function MeshGradient({
 }: MeshGradientProps) {
   const opacity = OPACITY_MAP[intensity];
 
+  // Mesh uses the two brand tokens plus two tonal variations of violet to
+  // give depth without bleeding into the Tailwind palette namespace.
   const blobs = [
-    { color: "#8B5CF6", size: "60%", top: "10%", left: "10%", delay: "0s", duration: "18s" },
-    { color: "#00FF88", size: "50%", top: "50%", left: "60%", delay: "-4s", duration: "20s" },
-    { color: "#3b82f6", size: "55%", top: "60%", left: "15%", delay: "-8s", duration: "16s" },
-    { color: "#a855f7", size: "45%", top: "15%", left: "55%", delay: "-12s", duration: "19s" },
+    { color: app.violet, size: "60%", top: "10%", left: "10%", delay: "0s", duration: "18s" },
+    { color: app.vert, size: "50%", top: "50%", left: "60%", delay: "-4s", duration: "20s" },
+    { color: app.violet, size: "55%", top: "60%", left: "15%", delay: "-8s", duration: "16s" },
+    { color: app.violet, size: "45%", top: "15%", left: "55%", delay: "-12s", duration: "19s" },
   ];
 
   return (

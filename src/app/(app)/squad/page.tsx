@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { springs, ambient } from "@/lib/motion-design";
-import { RackFocus } from "@/components/motion/RackFocus";
 import { useSquad } from "@/lib/useSquad";
+import PageHeader from "@/components/ui/PageHeader";
 
 // --- Types ---
 
@@ -196,31 +196,20 @@ export default function SquadPage() {
 
   return (
     <div className="min-h-screen bg-bg pb-24">
-      {/* Header — pulse hairline */}
-      <header className="relative sticky top-0 z-30 bg-bg/80 backdrop-blur-xl border-b border-border px-4 py-3">
-        <RackFocus duration={0.5}>
-          <h1
-            className="text-lg font-display font-bold bg-clip-text text-transparent flex items-center gap-2"
+      <PageHeader
+        title={
+          <span
+            className="bg-clip-text text-transparent"
             style={{ backgroundImage: "linear-gradient(135deg, #8B5CF6, #00FF88)" }}
           >
-            <motion.span
-              className="inline-block w-1.5 h-1.5 rounded-full bg-accent"
-              animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.2, 1] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            />
             Squad Mode
-          </h1>
-        </RackFocus>
-        <motion.div
-          className="absolute bottom-0 left-0 right-0 h-px"
-          style={{
-            background:
-              "linear-gradient(90deg, transparent, rgba(139,92,246,0.4), rgba(0,255,136,0.4), transparent)",
-          }}
-          animate={{ opacity: [0.3, 0.9, 0.3] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        />
-      </header>
+          </span>
+        }
+        icon={<span className="inline-block w-1.5 h-1.5 rounded-full bg-accent" />}
+        iconAnimation="pulse"
+        hairlineVariant="vert-violet"
+        rackFocus
+      />
 
       <div className="px-4 py-4 space-y-6">
         {/* Create squad card */}

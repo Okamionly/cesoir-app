@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import { supabase } from "./supabase";
 import { useAuth } from "@/context/AuthContext";
+import { useAsyncResource } from "@/lib/hooks/useAsyncResource";
 
 // ---------- Types ----------
 
@@ -64,39 +65,28 @@ interface UsePlansReturn {
 
 export function usePlans(): UsePlansReturn {
   const { user } = useAuth();
-  const [plans, setPlans] = useState<Plan[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const userId = user?.id;
 
-  const fetchPlans = useCallback(async () => {
-    if (!user) {
-      setPlans([]);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    setError(null);
+  const { data, loading, error, refetch } = useAsyncResource<Plan[]>(
+    async (signal) => {
+      if (!userId) return [];
 
-    const { data, error: err } = await supabase
-      .from("plans")
-      .select("*")
-      .or(`user_a.eq.${user.id},user_b.eq.${user.id}`)
-      .order("when_date", { ascending: true });
+      const { data, error: err } = await supabase
+        .from("plans")
+        .select("*")
+        .or(`user_a.eq.${userId},user_b.eq.${userId}`)
+        .order("when_date", { ascending: true })
+        .abortSignal(signal);
 
-    if (err) {
-      console.error("[usePlans] fetch failed:", err.message);
-      setError(err.message);
-      setLoading(false);
-      return;
-    }
+      if (err) {
+        console.error("[usePlans] fetch failed:", err.message);
+        throw new Error(err.message);
+      }
 
-    setPlans(((data ?? []) as PlanRow[]).map(toPlan));
-    setLoading(false);
-  }, [user]);
-
-  useEffect(() => {
-    void fetchPlans();
-  }, [fetchPlans]);
+      return ((data ?? []) as PlanRow[]).map(toPlan);
+    },
+    [userId],
+  );
 
   const proposePlan = useCallback(
     async (payload: CreatePlanPayload): Promise<string | null> => {
@@ -105,7 +95,7 @@ export function usePlans(): UsePlansReturn {
       const userA = user.id < payload.partnerId ? user.id : payload.partnerId;
       const userB = user.id < payload.partnerId ? payload.partnerId : user.id;
 
-      const { data, error: err } = await supabase
+      const { data: inserted, error: err } = await supabase
         .from("plans")
         .insert({
           user_a: userA,
@@ -123,10 +113,10 @@ export function usePlans(): UsePlansReturn {
         console.error("[usePlans] proposePlan failed:", err.message);
         return null;
       }
-      void fetchPlans();
-      return data?.id ?? null;
+      void refetch();
+      return inserted?.id ?? null;
     },
-    [user, fetchPlans],
+    [user, refetch],
   );
 
   const respondPlan = useCallback(
@@ -140,11 +130,20 @@ export function usePlans(): UsePlansReturn {
         console.error("[usePlans] respondPlan failed:", err.message);
         return false;
       }
-      void fetchPlans();
+      void refetch();
       return true;
     },
-    [user, fetchPlans],
+    [user, refetch],
   );
 
-  return { plans, loading, error, refresh: fetchPlans, proposePlan, respondPlan };
+  return {
+    plans: data ?? [],
+    loading,
+    error: error?.message ?? null,
+    refresh: async () => {
+      await refetch();
+    },
+    proposePlan,
+    respondPlan,
+  };
 }

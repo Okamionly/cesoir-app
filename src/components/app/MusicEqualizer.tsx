@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
+import { app } from "@/lib/design-tokens";
 
 // ─────────────────────────────────────────
 // Types
@@ -36,7 +37,7 @@ const SIZE_CONFIG = {
 export default function MusicEqualizer({
   bars = 3,
   size = "sm",
-  color = "#8B5CF6",
+  color = app.violet,
   paused = false,
 }: MusicEqualizerProps) {
   const clampedBars = Math.min(5, Math.max(3, bars));

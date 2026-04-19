@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { useAsyncResource } from "@/lib/hooks/useAsyncResource";
 import type { ReportReason } from "@/lib/supabase-types";
 
 // ------------------------------------------------------------------
@@ -127,7 +128,6 @@ export function useSafety(): UseSafetyResult {
   const [isCheckInActive, setIsCheckInActive] = useState(false);
   const [checkInTimeLeft, setCheckInTimeLeft] = useState(0);
   const [recentActions, setRecentActions] = useState<SafetyAction[]>([]);
-  const [trustedContacts, setTrustedContacts] = useState<TrustedContact[]>([]);
 
   // ---- Refs for timers ----
   const checkInIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -139,25 +139,32 @@ export function useSafety(): UseSafetyResult {
     setRecentActions(loadActions());
   }, []);
 
-  // ---- Fetch trusted contacts from Supabase ----
-  const refreshContacts = useCallback(async () => {
-    if (!userId) return;
-    try {
-      const { data, error } = await supabase
-        .from("trusted_contacts")
-        .select("*")
-        .eq("user_id", userId);
-      if (!error && data) {
-        setTrustedContacts(data as TrustedContact[]);
+  // ---- Fetch trusted contacts from Supabase (unified hook) ----
+  const {
+    data: trustedContactsData,
+    refetch: refetchContacts,
+  } = useAsyncResource<TrustedContact[]>(
+    async (signal) => {
+      if (!userId) return [];
+      try {
+        const { data, error } = await supabase
+          .from("trusted_contacts")
+          .select("*")
+          .eq("user_id", userId)
+          .abortSignal(signal);
+        if (!error && data) return data as TrustedContact[];
+        return [];
+      } catch {
+        return [];
       }
-    } catch {
-      // Fall back silently -- contacts may not exist yet
-    }
-  }, [userId]);
+    },
+    [userId],
+  );
+  const trustedContacts = trustedContactsData ?? [];
 
-  useEffect(() => {
-    refreshContacts();
-  }, [refreshContacts]);
+  const refreshContacts = useCallback(async () => {
+    await refetchContacts();
+  }, [refetchContacts]);
 
   // ---- Cleanup timers on unmount ----
   useEffect(() => {

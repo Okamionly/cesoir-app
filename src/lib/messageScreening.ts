@@ -176,10 +176,10 @@ export function isMessageSafe(message: string): boolean {
 export function getSeverityColor(severity: Severity): string {
   switch (severity) {
     case "clean":
-      return "#22c55e";
+      return "var(--color-safe)";
     case "warning":
-      return "#f59e0b";
+      return "var(--color-warn)";
     case "block":
-      return "#EF4444";
+      return "var(--color-danger)";
   }
 }

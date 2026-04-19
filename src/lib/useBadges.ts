@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { useAsyncResource } from "@/lib/hooks/useAsyncResource";
 import { ALL_BADGES, type Badge } from "@/lib/badges";
 
 // ─────────────────────────────────────────
@@ -70,6 +71,11 @@ interface UserBadgeStats {
   hadQuickMatch: boolean;
 }
 
+interface BadgesPayload {
+  earnedIds: Map<string, string>;
+  stats: UserBadgeStats;
+}
+
 // ─────────────────────────────────────────
 // Badge checking logic
 // ─────────────────────────────────────────
@@ -79,7 +85,6 @@ function checkBadgeProgress(
   stats: UserBadgeStats,
 ): { earned: boolean; progress: number | null; progressLabel: string | null } {
   switch (badgeId) {
-    // ── Social ──
     case "premier-match":
       return {
         earned: stats.matchCount >= 1,
@@ -116,8 +121,6 @@ function checkBadgeProgress(
         progress: Math.min(stats.matchCount / 100, 1),
         progressLabel: `${Math.min(stats.matchCount, 100)}/100`,
       };
-
-    // ── Explorer ──
     case "globe-trotter":
       return {
         earned: stats.modesUsed >= 14,
@@ -154,8 +157,6 @@ function checkBadgeProgress(
         progress: Math.min(stats.cultureClubCount / 5, 1),
         progressLabel: `${Math.min(stats.cultureClubCount, 5)}/5`,
       };
-
-    // ── Streak ──
     case "trois-jours":
       return {
         earned: stats.maxStreak >= 3,
@@ -192,8 +193,6 @@ function checkBadgeProgress(
         progress: Math.min(stats.totalDaysActive / 100, 1),
         progressLabel: `${Math.min(stats.totalDaysActive, 100)}/100`,
       };
-
-    // ── Safety ──
     case "verifie":
       return {
         earned: stats.isVerified,
@@ -218,19 +217,13 @@ function checkBadgeProgress(
         progress: Math.min(stats.checkInCount / 20, 1),
         progressLabel: `${Math.min(stats.checkInCount, 20)}/20`,
       };
-
-    // ── Quality ──
     case "top-rated":
       return {
         earned: stats.averageRating >= 4.5,
         progress:
-          stats.averageRating > 0
-            ? Math.min(stats.averageRating / 4.5, 1)
-            : null,
+          stats.averageRating > 0 ? Math.min(stats.averageRating / 4.5, 1) : null,
         progressLabel:
-          stats.averageRating > 0
-            ? `${stats.averageRating.toFixed(1)}/4.5`
-            : null,
+          stats.averageRating > 0 ? `${stats.averageRating.toFixed(1)}/4.5` : null,
       };
     case "gentleman-lady":
       return {
@@ -250,33 +243,14 @@ function checkBadgeProgress(
         progress: Math.min(stats.messageCount / 500, 1),
         progressLabel: `${Math.min(stats.messageCount, 500)}/500`,
       };
-
-    // ── Special ──
     case "fondateur":
-      return {
-        earned: stats.isBetaUser,
-        progress: null,
-        progressLabel: null,
-      };
+      return { earned: stats.isBetaUser, progress: null, progressLabel: null };
     case "saisonnier":
-      return {
-        earned: stats.isHolidaySeason,
-        progress: null,
-        progressLabel: null,
-      };
+      return { earned: stats.isHolidaySeason, progress: null, progressLabel: null };
     case "midnight-king":
-      return {
-        earned: stats.wasOnlineAtMidnight,
-        progress: null,
-        progressLabel: null,
-      };
+      return { earned: stats.wasOnlineAtMidnight, progress: null, progressLabel: null };
     case "lucky-match":
-      return {
-        earned: stats.hadQuickMatch,
-        progress: null,
-        progressLabel: null,
-      };
-
+      return { earned: stats.hadQuickMatch, progress: null, progressLabel: null };
     default:
       return { earned: false, progress: null, progressLabel: null };
   }
@@ -324,34 +298,29 @@ const BETA_CUTOFF = new Date("2027-01-01").getTime();
 
 export function useBadges(): UseBadgesReturn {
   const { user } = useAuth();
-  const [earnedIds, setEarnedIds] = useState<Map<string, string>>(new Map()); // badge_id -> earned_at
-  const [stats, setStats] = useState<UserBadgeStats>(DEFAULT_STATS);
-  const [loading, setLoading] = useState(true);
+  const userId = user?.id;
+  // local override for optimistic award updates
+  const [awardedOverride, setAwardedOverride] = useState<Map<string, string> | null>(null);
 
-  // ─── Fetch earned badges from DB ───
-  useEffect(() => {
-    if (!user?.id) {
-      setLoading(false);
-      return;
-    }
+  const { data, loading, refetch } = useAsyncResource<BadgesPayload>(
+    async (signal) => {
+      if (!userId) {
+        return { earnedIds: new Map(), stats: DEFAULT_STATS };
+      }
 
-    async function fetchData() {
-      // Fetch already-earned achievements
       const { data: achievements } = await supabase
         .from("achievements")
         .select("achievement_key, earned_at")
-        .eq("user_id", user!.id);
+        .eq("user_id", userId)
+        .abortSignal(signal);
 
+      const earnedMap = new Map<string, string>();
       if (achievements) {
-        const map = new Map<string, string>();
         for (const a of achievements) {
-          map.set(a.achievement_key, a.earned_at);
+          earnedMap.set(a.achievement_key, a.earned_at);
         }
-        setEarnedIds(map);
       }
 
-      // Fetch user stats for progress calculation
-      // We gather what we can from available tables
       const [
         { data: profile },
         { data: matches },
@@ -361,49 +330,50 @@ export function useBadges(): UseBadgesReturn {
         supabase
           .from("profiles")
           .select("is_verified, created_at")
-          .eq("id", user!.id)
+          .eq("id", userId)
+          .abortSignal(signal)
           .single(),
         supabase
           .from("matches")
           .select("id, created_at, mode")
-          .or(`user1_id.eq.${user!.id},user2_id.eq.${user!.id}`),
+          .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
+          .abortSignal(signal),
         supabase
           .from("messages")
           .select("id")
-          .eq("sender_id", user!.id),
+          .eq("sender_id", userId)
+          .abortSignal(signal),
         supabase
           .from("referrals")
           .select("id")
-          .eq("referrer_id", user!.id)
-          .eq("status", "completed"),
+          .eq("referrer_id", userId)
+          .eq("status", "completed")
+          .abortSignal(signal),
       ]);
 
       const now = new Date();
       const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
       const isHoliday =
         now.getMonth() === 11 && now.getDate() >= 20 && now.getDate() <= 31;
       const joinedAt = profile?.created_at ?? now.toISOString();
       const isBeta = new Date(joinedAt).getTime() < BETA_CUTOFF;
 
-      // Count matches this week
       const matchesThisWeek = (matches ?? []).filter(
         (m: { created_at: string }) => new Date(m.created_at) >= weekAgo,
       ).length;
 
-      // Count unique modes matched in
       const uniqueModes = new Set(
         (matches ?? []).map((m: { mode?: string }) => m.mode).filter(Boolean),
       );
 
-      setStats({
+      const stats: UserBadgeStats = {
         matchCount: matches?.length ?? 0,
         matchesThisWeek,
         referralCount: referrals?.length ?? 0,
-        likesReceivedToday: 0, // would need likes table
+        likesReceivedToday: 0,
         modesMatchedIn: uniqueModes.size,
-        modesUsed: uniqueModes.size, // best approximation
-        nightSessionCount: 0, // tracked via activity_logs
+        modesUsed: uniqueModes.size,
+        nightSessionCount: 0,
         earlyActivations: 0,
         arrondissements: 0,
         foodieQuestCount: (matches ?? []).filter(
@@ -428,15 +398,16 @@ export function useBadges(): UseBadgesReturn {
         isHolidaySeason: isHoliday,
         wasOnlineAtMidnight: false,
         hadQuickMatch: false,
-      });
+      };
 
-      setLoading(false);
-    }
+      return { earnedIds: earnedMap, stats };
+    },
+    [userId],
+  );
 
-    fetchData();
-  }, [user?.id]);
+  const earnedIds = awardedOverride ?? data?.earnedIds ?? new Map<string, string>();
+  const stats = data?.stats ?? DEFAULT_STATS;
 
-  // ─── Compute badge progress for all 30 ───
   const all = useMemo<BadgeProgress[]>(() => {
     return ALL_BADGES.map((badge) => {
       const alreadyEarned = earnedIds.has(badge.id);
@@ -463,10 +434,7 @@ export function useBadges(): UseBadgesReturn {
     });
   }, [earnedIds, stats]);
 
-  const earned = useMemo(
-    () => all.filter((bp) => bp.earned),
-    [all],
-  );
+  const earned = useMemo(() => all.filter((bp) => bp.earned), [all]);
 
   const inProgress = useMemo(
     () =>
@@ -482,33 +450,28 @@ export function useBadges(): UseBadgesReturn {
       (bp) => !bp.earned && bp.progress !== null && bp.progress > 0,
     );
     if (candidates.length === 0) return null;
-    return candidates.sort(
-      (a, b) => (b.progress ?? 0) - (a.progress ?? 0),
-    )[0];
+    return candidates.sort((a, b) => (b.progress ?? 0) - (a.progress ?? 0))[0];
   }, [all]);
 
   const totalEarned = earned.length;
 
-  // ─── Check and award newly earned badges ───
   const checkAndAward = useCallback(async (): Promise<string[]> => {
-    if (!user?.id) return [];
+    if (!userId) return [];
 
     const newlyEarned: string[] = [];
 
     for (const bp of all) {
       if (bp.earned && !earnedIds.has(bp.badge.id)) {
-        // Insert into achievements table
         const { error } = await supabase.from("achievements").insert({
-          user_id: user.id,
+          user_id: userId,
           achievement_key: bp.badge.id,
         });
 
         if (!error) {
           newlyEarned.push(bp.badge.id);
 
-          // Award XP via karma_transactions
           await supabase.from("karma_transactions").insert({
-            user_id: user.id,
+            user_id: userId,
             amount: bp.badge.xp,
             reason: `Badge: ${bp.badge.name}`,
           });
@@ -517,23 +480,23 @@ export function useBadges(): UseBadgesReturn {
     }
 
     if (newlyEarned.length > 0) {
-      // Refresh earned ids
       const { data: achievements } = await supabase
         .from("achievements")
         .select("achievement_key, earned_at")
-        .eq("user_id", user.id);
+        .eq("user_id", userId);
 
       if (achievements) {
         const map = new Map<string, string>();
         for (const a of achievements) {
           map.set(a.achievement_key, a.earned_at);
         }
-        setEarnedIds(map);
+        setAwardedOverride(map);
       }
+      void refetch();
     }
 
     return newlyEarned;
-  }, [user?.id, all, earnedIds]);
+  }, [userId, all, earnedIds, refetch]);
 
   return {
     all,

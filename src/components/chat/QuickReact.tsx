@@ -100,7 +100,7 @@ function QuickReactBubble({ reaction, isOwn }: QuickReactBubbleProps) {
       <div
         className={`w-7 h-7 rounded-full flex items-center justify-center text-sm border shadow-sm ${
           reaction.byMe
-            ? "bg-[#8B5CF6]/15 border-[#8B5CF6]/30"
+            ? "bg-accent/15 border-accent/30"
             : "bg-black border-white/15"
         }`}
       >

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import { usePlan, PLAN_TYPE_META } from "@/lib/usePlans";
+import PageHeader from "@/components/ui/PageHeader";
 
 function formatDateTime(iso: string): string {
   const d = new Date(iso);
@@ -48,20 +49,7 @@ export default function PlanDetailPage() {
 
   return (
     <div className="min-h-screen bg-bg pb-28">
-      <header className="sticky top-0 z-40 bg-bg/95 backdrop-blur-md border-b border-border px-5 pt-3 pb-3">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => router.back()}
-            className="w-9 h-9 flex items-center justify-center rounded-full border border-border text-text-muted hover:text-accent transition-colors"
-            aria-label="Retour"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M19 12H5M12 19l-7-7 7-7" />
-            </svg>
-          </button>
-          <span className="text-base font-bold text-text truncate">{plan.title}</span>
-        </div>
-      </header>
+      <PageHeader title={plan.title} onBack={() => router.back()} />
 
       <main className="px-5 pt-5 space-y-5 max-w-lg mx-auto">
         {/* Hero */}

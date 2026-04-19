@@ -207,7 +207,7 @@ export function PlanCard({ plan, isOwn, time, onAccept, onModify }: PlanCardProp
         className={`max-w-[80%] rounded-2xl overflow-hidden border-2 ${
           isAccepted ? "border-safe" : "border-transparent"
         }`}
-        style={!isAccepted ? { border: "2px solid transparent", backgroundImage: "linear-gradient(white, white), linear-gradient(135deg, #8B5CF6, #00FF88)", backgroundOrigin: "border-box", backgroundClip: "padding-box, border-box" } : {}}
+        style={!isAccepted ? { border: "2px solid transparent", backgroundImage: "linear-gradient(white, white), linear-gradient(135deg, var(--color-accent), var(--color-accent-2))", backgroundOrigin: "border-box", backgroundClip: "padding-box, border-box" } : {}}
       >
         <div className="bg-bg p-3.5">
           {isAccepted && (

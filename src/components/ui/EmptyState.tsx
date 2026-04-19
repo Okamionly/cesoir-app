@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { motion } from "motion/react";
 import { springs, ambient } from "@/lib/motion-design";
+import { app } from "@/lib/design-tokens";
 
 interface EmptyStateProps {
   emoji: string;
@@ -66,7 +67,7 @@ export default function EmptyState({
             href={actionHref}
             className="inline-flex items-center px-5 py-2.5 rounded-full text-[13px] font-semibold text-white transition-all active:scale-95"
             style={{
-              background: "linear-gradient(135deg, #8B5CF6, #00FF88)",
+              background: app.gradient,
               boxShadow: "0 0 24px rgba(139,92,246,0.2)",
             }}
           >

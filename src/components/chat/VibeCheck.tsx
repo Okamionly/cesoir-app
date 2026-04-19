@@ -65,7 +65,7 @@ export default function VibeCheck({ peerName, peerInitial, userInitial, onClose 
           {/* Background gradient simulating camera feed */}
           <div
             className="absolute inset-0"
-            style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)" }}
+            style={{ background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-2))" }}
           />
           <div className="absolute inset-0 bg-black/40" />
 
@@ -97,8 +97,8 @@ export default function VibeCheck({ peerName, peerInitial, userInitial, onClose 
                     />
                     <defs>
                       <linearGradient id="vibeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#8B5CF6" />
-                        <stop offset="100%" stopColor="#00FF88" />
+                        <stop offset="0%" stopColor="var(--color-accent)" />
+                        <stop offset="100%" stopColor="var(--color-accent-2)" />
                       </linearGradient>
                     </defs>
                   </svg>
@@ -159,7 +159,7 @@ export default function VibeCheck({ peerName, peerInitial, userInitial, onClose 
 
                 <button
                   onClick={handleEndCall}
-                  className="w-16 h-16 rounded-full bg-[#EF4444] flex items-center justify-center shadow-lg tap-target"
+                  className="w-16 h-16 rounded-full bg-danger flex items-center justify-center shadow-lg tap-target"
                   aria-label="Raccrocher"
                 >
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -199,7 +199,7 @@ export default function VibeCheck({ peerName, peerInitial, userInitial, onClose 
                 <motion.button
                   onClick={handleYes}
                   className="w-full py-4 rounded-2xl font-bold text-[16px] text-white tap-target"
-                  style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)" }}
+                  style={{ background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-2))" }}
                   whileTap={{ scale: 0.95 }}
                   aria-label="Oui, je veux le voir ce soir"
                 >
@@ -249,7 +249,7 @@ export default function VibeCheck({ peerName, peerInitial, userInitial, onClose 
                     style={{
                       left: `${20 + Math.random() * 60}%`,
                       top: `${20 + Math.random() * 60}%`,
-                      background: i % 2 === 0 ? "#8B5CF6" : "#00FF88",
+                      background: i % 2 === 0 ? "var(--color-accent)" : "var(--color-accent-2)",
                     }}
                     initial={{ scale: 0, opacity: 1 }}
                     animate={{

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { app } from "@/lib/design-tokens";
 
 const NOTIFICATIONS = [
   "47 personnes sont dispos pres de toi ce soir",
@@ -55,7 +56,7 @@ export default function NotificationPreview() {
               {/* Gradient left border */}
               <div
                 className="w-1 self-stretch shrink-0"
-                style={{ background: "linear-gradient(180deg, #8B5CF6, #00FF88)" }}
+                style={{ background: `linear-gradient(180deg, ${app.violet}, ${app.vert})` }}
               />
               <div className="flex-1 py-3">
                 <p className="text-[12px] text-text font-medium">

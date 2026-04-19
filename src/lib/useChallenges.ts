@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { supabase } from "./supabase";
 import { useAuth } from "@/context/AuthContext";
+import { useAsyncResource } from "@/lib/hooks/useAsyncResource";
 
 // ---------- Types ----------
 
@@ -55,44 +56,42 @@ interface UseChallengesReturn {
 
 export function useChallenges(): UseChallengesReturn {
   const { user } = useAuth();
-  const [challenges, setChallenges] = useState<Challenge[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const userId = user?.id;
 
-  const fetchChallenges = useCallback(async () => {
-    if (!user) {
-      setChallenges([]);
-      setLoading(false);
-      return;
-    }
+  const [optimistic, setOptimistic] = useState<Challenge[] | null>(null);
 
-    setLoading(true);
-    setError(null);
+  const { data, loading, error, refetch } = useAsyncResource<Challenge[]>(
+    async (signal) => {
+      if (!userId) return [];
 
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
 
-    const { data, error: err } = await supabase
-      .from("challenges")
-      .select("*")
-      .eq("user_id", user.id)
-      .gte("date", startOfDay.toISOString())
-      .order("date", { ascending: false });
+      const { data: rows, error: err } = await supabase
+        .from("challenges")
+        .select("*")
+        .eq("user_id", userId)
+        .gte("date", startOfDay.toISOString())
+        .order("date", { ascending: false })
+        .abortSignal(signal);
 
-    if (err) {
-      console.error("[useChallenges] fetch failed:", err.message);
-      setError(err.message);
-      setLoading(false);
-      return;
-    }
+      if (err) {
+        console.error("[useChallenges] fetch failed:", err.message);
+        throw new Error(err.message);
+      }
 
-    setChallenges(((data ?? []) as ChallengeRow[]).map(toChallenge));
-    setLoading(false);
-  }, [user]);
+      return ((rows ?? []) as ChallengeRow[]).map(toChallenge);
+    },
+    [userId],
+  );
 
-  useEffect(() => {
-    void fetchChallenges();
-  }, [fetchChallenges]);
+  // Reset optimistic override whenever fresh data lands
+  const challenges = optimistic ?? data ?? [];
+
+  const refresh = useCallback(async () => {
+    setOptimistic(null);
+    await refetch();
+  }, [refetch]);
 
   const incrementProgress = useCallback(
     async (challengeId: string, amount = 1) => {
@@ -102,10 +101,11 @@ export function useChallenges(): UseChallengesReturn {
       const newProgress = Math.min(current.total, current.progress + amount);
       const nowComplete = newProgress >= current.total;
 
-      // Optimistic
-      setChallenges((prev) =>
-        prev.map((c) =>
-          c.id === challengeId ? { ...c, progress: newProgress, completed: nowComplete } : c,
+      setOptimistic(
+        challenges.map((c) =>
+          c.id === challengeId
+            ? { ...c, progress: newProgress, completed: nowComplete }
+            : c,
         ),
       );
 
@@ -116,10 +116,11 @@ export function useChallenges(): UseChallengesReturn {
 
       if (err) {
         console.error("[useChallenges] increment failed:", err.message);
-        void fetchChallenges();
       }
+      setOptimistic(null);
+      void refetch();
     },
-    [challenges, fetchChallenges],
+    [challenges, refetch],
   );
 
   const completeChallenge = useCallback(
@@ -127,8 +128,8 @@ export function useChallenges(): UseChallengesReturn {
       const target = challenges.find((c) => c.id === challengeId);
       if (!target) return;
 
-      setChallenges((prev) =>
-        prev.map((c) =>
+      setOptimistic(
+        challenges.map((c) =>
           c.id === challengeId ? { ...c, completed: true, progress: c.total } : c,
         ),
       );
@@ -139,10 +140,11 @@ export function useChallenges(): UseChallengesReturn {
         .eq("id", challengeId);
       if (err) {
         console.error("[useChallenges] complete failed:", err.message);
-        void fetchChallenges();
       }
+      setOptimistic(null);
+      void refetch();
     },
-    [challenges, fetchChallenges],
+    [challenges, refetch],
   );
 
   const totalXpToday = challenges
@@ -152,9 +154,9 @@ export function useChallenges(): UseChallengesReturn {
   return {
     challenges,
     loading,
-    error,
+    error: error?.message ?? null,
     totalXpToday,
-    refresh: fetchChallenges,
+    refresh,
     incrementProgress,
     completeChallenge,
   };

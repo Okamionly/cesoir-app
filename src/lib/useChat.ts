@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "./supabase";
 import type { DbConversation, DbMessage, DbProfile } from "./supabase";
 import type { RealtimeChannel } from "@supabase/supabase-js";
+import { useRealtimeChannel } from "@/lib/hooks/useSupabaseQuery";
 
 // ---------- Types ----------
 
@@ -125,42 +126,46 @@ export function useConversations(userId: string | undefined) {
     fetchConversations();
   }, [fetchConversations]);
 
-  // realtime: refresh list when any related message arrives
-  useEffect(() => {
-    if (!userId) return;
-
-    const channel = supabase
-      .channel(`conv-list-${userId}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "conversations",
-          filter: `user_a=eq.${userId}` },
-        () => fetchConversations(),
-      )
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "conversations",
-          filter: `user_b=eq.${userId}` },
-        () => fetchConversations(),
-      )
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "conversations" },
-        (payload) => {
-          const conv = payload.new as { user_a: string; user_b: string };
-          if (conv.user_a === userId || conv.user_b === userId) {
-            fetchConversations();
-          }
-        },
-      )
-      .subscribe();
-
-    channelRef.current = channel;
-
-    return () => {
-      channel.unsubscribe();
-    };
-  }, [userId, fetchConversations]);
+  // realtime: refresh list when any related message arrives (unified cleanup)
+  useRealtimeChannel(
+    (client) =>
+      userId
+        ? client
+            .channel(`conv-list-${userId}`)
+            .on(
+              "postgres_changes",
+              {
+                event: "INSERT",
+                schema: "public",
+                table: "conversations",
+                filter: `user_a=eq.${userId}`,
+              },
+              () => fetchConversations(),
+            )
+            .on(
+              "postgres_changes",
+              {
+                event: "INSERT",
+                schema: "public",
+                table: "conversations",
+                filter: `user_b=eq.${userId}`,
+              },
+              () => fetchConversations(),
+            )
+            .on(
+              "postgres_changes",
+              { event: "UPDATE", schema: "public", table: "conversations" },
+              (payload) => {
+                const conv = payload.new as { user_a: string; user_b: string };
+                if (conv.user_a === userId || conv.user_b === userId) {
+                  fetchConversations();
+                }
+              },
+            )
+        : null,
+    [userId, fetchConversations],
+  );
+  void channelRef; // kept for API stability (previously exposed via ref)
 
   /** Soft-delete: archive a conversation (sets archived_at, keeps data) */
   const archiveConversation = useCallback(async (conversationId: string) => {
@@ -308,64 +313,57 @@ export function useChat(conversationId: string | undefined, userId: string | und
     setLoadingMore(false);
   }, [conversationId, userId, loadingMore, hasMore]);
 
-  // subscribe to new messages in this conversation
-  useEffect(() => {
-    if (!conversationId || !userId) return;
-
-    const channel = supabase
-      .channel(`chat-${conversationId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-          filter: `conversation_id=eq.${conversationId}`,
-        },
-        (payload) => {
-          const m = payload.new as DbMessage;
-          setMessages((prev) => {
-            // avoid dupes (optimistic insert)
-            if (prev.some((p) => p.id === m.id)) return prev;
-            return [
-              ...prev,
+  // subscribe to new messages in this conversation (unified cleanup)
+  useRealtimeChannel(
+    (client) =>
+      conversationId && userId
+        ? client
+            .channel(`chat-${conversationId}`)
+            .on(
+              "postgres_changes",
               {
-                id: m.id,
-                senderId: m.sender_id,
-                content: m.content,
-                createdAt: m.created_at,
-                readAt: m.read_at,
-                isOwn: m.sender_id === userId,
+                event: "INSERT",
+                schema: "public",
+                table: "messages",
+                filter: `conversation_id=eq.${conversationId}`,
               },
-            ];
-          });
-        },
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "messages",
-          filter: `conversation_id=eq.${conversationId}`,
-        },
-        (payload) => {
-          const m = payload.new as DbMessage;
-          setMessages((prev) =>
-            prev.map((p) =>
-              p.id === m.id ? { ...p, readAt: m.read_at } : p,
-            ),
-          );
-        },
-      )
-      .subscribe();
-
-    channelRef.current = channel;
-
-    return () => {
-      channel.unsubscribe();
-    };
-  }, [conversationId, userId]);
+              (payload) => {
+                const m = payload.new as DbMessage;
+                setMessages((prev) => {
+                  if (prev.some((p) => p.id === m.id)) return prev;
+                  return [
+                    ...prev,
+                    {
+                      id: m.id,
+                      senderId: m.sender_id,
+                      content: m.content,
+                      createdAt: m.created_at,
+                      readAt: m.read_at,
+                      isOwn: m.sender_id === userId,
+                    },
+                  ];
+                });
+              },
+            )
+            .on(
+              "postgres_changes",
+              {
+                event: "UPDATE",
+                schema: "public",
+                table: "messages",
+                filter: `conversation_id=eq.${conversationId}`,
+              },
+              (payload) => {
+                const m = payload.new as DbMessage;
+                setMessages((prev) =>
+                  prev.map((p) => (p.id === m.id ? { ...p, readAt: m.read_at } : p)),
+                );
+              },
+            )
+        : null,
+    [conversationId, userId],
+  );
+  void channelRef; // kept for API stability
 
   // send a message
   const sendMessage = useCallback(

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useGamification } from "@/lib/useGamification";
+import { useAsyncResource } from "@/lib/hooks/useAsyncResource";
 import type { DbReview, DbProfile } from "@/lib/supabase-types";
 
 // ─────────────────────────────────────────
@@ -15,22 +16,10 @@ export interface ReviewWithAuthor extends DbReview {
 }
 
 export interface UseReputationReturn {
-  /** Reviews received by the user */
   reviews: ReviewWithAuthor[];
-  /** Average rating (1-5), 0 if no reviews */
   averageRating: number;
-  /** Total number of reviews received */
   totalReviews: number;
-  /**
-   * Trust score 0-100 calculated from:
-   * - Review average (0-30 pts)
-   * - Review volume (0-25 pts)
-   * - Verification status (0-15 pts)
-   * - Karma/XP (0-20 pts)
-   * - Account age (0-10 pts)
-   */
   trustScore: number;
-  /** Submit a review for another user */
   submitReview: (
     reviewedId: string,
     rating: number,
@@ -38,8 +27,12 @@ export interface UseReputationReturn {
     comment: string,
     anonymous: boolean,
   ) => Promise<void>;
-  /** Whether data is loading */
   loading: boolean;
+}
+
+interface ReputationPayload {
+  reviews: ReviewWithAuthor[];
+  profile: DbProfile | null;
 }
 
 // ─────────────────────────────────────────
@@ -53,19 +46,10 @@ function calculateTrustScore(
   xp: number,
   accountAgeDays: number,
 ): number {
-  // Review quality: 0-30 pts (scales from rating 1-5)
   const ratingPts = totalReviews > 0 ? ((avgRating - 1) / 4) * 30 : 0;
-
-  // Review volume: 0-25 pts (caps at 20 reviews)
   const volumePts = Math.min(totalReviews / 20, 1) * 25;
-
-  // Verification: 0-15 pts
   const verifyPts = isVerified ? 15 : 0;
-
-  // Karma/XP: 0-20 pts (caps at 5000 XP)
   const karmaPts = Math.min(xp / 5000, 1) * 20;
-
-  // Account age: 0-10 pts (caps at 90 days)
   const agePts = Math.min(accountAgeDays / 90, 1) * 10;
 
   return Math.round(ratingPts + volumePts + verifyPts + karmaPts + agePts);
@@ -78,108 +62,88 @@ function calculateTrustScore(
 export function useReputation(targetUserId?: string): UseReputationReturn {
   const { user } = useAuth();
   const { xp, addXP } = useGamification();
-  const [reviews, setReviews] = useState<ReviewWithAuthor[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<DbProfile | null>(null);
 
   const userId = targetUserId || user?.id;
-  const fetchedRef = useRef(false);
 
-  // ─── Fetch profile for trust score inputs ───
-  useEffect(() => {
-    if (!userId) {
-      setLoading(false);
-      return;
-    }
+  const { data, loading } = useAsyncResource<ReputationPayload>(
+    async (signal) => {
+      if (!userId) return { reviews: [], profile: null };
 
-    async function fetchProfile() {
-      const { data } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId!)
-        .single();
+      const [{ data: profileData }, { data: reviewData }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", userId)
+          .abortSignal(signal)
+          .single(),
+        supabase
+          .from("reviews")
+          .select("*")
+          .eq("reviewed_id", userId)
+          .order("created_at", { ascending: false })
+          .abortSignal(signal),
+      ]);
 
-      if (data) setProfile(data as DbProfile);
-    }
+      const reviewsRaw = (reviewData ?? []) as DbReview[];
 
-    fetchProfile();
-  }, [userId]);
+      const nonAnonIds = reviewsRaw.filter((r) => !r.anonymous).map((r) => r.reviewer_id);
 
-  // ─── Fetch reviews received ───
-  useEffect(() => {
-    if (!userId) {
-      setLoading(false);
-      return;
-    }
-
-    // Prevent double-fetches in strict mode
-    if (fetchedRef.current) return;
-    fetchedRef.current = true;
-
-    async function fetchReviews() {
-      // Fetch reviews where this user was reviewed
-      const { data: reviewData, error } = await supabase
-        .from("reviews")
-        .select("*")
-        .eq("reviewed_id", userId!)
-        .order("created_at", { ascending: false });
-
-      if (error || !reviewData) {
-        setLoading(false);
-        return;
-      }
-
-      // Fetch reviewer profiles for non-anonymous reviews
-      const nonAnonIds = (reviewData as DbReview[])
-        .filter((r) => !r.anonymous)
-        .map((r) => r.reviewer_id);
-
-      let profileMap: Record<string, Pick<DbProfile, "name" | "avatar_url" | "is_verified">> = {};
+      let profileMap: Record<
+        string,
+        Pick<DbProfile, "name" | "avatar_url" | "is_verified">
+      > = {};
 
       if (nonAnonIds.length > 0) {
         const { data: profiles } = await supabase
           .from("profiles")
           .select("id, name, avatar_url, is_verified")
-          .in("id", nonAnonIds);
+          .in("id", nonAnonIds)
+          .abortSignal(signal);
 
         if (profiles) {
           profileMap = Object.fromEntries(
-            profiles.map((p: { id: string; name: string; avatar_url: string | null; is_verified: boolean }) => [
-              p.id,
-              { name: p.name, avatar_url: p.avatar_url, is_verified: p.is_verified },
-            ]),
+            profiles.map(
+              (p: {
+                id: string;
+                name: string;
+                avatar_url: string | null;
+                is_verified: boolean;
+              }) => [
+                p.id,
+                {
+                  name: p.name,
+                  avatar_url: p.avatar_url,
+                  is_verified: p.is_verified,
+                },
+              ],
+            ),
           );
         }
       }
 
-      const enriched: ReviewWithAuthor[] = (reviewData as DbReview[]).map((r) => ({
+      const enriched: ReviewWithAuthor[] = reviewsRaw.map((r) => ({
         ...r,
         reviewer: r.anonymous ? null : profileMap[r.reviewer_id] || null,
       }));
 
-      setReviews(enriched);
-      setLoading(false);
-    }
+      return {
+        reviews: enriched,
+        profile: (profileData ?? null) as DbProfile | null,
+      };
+    },
+    [userId],
+  );
 
-    fetchReviews();
-  }, [userId]);
+  const reviews = data?.reviews ?? [];
+  const profile = data?.profile ?? null;
 
-  // ─── Reset fetch ref when userId changes ───
-  useEffect(() => {
-    fetchedRef.current = false;
-  }, [userId]);
-
-  // ─── Computed values ───
   const totalReviews = reviews.length;
   const averageRating =
-    totalReviews > 0
-      ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews
-      : 0;
+    totalReviews > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews : 0;
 
   const accountAgeDays = profile?.created_at
     ? Math.floor(
-        (Date.now() - new Date(profile.created_at).getTime()) /
-          (1000 * 60 * 60 * 24),
+        (Date.now() - new Date(profile.created_at).getTime()) / (1000 * 60 * 60 * 24),
       )
     : 0;
 
@@ -191,7 +155,6 @@ export function useReputation(targetUserId?: string): UseReputationReturn {
     accountAgeDays,
   );
 
-  // ─── Submit review ───
   const submitReview = useCallback(
     async (
       reviewedId: string,
@@ -211,7 +174,6 @@ export function useReputation(targetUserId?: string): UseReputationReturn {
         anonymous,
       });
 
-      // Award XP for leaving a review
       await addXP("receive_good_review");
     },
     [user?.id, addXP],

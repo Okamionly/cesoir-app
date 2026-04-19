@@ -90,14 +90,17 @@ export default function LiveActivityPanel({
     onRefresh();
   };
 
+  // Intensity → design-token CSS var. Low is the neutral muted color (no
+  // strong signal), medium is the brand accent (violet), high is the
+  // secondary accent (vert fluo = "hot").
   const intensityColor = (intensity: LiveHotspot["intensity"]) => {
     switch (intensity) {
       case "low":
-        return "#3B82F6";
+        return "var(--color-text-muted)";
       case "medium":
-        return "#8B5CF6";
+        return "var(--color-accent)";
       case "high":
-        return "#00FF88";
+        return "var(--color-accent-2)";
     }
   };
 

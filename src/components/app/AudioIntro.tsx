@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion } from "motion/react";
+import { app } from "@/lib/design-tokens";
 
 export default function AudioIntro() {
   const [playing, setPlaying] = useState(false);
@@ -65,7 +66,7 @@ export default function AudioIntro() {
                 key={i}
                 className="w-[4px] rounded-full"
                 style={{
-                  background: progress > (i / bars.length) ? "linear-gradient(135deg, #8B5CF6, #00FF88)" : "#EBEBEB",
+                  background: progress > (i / bars.length) ? app.gradient : app.border,
                 }}
                 animate={
                   playing

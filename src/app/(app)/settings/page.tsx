@@ -11,8 +11,7 @@ import { useAccessibility, type FontSize } from "@/components/ui/ReducedMotion";
 import { useTranslation, type Locale } from "@/lib/i18n";
 import { useWomenFirstSettings } from "@/lib/useWomenFirst";
 import { springs } from "@/lib/motion-design";
-import { Magnetic } from "@/components/motion/Magnetic";
-import { RackFocus } from "@/components/motion/RackFocus";
+import PageHeader from "@/components/ui/PageHeader";
 
 // ── Types ──────────────────────────────────────────
 
@@ -286,46 +285,15 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-bg pb-24">
-      {/* Header — hairline gradient + pulse dot */}
-      <div className="relative flex items-center gap-3 px-5 py-3 border-b border-border bg-bg">
-        <Magnetic strength={0.2} radius={50}>
-          <button
-            onClick={() => router.back()}
-            className="w-9 h-9 rounded-full bg-bg-card border border-border flex items-center justify-center tap-target hover:border-accent/50 transition-colors"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              className="text-text"
-            >
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </button>
-        </Magnetic>
-        <RackFocus duration={0.5}>
-          <h1 className="text-[16px] font-black text-text tracking-tight flex items-center gap-2">
-            <motion.span
-              className="inline-block w-1.5 h-1.5 rounded-full bg-accent"
-              animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.2, 1] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            />
-            Reglages
-          </h1>
-        </RackFocus>
-        <motion.div
-          className="absolute bottom-0 left-0 right-0 h-px"
-          style={{
-            background:
-              "linear-gradient(90deg, transparent, rgba(139,92,246,0.4), rgba(0,255,136,0.3), transparent)",
-          }}
-          animate={{ opacity: [0.3, 0.9, 0.3] }}
-          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-        />
-      </div>
+      <PageHeader
+        title="Reglages"
+        onBack={() => router.back()}
+        icon={<span className="inline-block w-1.5 h-1.5 rounded-full bg-accent" />}
+        iconAnimation="pulse"
+        hairlineVariant="vert-violet"
+        sticky={false}
+        rackFocus
+      />
 
       <div className="pt-5">
         {/* ── 1. Compte ─────────────────────────────── */}

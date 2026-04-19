@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence, type Variants } from "motion/react";
 import { springs, easings } from "@/lib/motion-design";
+import PageHeader from "@/components/ui/PageHeader";
 
 // ─────────────────────────────────────────
 // Types
@@ -243,24 +244,17 @@ export default function SpeedDatingPage() {
 
   return (
     <div className="min-h-screen bg-bg pb-28">
-      {/* Header */}
-      <header className="sticky top-0 z-40 bg-bg/95 backdrop-blur-md border-b border-border px-5 py-3">
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between"
-        >
-          <div className="flex items-center gap-2">
-            <span className="text-lg" aria-hidden="true">{"\uD83D\uDC95"}</span>
-            <h1 className="text-base font-display font-bold text-text">Speed Dating Virtuel</h1>
-          </div>
-          {phase !== "lobby" && phase !== "results" && (
+      <PageHeader
+        title="Speed Dating Virtuel"
+        icon={<span className="text-lg" aria-hidden="true">{"\uD83D\uDC95"}</span>}
+        actions={
+          phase !== "lobby" && phase !== "results" ? (
             <span className="text-[10px] text-accent font-semibold">
               Round {currentRound + 1}/{MOCK_PARTNERS.length}
             </span>
-          )}
-        </motion.div>
-      </header>
+          ) : null
+        }
+      />
 
       <AnimatePresence mode="wait">
         {/* ═══ LOBBY ═══ */}

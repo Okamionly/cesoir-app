@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { useAsyncResource } from "@/lib/hooks/useAsyncResource";
+import { useRealtimeChannel } from "@/lib/hooks/useSupabaseQuery";
 import {
   calculateLevel,
   checkLevelUp,
@@ -39,29 +41,17 @@ export interface LevelUpData {
 // ─────────────────────────────────────────
 
 export interface UseGamificationReturn {
-  /** Current level info */
   levelInfo: LevelInfo;
-  /** Total XP */
   xp: number;
-  /** Current level number */
   level: number;
-  /** Current title */
   title: string;
-  /** XP needed for next level */
   nextLevelXP: number;
-  /** Progress 0-1 toward next level */
   progress: number;
-  /** Add XP for an action — inserts karma_transaction, checks level-up */
   addXP: (action: XPAction, variableAmount?: number) => Promise<void>;
-  /** Whether level-up modal should be shown */
   showLevelUp: LevelUpData | null;
-  /** Dismiss the level-up modal */
   dismissLevelUp: () => void;
-  /** Active XP popups (for stacking) */
   xpPopups: XPPopupData[];
-  /** Remove a popup by id */
   removePopup: (id: string) => void;
-  /** Whether XP data is loading */
   loading: boolean;
 }
 
@@ -69,89 +59,79 @@ let popupCounter = 0;
 
 export function useGamification(): UseGamificationReturn {
   const { user } = useAuth();
-  const [xp, setXP] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const userId = user?.id;
+
+  // Initial XP load (with AbortSignal)
+  const { data: initialXP, loading } = useAsyncResource<number>(
+    async (signal) => {
+      if (!userId) return 0;
+      const { data, error } = await supabase
+        .from("karma_transactions")
+        .select("amount")
+        .eq("user_id", userId)
+        .abortSignal(signal);
+
+      if (error || !data) return 0;
+      return data.reduce(
+        (sum: number, row: { amount: number }) => sum + row.amount,
+        0,
+      );
+    },
+    [userId],
+  );
+
+  // Local XP state (overrides initial after realtime / addXP updates)
+  const [xpDelta, setXPDelta] = useState(0);
   const [showLevelUp, setShowLevelUp] = useState<LevelUpData | null>(null);
   const [xpPopups, setXPPopups] = useState<XPPopupData[]>([]);
-  const xpRef = useRef(xp);
 
-  // Keep ref in sync
+  // Reset delta when the base changes (user switch / refetch)
+  useEffect(() => {
+    setXPDelta(0);
+  }, [initialXP]);
+
+  const xp = (initialXP ?? 0) + xpDelta;
+  const xpRef = useRef(xp);
   useEffect(() => {
     xpRef.current = xp;
   }, [xp]);
 
-  // ─── Fetch initial XP from karma_transactions ───
-  useEffect(() => {
-    if (!user?.id) {
-      setLoading(false);
-      return;
-    }
+  // Realtime: listen for new karma_transactions
+  useRealtimeChannel(
+    (client) =>
+      userId
+        ? client.channel(`xp-${userId}`).on(
+            "postgres_changes",
+            {
+              event: "INSERT",
+              schema: "public",
+              table: "karma_transactions",
+              filter: `user_id=eq.${userId}`,
+            },
+            (payload: { new: { amount: number; reason: string } }) => {
+              const newAmount = payload.new.amount;
+              const oldTotal = xpRef.current;
 
-    async function fetchXP() {
-      const { data, error } = await supabase
-        .from("karma_transactions")
-        .select("amount")
-        .eq("user_id", user!.id);
+              setXPDelta((d) => d + newAmount);
 
-      if (!error && data) {
-        const total = data.reduce(
-          (sum: number, row: { amount: number }) => sum + row.amount,
-          0,
-        );
-        setXP(total);
-        xpRef.current = total;
-      }
-      setLoading(false);
-    }
+              const levelUp = checkLevelUp(oldTotal, newAmount);
+              if (levelUp) {
+                setShowLevelUp({
+                  oldLevel: levelUp.oldLevel,
+                  newLevel: levelUp.newLevel,
+                  newTitle: levelUp.newTitle,
+                  rewards: getLevelRewards(levelUp.newLevel),
+                });
+              }
+            },
+          )
+        : null,
+    [userId],
+  );
 
-    fetchXP();
-  }, [user?.id]);
-
-  // ─── Real-time subscription to XP changes ───
-  useEffect(() => {
-    if (!user?.id) return;
-
-    const channel = supabase
-      .channel(`xp-${user.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "karma_transactions",
-          filter: `user_id=eq.${user.id}`,
-        },
-        (payload: { new: { amount: number; reason: string } }) => {
-          const newAmount = payload.new.amount;
-          const oldTotal = xpRef.current;
-          const newTotal = oldTotal + newAmount;
-
-          setXP(newTotal);
-          xpRef.current = newTotal;
-
-          // Check for level-up
-          const levelUp = checkLevelUp(oldTotal, newAmount);
-          if (levelUp) {
-            setShowLevelUp({
-              oldLevel: levelUp.oldLevel,
-              newLevel: levelUp.newLevel,
-              newTitle: levelUp.newTitle,
-              rewards: getLevelRewards(levelUp.newLevel),
-            });
-          }
-        },
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user?.id]);
-
-  // ─── Add XP ───
   const addXP = useCallback(
     async (action: XPAction, variableAmount?: number) => {
-      if (!user?.id) return;
+      if (!userId) return;
 
       const amount =
         action === "complete_challenge" && variableAmount !== undefined
@@ -162,20 +142,15 @@ export function useGamification(): UseGamificationReturn {
 
       const reason = XP_REWARDS[action].label;
 
-      // Optimistic: show popup immediately
       const popupId = `xp-${++popupCounter}`;
       setXPPopups((prev) => [...prev, { id: popupId, amount, reason }]);
 
-      // Check level-up optimistically
       const oldTotal = xpRef.current;
-      const newTotal = oldTotal + amount;
       const levelUp = checkLevelUp(oldTotal, amount);
 
-      setXP(newTotal);
-      xpRef.current = newTotal;
+      setXPDelta((d) => d + amount);
 
       if (levelUp) {
-        // Short delay so XP popup shows first
         setTimeout(() => {
           setShowLevelUp({
             oldLevel: levelUp.oldLevel,
@@ -186,27 +161,23 @@ export function useGamification(): UseGamificationReturn {
         }, 600);
       }
 
-      // Insert into DB
       await supabase.from("karma_transactions").insert({
-        user_id: user.id,
+        user_id: userId,
         amount,
         reason,
       });
     },
-    [user?.id],
+    [userId],
   );
 
-  // ─── Dismiss level-up ───
   const dismissLevelUp = useCallback(() => {
     setShowLevelUp(null);
   }, []);
 
-  // ─── Remove popup ───
   const removePopup = useCallback((id: string) => {
     setXPPopups((prev) => prev.filter((p) => p.id !== id));
   }, []);
 
-  // ─── Compute level info ───
   const levelInfo = calculateLevel(xp);
 
   return {

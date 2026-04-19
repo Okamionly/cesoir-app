@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useCallback, useState } from "react";
+import { useAsyncResource } from "@/lib/hooks/useAsyncResource";
 import { PARIS_HOTSPOTS, type Hotspot } from "@/lib/hotspots";
 
 export interface LiveHotspot {
@@ -15,7 +16,6 @@ export interface LiveHotspot {
 }
 
 function hotspotToLive(h: Hotspot): LiveHotspot {
-  // Map the existing level to our intensity scale
   const intensityMap: Record<Hotspot["level"], LiveHotspot["intensity"]> = {
     calm: "low",
     moderate: "medium",
@@ -70,50 +70,37 @@ const EXTRA_HOTSPOTS: Hotspot[] = [
 const ALL_HOTSPOTS = [...PARIS_HOTSPOTS, ...EXTRA_HOTSPOTS];
 
 export function useHotspots() {
-  const [hotspots, setHotspots] = useState<LiveHotspot[]>([]);
-  const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const fetchHotspots = useCallback(() => {
-    // In production this would be a Supabase query:
-    // const { data } = await supabase.rpc('get_hotspot_counts')
-    // For now, use mock data with jittered counts
-    const live = ALL_HOTSPOTS.map((h) => {
-      const base = hotspotToLive(h);
-      return {
-        ...base,
-        count: jitterCount(h.activeUsers),
-        // Recalculate intensity based on jittered count
-        intensity: (base.count > 25 ? "high" : base.count > 12 ? "medium" : "low") as LiveHotspot["intensity"],
-      };
-    });
-
-    setHotspots(live);
-    setLastUpdated(new Date());
-    setLoading(false);
-  }, []);
+  const { data, loading, refetch } = useAsyncResource<LiveHotspot[]>(
+    async () => {
+      // In production this would be a Supabase query:
+      // const { data } = await supabase.rpc('get_hotspot_counts')
+      // For now, use mock data with jittered counts
+      const live = ALL_HOTSPOTS.map((h) => {
+        const base = hotspotToLive(h);
+        const count = jitterCount(h.activeUsers);
+        return {
+          ...base,
+          count,
+          intensity: (count > 25 ? "high" : count > 12 ? "medium" : "low") as LiveHotspot["intensity"],
+        };
+      });
+      setLastUpdated(new Date());
+      return live;
+    },
+    [],
+    { pollIntervalMs: 60_000 },
+  );
 
   const refresh = useCallback(() => {
-    setLoading(true);
-    // Simulate network delay
-    setTimeout(() => {
-      fetchHotspots();
-    }, 300);
-  }, [fetchHotspots]);
+    void refetch();
+  }, [refetch]);
 
-  useEffect(() => {
-    fetchHotspots();
-
-    // Auto-refresh every 60 seconds
-    intervalRef.current = setInterval(fetchHotspots, 60_000);
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [fetchHotspots]);
-
-  return { hotspots, loading, refresh, lastUpdated };
+  return {
+    hotspots: data ?? [],
+    loading,
+    refresh,
+    lastUpdated,
+  };
 }

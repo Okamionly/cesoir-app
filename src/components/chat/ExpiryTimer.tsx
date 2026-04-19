@@ -60,7 +60,11 @@ function CircularCountdown({
   const circumference = radius * 2 * Math.PI;
   const strokeDashoffset = circumference - progress * circumference;
 
-  const color = isUrgent ? "#EF4444" : progress > 0.5 ? "#00FF88" : "#F59E0B";
+  const color = isUrgent
+    ? "var(--color-danger)"
+    : progress > 0.5
+      ? "var(--color-accent-2)"
+      : "var(--color-warn)";
 
   return (
     <div className="relative" style={{ width: size, height: size }}>
@@ -158,7 +162,7 @@ export default function ExpiryTimer({
     return (
       <motion.span
         className={`text-[10px] font-semibold ${className}`}
-        style={{ color: isExpired ? "#EF4444" : isUrgent ? "#EF4444" : "#8B5CF6" }}
+        style={{ color: isExpired ? "var(--color-danger)" : isUrgent ? "var(--color-danger)" : "var(--color-accent)" }}
         animate={isUrgent && !isExpired ? { opacity: [1, 0.4, 1] } : {}}
         transition={isUrgent ? { duration: 0.8, repeat: Infinity, ease: "easeInOut" } : {}}
         aria-label={formatCompact(secondsLeft)}
@@ -172,7 +176,7 @@ export default function ExpiryTimer({
   if (isExpired) {
     return (
       <motion.div
-        className={`flex items-center gap-3 bg-[#EF4444]/10 border border-[#EF4444]/20 rounded-xl px-4 py-3 ${className}`}
+        className={`flex items-center gap-3 bg-danger/10 border border-danger/20 rounded-xl px-4 py-3 ${className}`}
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={springs.elastic}
@@ -180,7 +184,7 @@ export default function ExpiryTimer({
       >
         <CircularCountdown progress={0} isUrgent size={36} />
         <div>
-          <p className="text-[13px] text-[#EF4444] font-bold">Match expire</p>
+          <p className="text-[13px] text-danger font-bold">Match expire</p>
           <p className="text-[10px] text-white/30 mt-0.5">
             Le match a ete dissous
           </p>
@@ -193,7 +197,7 @@ export default function ExpiryTimer({
   return (
     <motion.div
       className={`flex items-center gap-3 bg-black border rounded-xl px-4 py-3 ${
-        isUrgent ? "border-[#EF4444]/30" : "border-white/10"
+        isUrgent ? "border-danger/30" : "border-white/10"
       } ${className}`}
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
@@ -204,7 +208,7 @@ export default function ExpiryTimer({
       <CircularCountdown progress={progress} isUrgent={isUrgent} />
 
       <div className="flex-1 min-w-0">
-        <p className={`text-[14px] font-bold tabular-nums ${isUrgent ? "text-[#EF4444]" : "text-white"}`}>
+        <p className={`text-[14px] font-bold tabular-nums ${isUrgent ? "text-danger" : "text-white"}`}>
           {formatHoursMinutes(secondsLeft)}
         </p>
         <p className="text-[11px] text-white/40 mt-0.5">
@@ -215,7 +219,7 @@ export default function ExpiryTimer({
       {/* Urgency indicator */}
       {isUrgent && (
         <motion.div
-          className="w-2 h-2 rounded-full bg-[#EF4444]"
+          className="w-2 h-2 rounded-full bg-danger"
           animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
           transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
         />

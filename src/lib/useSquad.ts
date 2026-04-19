@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback } from "react";
 import { supabase } from "./supabase";
 import { useAuth } from "@/context/AuthContext";
+import { useAsyncResource } from "@/lib/hooks/useAsyncResource";
 
 // ---------- Types ----------
 
@@ -55,6 +56,12 @@ interface ProfileRow {
   avatar_url: string | null;
 }
 
+interface SquadPayload {
+  mySquad: Squad | null;
+  activeSquads: Squad[];
+  myInvite: SquadInvite | null;
+}
+
 function generateInviteCode(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   let code = "";
@@ -78,107 +85,96 @@ interface UseSquadReturn {
 
 export function useSquad(): UseSquadReturn {
   const { user } = useAuth();
-  const [mySquad, setMySquad] = useState<Squad | null>(null);
-  const [activeSquads, setActiveSquads] = useState<Squad[]>([]);
-  const [myInvite, setMyInvite] = useState<SquadInvite | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const userId = user?.id;
 
-  const fetchSquads = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const { data, loading, error, refetch } = useAsyncResource<SquadPayload>(
+    async (signal) => {
+      const { data: rows, error: err } = await supabase
+        .from("squads")
+        .select("*")
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .abortSignal(signal);
 
-    const { data: rows, error: err } = await supabase
-      .from("squads")
-      .select("*")
-      .eq("status", "active")
-      .order("created_at", { ascending: false });
+      if (err) {
+        console.error("[useSquad] fetch failed:", err.message);
+        throw new Error(err.message);
+      }
 
-    if (err) {
-      console.error("[useSquad] fetch failed:", err.message);
-      setError(err.message);
-      setLoading(false);
-      return;
-    }
+      const squadRows = (rows ?? []) as SquadRow[];
+      const allMemberIds = Array.from(
+        new Set(squadRows.flatMap((s) => [...(s.members ?? []), s.creator_id])),
+      );
 
-    const squadRows = (rows ?? []) as SquadRow[];
-    const allMemberIds = Array.from(
-      new Set(squadRows.flatMap((s) => [...(s.members ?? []), s.creator_id])),
-    );
+      let profileMap = new Map<string, ProfileRow>();
+      if (allMemberIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, name, avatar_url")
+          .in("id", allMemberIds)
+          .abortSignal(signal);
+        profileMap = new Map(((profiles ?? []) as ProfileRow[]).map((p) => [p.id, p]));
+      }
 
-    let profileMap = new Map<string, ProfileRow>();
-    if (allMemberIds.length > 0) {
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, name, avatar_url")
-        .in("id", allMemberIds);
-      profileMap = new Map(((profiles ?? []) as ProfileRow[]).map((p) => [p.id, p]));
-    }
-
-    const mapped: Squad[] = squadRows.map((s) => {
-      const memberIds = Array.from(new Set([...(s.members ?? []), s.creator_id]));
-      const members: SquadMember[] = memberIds
-        .map((id) => {
+      const mapped: Squad[] = squadRows.map((s) => {
+        const memberIds = Array.from(new Set([...(s.members ?? []), s.creator_id]));
+        const members: SquadMember[] = memberIds.map((id) => {
           const p = profileMap.get(id);
           return p
             ? { id: p.id, name: p.name, avatar: p.avatar_url }
             : { id, name: "?", avatar: null };
         });
-      return {
-        id: s.id,
-        name: s.name,
-        creatorId: s.creator_id,
-        members,
-        mode: s.mode,
-        status: s.status ?? "active",
-        createdAt: s.created_at ?? new Date().toISOString(),
-      };
-    });
+        return {
+          id: s.id,
+          name: s.name,
+          creatorId: s.creator_id,
+          members,
+          mode: s.mode,
+          status: s.status ?? "active",
+          createdAt: s.created_at ?? new Date().toISOString(),
+        };
+      });
 
-    setActiveSquads(mapped);
+      let mine: Squad | null = null;
+      let myInvite: SquadInvite | null = null;
 
-    if (user) {
-      const mine = mapped.find(
-        (s) => s.creatorId === user.id || s.members.some((m) => m.id === user.id),
-      );
-      setMySquad(mine ?? null);
+      if (userId) {
+        mine =
+          mapped.find(
+            (s) => s.creatorId === userId || s.members.some((m) => m.id === userId),
+          ) ?? null;
 
-      if (mine) {
-        const { data: invites } = await supabase
-          .from("squad_invites")
-          .select("*")
-          .eq("squad_id", mine.id)
-          .is("used_by", null)
-          .order("created_at", { ascending: false })
-          .limit(1);
-        const inviteRow = ((invites ?? []) as InviteRow[])[0];
-        if (inviteRow) {
-          setMyInvite({
-            id: inviteRow.id,
-            squadId: inviteRow.squad_id,
-            code: inviteRow.code,
-            inviterId: inviteRow.inviter_id,
-            createdAt: inviteRow.created_at ?? new Date().toISOString(),
-          });
-        } else {
-          setMyInvite(null);
+        if (mine) {
+          const { data: invites } = await supabase
+            .from("squad_invites")
+            .select("*")
+            .eq("squad_id", mine.id)
+            .is("used_by", null)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .abortSignal(signal);
+          const inviteRow = ((invites ?? []) as InviteRow[])[0];
+          if (inviteRow) {
+            myInvite = {
+              id: inviteRow.id,
+              squadId: inviteRow.squad_id,
+              code: inviteRow.code,
+              inviterId: inviteRow.inviter_id,
+              createdAt: inviteRow.created_at ?? new Date().toISOString(),
+            };
+          }
         }
-      } else {
-        setMyInvite(null);
       }
-    }
 
-    setLoading(false);
-  }, [user]);
-
-  useEffect(() => {
-    void fetchSquads();
-  }, [fetchSquads]);
+      return { mySquad: mine, activeSquads: mapped, myInvite };
+    },
+    [userId],
+  );
 
   const createSquad = useCallback(
     async (name: string, mode?: string): Promise<string | null> => {
       if (!user) return null;
-      const { data, error: err } = await supabase
+      const { data: inserted, error: err } = await supabase
         .from("squads")
         .insert({
           name: name.trim() || "Mon squad",
@@ -193,17 +189,17 @@ export function useSquad(): UseSquadReturn {
         console.error("[useSquad] createSquad failed:", err.message);
         return null;
       }
-      void fetchSquads();
-      return data?.id ?? null;
+      void refetch();
+      return inserted?.id ?? null;
     },
-    [user, fetchSquads],
+    [user, refetch],
   );
 
   const generateInvite = useCallback(
     async (squadId: string): Promise<string | null> => {
       if (!user) return null;
       const code = generateInviteCode();
-      const { data, error: err } = await supabase
+      const { data: inserted, error: err } = await supabase
         .from("squad_invites")
         .insert({
           squad_id: squadId,
@@ -216,10 +212,10 @@ export function useSquad(): UseSquadReturn {
         console.error("[useSquad] generateInvite failed:", err.message);
         return null;
       }
-      void fetchSquads();
-      return data?.code ?? code;
+      void refetch();
+      return inserted?.code ?? code;
     },
-    [user, fetchSquads],
+    [user, refetch],
   );
 
   const joinByCode = useCallback(
@@ -242,21 +238,23 @@ export function useSquad(): UseSquadReturn {
       });
 
       if (!res.ok) return false;
-      void fetchSquads();
+      void refetch();
       return true;
     },
-    [user, fetchSquads],
+    [user, refetch],
   );
 
   return {
-    mySquad,
-    activeSquads,
-    myInvite,
+    mySquad: data?.mySquad ?? null,
+    activeSquads: data?.activeSquads ?? [],
+    myInvite: data?.myInvite ?? null,
     loading,
-    error,
+    error: error?.message ?? null,
     createSquad,
     generateInvite,
     joinByCode,
-    refresh: fetchSquads,
+    refresh: async () => {
+      await refetch();
+    },
   };
 }

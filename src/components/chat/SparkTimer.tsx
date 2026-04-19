@@ -28,15 +28,17 @@ function formatCompact(seconds: number): string {
 
 function getBarColor(progress: number): string {
   // progress: 1 = full time, 0 = expired
-  if (progress > 0.6) return "#00FF88";
-  if (progress > 0.25) return "#F59E0B";
-  return "#EF4444";
+  if (progress > 0.6) return "var(--color-accent-2)";
+  if (progress > 0.25) return "var(--color-warn)";
+  return "var(--color-danger)";
 }
 
 function getGradientForProgress(progress: number): string {
-  if (progress > 0.6) return "linear-gradient(90deg, #00FF88, #8B5CF6)";
-  if (progress > 0.25) return "linear-gradient(90deg, #F59E0B, #EF4444)";
-  return "linear-gradient(90deg, #EF4444, #EF4444)";
+  if (progress > 0.6)
+    return "linear-gradient(90deg, var(--color-accent-2), var(--color-accent))";
+  if (progress > 0.25)
+    return "linear-gradient(90deg, var(--color-warn), var(--color-danger))";
+  return "linear-gradient(90deg, var(--color-danger), var(--color-danger))";
 }
 
 export default function SparkTimer({ matchedAt, duration = 7200, compact = false }: SparkTimerProps) {
@@ -63,7 +65,7 @@ export default function SparkTimer({ matchedAt, duration = 7200, compact = false
     return (
       <span
         className="text-[10px] font-semibold"
-        style={{ color: isExpired ? "#EF4444" : isUrgent ? "#EF4444" : "#8B5CF6" }}
+        style={{ color: isExpired ? "var(--color-danger)" : isUrgent ? "var(--color-danger)" : "var(--color-accent)" }}
         aria-label={`Temps restant : ${formatCompact(secondsLeft)}`}
       >
         {isExpired ? "Expire" : formatCompact(secondsLeft)}

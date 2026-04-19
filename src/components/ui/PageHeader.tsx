@@ -1,63 +1,317 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "motion/react";
-import { springs } from "@/lib/motion-design";
+import { motion, useReducedMotion, type Transition, type TargetAndTransition } from "motion/react";
+import { springs, easings } from "@/lib/motion-design";
+import { RackFocus } from "@/components/motion/RackFocus";
 
-interface PageHeaderProps {
-  title: string;
+// ─────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────
+
+export type IconAnimation =
+  | "pulse"
+  | "rotate"
+  | "float"
+  | "glow"
+  | "glow-green"
+  | "glow-violet"
+  | "none";
+
+export type HairlineVariant =
+  | "default"
+  | "gold-violet"
+  | "pink-violet"
+  | "red-glow"
+  | "vert-violet"
+  | "green-violet";
+
+export interface PageHeaderProps {
+  /** Page title (string or node for custom formatting) */
+  title: React.ReactNode;
+  /** Extra class applied to the <h1> (useful for gradient-text, color tweaks) */
+  titleClassName?: string;
+  /** Optional subtitle shown below the title */
   subtitle?: string;
+  /** Back link href. Renders a chevron-left button when provided. */
   backHref?: string;
+  /** Back button callback (alternative to `backHref` — use for router.back() flows) */
+  onBack?: () => void;
+  /** Aria-label for the back button */
+  backLabel?: string;
+  /** Legacy right-action slot (deprecated — prefer `actions`) */
   rightAction?: React.ReactNode;
+  /** Right-side slot for buttons/chips/etc. */
+  actions?: React.ReactNode;
+  /** Custom icon/glyph to render before the title */
+  icon?: React.ReactNode;
+  /** Preset animation applied to the icon wrapper */
+  iconAnimation?: IconAnimation;
+  /** Bottom hairline gradient style */
+  hairlineVariant?: HairlineVariant;
+  /** Whether the header is sticky (default true) */
+  sticky?: boolean;
+  /** Extra class applied to the outer <header> */
+  className?: string;
+  /** Wrap title in <RackFocus> for cinematic reveal */
+  rackFocus?: boolean;
 }
 
-export default function PageHeader({
-  title,
-  subtitle,
-  backHref,
-  rightAction,
-}: PageHeaderProps) {
+// ─────────────────────────────────────────
+// Icon animation presets
+// ─────────────────────────────────────────
+
+interface IconMotion {
+  animate?: TargetAndTransition;
+  transition?: Transition;
+}
+
+function getIconMotion(kind: IconAnimation): IconMotion {
+  switch (kind) {
+    case "pulse":
+      return {
+        animate: { opacity: [0.5, 1, 0.5], scale: [1, 1.2, 1] },
+        transition: { duration: 2, repeat: Infinity, ease: "easeInOut" },
+      };
+    case "rotate":
+      return {
+        animate: { rotate: [0, 8, 0, -8, 0], scale: [1, 1.05, 1] },
+        transition: { duration: 6, repeat: Infinity, ease: "easeInOut" },
+      };
+    case "float":
+      return {
+        animate: { y: [0, -3, 0, 2, 0], rotate: [0, 4, -3, 0] },
+        transition: { duration: 5, repeat: Infinity, ease: "easeInOut" },
+      };
+    case "glow":
+    case "glow-violet":
+      return {
+        animate: {
+          filter: [
+            "drop-shadow(0 0 0px rgba(139,92,246,0))",
+            "drop-shadow(0 0 8px rgba(139,92,246,0.7))",
+            "drop-shadow(0 0 0px rgba(139,92,246,0))",
+          ],
+        },
+        transition: { duration: 2.5, repeat: Infinity, ease: "easeInOut" },
+      };
+    case "glow-green":
+      return {
+        animate: {
+          filter: [
+            "drop-shadow(0 0 0px rgba(34,197,94,0))",
+            "drop-shadow(0 0 8px rgba(34,197,94,0.7))",
+            "drop-shadow(0 0 0px rgba(34,197,94,0))",
+          ],
+        },
+        transition: { duration: 3, repeat: Infinity, ease: "easeInOut" },
+      };
+    case "none":
+    default:
+      return {};
+  }
+}
+
+// ─────────────────────────────────────────
+// Hairline gradient presets
+// ─────────────────────────────────────────
+
+function getHairlineGradient(variant: HairlineVariant): string | null {
+  switch (variant) {
+    case "gold-violet":
+      return "linear-gradient(90deg, transparent, rgba(212,175,55,0.4), rgba(139,92,246,0.4), transparent)";
+    case "pink-violet":
+      return "linear-gradient(90deg, transparent, rgba(236,72,153,0.4), rgba(139,92,246,0.4), transparent)";
+    case "red-glow":
+      return "linear-gradient(90deg, transparent, rgba(239,68,68,0.45), rgba(220,38,38,0.55), rgba(239,68,68,0.45), transparent)";
+    case "vert-violet":
+      return "linear-gradient(90deg, transparent, rgba(139,92,246,0.4), rgba(0,255,136,0.4), transparent)";
+    case "green-violet":
+      return "linear-gradient(90deg, transparent, rgba(34,197,94,0.4), rgba(139,92,246,0.3), transparent)";
+    case "default":
+    default:
+      return null;
+  }
+}
+
+// ─────────────────────────────────────────
+// Back button
+// ─────────────────────────────────────────
+
+const backIcon = (
+  <svg
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M15 18l-6-6 6-6" />
+  </svg>
+);
+
+function BackButton({
+  href,
+  onBack,
+  label = "Retour",
+}: {
+  href?: string;
+  onBack?: () => void;
+  label?: string;
+}) {
+  const cls =
+    "flex items-center justify-center w-8 h-8 rounded-full bg-card border border-border text-text-muted hover:text-text transition-colors";
+  if (href) {
+    return (
+      <motion.div whileTap={{ scale: 0.9 }} transition={springs.micro}>
+        <Link href={href} className={cls} aria-label={label}>
+          {backIcon}
+        </Link>
+      </motion.div>
+    );
+  }
   return (
-    <header className="sticky top-0 z-30 bg-bg/80 backdrop-blur-xl border-b border-border">
+    <motion.button
+      type="button"
+      onClick={onBack}
+      whileTap={{ scale: 0.9 }}
+      transition={springs.micro}
+      className={cls}
+      aria-label={label}
+    >
+      {backIcon}
+    </motion.button>
+  );
+}
+
+// ─────────────────────────────────────────
+// Skeleton (loading state)
+// ─────────────────────────────────────────
+
+function PageHeaderSkeleton({ sticky = true }: { sticky?: boolean }) {
+  const pos = sticky ? "sticky top-0 z-30" : "relative";
+  return (
+    <header
+      className={`${pos} bg-bg/80 backdrop-blur-xl border-b border-border`}
+      aria-hidden="true"
+    >
       <div className="flex items-center gap-3 px-4 py-3">
-        {/* Back button */}
-        {backHref && (
-          <motion.div whileTap={{ scale: 0.9 }} transition={springs.micro}>
-            <Link
-              href={backHref}
-              className="flex items-center justify-center w-8 h-8 rounded-full bg-card border border-border text-text-muted hover:text-text transition-colors"
-              aria-label="Retour"
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </Link>
-          </motion.div>
-        )}
-
-        {/* Title & subtitle */}
-        <div className="flex-1 min-w-0">
-          <h1 className="text-lg font-display font-bold text-text truncate">
-            {title}
-          </h1>
-          {subtitle && (
-            <p className="text-xs text-text-muted truncate">{subtitle}</p>
-          )}
-        </div>
-
-        {/* Right action slot */}
-        {rightAction && <div className="flex-shrink-0">{rightAction}</div>}
+        <div className="h-5 w-28 rounded-md bg-border/40 animate-pulse" />
       </div>
     </header>
   );
 }
+
+// ─────────────────────────────────────────
+// Main component
+// ─────────────────────────────────────────
+
+function PageHeader({
+  title,
+  titleClassName,
+  subtitle,
+  backHref,
+  onBack,
+  backLabel,
+  rightAction,
+  actions,
+  icon,
+  iconAnimation = "none",
+  hairlineVariant = "default",
+  sticky = true,
+  className,
+  rackFocus = false,
+}: PageHeaderProps) {
+  const reducedMotion = useReducedMotion();
+
+  const stickyClass = sticky ? "sticky top-0 z-30" : "relative";
+  const hairline = getHairlineGradient(hairlineVariant);
+  const rightSlot = actions ?? rightAction;
+
+  const iconMotion = getIconMotion(iconAnimation);
+  const shouldAnimateIcon =
+    !reducedMotion && iconAnimation !== "none" && icon != null;
+
+  const titleNode = (
+    <div className="flex items-center gap-2 flex-1 min-w-0">
+      {icon != null && (
+        <motion.span
+          className="inline-flex items-center justify-center shrink-0"
+          aria-hidden="true"
+          animate={shouldAnimateIcon ? iconMotion.animate : undefined}
+          transition={shouldAnimateIcon ? iconMotion.transition : undefined}
+        >
+          {icon}
+        </motion.span>
+      )}
+      <div className="flex-1 min-w-0">
+        <h1
+          className={[
+            "text-lg font-display font-bold text-text truncate",
+            titleClassName ?? "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+        >
+          {title}
+        </h1>
+        {subtitle && (
+          <p className="text-xs text-text-muted truncate">{subtitle}</p>
+        )}
+      </div>
+    </div>
+  );
+
+  return (
+    <header
+      className={[
+        stickyClass,
+        "relative bg-bg/80 backdrop-blur-xl border-b border-border",
+        className ?? "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+    >
+      <motion.div
+        className="flex items-center gap-3 px-4 py-3"
+        initial={reducedMotion ? false : { opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: easings.out }}
+      >
+        {(backHref || onBack) && (
+          <BackButton href={backHref} onBack={onBack} label={backLabel} />
+        )}
+        {rackFocus ? <RackFocus duration={0.5}>{titleNode}</RackFocus> : titleNode}
+        {rightSlot && <div className="flex-shrink-0">{rightSlot}</div>}
+      </motion.div>
+
+      {/* Hairline gradient bottom */}
+      {hairline && !reducedMotion && (
+        <motion.div
+          aria-hidden="true"
+          className="absolute bottom-0 left-0 right-0 h-px"
+          style={{ background: hairline }}
+          animate={{ opacity: [0.3, 0.9, 0.3] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        />
+      )}
+    </header>
+  );
+}
+
+// ─────────────────────────────────────────
+// Attach static members & export
+// ─────────────────────────────────────────
+
+type PageHeaderComponent = typeof PageHeader & {
+  Skeleton: typeof PageHeaderSkeleton;
+};
+
+(PageHeader as PageHeaderComponent).Skeleton = PageHeaderSkeleton;
+
+export default PageHeader as PageHeaderComponent;
+export { PageHeaderSkeleton };

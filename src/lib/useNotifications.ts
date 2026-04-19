@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "./supabase";
 import { playSound } from "./sounds";
-import type { RealtimeChannel } from "@supabase/supabase-js";
+import { useRealtimeChannel } from "@/lib/hooks/useSupabaseQuery";
 
 // ---------- Types ----------
 
@@ -20,7 +20,6 @@ export interface AppNotification {
 }
 
 // ---------- Toast bus (lightweight pub/sub) ----------
-// Components can subscribe to this to render toasts however they want.
 
 type ToastListener = (title: string, body: string) => void;
 
@@ -67,7 +66,6 @@ export function useNotifications(userId: string | undefined) {
   const [notifications, setNotifications] = useState<AppNotification[]>(() =>
     loadNotifications(),
   );
-  const channelsRef = useRef<RealtimeChannel[]>([]);
 
   // Derived: unread count
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -110,228 +108,201 @@ export function useNotifications(userId: string | undefined) {
     setNotifications([]);
   }, []);
 
-  // ---------- Realtime subscriptions ----------
+  // ---------- Realtime subscriptions (unified cleanup via useRealtimeChannel) ----------
 
-  useEffect(() => {
-    if (!userId) return;
+  // --- 1. Messages: new message in any conversation involving this user ---
+  useRealtimeChannel(
+    (client) =>
+      userId
+        ? client.channel(`notif-messages-${userId}`).on(
+            "postgres_changes",
+            { event: "INSERT", schema: "public", table: "messages" },
+            async (payload) => {
+              const msg = payload.new as {
+                id: string;
+                conversation_id: string;
+                sender_id: string;
+                content: string;
+                created_at: string;
+              };
 
-    const channels: RealtimeChannel[] = [];
+              if (msg.sender_id === userId) return;
 
-    // --- 1. Messages: new message in any conversation involving this user ---
-    // We listen for INSERTs on messages where sender is NOT the current user.
-    // Supabase Realtime filter: we listen broadly and filter client-side for ownership.
-    const msgChannel = supabase
-      .channel(`notif-messages-${userId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-        },
-        async (payload) => {
-          const msg = payload.new as {
-            id: string;
-            conversation_id: string;
-            sender_id: string;
-            content: string;
-            created_at: string;
-          };
+              const { data: conv } = await supabase
+                .from("conversations")
+                .select("user_a, user_b")
+                .eq("id", msg.conversation_id)
+                .single();
 
-          // Skip own messages
-          if (msg.sender_id === userId) return;
+              if (!conv) return;
+              if (conv.user_a !== userId && conv.user_b !== userId) return;
 
-          // Verify this conversation involves us
-          const { data: conv } = await supabase
-            .from("conversations")
-            .select("user_a, user_b")
-            .eq("id", msg.conversation_id)
-            .single();
+              const { data: profile } = await supabase
+                .from("profiles")
+                .select("name")
+                .eq("id", msg.sender_id)
+                .single();
 
-          if (!conv) return;
-          if (conv.user_a !== userId && conv.user_b !== userId) return;
+              const senderName = profile?.name ?? "Quelqu'un";
+              const title = `Nouveau message de ${senderName}`;
+              const body =
+                msg.content.length > 60 ? msg.content.slice(0, 57) + "..." : msg.content;
 
-          // Get sender name
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("name")
-            .eq("id", msg.sender_id)
-            .single();
+              addNotification({
+                type: "message",
+                title,
+                body,
+                data: {
+                  conversationId: msg.conversation_id,
+                  senderId: msg.sender_id,
+                  messageId: msg.id,
+                },
+              });
 
-          const senderName = profile?.name ?? "Quelqu'un";
-          const title = `Nouveau message de ${senderName}`;
-          const body = msg.content.length > 60
-            ? msg.content.slice(0, 57) + "..."
-            : msg.content;
-
-          addNotification({
-            type: "message",
-            title,
-            body,
-            data: {
-              conversationId: msg.conversation_id,
-              senderId: msg.sender_id,
-              messageId: msg.id,
+              playSound("message");
+              emitToast(title, body);
             },
-          });
+          )
+        : null,
+    [userId, addNotification],
+  );
 
-          playSound("message");
-          emitToast(title, body);
-        },
-      )
-      .subscribe();
-
-    channels.push(msgChannel);
-
-    // --- 2. Interactions: someone liked / superliked us ---
-    const likeChannel = supabase
-      .channel(`notif-interactions-${userId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "interactions",
-          filter: `to_user=eq.${userId}`,
-        },
-        async (payload) => {
-          const interaction = payload.new as {
-            id: string;
-            from_user: string;
-            to_user: string;
-            action: string;
-            mode: string | null;
-            created_at: string;
-          };
-
-          // Only handle likes and superlikes
-          if (interaction.action !== "like" && interaction.action !== "superlike") return;
-
-          // Get liker's name
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("name")
-            .eq("id", interaction.from_user)
-            .single();
-
-          const likerName = profile?.name ?? "Quelqu'un";
-
-          // Check if it's a mutual match (we also liked them)
-          const { data: reverse } = await supabase
-            .from("interactions")
-            .select("id")
-            .eq("from_user", userId)
-            .eq("to_user", interaction.from_user)
-            .in("action", ["like", "superlike"])
-            .single();
-
-          const isMutualMatch = !!reverse;
-
-          if (isMutualMatch) {
-            const title = `\uD83C\uDF89 Match avec ${likerName} !`;
-            const body = "Vous vous plaisez mutuellement. Dites bonjour !";
-
-            addNotification({
-              type: "match",
-              title,
-              body,
-              data: {
-                matchedUserId: interaction.from_user,
-                mode: interaction.mode,
-              },
-            });
-
-            playSound("match");
-            emitToast(title, body);
-          } else {
-            const title = `\uD83D\uDC9C ${likerName} t'a lik\u00E9 !`;
-            const body = interaction.action === "superlike"
-              ? "Un superlike ! Tu lui plais vraiment."
-              : "Tu lui plais. Swipe pour voir !";
-
-            addNotification({
-              type: "like",
-              title,
-              body,
-              data: {
-                likerId: interaction.from_user,
-                action: interaction.action,
-                mode: interaction.mode,
-              },
-            });
-
-            playSound("like");
-            emitToast(title, body);
-          }
-        },
-      )
-      .subscribe();
-
-    channels.push(likeChannel);
-
-    // --- 3. Feed activities: new activity from people nearby / in same mode ---
-    const feedChannel = supabase
-      .channel(`notif-feed-${userId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "feed_activities",
-        },
-        async (payload) => {
-          const activity = payload.new as {
-            id: string;
-            user_id: string;
-            type: string;
-            content: string;
-            mode: string | null;
-            created_at: string;
-          };
-
-          // Skip own activities
-          if (activity.user_id === userId) return;
-
-          // Get poster name
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("name")
-            .eq("id", activity.user_id)
-            .single();
-
-          const posterName = profile?.name ?? "Quelqu'un";
-          const title = `${posterName} est actif${activity.mode ? ` en mode ${activity.mode}` : ""}`;
-          const body = activity.content.length > 60
-            ? activity.content.slice(0, 57) + "..."
-            : activity.content;
-
-          addNotification({
-            type: "feed",
-            title,
-            body,
-            data: {
-              activityId: activity.id,
-              userId: activity.user_id,
-              activityType: activity.type,
-              mode: activity.mode,
+  // --- 2. Interactions: someone liked / superliked us ---
+  useRealtimeChannel(
+    (client) =>
+      userId
+        ? client.channel(`notif-interactions-${userId}`).on(
+            "postgres_changes",
+            {
+              event: "INSERT",
+              schema: "public",
+              table: "interactions",
+              filter: `to_user=eq.${userId}`,
             },
-          });
+            async (payload) => {
+              const interaction = payload.new as {
+                id: string;
+                from_user: string;
+                to_user: string;
+                action: string;
+                mode: string | null;
+                created_at: string;
+              };
 
-          playSound("notification");
-          emitToast(title, body);
-        },
-      )
-      .subscribe();
+              if (interaction.action !== "like" && interaction.action !== "superlike") return;
 
-    channels.push(feedChannel);
+              const { data: profile } = await supabase
+                .from("profiles")
+                .select("name")
+                .eq("id", interaction.from_user)
+                .single();
 
-    channelsRef.current = channels;
+              const likerName = profile?.name ?? "Quelqu'un";
 
-    return () => {
-      channels.forEach((ch) => ch.unsubscribe());
-      channelsRef.current = [];
-    };
-  }, [userId, addNotification]);
+              const { data: reverse } = await supabase
+                .from("interactions")
+                .select("id")
+                .eq("from_user", userId)
+                .eq("to_user", interaction.from_user)
+                .in("action", ["like", "superlike"])
+                .single();
+
+              const isMutualMatch = !!reverse;
+
+              if (isMutualMatch) {
+                const title = `\uD83C\uDF89 Match avec ${likerName} !`;
+                const body = "Vous vous plaisez mutuellement. Dites bonjour !";
+
+                addNotification({
+                  type: "match",
+                  title,
+                  body,
+                  data: {
+                    matchedUserId: interaction.from_user,
+                    mode: interaction.mode,
+                  },
+                });
+
+                playSound("match");
+                emitToast(title, body);
+              } else {
+                const title = `\uD83D\uDC9C ${likerName} t'a lik\u00E9 !`;
+                const body =
+                  interaction.action === "superlike"
+                    ? "Un superlike ! Tu lui plais vraiment."
+                    : "Tu lui plais. Swipe pour voir !";
+
+                addNotification({
+                  type: "like",
+                  title,
+                  body,
+                  data: {
+                    likerId: interaction.from_user,
+                    action: interaction.action,
+                    mode: interaction.mode,
+                  },
+                });
+
+                playSound("like");
+                emitToast(title, body);
+              }
+            },
+          )
+        : null,
+    [userId, addNotification],
+  );
+
+  // --- 3. Feed activities: new activity from people nearby / in same mode ---
+  useRealtimeChannel(
+    (client) =>
+      userId
+        ? client.channel(`notif-feed-${userId}`).on(
+            "postgres_changes",
+            { event: "INSERT", schema: "public", table: "feed_activities" },
+            async (payload) => {
+              const activity = payload.new as {
+                id: string;
+                user_id: string;
+                type: string;
+                content: string;
+                mode: string | null;
+                created_at: string;
+              };
+
+              if (activity.user_id === userId) return;
+
+              const { data: profile } = await supabase
+                .from("profiles")
+                .select("name")
+                .eq("id", activity.user_id)
+                .single();
+
+              const posterName = profile?.name ?? "Quelqu'un";
+              const title = `${posterName} est actif${activity.mode ? ` en mode ${activity.mode}` : ""}`;
+              const body =
+                activity.content.length > 60
+                  ? activity.content.slice(0, 57) + "..."
+                  : activity.content;
+
+              addNotification({
+                type: "feed",
+                title,
+                body,
+                data: {
+                  activityId: activity.id,
+                  userId: activity.user_id,
+                  activityType: activity.type,
+                  mode: activity.mode,
+                },
+              });
+
+              playSound("notification");
+              emitToast(title, body);
+            },
+          )
+        : null,
+    [userId, addNotification],
+  );
 
   return {
     notifications,

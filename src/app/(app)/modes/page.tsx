@@ -5,7 +5,8 @@ import { MODES, MODE_KEYS } from "@/lib/modes";
 import { MOCK_PROFILES } from "@/lib/mock-profiles";
 import { MODE_ICONS } from "@/components/ui/Icons";
 import Link from "next/link";
-import { modesVariants, springs, easings } from "@/lib/motion-design";
+import { modesVariants, springs } from "@/lib/motion-design";
+import PageHeader from "@/components/ui/PageHeader";
 
 const containerVariants: Variants = modesVariants.grid;
 
@@ -15,44 +16,13 @@ export default function ModesPage() {
   const reducedMotion = useReducedMotion();
   return (
     <div className="min-h-screen bg-bg">
-      <header className="sticky top-0 z-40 bg-bg/95 backdrop-blur-md border-b border-border px-5 pt-3 pb-3 relative">
-        <motion.div
-          initial={{ opacity: 0, y: -10, filter: "blur(4px)" }}
-          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          transition={{ duration: 0.5, ease: easings.out }}
-        >
-          <div className="flex items-center gap-2 mb-0.5">
-            <motion.span
-              className="text-lg text-accent"
-              aria-hidden="true"
-              animate={
-                reducedMotion
-                  ? undefined
-                  : { rotate: [0, 8, 0, -8, 0], scale: [1, 1.05, 1] }
-              }
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-            >
-              ☾
-            </motion.span>
-            <span className="text-base font-bold">Modes</span>
-          </div>
-          <p className="text-[11px] text-text-muted">Choisis ton ambiance pour ce soir</p>
-        </motion.div>
-        {!reducedMotion && (
-          <motion.div
-            aria-hidden="true"
-            className="absolute bottom-0 left-0 right-0 h-[1px] origin-left"
-            style={{
-              background:
-                "linear-gradient(90deg, transparent 0%, #8B5CF6 50%, #00FF88 100%)",
-              opacity: 0.4,
-            }}
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{ duration: 1.2, ease: easings.out, delay: 0.2 }}
-          />
-        )}
-      </header>
+      <PageHeader
+        title="Modes"
+        subtitle="Choisis ton ambiance pour ce soir"
+        icon={<span className="text-lg text-accent">☾</span>}
+        iconAnimation="rotate"
+        hairlineVariant="vert-violet"
+      />
 
       <motion.main
         className="px-4 pb-24 pt-4 space-y-2.5"

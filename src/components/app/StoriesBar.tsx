@@ -115,7 +115,7 @@ export default function StoriesBar() {
                   style={{
                     background: isViewed
                       ? "var(--color-border)"
-                      : "linear-gradient(135deg, #8B5CF6, #00FF88)",
+                      : "linear-gradient(135deg, var(--color-accent), var(--color-accent-2))",
                   }}
                 >
                   <div className="p-[2px] rounded-full bg-bg">
@@ -128,7 +128,7 @@ export default function StoriesBar() {
                 </div>
                 {/* Online indicator */}
                 {user.online && (
-                  <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-[#00FF88] border-2 border-bg" />
+                  <span className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-accent-2 border-2 border-bg" />
                 )}
               </button>
               <span className="text-[11px] text-text-muted font-medium truncate max-w-[56px]">
