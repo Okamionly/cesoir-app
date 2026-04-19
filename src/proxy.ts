@@ -29,6 +29,13 @@ const publicRoutes = [
   "/privacy",
   "/why-free",
   "/auth/callback",
+  // Static assets at root that browsers fetch regardless of auth state
+  "/manifest.json",
+  "/manifest.webmanifest",
+  "/sw.js",
+  "/robots.txt",
+  "/sitemap.xml",
+  "/favicon.ico",
 ];
 
 /** Path prefixes that are public (e.g. /p/<id> public profile, /invite/<code>). */

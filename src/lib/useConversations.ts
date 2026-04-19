@@ -14,7 +14,7 @@
  * Conversations are sorted by last message timestamp (most recent first).
  */
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useId, useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "./supabase";
 import type { DbConversation, DbProfile } from "./supabase-types";
 import type { RealtimeChannel } from "@supabase/supabase-js";
@@ -64,6 +64,13 @@ export interface UseConversationsReturn {
 export function useConversations(): UseConversationsReturn {
   const { user } = useAuth();
   const userId = user?.id;
+  // Unique-per-component-instance suffix so multiple consumers of this
+  // hook (e.g. BottomNav for the unread badge AND /chat for the list)
+  // don't collide on Supabase channel names.
+  // Bug 2026-04-19 from QA E2E: identical channel `conversations-${userId}`
+  // shared across mounts → second .on() after subscribe() throws and
+  // crashes the second consumer's tree.
+  const instanceId = useId();
 
   const [conversations, setConversations] = useState<ConversationPreview[]>([]);
   const [loading, setLoading] = useState(true);
@@ -205,7 +212,7 @@ export function useConversations(): UseConversationsReturn {
     if (!userId) return;
 
     const channel = supabase
-      .channel(`conversations-${userId}`)
+      .channel(`conversations-${userId}-${instanceId}`)
       // New conversation where user is user_a
       .on(
         "postgres_changes",
@@ -275,7 +282,7 @@ export function useConversations(): UseConversationsReturn {
     // can check relevance, but won't cause a subscription loop
     // because we only subscribe/unsubscribe when userId changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, fetchConversations]);
+  }, [userId, instanceId, fetchConversations]);
 
   // Compute total unread across all conversations
   const totalUnread = conversations.reduce(
