@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Outfit, Space_Grotesk } from "next/font/google";
 import "./globals.css";
+import ServiceWorkerRegister from "@/components/app/ServiceWorkerRegister";
 
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk", weight: ["500", "700"] });
@@ -76,6 +77,7 @@ export default function RootLayout({
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:rounded-full focus:gradient-bg focus:text-white focus:text-sm focus:font-semibold">
           Aller au contenu principal
         </a>
+        <ServiceWorkerRegister />
         {children}
       </body>
     </html>

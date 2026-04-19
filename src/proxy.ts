@@ -11,8 +11,35 @@ import { NextResponse, type NextRequest } from "next/server";
  * Migrated from src/middleware.ts on 2026-04-19 (Next 16 deprecation).
  */
 
-const protectedRoutes = ["/browse", "/map", "/chat", "/modes", "/profile", "/app"];
+/**
+ * Routes that require an authenticated user.
+ *
+ * QA 2026-04-19 caught: /safety was unprotected (SOS, trusted contacts) — major leak.
+ * Strategy: protect by EXCLUSION. Anything not in publicRoutes is gated.
+ * `publicRoutes` list is the authoritative whitelist.
+ */
+const publicRoutes = [
+  "/",
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/about",
+  "/cgu",
+  "/privacy",
+  "/why-free",
+  "/auth/callback",
+];
+
+/** Path prefixes that are public (e.g. /p/<id> public profile, /invite/<code>). */
+const publicPrefixes = ["/p/", "/invite/", "/api/", "/_next/", "/icons/"];
+
 const authRoutes = ["/login", "/register"];
+
+function isPublicPath(pathname: string): boolean {
+  if (publicRoutes.includes(pathname)) return true;
+  return publicPrefixes.some((prefix) => pathname.startsWith(prefix));
+}
 
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -61,12 +88,15 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-  const isProtected = protectedRoutes.some((r) => pathname.startsWith(r));
+  const isPublic = isPublicPath(pathname);
   const isAuthRoute = authRoutes.some((r) => pathname.startsWith(r));
 
-  if (isProtected && !user) {
+  // Anything not explicitly public is gated. Catches /safety, /notifications,
+  // /achievements, /trust, /reviews, /soiree, /events, /rooms, /squad, etc.
+  if (!isPublic && !user) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+    url.searchParams.set("redirectTo", pathname);
     return NextResponse.redirect(url);
   }
 

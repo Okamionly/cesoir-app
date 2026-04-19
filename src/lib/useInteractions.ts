@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { supabase } from "./supabase";
-import type { InteractionAction, ReportReason, FeedActivityType } from "./supabase-types";
+import type { InteractionAction, ReportReason } from "./supabase-types";
 
 // ---------- Types ----------
 
@@ -15,6 +15,14 @@ interface InteractionRecord {
 interface InteractionResult {
   matched: boolean;
   conversationId: string | null;
+  /** Remaining swipes for the day (server-tracked, may be undefined for non-rate-limited paths). */
+  swipesRemaining?: number;
+  /** ISO timestamp when the rate limit resets. */
+  resetAt?: string;
+  /** Set if the swipe was rejected by the rate limiter. */
+  rateLimited?: boolean;
+  /** Set if the same target was already swiped. */
+  alreadySwiped?: boolean;
 }
 
 interface UseInteractionsReturn {
@@ -44,6 +52,64 @@ interface UseInteractionsReturn {
 
 const MAX_HISTORY = 5;
 
+// ---------- API helper ----------
+
+type SwipeDirection = "like" | "pass" | "superlike";
+
+interface SwipeApiResponse {
+  matched: boolean;
+  conversationId: string | null;
+  swipesRemaining: number;
+  resetAt: string;
+}
+
+interface SwipeApiError {
+  error: string;
+  message?: string;
+  retryAfter?: number;
+  swipesRemaining?: number;
+  resetAt?: string;
+}
+
+/**
+ * Call the server-side /api/swipe route which enforces rate limit (100/jour),
+ * INSERT-not-UPSERT (rejects duplicates), and creates the conversation on
+ * mutual match.
+ *
+ * Going through the API instead of direct supabase.from('interactions')
+ * was an audit fix (2026-04-19): the direct path bypassed the server
+ * rate limit + duplicate detection.
+ */
+async function callSwipeApi(
+  targetId: string,
+  direction: SwipeDirection,
+  mode?: string,
+): Promise<{ ok: true; data: SwipeApiResponse } | { ok: false; error: SwipeApiError; status: number }> {
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.access_token) {
+    return {
+      ok: false,
+      error: { error: "Non authentifie" },
+      status: 401,
+    };
+  }
+
+  const res = await fetch("/api/swipe", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ targetId, direction, mode: mode ?? null }),
+  });
+
+  if (res.ok) {
+    return { ok: true, data: (await res.json()) as SwipeApiResponse };
+  }
+  const errBody = (await res.json().catch(() => ({ error: "unknown" }))) as SwipeApiError;
+  return { ok: false, error: errBody, status: res.status };
+}
+
 // ---------- Hook ----------
 
 export function useInteractions(userId?: string): UseInteractionsReturn {
@@ -59,6 +125,9 @@ export function useInteractions(userId?: string): UseInteractionsReturn {
   /**
    * Check if the target user has also liked/superliked the current user.
    * Returns true if mutual interest exists.
+   *
+   * Kept as direct DB query (not via API) because it's a read used by
+   * the UI to render match-state ahead of a swipe.
    */
   const checkMutualMatch = useCallback(
     async (targetId: string): Promise<boolean> => {
@@ -79,158 +148,62 @@ export function useInteractions(userId?: string): UseInteractionsReturn {
   );
 
   /**
-   * When a match is confirmed: create a conversation and insert a feed activity.
-   * Uses deterministic ordering (lexicographic) for user_a/user_b to prevent duplicates.
+   * Generic dispatcher for like / superlike / pass. Goes through the
+   * server-side /api/swipe route to enforce rate-limit + dedup + match.
    */
-  const handleMatch = useCallback(
-    async (targetId: string, mode?: string): Promise<string | null> => {
-      if (!userId) return null;
-
-      const userA = userId < targetId ? userId : targetId;
-      const userB = userId < targetId ? targetId : userId;
-
-      // Upsert conversation — idempotent on (user_a, user_b)
-      const { data: conv } = await supabase
-        .from("conversations")
-        .upsert(
-          {
-            user_a: userA,
-            user_b: userB,
-            mode: mode ?? null,
-            last_message_at: new Date().toISOString(),
-          },
-          { onConflict: "user_a,user_b" },
-        )
-        .select("id")
-        .single();
-
-      const conversationId = conv?.id ?? null;
-
-      // Insert feed activity for both users so the match shows in their feeds
-      const matchActivity: { user_id: string; type: FeedActivityType; content: string; mode: string | null }[] = [
-        {
-          user_id: userId,
-          type: "availability" as FeedActivityType, // closest available type for "match"
-          content: `match:${targetId}`,
-          mode: mode ?? null,
-        },
-        {
-          user_id: targetId,
-          type: "availability" as FeedActivityType,
-          content: `match:${userId}`,
-          mode: mode ?? null,
-        },
-      ];
-
-      await supabase.from("feed_activities").insert(matchActivity);
-
-      return conversationId;
-    },
-    [userId],
-  );
-
-  /** Like a profile. Returns whether it's a mutual match and the conversation ID. */
-  const like = useCallback(
-    async (targetId: string, mode?: string): Promise<InteractionResult> => {
+  const dispatchSwipe = useCallback(
+    async (
+      targetId: string,
+      direction: SwipeDirection,
+      mode?: string,
+    ): Promise<InteractionResult> => {
       if (!userId) return { matched: false, conversationId: null };
 
       setLoading(true);
       setError(null);
 
       try {
-        // Insert the like interaction
-        const { error: insertError } = await supabase.from("interactions").upsert({
-          from_user: userId,
-          to_user: targetId,
-          action: "like" satisfies InteractionAction,
-          mode: mode ?? null,
-        });
+        const result = await callSwipeApi(targetId, direction, mode);
 
-        if (insertError) throw new Error(insertError.message);
-
-        pushHistory({ targetId, action: "like", mode });
-
-        // Check for mutual match
-        const matched = await checkMutualMatch(targetId);
-
-        let conversationId: string | null = null;
-        if (matched) {
-          conversationId = await handleMatch(targetId, mode);
+        if (!result.ok) {
+          if (result.status === 429) {
+            const msg =
+              result.error.error === "rate_limited"
+                ? "Limite de swipes atteinte pour aujourd'hui"
+                : result.error.error;
+            setError(msg);
+            return {
+              matched: false,
+              conversationId: null,
+              swipesRemaining: result.error.swipesRemaining ?? 0,
+              resetAt: result.error.resetAt,
+              rateLimited: true,
+            };
+          }
+          if (result.status === 409) {
+            setError("Profil deja swipé");
+            return {
+              matched: false,
+              conversationId: null,
+              alreadySwiped: true,
+            };
+          }
+          throw new Error(result.error.error || `HTTP ${result.status}`);
         }
 
-        return { matched, conversationId };
+        // Successful swipe — record in undo history (only for like/superlike/pass).
+        pushHistory({ targetId, action: direction, mode });
+
+        return {
+          matched: result.data.matched,
+          conversationId: result.data.conversationId,
+          swipesRemaining: result.data.swipesRemaining,
+          resetAt: result.data.resetAt,
+        };
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Erreur lors du like";
+        const message = err instanceof Error ? err.message : `Erreur lors du ${direction}`;
         setError(message);
         return { matched: false, conversationId: null };
-      } finally {
-        setLoading(false);
-      }
-    },
-    [userId, pushHistory, checkMutualMatch, handleMatch],
-  );
-
-  /** Superlike a profile. Same flow as like but recorded as "superlike". */
-  const superlike = useCallback(
-    async (targetId: string, mode?: string): Promise<InteractionResult> => {
-      if (!userId) return { matched: false, conversationId: null };
-
-      setLoading(true);
-      setError(null);
-
-      try {
-        const { error: insertError } = await supabase.from("interactions").upsert({
-          from_user: userId,
-          to_user: targetId,
-          action: "superlike" satisfies InteractionAction,
-          mode: mode ?? null,
-        });
-
-        if (insertError) throw new Error(insertError.message);
-
-        pushHistory({ targetId, action: "superlike", mode });
-
-        // Check for mutual match
-        const matched = await checkMutualMatch(targetId);
-
-        let conversationId: string | null = null;
-        if (matched) {
-          conversationId = await handleMatch(targetId, mode);
-        }
-
-        return { matched, conversationId };
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Erreur lors du superlike";
-        setError(message);
-        return { matched: false, conversationId: null };
-      } finally {
-        setLoading(false);
-      }
-    },
-    [userId, pushHistory, checkMutualMatch, handleMatch],
-  );
-
-  /** Pass on a profile. */
-  const pass = useCallback(
-    async (targetId: string): Promise<void> => {
-      if (!userId) return;
-
-      setLoading(true);
-      setError(null);
-
-      try {
-        const { error: insertError } = await supabase.from("interactions").upsert({
-          from_user: userId,
-          to_user: targetId,
-          action: "pass" satisfies InteractionAction,
-        });
-
-        if (insertError) throw new Error(insertError.message);
-
-        pushHistory({ targetId, action: "pass" });
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "Erreur lors du pass";
-        setError(message);
       } finally {
         setLoading(false);
       }
@@ -238,7 +211,26 @@ export function useInteractions(userId?: string): UseInteractionsReturn {
     [userId, pushHistory],
   );
 
-  /** Block a user. Prevents them from appearing in matches. */
+  const like = useCallback(
+    (targetId: string, mode?: string) => dispatchSwipe(targetId, "like", mode),
+    [dispatchSwipe],
+  );
+
+  const superlike = useCallback(
+    (targetId: string, mode?: string) => dispatchSwipe(targetId, "superlike", mode),
+    [dispatchSwipe],
+  );
+
+  const pass = useCallback(
+    async (targetId: string): Promise<void> => {
+      await dispatchSwipe(targetId, "pass");
+    },
+    [dispatchSwipe],
+  );
+
+  /**
+   * Block a user — direct DB op (block is not a "swipe", no rate limit).
+   */
   const block = useCallback(
     async (targetId: string): Promise<void> => {
       if (!userId) return;
@@ -273,7 +265,6 @@ export function useInteractions(userId?: string): UseInteractionsReturn {
       setError(null);
 
       try {
-        // Insert report
         const { error: reportError } = await supabase.from("reports").insert({
           reporter_id: userId,
           reported_id: targetId,
