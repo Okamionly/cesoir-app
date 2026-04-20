@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useState, useRef, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { m, AnimatePresence } from "motion/react";
@@ -9,6 +10,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useChat, useTypingIndicator, useConversationPresence } from "@/lib/useChat";
 import { supabase } from "@/lib/supabase";
 import type { DbProfile, DbConversation } from "@/lib/supabase";
+import ErrorState from "@/components/ui/ErrorState";
 import { MODES } from "@/lib/modes";
 import type { ModeKey } from "@/lib/modes";
 
@@ -185,6 +187,7 @@ export default function ConversationPage({
   params: Promise<{ id: string }>;
 }) {
   const { id: conversationId } = use(params);
+  const router = useRouter();
   const { user } = useAuth();
   const { messages, loading, loadingMore, hasMore, sending, sendMessage, markAsRead, loadMore } = useChat(
     conversationId,
@@ -194,6 +197,15 @@ export default function ConversationPage({
   const [inputValue, setInputValue] = useState("");
   const [peer, setPeer] = useState<Pick<DbProfile, "id" | "name" | "avatar_url" | "is_online"> | null>(null);
   const [convoMode, setConvoMode] = useState<string | null>(null);
+  /**
+   * Tracks conversation-metadata lookup so we can tell "still loading" from
+   * "lookup finished, convo does not exist". Before this, `.eq("id", id)`
+   * on an invalid UUID returned nothing and the page rendered an empty
+   * chat shell silently — flagged in the E2E audit 2026-04-19.
+   */
+  const [conversationStatus, setConversationStatus] = useState<
+    "loading" | "found" | "notfound"
+  >("loading");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesTopRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -235,30 +247,48 @@ export default function ConversationPage({
   // QuickReact per-message reactions (single reaction per message for QuickReact)
   const [quickReactions, setQuickReactions] = useState<Record<string, { emoji: string; byMe: boolean } | null>>({});
 
-  // fetch conversation metadata + peer profile
+  // fetch conversation metadata + peer profile. Resolves to `notfound`
+  // when the id is invalid (bad UUID, deleted row, or unauthorised via RLS).
   useEffect(() => {
     if (!conversationId || !user) return;
 
+    let cancelled = false;
+
     (async () => {
-      const { data: convo } = await supabase
+      // Reset to loading inside the async callback — React flags a
+      // synchronous setState at effect body start as a cascading render.
+      setConversationStatus("loading");
+
+      const { data: convo, error } = await supabase
         .from("conversations")
         .select("*")
         .eq("id", conversationId)
-        .single();
+        .maybeSingle();
 
-      if (!convo) return;
+      if (cancelled) return;
+
+      if (error || !convo) {
+        setConversationStatus("notfound");
+        return;
+      }
+
       const typed = convo as DbConversation;
       setConvoMode(typed.mode);
+      setConversationStatus("found");
 
       const peerId = typed.user_a === user.id ? typed.user_b : typed.user_a;
       const { data: profile } = await supabase
         .from("profiles")
         .select("id, name, avatar_url, is_online")
         .eq("id", peerId)
-        .single();
+        .maybeSingle();
 
-      if (profile) setPeer(profile);
+      if (!cancelled && profile) setPeer(profile);
     })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [conversationId, user]);
 
   // mark messages as read when conversation opens and when new messages arrive
@@ -474,6 +504,30 @@ export default function ConversationPage({
     const timeB = b.kind === "text" ? b.msg.createdAt : b.msg.createdAt;
     return new Date(timeA).getTime() - new Date(timeB).getTime();
   });
+
+  // Conversation not found — render an error state instead of a silent,
+  // empty chat shell. Applies to bogus ids (e.g. `/chat/1`), deleted
+  // conversations, and convos the user can't see (RLS).
+  if (conversationStatus === "notfound") {
+    return (
+      <div className="flex flex-col h-[100dvh] bg-bg">
+        <PageHeader
+          backHref="/chat"
+          backLabel="Retour aux conversations"
+          title="Conversation"
+        />
+        <div className="flex-1 flex items-center justify-center">
+          <ErrorState
+            emoji="💬"
+            title="Conversation introuvable"
+            description="Ce chat n'existe pas ou a ete supprime."
+            onRetry={() => router.push("/chat")}
+            retryLabel="Retour aux conversations"
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-[100dvh] bg-bg">

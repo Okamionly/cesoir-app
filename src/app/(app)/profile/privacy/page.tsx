@@ -1,18 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { m } from "motion/react";
 import PageHeader from "@/components/ui/PageHeader";
 import { Info } from "@/components/ui/lucide";
+import {
+  useUserSettings,
+  type LocationBlur,
+  type PrivacyPrefs,
+} from "@/lib/useUserSettings";
 
-interface PrivacySetting {
-  key: string;
+// ── Toggle descriptors (booleans only) ───────────────────────────────────────
+
+interface ToggleSetting {
+  key: "invisible" | "profile_visible" | "women_first";
   label: string;
   description: string;
   icon: string;
+  // When true, the toggle represents the *opposite* of the stored flag
+  // (e.g. "Profil visible" ON = profile_visible=true).
+  positive?: boolean;
 }
 
-const SETTINGS: PrivacySetting[] = [
+const TOGGLE_SETTINGS: ToggleSetting[] = [
   {
     key: "invisible",
     label: "Mode invisible",
@@ -20,49 +30,115 @@ const SETTINGS: PrivacySetting[] = [
     icon: "👻",
   },
   {
-    key: "location",
-    label: "Partage de position",
-    description: "Permet aux autres de voir ta distance approximative. Desactive pour masquer ta localisation.",
-    icon: "📍",
-  },
-  {
-    key: "suggestions",
+    key: "profile_visible",
     label: "Apparaitre dans les suggestions",
     description: "Les autres utilisateurs peuvent te decouvrir via le feed et les recommandations.",
     icon: "✨",
+    positive: true,
+  },
+  {
+    key: "women_first",
+    label: "Les femmes ecrivent d'abord",
+    description: "Comme Bumble — seules les femmes peuvent initier la conversation.",
+    icon: "💬",
+    positive: true,
   },
 ];
 
+const LOCATION_OPTIONS: { value: LocationBlur; label: string; description: string }[] = [
+  { value: "exact", label: "Exacte", description: "Distance au metre pres" },
+  { value: "km", label: "Arrondi", description: "Au kilometre pres" },
+  { value: "block", label: "Quartier", description: "Masque la distance precise" },
+];
+
+// ── localStorage fallback (offline/first-paint) ──────────────────────────────
+
 const STORAGE_KEY = "cesoir-privacy-settings";
 
-function loadSettings(): Record<string, boolean> {
-  if (typeof window === "undefined") return { invisible: false, location: true, suggestions: true };
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch { /* ignore */ }
-  return { invisible: false, location: true, suggestions: true };
+interface PrivacyState {
+  invisible: boolean;
+  profile_visible: boolean;
+  women_first: boolean;
+  location_blur: LocationBlur;
 }
 
-export default function PrivacySettingsPage() {
-  const [settings, setSettings] = useState<Record<string, boolean>>(loadSettings);
+const defaults: PrivacyState = {
+  invisible: false,
+  profile_visible: true,
+  women_first: false,
+  location_blur: "km",
+};
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-  }, [settings]);
+function loadLocal(): PrivacyState {
+  if (typeof window === "undefined") return defaults;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return { ...defaults, ...JSON.parse(raw) };
+  } catch {
+    /* ignore */
+  }
+  return defaults;
+}
 
-  const toggle = (key: string) => {
-    setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
+function saveLocal(state: PrivacyState): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    /* ignore */
+  }
+}
+
+function mergeFromServer(server: PrivacyPrefs): PrivacyState {
+  return {
+    invisible: server.invisible ?? defaults.invisible,
+    profile_visible: server.profile_visible ?? defaults.profile_visible,
+    women_first: server.women_first ?? defaults.women_first,
+    location_blur: server.location_blur ?? defaults.location_blur,
   };
+}
+
+// ── Page ────────────────────────────────────────────────────────────────────
+
+export default function PrivacySettingsPage() {
+  const { settings, updatePrivacy, loading } = useUserSettings();
+  const [state, setState] = useState<PrivacyState>(loadLocal);
+
+  // Hydrate from server once loaded.
+  useEffect(() => {
+    if (loading) return;
+    const merged = mergeFromServer(settings.privacy);
+    setState(merged);
+    saveLocal(merged);
+  }, [loading, settings.privacy]);
+
+  const persist = useCallback(
+    (partial: Partial<PrivacyState>) => {
+      setState((prev) => {
+        const next = { ...prev, ...partial };
+        saveLocal(next);
+        updatePrivacy(partial).catch((err) => {
+          console.error("[privacy] sync failed:", err);
+        });
+        return next;
+      });
+    },
+    [updatePrivacy],
+  );
+
+  const toggle = (key: ToggleSetting["key"]) => {
+    persist({ [key]: !state[key] } as Partial<PrivacyState>);
+  };
+
+  const blockedUsers = settings.privacy.blocked_users ?? [];
 
   return (
     <div className="min-h-screen bg-bg">
       <PageHeader title="Confidentialite" backHref="/profile" />
 
-      {/* Settings list */}
+      {/* Toggles */}
       <div className="px-5 py-6 space-y-3">
-        {SETTINGS.map((setting, i) => {
-          const isOn = setting.key === "invisible" ? settings[setting.key] : settings[setting.key] !== false;
+        {TOGGLE_SETTINGS.map((setting, i) => {
+          const isOn = state[setting.key];
           return (
             <m.div
               key={setting.key}
@@ -82,7 +158,6 @@ export default function PrivacySettingsPage() {
                   </div>
                 </div>
 
-                {/* Toggle switch */}
                 <button
                   role="switch"
                   aria-checked={isOn}
@@ -104,14 +179,76 @@ export default function PrivacySettingsPage() {
         })}
       </div>
 
+      {/* Location precision selector */}
+      <div className="px-5 pb-6">
+        <div className="bg-bg-card border border-border rounded-2xl p-4">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-accent/8 flex items-center justify-center shrink-0">
+              <span className="text-[18px]" aria-hidden="true">📍</span>
+            </div>
+            <div>
+              <p className="text-[14px] font-bold text-text">Precision de localisation</p>
+              <p className="text-[12px] text-text-muted mt-1 leading-relaxed">
+                Controle la precision avec laquelle les autres voient ta distance.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2" role="radiogroup" aria-label="Precision de localisation">
+            {LOCATION_OPTIONS.map((opt) => {
+              const active = state.location_blur === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  role="radio"
+                  aria-checked={active}
+                  onClick={() => persist({ location_blur: opt.value })}
+                  className={`flex-1 py-2.5 rounded-xl text-[12px] font-medium transition-colors tap-target ${
+                    active
+                      ? "bg-accent text-white"
+                      : "border border-border text-text-muted hover:border-accent/30"
+                  }`}
+                  title={opt.description}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Blocked users (read-only list for now) */}
+      <div className="px-5 pb-6">
+        <div className="bg-bg-card border border-border rounded-2xl p-4">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-accent/8 flex items-center justify-center shrink-0">
+              <span className="text-[18px]" aria-hidden="true">🚫</span>
+            </div>
+            <div className="flex-1">
+              <p className="text-[14px] font-bold text-text">
+                Utilisateurs bloques
+              </p>
+              {blockedUsers.length === 0 ? (
+                <p className="text-[12px] text-text-muted mt-1 leading-relaxed">
+                  Aucun utilisateur bloque. Utilise le menu depuis un profil pour bloquer quelqu&apos;un.
+                </p>
+              ) : (
+                <p className="text-[12px] text-text-muted mt-1 leading-relaxed">
+                  {blockedUsers.length} utilisateur{blockedUsers.length > 1 ? "s" : ""} bloque{blockedUsers.length > 1 ? "s" : ""}. Le deblocage sera bientot disponible.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Info footer */}
       <div className="px-5 pb-24">
         <div className="bg-accent/5 border border-accent/10 rounded-2xl p-4">
           <div className="flex items-start gap-3">
             <Info size={16} strokeWidth={2} className="text-accent shrink-0 mt-0.5" aria-hidden="true" />
             <p className="text-[12px] text-text-muted leading-relaxed">
-              Ces parametres sont appliques immediatement. En mode invisible, tu peux toujours parcourir les profils
-              mais personne ne te verra. Tes conversations existantes restent accessibles.
+              Ces parametres sont appliques immediatement et synchronises entre tes appareils. En mode invisible, tu peux toujours parcourir les profils mais personne ne te verra. Tes conversations existantes restent accessibles.
             </p>
           </div>
         </div>

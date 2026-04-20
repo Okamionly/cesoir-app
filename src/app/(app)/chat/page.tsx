@@ -210,16 +210,6 @@ function ConversationRow({
       </AnimatePresence>
 
       <Link
-        href={`/rendezvous/${convo.id}`}
-        className="absolute right-3 top-3 z-20 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-bg-card border border-border text-[10px] font-medium text-text-muted hover:text-accent hover:border-accent/30 transition-colors"
-        aria-label={`Tracker le rendez-vous avec ${convo.peer.name}`}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <span aria-hidden="true">📍</span>
-        Tracker le rendez-vous
-      </Link>
-
-      <Link
         href={`/chat/${convo.id}`}
         className="flex items-center gap-3.5 px-4 py-3.5 active:bg-bg-card transition-colors cursor-pointer border-b border-border/50 relative z-0"
         onTouchStart={handleTouchStart}

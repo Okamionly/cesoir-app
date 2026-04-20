@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { m, useReducedMotion } from "motion/react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
+import { useUserSettings } from "@/lib/useUserSettings";
 import { Magnetic } from "@/components/motion/Magnetic";
 import { springs, profileVariants } from "@/lib/motion-design";
 import PageHeader from "@/components/ui/PageHeader";
@@ -39,6 +40,8 @@ export default function ProfilePage() {
   const [profileName, setProfileName] = useState("Youssef");
   const [age, setAge] = useState<number>(28);
 
+  // Server settings + optimistic local mirror for instant UI.
+  const { settings, updateTonightChips } = useUserSettings();
   const [selectedChips, setSelectedChips] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("cesoir-tonight-chips");
@@ -46,6 +49,13 @@ export default function ProfilePage() {
     }
     return [];
   });
+
+  // Hydrate from server once it arrives (server wins over stale localStorage).
+  useEffect(() => {
+    if (settings.tonightChips.length > 0 || localStorage.getItem("cesoir-tonight-chips") === null) {
+      setSelectedChips(settings.tonightChips);
+    }
+  }, [settings.tonightChips]);
 
   useEffect(() => {
     localStorage.setItem("cesoir-tonight-chips", JSON.stringify(selectedChips));
@@ -66,7 +76,14 @@ export default function ProfilePage() {
   }, [user]);
 
   const toggleChip = (chip: string) => {
-    setSelectedChips(prev => prev.includes(chip) ? prev.filter(c => c !== chip) : [...prev, chip]);
+    setSelectedChips(prev => {
+      const next = prev.includes(chip) ? prev.filter(c => c !== chip) : [...prev, chip];
+      // Fire-and-forget persist (optimistic UI — if it fails we keep local).
+      updateTonightChips(next).catch((err) => {
+        console.error("[profile] tonight chips sync failed:", err);
+      });
+      return next;
+    });
   };
 
   const reducedMotion = useReducedMotion();

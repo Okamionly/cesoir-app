@@ -10,6 +10,7 @@ import { useDarkMode } from "@/components/ui/DarkModeProvider";
 import { useAccessibility, type FontSize } from "@/components/ui/ReducedMotion";
 import { useTranslation, type Locale } from "@/lib/i18n";
 import { useWomenFirstSettings } from "@/lib/useWomenFirst";
+import { useUserSettings } from "@/lib/useUserSettings";
 import { springs } from "@/lib/motion-design";
 import PageHeader from "@/components/ui/PageHeader";
 import { ChevronRight } from "@/components/ui/lucide";
@@ -232,9 +233,19 @@ export default function SettingsPage() {
   } = useAccessibility();
   const { settings: wfSettings, toggle: toggleWomenFirst } = useWomenFirstSettings();
 
+  // Server-backed prefs — localStorage stays as immediate fallback.
+  const {
+    settings: serverSettings,
+    updateNotifications: serverUpdateNotifications,
+    updatePrivacy: serverUpdatePrivacy,
+    updateAppPrefs: serverUpdateAppPrefs,
+    loading: serverLoading,
+  } = useUserSettings();
+
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [mounted, setMounted] = useState(false);
 
+  // Load local state first (instant paint), then overlay server values once available.
   useEffect(() => {
     const loaded = loadSettings();
     loaded.notifications.sons = !isMuted();
@@ -242,6 +253,34 @@ export default function SettingsPage() {
     setSettings(loaded);
     setMounted(true);
   }, [darkModeValue]);
+
+  // Once server settings arrive, overlay the persisted values (server wins).
+  useEffect(() => {
+    if (serverLoading) return;
+    setSettings((prev) => {
+      const n = serverSettings.notifications;
+      const p = serverSettings.privacy;
+      const a = serverSettings.app;
+      return {
+        notifications: {
+          messages: n.messages ?? prev.notifications.messages,
+          likes: n.likes ?? prev.notifications.likes,
+          matchs: n.matches ?? prev.notifications.matchs,
+          plansFlash: n.plansFlash ?? prev.notifications.plansFlash,
+          sons: n.sons ?? prev.notifications.sons,
+        },
+        privacy: {
+          profilVisible: p.profile_visible ?? prev.privacy.profilVisible,
+          partagerPosition: p.location_blur ? p.location_blur === "exact" : prev.privacy.partagerPosition,
+          modeFantome: p.invisible ?? prev.privacy.modeFantome,
+        },
+        appearance: {
+          theme: a.dark_mode ? modeToTheme[a.dark_mode] : prev.appearance.theme,
+        },
+      };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [serverLoading, serverSettings.notifications, serverSettings.privacy, serverSettings.app]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -256,6 +295,17 @@ export default function SettingsPage() {
     if (key === "sons") {
       setMuted(!value);
     }
+    // Map local keys -> server schema
+    const serverMap: Record<keyof Settings["notifications"], string> = {
+      messages: "messages",
+      likes: "likes",
+      matchs: "matches",
+      plansFlash: "plansFlash",
+      sons: "sons",
+    };
+    serverUpdateNotifications({ [serverMap[key]]: value }).catch((err) => {
+      console.error("[settings] notifications sync failed:", err);
+    });
   };
 
   const updatePrivacy = (key: keyof Settings["privacy"], value: boolean) => {
@@ -263,6 +313,20 @@ export default function SettingsPage() {
       ...prev,
       privacy: { ...prev.privacy, [key]: value },
     }));
+    // Map local keys -> server schema
+    if (key === "profilVisible") {
+      serverUpdatePrivacy({ profile_visible: value }).catch((err) =>
+        console.error("[settings] privacy sync failed:", err),
+      );
+    } else if (key === "modeFantome") {
+      serverUpdatePrivacy({ invisible: value }).catch((err) =>
+        console.error("[settings] privacy sync failed:", err),
+      );
+    } else if (key === "partagerPosition") {
+      serverUpdatePrivacy({ location_blur: value ? "exact" : "block" }).catch((err) =>
+        console.error("[settings] privacy sync failed:", err),
+      );
+    }
   };
 
   const setTheme = (theme: Settings["appearance"]["theme"]) => {
@@ -271,6 +335,39 @@ export default function SettingsPage() {
       appearance: { ...prev.appearance, theme },
     }));
     setDarkMode(themeToMode[theme]);
+    serverUpdateAppPrefs({ dark_mode: themeToMode[theme] }).catch((err) => {
+      console.error("[settings] app prefs sync failed:", err);
+    });
+  };
+
+  // Sync locale / fontSize / reducedMotion when user changes them via the existing providers.
+  const handleLocaleChange = (next: Locale) => {
+    changeLocale(next);
+    serverUpdateAppPrefs({ language: next }).catch((err) => {
+      console.error("[settings] language sync failed:", err);
+    });
+  };
+
+  const handleFontSizeChange = (next: FontSize) => {
+    setFontSize(next);
+    serverUpdateAppPrefs({ font_size: next }).catch((err) => {
+      console.error("[settings] font size sync failed:", err);
+    });
+  };
+
+  const handleReducedMotionChange = (next: boolean) => {
+    setReducedMotionOverride(next);
+    serverUpdateAppPrefs({ reduced_motion: next }).catch((err) => {
+      console.error("[settings] reduced motion sync failed:", err);
+    });
+  };
+
+  const handleWomenFirstToggle = (_next: boolean) => {
+    toggleWomenFirst();
+    // useWomenFirstSettings flips its internal state — mirror the intended next value to server.
+    serverUpdateAppPrefs({ women_first: _next }).catch((err) => {
+      console.error("[settings] women_first sync failed:", err);
+    });
   };
 
   return (
@@ -344,7 +441,7 @@ export default function SettingsPage() {
               <span className="text-[13px] font-semibold text-text">
                 Les femmes ecrivent d&apos;abord
               </span>
-              <Toggle value={wfSettings.enabled} onChange={toggleWomenFirst} />
+              <Toggle value={wfSettings.enabled} onChange={handleWomenFirstToggle} />
             </div>
             <p className="text-[11px] text-text-muted mt-1">
               Comme Bumble — les femmes initient la conversation
@@ -378,7 +475,7 @@ export default function SettingsPage() {
                 { value: "en", label: "English" },
               ]}
               value={locale}
-              onChange={changeLocale}
+              onChange={handleLocaleChange}
             />
           </div>
           <div className="px-4 py-3.5">
@@ -390,13 +487,13 @@ export default function SettingsPage() {
                 { value: "xlarge", label: "Tres grand" },
               ]}
               value={fontSize}
-              onChange={setFontSize}
+              onChange={handleFontSizeChange}
             />
           </div>
           <ToggleRow
             label="Reduire les animations"
             value={reducedMotionOverride !== null ? reducedMotionOverride : reducedMotion}
-            onChange={(v) => setReducedMotionOverride(v)}
+            onChange={(v) => handleReducedMotionChange(v)}
           />
         </Section>
 

@@ -26,18 +26,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       _currentUserId = session?.user?.id ?? null;
+      // Inject access token into Realtime so WebSocket auth matches the
+      // current session. With @supabase/ssr the session is cookie-backed,
+      // so Realtime does not auto-refresh its token like the default client
+      // does; without this call the WS connection opens with the anon key
+      // and Supabase rejects `postgres_changes` subscriptions.
+      supabase.realtime.setAuth(session?.access_token ?? null);
       setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       _currentUserId = session?.user?.id ?? null;
+      // Keep Realtime auth in sync on sign-in / sign-out / token refresh.
+      supabase.realtime.setAuth(session?.access_token ?? null);
       setLoading(false);
     });
 
     // Refresh token every 50 minutes
     const refreshInterval = setInterval(async () => {
-      const { error: refreshError } = await supabase.auth.refreshSession();
+      const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
       if (refreshError) {
         // Token refresh failed — force re-login
         console.error("Session refresh failed:", refreshError.message);
@@ -45,6 +53,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
         _currentUserId = null;
         window.location.href = "/login";
+      } else {
+        // Push the rotated token into the Realtime client so active
+        // WebSocket channels re-authenticate instead of spamming
+        // "HTTP Authentication failed".
+        supabase.realtime.setAuth(refreshed.session?.access_token ?? null);
       }
     }, 50 * 60 * 1000); // 50 minutes
 

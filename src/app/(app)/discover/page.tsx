@@ -136,10 +136,35 @@ export default function DiscoverPage() {
   // Real profiles via Supabase RPC (nearby_profiles); MOCK_PROFILES bootstrap when empty.
   const { latitude, longitude } = useGeolocation();
   const modeFilter = filters.mode === "all" ? undefined : filters.mode;
+
+  // Map the UI age chip → numeric (min, max) window forwarded to the RPC.
+  // Client-side `applyFilters` below still runs as a safety net (covers
+  // mock fallback + age bucketing UX). The RPC narrows the pool before
+  // it reaches the client, which matters when the DB has 10k+ rows.
+  const ageBounds = (() => {
+    switch (filters.age) {
+      case "18-25":
+        return { minAge: 18, maxAge: 25 };
+      case "25-35":
+        return { minAge: 25, maxAge: 35 };
+      case "35-45":
+        return { minAge: 35, maxAge: 45 };
+      case "45+":
+        return { minAge: 45, maxAge: 120 };
+      default:
+        return { minAge: undefined, maxAge: undefined };
+    }
+  })();
+
   const { profiles: realProfiles, isReal } = useProfiles(
     latitude ?? undefined,
     longitude ?? undefined,
     modeFilter,
+    {
+      maxDistance: filters.distance ?? undefined,
+      minAge: ageBounds.minAge,
+      maxAge: ageBounds.maxAge,
+    },
   );
   const sourceProfiles: Profile[] = isReal && realProfiles.length > 0 ? realProfiles : MOCK_PROFILES;
 

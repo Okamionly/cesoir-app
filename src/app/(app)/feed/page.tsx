@@ -6,7 +6,6 @@ import { m, AnimatePresence } from "motion/react";
 import { feedVariants, springs } from "@/lib/motion-design";
 import { MODES, type ModeKey } from "@/lib/modes";
 import { useFeed, type FeedActivity } from "@/lib/useFeed";
-import StoriesBar from "@/components/app/StoriesBar";
 import EmptyState from "@/components/ui/EmptyState";
 import { Magnetic } from "@/components/motion/Magnetic";
 import PageHeader from "@/components/ui/PageHeader";
@@ -168,9 +167,6 @@ export default function FeedPage() {
           </span>
         }
       />
-
-      {/* Stories bar */}
-      <StoriesBar />
 
       {/* Divider */}
       <div className="border-b border-border" />
