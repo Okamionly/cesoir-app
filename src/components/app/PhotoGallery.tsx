@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence, useMotionValue, PanInfo } from "motion/react";
 import { springs } from "@/lib/motion-design";
-import { X } from "@/components/ui/lucide";
+import { X, Lock } from "@/components/ui/lucide";
 
 // Re-export for backwards compatibility with imports that used to live here.
 export { getMockGradients } from "@/lib/photo-gallery-gradients";
@@ -175,19 +175,7 @@ export default function PhotoGallery({
                 transition={{ duration: 0.3 }}
               >
                 <div className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center mb-3 border border-white/20">
-                  <svg
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                  </svg>
+                  <Lock size={24} strokeWidth={2} color="white" aria-hidden="true" />
                 </div>
                 <p className="text-[14px] font-bold text-white">
                   Match pour voir

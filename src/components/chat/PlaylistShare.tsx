@@ -8,6 +8,7 @@ import {
   CHAT_ALBUM_GRADIENTS,
   BRAND_VIOLET,
 } from "@/lib/chat-content-colors";
+import { Play } from "@/components/ui/lucide";
 
 // ─────────────────────────────────────────
 // Types
@@ -192,9 +193,7 @@ export function MusicCard({ songs, isOwn, time }: MusicCardProps) {
           </div>
           {/* Fake play icon */}
           <div className="shrink-0 w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
-            <svg width={12} height={12} viewBox="0 0 12 12" fill={BRAND_VIOLET}>
-              <path d="M2 1l9 5-9 5V1z" />
-            </svg>
+            <Play size={12} fill={BRAND_VIOLET} stroke="none" aria-hidden="true" />
           </div>
         </div>
 
@@ -300,9 +299,7 @@ export function SharedPlaylist({
           whileTap={{ scale: 0.97 }}
           transition={springs.micro}
         >
-          <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-            <polygon points="5 3 19 12 5 21 5 3" />
-          </svg>
+          <Play size={14} strokeWidth={2.5} fill="currentColor" aria-hidden="true" />
           Ecouter ensemble
         </m.button>
       </div>

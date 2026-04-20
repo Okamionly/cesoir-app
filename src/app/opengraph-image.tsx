@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { app } from "@/lib/design-tokens";
 
 export const runtime = "edge";
 
@@ -17,7 +18,7 @@ export default function OGImage() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#0A0A0A",
+          backgroundColor: app.ogBg,
           fontFamily: "sans-serif",
         }}
       >
@@ -32,7 +33,7 @@ export default function OGImage() {
           <span
             style={{
               fontSize: "96px",
-              color: "#8B5CF6",
+              color: app.violet,
             }}
           >
             ☾
@@ -41,7 +42,7 @@ export default function OGImage() {
             style={{
               fontSize: "96px",
               fontWeight: 700,
-              background: "linear-gradient(135deg, #FFFFFF 0%, #8B5CF6 100%)",
+              background: `linear-gradient(135deg, ${app.bg} 0%, ${app.violet} 100%)`,
               backgroundClip: "text",
               color: "transparent",
             }}
@@ -52,7 +53,7 @@ export default function OGImage() {
         <p
           style={{
             fontSize: "36px",
-            color: "#A1A1AA",
+            color: app.ogSubtitle,
             margin: 0,
             letterSpacing: "0.02em",
           }}

@@ -8,6 +8,8 @@ import { MODE_ICONS } from "@/components/ui/Icons";
 import AudioIntro from "@/components/app/AudioIntro";
 import TrustBadge from "@/components/app/TrustBadge";
 import KarmaBadge from "@/components/app/KarmaBadge";
+import { app } from "@/lib/design-tokens";
+import { ArrowLeft, Star } from "@/components/ui/lucide";
 
 // ─────────────────────────────────────────
 // Types
@@ -113,9 +115,7 @@ export default function PresentationClient({ profile }: PresentationClientProps)
           transition={springs.snap}
           aria-label="Retour"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
-            <path d="M15 18l-6-6 6-6" />
-          </svg>
+          <ArrowLeft size={18} strokeWidth={2} color="white" aria-hidden="true" />
         </m.button>
       </div>
 
@@ -168,8 +168,8 @@ export default function PresentationClient({ profile }: PresentationClientProps)
           {profile.isVerified && (
             <div className="flex items-center gap-1.5 bg-accent/8 border border-accent/15 px-3 py-1.5 rounded-full">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" fill="#8B5CF6" />
-                <path d="M8 12l3 3 5-5" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <circle cx="12" cy="12" r="10" fill={app.violet} />
+                <path d="M8 12l3 3 5-5" stroke={app.bg} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
               <span className="text-[11px] text-accent font-semibold">Verifie</span>
             </div>
@@ -375,21 +375,20 @@ export default function PresentationClient({ profile }: PresentationClientProps)
               >
                 {/* Stars */}
                 <div className="flex items-center gap-1 mb-2">
-                  {Array.from({ length: 5 }).map((_, s) => (
-                    <svg
-                      key={s}
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill={s < review.rating ? "#F59E0B" : "none"}
-                      stroke={s < review.rating ? "#F59E0B" : "currentColor"}
-                      strokeWidth="1.5"
-                      className={s < review.rating ? "" : "text-border"}
-                      aria-hidden="true"
-                    >
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                    </svg>
-                  ))}
+                  {Array.from({ length: 5 }).map((_, s) => {
+                    const filled = s < review.rating;
+                    return (
+                      <Star
+                        key={s}
+                        size={14}
+                        strokeWidth={1.5}
+                        fill={filled ? app.amberStar : "none"}
+                        color={filled ? app.amberStar : "currentColor"}
+                        className={filled ? "" : "text-border"}
+                        aria-hidden="true"
+                      />
+                    );
+                  })}
                   <span className="text-[11px] text-text-muted ml-1">{review.date}</span>
                 </div>
 
@@ -475,13 +474,15 @@ export default function PresentationClient({ profile }: PresentationClientProps)
 
             {/* Super Like */}
             <m.button
-              className="w-[52px] h-[52px] rounded-xl border-2 border-[#F59E0B]/30 bg-[#F59E0B]/8 flex items-center justify-center shrink-0 tap-target"
+              className="w-[52px] h-[52px] rounded-xl border-2 flex items-center justify-center shrink-0 tap-target"
+              style={{
+                borderColor: `${app.amberStar}4D`, // /30 alpha
+                backgroundColor: `${app.amberStar}14`, // /8 alpha
+              }}
               whileTap={{ scale: 0.85, rotate: -10 }}
               transition={springs.elastic}
             >
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="#F59E0B" aria-hidden="true">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-              </svg>
+              <Star size={22} fill={app.amberStar} color={app.amberStar} stroke="none" aria-hidden="true" />
             </m.button>
           </div>
         </div>

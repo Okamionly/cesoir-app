@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { m } from "motion/react";
 import { springs, ambient } from "@/lib/motion-design";
+import { app } from "@/lib/design-tokens";
 
 export default function NotFound() {
   return (
@@ -10,15 +11,18 @@ export default function NotFound() {
       {/* Ambient glow orbs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <m.div
-          className="absolute w-[400px] h-[400px] rounded-full bg-[#8B5CF6] opacity-20 blur-[120px] -top-20 -right-20"
+          className="absolute w-[400px] h-[400px] rounded-full opacity-20 blur-[120px] -top-20 -right-20"
+          style={{ backgroundColor: app.violet }}
           animate={ambient.float(8)}
         />
         <m.div
-          className="absolute w-[300px] h-[300px] rounded-full bg-[#00FF88] opacity-15 blur-[100px] -bottom-16 -left-20"
+          className="absolute w-[300px] h-[300px] rounded-full opacity-15 blur-[100px] -bottom-16 -left-20"
+          style={{ backgroundColor: app.vert }}
           animate={ambient.float(10)}
         />
         <m.div
-          className="absolute w-[200px] h-[200px] rounded-full bg-[#8B5CF6] opacity-10 blur-[80px] top-1/2 left-1/4"
+          className="absolute w-[200px] h-[200px] rounded-full opacity-10 blur-[80px] top-1/2 left-1/4"
+          style={{ backgroundColor: app.violet }}
           animate={ambient.float(12)}
         />
       </div>
@@ -37,7 +41,7 @@ export default function NotFound() {
         <m.h1
           className="text-[120px] font-black tracking-tighter leading-none mb-4"
           style={{
-            background: "linear-gradient(135deg, #8B5CF6, #00FF88)",
+            background: app.gradient,
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
           }}
@@ -69,7 +73,7 @@ export default function NotFound() {
             href="/"
             className="px-8 py-3.5 rounded-full text-[15px] font-semibold text-white transition-all active:scale-95"
             style={{
-              background: "linear-gradient(135deg, #8B5CF6, #00FF88)",
+              background: app.gradient,
               boxShadow: "0 0 40px rgba(139,92,246,0.3)",
             }}
           >

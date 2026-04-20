@@ -7,6 +7,7 @@ import {
   CHAT_VOICE_WAVEFORM_ACCENT,
   CHAT_VOICE_NEUTRAL_BG,
 } from "@/lib/chat-content-colors";
+import { Mic } from "@/components/ui/lucide";
 
 // ---------- VoiceRecordButton ----------
 
@@ -104,19 +105,7 @@ export function VoiceRecordButton({ onRecordComplete }: VoiceRecordButtonProps) 
         }`}
         aria-label={isRecording ? "Relacher pour envoyer le message vocal" : "Maintenir pour enregistrer un message vocal"}
       >
-        <svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-          <path
-            d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"
-            fill="currentColor"
-          />
-          <path
-            d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        <Mic size={18} strokeWidth={1.5} aria-hidden="true" />
       </button>
     </div>
   );

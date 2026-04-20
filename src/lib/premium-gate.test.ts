@@ -82,4 +82,50 @@ describe("getDailyLikeCap", () => {
     expect(cap).toBe(PREMIUM_TIER_DAILY_LIKES);
     expect(cap).toBe(Infinity);
   });
+
+  it("falls back to FREE cap when userId is empty", async () => {
+    const cap = await getDailyLikeCap("");
+    expect(cap).toBe(FREE_TIER_DAILY_LIKES);
+  });
+
+  it("falls back to FREE cap when subscription query errors", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    mockSupabase.from = vi.fn(() =>
+      createQueryBuilder({ data: null, error: { message: "boom" } }),
+    );
+    const cap = await getDailyLikeCap("user-x");
+    expect(cap).toBe(FREE_TIER_DAILY_LIKES);
+    consoleSpy.mockRestore();
+  });
+});
+
+describe("isPremium — extended scenarios", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("treats canceled subscriptions as non-premium (mid-period or otherwise)", async () => {
+    // The query filter explicitly excludes canceled status — the mock returning
+    // null for that query confirms a canceled sub does not grant premium.
+    mockSupabase.from = vi.fn(() =>
+      createQueryBuilder({ data: null, error: null }),
+    );
+    expect(await isPremium("user-cxl")).toBe(false);
+  });
+
+  it("treats past_due as non-premium", async () => {
+    mockSupabase.from = vi.fn(() =>
+      createQueryBuilder({ data: null, error: null }),
+    );
+    expect(await isPremium("user-past-due")).toBe(false);
+  });
+
+  it("queries the `subscriptions` table with the user_id filter", async () => {
+    const fromSpy = vi.fn(() =>
+      createQueryBuilder({ data: { status: "active" }, error: null }),
+    );
+    mockSupabase.from = fromSpy;
+    await isPremium("user-42");
+    expect(fromSpy).toHaveBeenCalledWith("subscriptions");
+  });
 });

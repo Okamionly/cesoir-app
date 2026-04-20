@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { m } from "motion/react";
 import PageHeader from "@/components/ui/PageHeader";
+import { Info } from "@/components/ui/lucide";
 
 interface PrivacySetting {
   key: string;
@@ -107,10 +108,7 @@ export default function PrivacySettingsPage() {
       <div className="px-5 pb-24">
         <div className="bg-accent/5 border border-accent/10 rounded-2xl p-4">
           <div className="flex items-start gap-3">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-accent shrink-0 mt-0.5">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M12 16v-4m0-4h.01" />
-            </svg>
+            <Info size={16} strokeWidth={2} className="text-accent shrink-0 mt-0.5" aria-hidden="true" />
             <p className="text-[12px] text-text-muted leading-relaxed">
               Ces parametres sont appliques immediatement. En mode invisible, tu peux toujours parcourir les profils
               mais personne ne te verra. Tes conversations existantes restent accessibles.

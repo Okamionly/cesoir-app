@@ -18,6 +18,7 @@ import LiveActivityPanel from "@/components/map/LiveActivityPanel";
 import CrossLinkCard from "@/components/app/CrossLinkCard";
 import PageHeader from "@/components/ui/PageHeader";
 import MotionImage from "@/components/motion/MotionImage";
+import { ChevronRight } from "@/components/ui/lucide";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
@@ -556,7 +557,7 @@ export default function MapPage() {
                             <p className="text-[11px] font-semibold text-text truncate">{ev.title}</p>
                             <p className="text-[9px] text-text-muted">{ev.time} · {ev.spots}</p>
                           </div>
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-text-muted shrink-0" aria-hidden="true"><path d="M9 18l6-6-6-6" /></svg>
+                          <ChevronRight size={10} strokeWidth={2} className="text-text-muted shrink-0" aria-hidden="true" />
                         </m.button>
                       ))}
                     </div>

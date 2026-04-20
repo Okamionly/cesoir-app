@@ -51,9 +51,17 @@ export const app = {
   purple: "#A855F7",
   // Premium gold shimmer (premium CTA gradients — paired with --color-warn).
   gold: "#FBBF24",
+  // Amber star — used for rating stars + super-like accent. Distinct from
+  // `gold` (premium CTA): this is the Tailwind amber-500 hue used by review
+  // stars and the super-like halo on public profile pages.
+  amberStar: "#F59E0B",
   // Atmospheric dark surface — out-of-palette, for camera viewport / offline
   // map fallback tints. NOT a UI token; kept here to avoid eslint friction.
   dark: "#1A1A2E",
+  // OG/social-share dark backdrop (Edge runtime ImageResponse). Out-of-palette.
+  ogBg: "#0A0A0A",
+  // OG/social-share neutral subtitle. Out-of-palette.
+  ogSubtitle: "#A1A1AA",
   darkMid: "#16213E",
   darkDeep: "#0F3460",
   // Third-party brand hex (for OAuth / verify badges).

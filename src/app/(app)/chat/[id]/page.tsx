@@ -27,7 +27,7 @@ import QuickReact from "@/components/chat/QuickReact";
 import WeMetFeedback from "@/components/app/WeMetFeedback";
 import { screenMessage } from "@/lib/messageScreening";
 import type { ScreeningResult } from "@/lib/messageScreening";
-import { ChevronRight } from "@/components/ui/lucide";
+import { ChevronRight, ArrowLeft, Send } from "@/components/ui/lucide";
 import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
 
@@ -48,20 +48,13 @@ interface SpecialMessage {
 
 // ---------- Sub-components ----------
 
+// Local wrappers preserve previous call sites + custom defaults.
 function BackArrow({ size = 22, className = "" }: { size?: number; className?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
-      <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+  return <ArrowLeft size={size} strokeWidth={1.5} className={className} aria-hidden="true" />;
 }
 
 function SendIcon({ size = 20, className = "" }: { size?: number; className?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
-      <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+  return <Send size={size} strokeWidth={1.5} className={className} aria-hidden="true" />;
 }
 
 /** Single gray checkmark = delivered but unread */

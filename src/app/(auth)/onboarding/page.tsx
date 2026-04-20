@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { MODES, MODE_KEYS, type ModeKey } from "@/lib/modes";
 import { MODE_ICONS } from "@/components/ui/Icons";
 import { springs, welcomeVariants, ambient, easings } from "@/lib/motion-design";
+import { Camera } from "@/components/ui/lucide";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 
@@ -307,10 +308,7 @@ export default function OnboardingPage() {
                 <m.div
                   animate={ambient.breathe(3)}
                 >
-                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" aria-hidden="true">
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
-                    <circle cx="12" cy="13" r="4" />
-                  </svg>
+                  <Camera size={36} strokeWidth={1.5} color="white" aria-hidden="true" />
                 </m.div>
               </m.div>
 

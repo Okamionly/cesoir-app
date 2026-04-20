@@ -8,6 +8,7 @@ import { discoverVariants, springs, micro } from "@/lib/motion-design";
 import { ModeKey, MODES, MODE_KEYS } from "@/lib/modes";
 import { MOCK_PROFILES, type Profile } from "@/lib/mock-profiles";
 import { MODE_ICONS, IconSearch, IconX } from "@/components/ui/Icons";
+import { Filter, Check } from "@/components/ui/lucide";
 import CrossLinkCard from "@/components/app/CrossLinkCard";
 import { useProfiles } from "@/lib/useProfiles";
 import { useGeolocation } from "@/lib/useGeolocation";
@@ -659,21 +660,14 @@ function EmptyState({ onReset }: { onReset: () => void }) {
 }
 
 // ─────────────────────────────────────────
-// Inline icons (not in the shared icon set)
+// Local glyph wrappers — keep call sites unchanged
 // ─────────────────────────────────────────
 
 function IconFilter({ size = 24 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden focusable="false">
-      <path d="M4 6h16M7 12h10M10 18h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  );
+  return <Filter size={size} strokeWidth={1.5} aria-hidden focusable="false" />;
 }
 
 function IconVerifiedCheck({ size = 24 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden focusable="false">
-      <path d="M6 12l4 4 8-8" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+  // White check on the verified-badge gradient bubble.
+  return <Check size={size} strokeWidth={2.5} color="white" aria-hidden focusable="false" />;
 }

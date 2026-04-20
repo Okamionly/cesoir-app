@@ -8,6 +8,7 @@ import {
   LOCATION_MAP_GRID_COLOR,
   LOCATION_MAP_PIN_COLOR,
 } from "@/lib/chat-content-colors";
+import { MapPin, LinkIcon } from "@/components/ui/lucide";
 
 // ---------- LocationShareButton ----------
 
@@ -50,14 +51,7 @@ export function LocationShareButton({ onShare }: LocationShareButtonProps) {
       {loading ? (
         <div className="w-4 h-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
       ) : (
-        <svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-          <path
-            d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z"
-            stroke="currentColor"
-            strokeWidth="1.5"
-          />
-          <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="1.5" />
-        </svg>
+        <MapPin size={18} strokeWidth={1.5} aria-hidden="true" />
       )}
     </button>
   );
@@ -136,9 +130,7 @@ export function LocationCard({ lat, lng, isOwn, time, distance = "1.2 km" }: Loc
             className="inline-flex items-center gap-1 text-[12px] text-accent font-semibold mt-2 hover:underline"
           >
             Ouvrir dans Maps
-            <svg width={12} height={12} viewBox="0 0 24 24" fill="none">
-              <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <LinkIcon size={12} strokeWidth={2} aria-hidden="true" />
           </a>
           <span className="block text-[10px] text-text-muted mt-1 text-right">{time}</span>
         </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { Check, Share2 } from "@/components/ui/lucide";
 
 interface ShareProfileProps {
   userId: string;
@@ -53,28 +54,11 @@ export default function ShareProfile({ userId, userName }: ShareProfileProps) {
       }`}
       aria-label="Partager le profil"
     >
-      <svg
-        width={16}
-        height={16}
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        {copied ? (
-          <path d="M20 6L9 17l-5-5" />
-        ) : (
-          <>
-            <circle cx="18" cy="5" r="3" />
-            <circle cx="6" cy="12" r="3" />
-            <circle cx="18" cy="19" r="3" />
-            <path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98" />
-          </>
-        )}
-      </svg>
+      {copied ? (
+        <Check size={16} strokeWidth={2} aria-hidden="true" />
+      ) : (
+        <Share2 size={16} strokeWidth={2} aria-hidden="true" />
+      )}
       {copied ? "Lien copie !" : "Partager"}
     </button>
   );

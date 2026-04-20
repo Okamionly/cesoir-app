@@ -2,7 +2,7 @@
 
 import { m } from "motion/react";
 import { springs } from "@/lib/motion-design";
-import { MessageSquare } from "@/components/ui/lucide";
+import { MessageSquare, MessageCircle } from "@/components/ui/lucide";
 
 // ─────────────────────────────────────────
 // 8 curated prompt questions
@@ -156,9 +156,7 @@ export default function ProfilePrompts({
                 transition={springs.micro}
                 aria-label={`Reagir a la photo ${item.photoIndex + 1}`}
               >
-                <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                </svg>
+                <MessageCircle size={14} strokeWidth={2} aria-hidden="true" />
               </m.button>
             )}
           </m.div>

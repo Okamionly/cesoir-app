@@ -7,6 +7,7 @@ import { MODES } from "@/lib/modes";
 import { MeshGradient } from "@/components/ui/MeshGradient";
 import { welcomeVariants, springs } from "@/lib/motion-design";
 import { Magnetic } from "@/components/motion/Magnetic";
+import { Shield, Clock } from "@/components/ui/lucide";
 
 // ---------------------------------------------------------------------------
 // Slide data
@@ -35,21 +36,28 @@ function MoonIcon({ size = 64 }: { size?: number }) {
   );
 }
 
+// Lucide ShieldCheck approximates the original "shield + check inside" glyph;
+// Clock approximates the analogue dial. Both render at 64px to keep the
+// onboarding hero proportions intact.
 function ShieldIcon() {
   return (
-    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="var(--color-accent)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M32 6L8 18v14c0 14.4 10.2 27.8 24 32 13.8-4.2 24-17.6 24-32V18L32 6z" fill="color-mix(in srgb, var(--color-accent) 8%, transparent)" />
-      <path d="M22 32l6 6 14-14" />
-    </svg>
+    <Shield
+      size={64}
+      strokeWidth={2.5}
+      color="var(--color-accent)"
+      aria-hidden="true"
+    />
   );
 }
 
 function ClockIcon() {
   return (
-    <svg width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="var(--color-accent-2)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="32" cy="32" r="26" fill="color-mix(in srgb, var(--color-accent-2) 6%, transparent)" />
-      <path d="M32 16v16l10 6" />
-    </svg>
+    <Clock
+      size={64}
+      strokeWidth={2.5}
+      color="var(--color-accent-2)"
+      aria-hidden="true"
+    />
   );
 }
 

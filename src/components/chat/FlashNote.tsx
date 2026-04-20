@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { m, AnimatePresence } from "motion/react";
 import { springs } from "@/lib/motion-design";
+import { Zap } from "@/components/ui/lucide";
 
 // ─────────────────────────────────────────
 // Types
@@ -73,9 +74,7 @@ export function FlashNoteButton({
         disabled={!canSend}
         aria-label={canSend ? "Envoyer un FlashNote" : "FlashNote deja utilise aujourd'hui"}
       >
-        <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-        </svg>
+        <Zap size={14} strokeWidth={2.5} aria-hidden="true" />
         {canSend ? "Envoyer un FlashNote" : "FlashNote utilise"}
       </m.button>
 
@@ -107,9 +106,7 @@ export function FlashNoteButton({
               <div className="px-5 pb-4">
                 {/* Header */}
                 <div className="flex items-center gap-2 mb-1">
-                  <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                  </svg>
+                  <Zap size={16} strokeWidth={2.5} color="var(--color-accent)" aria-hidden="true" />
                   <h3 className="text-[16px] font-bold text-white">FlashNote</h3>
                 </div>
                 <p className="text-[12px] text-white/40 mb-4">
@@ -180,9 +177,7 @@ export function FlashNoteReceived({
       <div className="bg-accent/10 border border-accent/20 rounded-2xl p-4">
         {/* Header */}
         <div className="flex items-center gap-2 mb-2">
-          <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-          </svg>
+          <Zap size={14} strokeWidth={2.5} color="var(--color-accent)" aria-hidden="true" />
           <span className="text-[12px] text-accent font-bold">
             FlashNote de {senderName}
           </span>

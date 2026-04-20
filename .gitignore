@@ -49,3 +49,7 @@ logs/
 .octogent/
 
 .octogent
+
+*storybook.log
+storybook-static
+storybook-static/

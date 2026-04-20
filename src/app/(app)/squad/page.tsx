@@ -6,6 +6,7 @@ import { m, AnimatePresence } from "motion/react";
 import { springs, ambient } from "@/lib/motion-design";
 import { useSquad } from "@/lib/useSquad";
 import PageHeader from "@/components/ui/PageHeader";
+import { Plus, Check } from "@/components/ui/lucide";
 
 // --- Types ---
 
@@ -257,10 +258,7 @@ export default function SquadPage() {
                   style={{ marginLeft: "-8px" }}
                   aria-label="Place disponible"
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
+                  <Plus size={16} strokeWidth={2.5} aria-hidden="true" />
                 </m.div>
               )}
             </div>
@@ -331,9 +329,7 @@ export default function SquadPage() {
                     exit={{ scale: 0 }}
                     className="inline-flex items-center gap-1"
                   >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-text)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      <path d="M20 6L9 17l-5-5" />
-                    </svg>
+                    <Check size={12} strokeWidth={3} color="var(--color-text)" aria-hidden="true" />
                     Copie
                   </m.span>
                 ) : (

@@ -12,6 +12,7 @@ import { useTranslation, type Locale } from "@/lib/i18n";
 import { useWomenFirstSettings } from "@/lib/useWomenFirst";
 import { springs } from "@/lib/motion-design";
 import PageHeader from "@/components/ui/PageHeader";
+import { ChevronRight } from "@/components/ui/lucide";
 
 // ── Types ──────────────────────────────────────────
 
@@ -164,18 +165,7 @@ function LinkRow({
       >
         {label}
       </span>
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        className="text-text-muted"
-        aria-hidden="true"
-      >
-        <path d="M9 18l6-6-6-6" />
-      </svg>
+      <ChevronRight size={16} strokeWidth={1.5} className="text-text-muted" aria-hidden="true" />
     </Link>
   );
 }

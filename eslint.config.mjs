@@ -1,3 +1,6 @@
+// For more info, see https://github.com/storybookjs/eslint-plugin-storybook#configuration-flat-config-format
+import storybook from "eslint-plugin-storybook";
+
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
@@ -124,154 +127,164 @@ const strictHexOnlyRules = {
   ],
 };
 
-const eslintConfig = defineConfig([
-  ...nextVitals,
-  ...nextTs,
-  {
-    files: ["src/**/*.{ts,tsx}"],
-    rules: designSystemRules,
+const eslintConfig = defineConfig([...nextVitals, ...nextTs, {
+  files: ["src/**/*.{ts,tsx}"],
+  rules: designSystemRules,
+}, {
+  // Codemod landed for the clean files below (all hex → tokens). These
+  // files are now under hard "error" to prevent regression. The rest of
+  // src/components/** and src/lib/** stays at "warn" until phase 2 of
+  // the audit migrates the remaining per-component severity/brand hexes.
+  files: [
+    "src/components/ui/Confetti.tsx",
+    "src/components/ui/EmptyState.tsx",
+    "src/components/ui/MeshGradient.tsx",
+    "src/components/ui/PullToRefresh.tsx",
+    "src/components/ui/Toast.tsx",
+    "src/components/ui/MicroAnimations.tsx",
+    "src/components/ui/ProfileImage.tsx",
+    "src/components/ui/ProfileCard.tsx",
+    "src/components/map/LiveActivityPanel.tsx",
+    "src/components/app/AudioWave.tsx",
+    "src/components/app/MusicEqualizer.tsx",
+    "src/components/app/MockQR.tsx",
+    "src/components/app/NotificationPreview.tsx",
+    "src/components/app/AudioIntro.tsx",
+    "src/components/chat/ExpiryTimer.tsx",
+    "src/components/chat/SparkTimer.tsx",
+    "src/components/chat/FlashNote.tsx",
+    "src/components/chat/VibeCheck.tsx",
+    "src/components/chat/QuickReact.tsx",
+    "src/components/chat/PlanProposal.tsx",
+    "src/components/app/StoriesBar.tsx",
+    "src/components/app/OfflineBanner.tsx",
+    "src/lib/messageScreening.ts",
+    "src/lib/useProfiles.ts",
+  ],
+  rules: strictHexRules,
+}, {
+  // D4 landed — all domain-meta arrays extracted to src/lib/
+  // (mode-colors, rooms-meta, notification-config, premium-benefits).
+  // Remaining out-of-palette surfaces (premium gold, map offline dark,
+  // shop/browse/trending pink tints) now route through design-tokens
+  // imports. Any new raw hex in (app)/** is a hard error. Tailwind
+  // palette rule stays at "warn" app-wide until phase 2.
+  files: ["src/app/(app)/**/*.{ts,tsx}"],
+  rules: strictHexOnlyRules,
+}, {
+  // E2 landed — hex promoted to "error" on src/components/**. Brand-
+  // metier hex arrays were extracted to src/lib/ (story-presets,
+  // share-card-presets, photo-gallery-gradients, trust-colors,
+  // verification-status, fab-actions). Any new raw hex in components/
+  // is a hard error. Tailwind palette rule stays at "warn".
+  files: ["src/components/**/*.{ts,tsx}"],
+  rules: strictHexOnlyRules,
+}, // F2 landed — brand-metier hex from the 11 remaining components was
+// extracted to src/lib/ (karma-tiers, smart-queue-colors,
+// swipe-card-colors, mode-switcher-colors, chat-content-colors).
+// Components now import tokens from those libs — hex lives in lib,
+// not in components. The component-level "off" allowlist is therefore
+// removed: src/components/** is fully under strictHexOnlyRules.
+{
+  // Design tokens file owns the hex literals.
+  files: ["src/lib/design-tokens.ts"],
+  rules: {
+    "no-restricted-syntax": "off",
   },
-  {
-    // Codemod landed for the clean files below (all hex → tokens). These
-    // files are now under hard "error" to prevent regression. The rest of
-    // src/components/** and src/lib/** stays at "warn" until phase 2 of
-    // the audit migrates the remaining per-component severity/brand hexes.
-    files: [
-      "src/components/ui/Confetti.tsx",
-      "src/components/ui/EmptyState.tsx",
-      "src/components/ui/MeshGradient.tsx",
-      "src/components/ui/PullToRefresh.tsx",
-      "src/components/ui/Toast.tsx",
-      "src/components/ui/MicroAnimations.tsx",
-      "src/components/ui/ProfileImage.tsx",
-      "src/components/ui/ProfileCard.tsx",
-      "src/components/map/LiveActivityPanel.tsx",
-      "src/components/app/AudioWave.tsx",
-      "src/components/app/MusicEqualizer.tsx",
-      "src/components/app/MockQR.tsx",
-      "src/components/app/NotificationPreview.tsx",
-      "src/components/app/AudioIntro.tsx",
-      "src/components/chat/ExpiryTimer.tsx",
-      "src/components/chat/SparkTimer.tsx",
-      "src/components/chat/FlashNote.tsx",
-      "src/components/chat/VibeCheck.tsx",
-      "src/components/chat/QuickReact.tsx",
-      "src/components/chat/PlanProposal.tsx",
-      "src/components/app/StoriesBar.tsx",
-      "src/components/app/OfflineBanner.tsx",
-      "src/lib/messageScreening.ts",
-      "src/lib/useProfiles.ts",
-    ],
-    rules: strictHexRules,
+}, {
+  // Domain-meta files: per-mode brand colors, seasonal gradients, badge
+  // tiers, hotspot heat, motion variants, per-benefit/per-type/per-room
+  // identity. Hex values here encode product semantics — they are NOT
+  // UI surface tokens.
+  files: [
+    "src/lib/modes.ts",
+    "src/lib/mock-profiles.ts",
+    "src/lib/seasons.ts",
+    "src/lib/badges.ts",
+    "src/lib/dateIdeas.ts",
+    "src/lib/hotspots.ts",
+    "src/lib/motion-design.ts",
+    "src/lib/mode-colors.ts",
+    "src/lib/rooms-meta.ts",
+    "src/lib/notification-config.ts",
+    "src/lib/premium-benefits.ts",
+    "src/lib/story-presets.ts",
+    "src/lib/share-card-presets.ts",
+    "src/lib/photo-gallery-gradients.ts",
+    "src/lib/trust-colors.ts",
+    "src/lib/verification-status.ts",
+    "src/lib/fab-actions.ts",
+    // F2 landed — brand-metier hex extracted from 11 components
+    // (SwipeCard, MidnightReset, KarmaBadge, ModeSwitcher,
+    // SmartQueueBadge, FABMenu, WeMetFeedback, PlaylistShare,
+    // VoiceNote, LocationShare, VerificationChecklist).
+    "src/lib/karma-tiers.ts",
+    "src/lib/smart-queue-colors.ts",
+    "src/lib/swipe-card-colors.ts",
+    "src/lib/mode-switcher-colors.ts",
+    "src/lib/chat-content-colors.ts",
+  ],
+  rules: {
+    "no-restricted-syntax": "off",
   },
-  {
-    // D4 landed — all domain-meta arrays extracted to src/lib/
-    // (mode-colors, rooms-meta, notification-config, premium-benefits).
-    // Remaining out-of-palette surfaces (premium gold, map offline dark,
-    // shop/browse/trending pink tints) now route through design-tokens
-    // imports. Any new raw hex in (app)/** is a hard error. Tailwind
-    // palette rule stays at "warn" app-wide until phase 2.
-    files: ["src/app/(app)/**/*.{ts,tsx}"],
-    rules: strictHexOnlyRules,
+}, {
+  // Profile-verify page embeds third-party brand assets (LinkedIn blue
+  // #0A66C2 / #3B82F6, Instagram 5-stop gradient #f09433..#bc1888) and
+  // dark atmospheric camera-viewport gradients (#1a1a2e / #16213e /
+  // #0f3460). These are out-of-palette by design and cannot route
+  // through design tokens without diluting semantic meaning.
+  files: ["src/app/(app)/profile/verify/page.tsx"],
+  rules: {
+    "no-restricted-syntax": "off",
   },
-  {
-    // E2 landed — hex promoted to "error" on src/components/**. Brand-
-    // metier hex arrays were extracted to src/lib/ (story-presets,
-    // share-card-presets, photo-gallery-gradients, trust-colors,
-    // verification-status, fab-actions). Any new raw hex in components/
-    // is a hard error. Tailwind palette rule stays at "warn".
-    files: ["src/components/**/*.{ts,tsx}"],
-    rules: strictHexOnlyRules,
+}, {
+  // PWA manifest is semantic metadata consumed by the OS / browser shell
+  // (status bar tint, splash background) — it isn't UI code, so routing
+  // through design tokens adds no value. Keep the canonical hex literals
+  // inline.
+  files: ["src/app/manifest.ts"],
+  rules: {
+    "no-restricted-syntax": "off",
   },
-  // F2 landed — brand-metier hex from the 11 remaining components was
-  // extracted to src/lib/ (karma-tiers, smart-queue-colors,
-  // swipe-card-colors, mode-switcher-colors, chat-content-colors).
-  // Components now import tokens from those libs — hex lives in lib,
-  // not in components. The component-level "off" allowlist is therefore
-  // removed: src/components/** is fully under strictHexOnlyRules.
-  {
-    // Design tokens file owns the hex literals.
-    files: ["src/lib/design-tokens.ts"],
-    rules: {
-      "no-restricted-syntax": "off",
-    },
+}, {
+  // G3 landed — root src/app/ files (layout, opengraph-image, not-found,
+  // p/[id], invite/[code]) all migrated to design-tokens imports. Promote
+  // hex rule to "error" on these files to lock in the cleanup.
+  files: [
+    "src/app/layout.tsx",
+    "src/app/not-found.tsx",
+    "src/app/opengraph-image.tsx",
+    "src/app/error.tsx",
+    "src/app/p/**/*.{ts,tsx}",
+    "src/app/invite/**/*.{ts,tsx}",
+  ],
+  rules: strictHexOnlyRules,
+}, {
+  // Landing surfaces have their own cinematic palette.
+  files: [
+    "src/components/landing/**/*.{ts,tsx}",
+    "src/app/(landing)/**/*.{ts,tsx}",
+    // src/app/(auth)/** renders on the same dark cinematic landing bg
+    // (uses `landing.*` tokens + glassy rgba white overlays), so it is
+    // scoped out of the W&B page rule.
+    "src/app/(auth)/**/*.{ts,tsx}",
+    // Root landing page itself.
+    "src/app/page.tsx",
+    // Form primitives carry a dark-variant branch (FCA5A5 / 86EFAC /
+    // C4B5FD) used exclusively by landing/auth surfaces. Out-of-palette
+    // by design — scoped "off" alongside landing/**.
+    "src/components/ui/forms/FormBanner.tsx",
+    "src/components/ui/forms/FormChoice.tsx",
+  ],
+  rules: {
+    "no-restricted-syntax": "off",
   },
-  {
-    // Domain-meta files: per-mode brand colors, seasonal gradients, badge
-    // tiers, hotspot heat, motion variants, per-benefit/per-type/per-room
-    // identity. Hex values here encode product semantics — they are NOT
-    // UI surface tokens.
-    files: [
-      "src/lib/modes.ts",
-      "src/lib/mock-profiles.ts",
-      "src/lib/seasons.ts",
-      "src/lib/badges.ts",
-      "src/lib/dateIdeas.ts",
-      "src/lib/hotspots.ts",
-      "src/lib/motion-design.ts",
-      "src/lib/mode-colors.ts",
-      "src/lib/rooms-meta.ts",
-      "src/lib/notification-config.ts",
-      "src/lib/premium-benefits.ts",
-      "src/lib/story-presets.ts",
-      "src/lib/share-card-presets.ts",
-      "src/lib/photo-gallery-gradients.ts",
-      "src/lib/trust-colors.ts",
-      "src/lib/verification-status.ts",
-      "src/lib/fab-actions.ts",
-      // F2 landed — brand-metier hex extracted from 11 components
-      // (SwipeCard, MidnightReset, KarmaBadge, ModeSwitcher,
-      // SmartQueueBadge, FABMenu, WeMetFeedback, PlaylistShare,
-      // VoiceNote, LocationShare, VerificationChecklist).
-      "src/lib/karma-tiers.ts",
-      "src/lib/smart-queue-colors.ts",
-      "src/lib/swipe-card-colors.ts",
-      "src/lib/mode-switcher-colors.ts",
-      "src/lib/chat-content-colors.ts",
-    ],
-    rules: {
-      "no-restricted-syntax": "off",
-    },
-  },
-  {
-    // Profile-verify page embeds third-party brand assets (LinkedIn blue
-    // #0A66C2 / #3B82F6, Instagram 5-stop gradient #f09433..#bc1888) and
-    // dark atmospheric camera-viewport gradients (#1a1a2e / #16213e /
-    // #0f3460). These are out-of-palette by design and cannot route
-    // through design tokens without diluting semantic meaning.
-    files: ["src/app/(app)/profile/verify/page.tsx"],
-    rules: {
-      "no-restricted-syntax": "off",
-    },
-  },
-  {
-    // Landing surfaces have their own cinematic palette.
-    files: [
-      "src/components/landing/**/*.{ts,tsx}",
-      "src/app/(landing)/**/*.{ts,tsx}",
-      // src/app/(auth)/** renders on the same dark cinematic landing bg
-      // (uses `landing.*` tokens + glassy rgba white overlays), so it is
-      // scoped out of the W&B page rule.
-      "src/app/(auth)/**/*.{ts,tsx}",
-      // Root landing page itself.
-      "src/app/page.tsx",
-      // Form primitives carry a dark-variant branch (FCA5A5 / 86EFAC /
-      // C4B5FD) used exclusively by landing/auth surfaces. Out-of-palette
-      // by design — scoped "off" alongside landing/**.
-      "src/components/ui/forms/FormBanner.tsx",
-      "src/components/ui/forms/FormChoice.tsx",
-    ],
-    rules: {
-      "no-restricted-syntax": "off",
-    },
-  },
-  // Override default ignores of eslint-config-next.
-  globalIgnores([
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
-  ]),
-]);
+}, // Override default ignores of eslint-config-next.
+globalIgnores([
+  ".next/**",
+  "out/**",
+  "build/**",
+  "next-env.d.ts",
+]), ...storybook.configs["flat/recommended"]]);
 
 export default eslintConfig;

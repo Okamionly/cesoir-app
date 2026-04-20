@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { m } from "motion/react";
 import { springs } from "@/lib/motion-design";
+import { ChevronRight } from "@/components/ui/lucide";
 
 interface CrossLinkCardProps {
   title: string;
@@ -48,20 +49,7 @@ export default function CrossLinkCard({
             </p>
           )}
         </div>
-        <svg
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="text-text-muted shrink-0"
-          aria-hidden="true"
-        >
-          <path d="M9 18l6-6-6-6" />
-        </svg>
+        <ChevronRight size={14} strokeWidth={2} className="text-text-muted shrink-0" aria-hidden="true" />
       </m.div>
     </Link>
   );

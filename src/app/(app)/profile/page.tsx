@@ -10,6 +10,7 @@ import { supabase } from "@/lib/supabase";
 import { Magnetic } from "@/components/motion/Magnetic";
 import { springs, profileVariants } from "@/lib/motion-design";
 import PageHeader from "@/components/ui/PageHeader";
+import { ChevronRight as LucideChevronRight, Settings as LucideSettings } from "@/components/ui/lucide";
 
 const TONIGHT_CHIPS = ["Diner", "Boire un verre", "Cinema", "Balade", "Concert", "Sport"];
 
@@ -21,23 +22,14 @@ const fade = (delay = 0) => ({
 });
 
 // ────────────────────────────────────────────────
-// Inline icons — clean strokes, consistent size
+// Local glyph wrappers — keep call sites unchanged
 // ────────────────────────────────────────────────
 function ChevronRight() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M9 18l6-6-6-6" />
-    </svg>
-  );
+  return <LucideChevronRight size={16} strokeWidth={1.5} aria-hidden="true" />;
 }
 
 function SettingsIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
-    </svg>
-  );
+  return <LucideSettings size={20} strokeWidth={1.6} aria-hidden="true" />;
 }
 
 export default function ProfilePage() {

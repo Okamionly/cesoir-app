@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { m, AnimatePresence } from "motion/react";
+import { Calendar } from "@/components/ui/lucide";
 
 // ---------- Types ----------
 
@@ -63,11 +64,7 @@ export function PlanProposalButton({ onSubmit }: PlanProposalButtonProps) {
         className="tap-target shrink-0 w-11 h-11 rounded-full bg-bg-card border border-border flex items-center justify-center text-text-muted hover:text-accent hover:border-accent/30 transition-colors active:scale-95"
         aria-label="Proposer un plan"
       >
-        <svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-          <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
-          <path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          <circle cx="12" cy="16" r="2" fill="currentColor" />
-        </svg>
+        <Calendar size={18} strokeWidth={1.5} aria-hidden="true" />
       </button>
 
       {/* Bottom sheet modal */}

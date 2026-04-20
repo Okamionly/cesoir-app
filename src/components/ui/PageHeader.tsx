@@ -5,6 +5,7 @@ import { m, useReducedMotion, type Transition, type TargetAndTransition } from "
 import { springs, easings } from "@/lib/motion-design";
 import { RackFocus } from "@/components/motion/RackFocus";
 import { Magnetic } from "@/components/motion/Magnetic";
+import { ChevronLeft, X } from "@/components/ui/lucide";
 
 // ─────────────────────────────────────────
 // Types
@@ -204,37 +205,9 @@ function getHairlineGradient(variant: HairlineVariant): string | null {
 // Back button
 // ─────────────────────────────────────────
 
-const chevronIcon = (
-  <svg
-    width="18"
-    height="18"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-  >
-    <path d="M15 18l-6-6 6-6" />
-  </svg>
-);
+const chevronIcon = <ChevronLeft size={18} strokeWidth={2} aria-hidden="true" />;
 
-const closeIcon = (
-  <svg
-    width="18"
-    height="18"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-  >
-    <path d="M18 6L6 18M6 6l12 12" />
-  </svg>
-);
+const closeIcon = <X size={18} strokeWidth={2} aria-hidden="true" />;
 
 function BackButton({
   href,

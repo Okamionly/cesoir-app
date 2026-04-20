@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Outfit, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import ServiceWorkerRegister from "@/components/app/ServiceWorkerRegister";
+import { app } from "@/lib/design-tokens";
 
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk", weight: ["500", "700"] });
@@ -45,7 +46,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#8B5CF6",
+  themeColor: app.violet,
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -76,7 +77,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-full text-text font-sans" style={{ backgroundColor: "var(--color-bg, #FFFFFF)" }}>
+      <body className="min-h-full text-text font-sans" style={{ backgroundColor: `var(--color-bg, ${app.bg})` }}>
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:rounded-full focus:gradient-bg focus:text-white focus:text-sm focus:font-semibold">
           Aller au contenu principal
         </a>

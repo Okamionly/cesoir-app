@@ -1,5 +1,27 @@
-import { describe, it, expect } from "vitest";
-import { calculateMatchScore } from "./matching";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+const { mockSupabase } = vi.hoisted(() => {
+  const builder: Record<string, unknown> = {};
+  const chain = () => builder;
+  Object.assign(builder, {
+    select: vi.fn(chain),
+    eq: vi.fn(chain),
+    gt: vi.fn(chain),
+    in: vi.fn(chain),
+    then: (resolve: (v: unknown) => unknown) =>
+      Promise.resolve({ data: [], error: null }).then(resolve),
+  });
+  return {
+    mockSupabase: {
+      from: vi.fn(() => builder),
+      rpc: vi.fn(),
+    },
+  };
+});
+
+vi.mock("@/lib/supabase", () => ({ supabase: mockSupabase }));
+
+import { calculateMatchScore, findMatches } from "./matching";
 import type { ModeKey } from "./modes";
 
 /**
@@ -142,5 +164,147 @@ describe("calculateMatchScore", () => {
       5,
     );
     expect(score).toBeLessThanOrEqual(100);
+  });
+
+  it("scales mid-range distances (3-5 km = 15 pts, 5-10 km = 8 pts)", () => {
+    const mid = calculateMatchScore(
+      ["solo-diner"],
+      makeCandidate({ distance_km: 4 }),
+      ["solo-diner"],
+      0,
+      0,
+    );
+    expect(mid.breakdown.distance).toBe(15);
+
+    const far = calculateMatchScore(
+      ["solo-diner"],
+      makeCandidate({ distance_km: 8 }),
+      ["solo-diner"],
+      0,
+      0,
+    );
+    expect(far.breakdown.distance).toBe(8);
+  });
+
+  it("scales timing for 1-2 hour windows", () => {
+    const in90min = new Date(Date.now() + 90 * 60 * 1000).toISOString();
+    const { breakdown } = calculateMatchScore(
+      ["solo-diner"],
+      makeCandidate({ available_time: in90min }),
+      ["solo-diner"],
+      0,
+      0,
+    );
+    expect(breakdown.timing).toBe(10);
+  });
+
+  it("returns lowest tier (5 pts) for far-future availability", () => {
+    const in5h = new Date(Date.now() + 5 * 60 * 60 * 1000).toISOString();
+    const { breakdown } = calculateMatchScore(
+      ["solo-diner"],
+      makeCandidate({ available_time: in5h }),
+      ["solo-diner"],
+      0,
+      0,
+    );
+    expect(breakdown.timing).toBe(5);
+  });
+
+  it("rewards 2 shared modes with 33 pts (mid tier)", () => {
+    const { breakdown } = calculateMatchScore(
+      ["solo-diner", "night-owl"],
+      makeCandidate({ mode: "tourist" }),
+      ["solo-diner", "night-owl"],
+      0,
+      0,
+    );
+    // 33 base, no mode bonus since candidate.mode "tourist" is not in user modes
+    expect(breakdown.mode).toBe(33);
+  });
+
+  it("adds +5 mode bonus when candidate's primary mode is in user modes", () => {
+    const { breakdown } = calculateMatchScore(
+      ["solo-diner"],
+      makeCandidate({ mode: "solo-diner" }),
+      ["solo-diner"],
+      0,
+      0,
+    );
+    // 25 (1 shared) + 5 bonus = 30
+    expect(breakdown.mode).toBe(30);
+  });
+});
+
+// ----------------------------------------
+// findMatches integration (with mocked Supabase)
+// ----------------------------------------
+
+beforeEach(() => {
+  mockSupabase.from.mockClear();
+  mockSupabase.rpc.mockReset();
+});
+
+describe("findMatches", () => {
+  it("returns [] when nearby_profiles RPC errors", async () => {
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    mockSupabase.rpc.mockResolvedValueOnce({
+      data: null,
+      error: { message: "RPC down" },
+    });
+    const result = await findMatches("u-1", 48.85, 2.35);
+    expect(result).toEqual([]);
+    consoleSpy.mockRestore();
+  });
+
+  it("returns [] when no nearby candidates", async () => {
+    mockSupabase.rpc.mockResolvedValueOnce({ data: [], error: null });
+    const result = await findMatches("u-1", 48.85, 2.35);
+    expect(result).toEqual([]);
+  });
+
+  it("excludes self from RPC results", async () => {
+    mockSupabase.rpc.mockResolvedValueOnce({
+      data: [
+        {
+          id: "u-self",
+          name: "Me",
+          age: 30,
+          gender: "f",
+          bio: "",
+          avatar_url: null,
+          is_verified: false,
+          distance_km: 1,
+          mode: null,
+          available_time: null,
+          mode_details: null,
+          lat: 0,
+          lng: 0,
+        },
+      ],
+      error: null,
+    });
+    const result = await findMatches("u-self", 48.85, 2.35);
+    expect(result).toEqual([]);
+  });
+
+  it("forwards mode + maxDistance + genderFilter options to RPC", async () => {
+    mockSupabase.rpc.mockResolvedValueOnce({ data: [], error: null });
+    await findMatches("u-1", 48.85, 2.35, {
+      mode: "solo-diner",
+      maxDistance: 5,
+      genderFilter: "femmes",
+      limit: 10,
+    });
+    expect(mockSupabase.rpc).toHaveBeenCalledWith(
+      "nearby_profiles",
+      expect.objectContaining({
+        user_lat: 48.85,
+        user_lng: 2.35,
+        radius_km: 5,
+        mode_filter: "solo-diner",
+        gender_filter: "femmes",
+        limit_count: 30, // limit * 3
+      }),
+    );
   });
 });

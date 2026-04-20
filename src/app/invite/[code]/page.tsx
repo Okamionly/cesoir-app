@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { m, AnimatePresence } from "motion/react";
 import { supabase } from "@/lib/supabase";
 import { springs, ambient } from "@/lib/motion-design";
+import { app } from "@/lib/design-tokens";
 import type { DbSquadInvite } from "@/lib/supabase-types";
 
 // ─── Types ───────────────────────────────
@@ -98,12 +99,12 @@ export default function InvitePage() {
       <div className="absolute inset-0 pointer-events-none">
         <m.div
           className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] rounded-full opacity-[0.06]"
-          style={{ background: "radial-gradient(circle, #8B5CF6 0%, transparent 70%)" }}
+          style={{ background: `radial-gradient(circle, ${app.violet} 0%, transparent 70%)` }}
           animate={ambient.float(8)}
         />
         <m.div
           className="absolute bottom-[-15%] right-[-10%] w-[50vw] h-[50vw] rounded-full opacity-[0.04]"
-          style={{ background: "radial-gradient(circle, #00FF88 0%, transparent 70%)" }}
+          style={{ background: `radial-gradient(circle, ${app.vert} 0%, transparent 70%)` }}
           animate={ambient.float(10)}
         />
       </div>
