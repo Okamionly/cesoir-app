@@ -4,13 +4,17 @@ import { useState, useMemo } from "react";
 import { m, AnimatePresence } from "motion/react";
 import { springs, micro } from "@/lib/motion-design";
 import type { LiveHotspot } from "@/lib/useHotspots";
-import { RotateCcw } from "@/components/ui/lucide";
+import { ChevronUp } from "@/components/ui/lucide";
 
 interface LiveActivityPanelProps {
   hotspots: LiveHotspot[];
   loading: boolean;
   lastUpdated: Date;
-  onRefresh: () => void;
+  /**
+   * Kept for API compatibility — refresh is now triggered from the
+   * MapFloatingActions column (single source of map actions).
+   */
+  onRefresh?: () => void;
   userLat?: number;
   userLng?: number;
 }
@@ -19,7 +23,7 @@ function distanceKm(
   lat1: number,
   lng1: number,
   lat2: number,
-  lng2: number
+  lng2: number,
 ): number {
   const R = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -39,23 +43,28 @@ function timeAgo(date: Date): string {
   return `il y a ${minutes} min`;
 }
 
+/**
+ * Compact bottom-left **chip** that reveals a floating card on tap.
+ *
+ * Closed: 40px pill `• N dispos · freshness` with a chevron cue.
+ * Open:   ~280px glass card with top-3 hottest spots + most active mode.
+ *
+ * Positioned at `left: 12px; bottom: calc(76px + safe-area + 12px)` so it
+ * clears BottomNav and doesn't collide with the bottom-right action column.
+ */
 export default function LiveActivityPanel({
   hotspots,
-  loading,
   lastUpdated,
-  onRefresh,
   userLat,
   userLng,
 }: LiveActivityPanelProps) {
   const [expanded, setExpanded] = useState(false);
-  const [refreshSpin, setRefreshSpin] = useState(0);
 
   const totalActive = useMemo(
     () => hotspots.reduce((sum, h) => sum + h.count, 0),
-    [hotspots]
+    [hotspots],
   );
 
-  // Top 3 hottest spots sorted by count, with distance
   const top3 = useMemo(() => {
     return [...hotspots]
       .sort((a, b) => b.count - a.count)
@@ -63,13 +72,10 @@ export default function LiveActivityPanel({
       .map((h) => ({
         ...h,
         distance:
-          userLat && userLng
-            ? distanceKm(userLat, userLng, h.lat, h.lng)
-            : null,
+          userLat && userLng ? distanceKm(userLat, userLng, h.lat, h.lng) : null,
       }));
   }, [hotspots, userLat, userLng]);
 
-  // Most popular mode right now
   const topMode = useMemo(() => {
     const modes: Record<string, number> = {};
     hotspots.forEach((h) => {
@@ -86,14 +92,6 @@ export default function LiveActivityPanel({
     return best;
   }, [hotspots]);
 
-  const handleRefresh = () => {
-    setRefreshSpin((s) => s + 360);
-    onRefresh();
-  };
-
-  // Intensity → design-token CSS var. Low is the neutral muted color (no
-  // strong signal), medium is the brand accent (violet), high is the
-  // secondary accent (vert fluo = "hot").
   const intensityColor = (intensity: LiveHotspot["intensity"]) => {
     switch (intensity) {
       case "low":
@@ -107,126 +105,112 @@ export default function LiveActivityPanel({
 
   return (
     <m.div
-      className="absolute bottom-24 left-3 right-3 z-[900]"
-      initial={{ y: "100%" }}
-      animate={{ y: 0 }}
+      className="absolute left-3 z-[900]"
+      style={{ bottom: "calc(76px + env(safe-area-inset-bottom) + 12px)" }}
+      initial={{ y: 40, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
       transition={springs.heavy}
     >
-      <div className="bg-bg border border-border rounded-2xl overflow-hidden shadow-glow">
-        {/* Collapsed header -- always visible */}
-        <div
-          role="button"
-          tabIndex={0}
-          className="w-full px-4 py-3 flex items-center justify-between tap-target cursor-pointer"
-          onClick={() => setExpanded(!expanded)}
-          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setExpanded(!expanded); } }}
-          aria-expanded={expanded}
-          aria-label="Activite en direct"
+      {/* Chip trigger */}
+      <m.button
+        onClick={() => setExpanded((v) => !v)}
+        className="flex items-center gap-2 bg-bg/90 backdrop-blur-xl border border-border rounded-full pl-3 pr-2.5 py-2 shadow-lg tap-target focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
+        whileTap={micro.tapScale}
+        whileHover={{ y: -1 }}
+        transition={springs.micro}
+        aria-expanded={expanded}
+        aria-label={`Activite en direct — ${totalActive} personne${totalActive === 1 ? "" : "s"}`}
+      >
+        <m.span
+          className="w-1.5 h-1.5 rounded-full bg-safe"
+          animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }}
+          transition={{ duration: 1.5, repeat: Infinity }}
+          aria-hidden="true"
+        />
+        <m.span
+          key={`total-${totalActive}`}
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={springs.snap}
+          className="text-[12px] font-semibold text-text tabular-nums"
         >
-          <div className="flex items-center gap-2.5">
-            <m.div
-              className="w-2 h-2 rounded-full bg-safe"
-              animate={{
-                scale: [1, 1.4, 1],
-                opacity: [1, 0.5, 1],
-              }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            />
-            <span className="text-[13px] font-semibold text-text">
-              <m.span
-                key={`total-${totalActive}`}
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={springs.snap}
-                className="inline-block"
-              >
-                {totalActive}
-              </m.span>{" "}
-              personnes actives pres de toi
-            </span>
-          </div>
+          {totalActive}
+        </m.span>
+        <span className="text-[11px] text-text-muted">
+          dispos · {timeAgo(lastUpdated)}
+        </span>
+        <m.span
+          animate={{ rotate: expanded ? 0 : 180 }}
+          transition={springs.snap}
+          className="flex items-center justify-center text-text-muted"
+          aria-hidden="true"
+        >
+          <ChevronUp size={14} strokeWidth={2.5} />
+        </m.span>
+      </m.button>
 
-          <div className="flex items-center gap-2">
-            {/* Refresh button */}
-            <m.button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRefresh();
-              }}
-              className="w-7 h-7 rounded-full bg-bg-card border border-border flex items-center justify-center text-text-muted tap-target"
-              aria-label="Actualiser"
-              animate={{ rotate: refreshSpin }}
-              transition={{ duration: 0.6, ease: "easeInOut" }}
-              whileTap={micro.tapScale}
-              disabled={loading}
-            >
-              <RotateCcw size={14} strokeWidth={2.5} aria-hidden="true" />
-            </m.button>
+      {/* Expanded floating card */}
+      <AnimatePresence>
+        {expanded && (
+          <m.div
+            key="expanded"
+            initial={{ opacity: 0, y: 8, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.96 }}
+            transition={springs.snap}
+            className="absolute bottom-full left-0 mb-2 w-[280px] bg-bg border border-border rounded-2xl shadow-glow overflow-hidden"
+            role="region"
+            aria-label="Details activite en direct"
+          >
+            <div className="px-4 py-3 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+                  Spots les plus chauds
+                </span>
+                <button
+                  onClick={() => setExpanded(false)}
+                  className="w-6 h-6 rounded-full hover:bg-bg-card flex items-center justify-center text-text-muted tap-target focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+                  aria-label="Fermer"
+                >
+                  <span className="text-[10px]" aria-hidden="true">✕</span>
+                </button>
+              </div>
 
-            {/* Expand chevron */}
-            <m.span
-              className="text-text-muted text-[12px]"
-              animate={{ rotate: expanded ? 180 : 0 }}
-              transition={springs.snap}
-            >
-              ▲
-            </m.span>
-          </div>
-        </div>
-
-        {/* Expanded content */}
-        <AnimatePresence>
-          {expanded && (
-            <m.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={springs.heavy}
-              className="overflow-hidden"
-            >
-              <div className="px-4 pb-4 space-y-3">
-                {/* Divider */}
-                <div className="h-px bg-border" />
-
-                {/* Top 3 spots */}
+              {top3.length === 0 ? (
+                <p className="text-[11px] text-text-muted py-2">
+                  Aucune activite pour l&apos;instant
+                </p>
+              ) : (
                 <div className="space-y-2">
-                  <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">
-                    Spots les plus chauds
-                  </span>
                   {top3.map((spot, idx) => (
                     <m.div
                       key={spot.id}
                       className="flex items-center justify-between"
-                      initial={{ opacity: 0, x: -20 }}
+                      initial={{ opacity: 0, x: -12 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ ...springs.snap, delay: idx * 0.08 }}
+                      transition={{ ...springs.snap, delay: idx * 0.06 }}
                     >
-                      <div className="flex items-center gap-2.5">
-                        <span className="text-[12px] font-bold text-text-muted w-4">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className="text-[11px] font-bold text-text-muted w-3 shrink-0">
                           {idx + 1}
                         </span>
-                        <div
-                          className="w-2 h-2 rounded-full"
+                        <span
+                          className="w-1.5 h-1.5 rounded-full shrink-0"
                           style={{
                             backgroundColor: intensityColor(spot.intensity),
                           }}
+                          aria-hidden="true"
                         />
-                        <span className="text-[12px] font-semibold text-text">
+                        <span className="text-[12px] font-semibold text-text truncate">
                           {spot.name}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <m.span
-                          key={`spot-count-${spot.id}-${spot.count}`}
-                          className="text-[12px] font-bold text-accent"
-                          initial={{ opacity: 0, scale: 0.5 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={springs.snap}
-                        >
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-[11px] font-bold text-accent tabular-nums">
                           {spot.count}
-                        </m.span>
+                        </span>
                         {spot.distance !== null && (
-                          <span className="text-[10px] text-text-muted">
+                          <span className="text-[10px] text-text-muted tabular-nums">
                             {spot.distance < 1
                               ? `${Math.round(spot.distance * 1000)}m`
                               : `${spot.distance.toFixed(1)}km`}
@@ -236,40 +220,22 @@ export default function LiveActivityPanel({
                     </m.div>
                   ))}
                 </div>
+              )}
 
-                {/* Top mode */}
-                {topMode && (
-                  <m.div
-                    className="flex items-center justify-between"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ ...springs.snap, delay: 0.25 }}
-                  >
-                    <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">
-                      Mode le plus actif
-                    </span>
-                    <span className="bg-accent/10 border border-accent/20 px-2.5 py-0.5 rounded-full text-[10px] text-accent font-semibold">
-                      {topMode}
-                    </span>
-                  </m.div>
-                )}
-
-                {/* Last updated */}
-                <m.div
-                  className="flex items-center justify-center pt-1"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <span className="text-[10px] text-text-muted">
-                    Derniere mise a jour {timeAgo(lastUpdated)}
+              {topMode && (
+                <div className="flex items-center justify-between pt-1 border-t border-border/50">
+                  <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">
+                    Mode le plus actif
                   </span>
-                </m.div>
-              </div>
-            </m.div>
-          )}
-        </AnimatePresence>
-      </div>
+                  <span className="bg-accent/10 border border-accent/20 px-2 py-0.5 rounded-full text-[10px] text-accent font-semibold">
+                    {topMode}
+                  </span>
+                </div>
+              )}
+            </div>
+          </m.div>
+        )}
+      </AnimatePresence>
     </m.div>
   );
 }

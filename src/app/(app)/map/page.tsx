@@ -75,6 +75,8 @@ export default function MapPage() {
   const [bounds, setBounds] = useState<[number, number, number, number] | null>(null);
   const [geoStale, setGeoStale] = useState(false);
   const [lastGeoAt, setLastGeoAt] = useState<number | null>(null);
+  const [activityUpdatedAt, setActivityUpdatedAt] = useState<Date>(() => new Date());
+  const [activityRefreshing, setActivityRefreshing] = useState(false);
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const pinHandlesRef = useRef<Map<string, { handle: ProfilePinHandle; marker: maplibregl.Marker }>>(new Map());
@@ -549,6 +551,16 @@ export default function MapPage() {
     map.easeTo({ center: [lng, lat], zoom: 15, duration: 600 });
   }, []);
 
+  const handleActivityRefresh = useCallback(() => {
+    if (activityRefreshing) return;
+    setActivityRefreshing(true);
+    // Simulate a brief refresh — real hook will wire in when backend lands.
+    window.setTimeout(() => {
+      setActivityUpdatedAt(new Date());
+      setActivityRefreshing(false);
+    }, 800);
+  }, [activityRefreshing]);
+
   const handleCarouselSelect = useCallback((item: MapCarouselItem) => {
     const map = mapRef.current;
     if (!map) return;
@@ -667,14 +679,15 @@ export default function MapPage() {
           />
         )}
 
-        <LiveActivityPanel
-          hotspots={liveHotspots}
-          loading={false}
-          lastUpdated={new Date()}
-          onRefresh={() => {}}
-          userLat={latitude ?? undefined}
-          userLng={longitude ?? undefined}
-        />
+        {!mapFailed && (
+          <LiveActivityPanel
+            hotspots={liveHotspots}
+            loading={activityRefreshing}
+            lastUpdated={activityUpdatedAt}
+            userLat={latitude ?? undefined}
+            userLng={longitude ?? undefined}
+          />
+        )}
 
         {/* Offline fallback map */}
         {mapFailed && (
@@ -722,13 +735,15 @@ export default function MapPage() {
           </div>
         )}
 
-        {/* Floating actions bottom-right */}
+        {/* Floating actions bottom-right — single consolidated column */}
         {!selected && !selectedEvent && !mapFailed && (
           <MapFloatingActions
             onRecenter={handleRecenter}
             onRoute={() => setShowRouteModal(true)}
+            onRefresh={handleActivityRefresh}
             canRecenter={Boolean(latitude && longitude)}
             geoStale={geoStale}
+            refreshing={activityRefreshing}
           />
         )}
 
@@ -739,7 +754,10 @@ export default function MapPage() {
 
         {/* Cross-link to Plans (only if no carousel content) */}
         {!selected && !selectedEvent && !mapFailed && carouselItems.length === 0 && (
-          <div className="absolute bottom-28 left-3 right-3 z-[900] flex gap-2">
+          <div
+            className="absolute left-3 right-3 z-[900] flex gap-2"
+            style={{ bottom: "calc(260px + env(safe-area-inset-bottom))" }}
+          >
             <m.div className="flex-1" initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ ...springs.heavy, delay: 0.4 }}>
               <CrossLinkCard emoji="🔥" title="Plans ce soir" subtitle={`${openEvents.length} plans`} href="/plans" />
             </m.div>

@@ -36,11 +36,11 @@ export default function MapCarousel({ items, onSelect }: MapCarouselProps) {
   if (items.length === 0) return null;
 
   return (
-    <div className="absolute bottom-24 left-0 right-0 z-[850] pointer-events-none">
+    <div
+      className="absolute left-0 right-0 z-[850] pointer-events-none"
+      style={{ bottom: "calc(140px + env(safe-area-inset-bottom))" }}
+    >
       <div className="px-3 pointer-events-auto">
-        <p className="text-[10px] uppercase tracking-wider text-text-muted font-semibold mb-1.5 px-1">
-          {items.length} sur la carte
-        </p>
         <div
           className="flex gap-2 overflow-x-auto no-scrollbar pb-1"
           style={{ scrollSnapType: "x mandatory" }}

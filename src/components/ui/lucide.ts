@@ -89,6 +89,7 @@ export {
   Globe,
   Compass,
   Navigation,
+  Route,
   Home,
 
   // Documents / reports

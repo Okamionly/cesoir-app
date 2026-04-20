@@ -47,44 +47,47 @@ export default function NotificationPreview() {
 
   return (
     <div
-      className="fixed top-0 left-0 right-0 z-50 px-4 pt-3 pointer-events-none"
+      className="fixed top-0 left-0 right-0 z-50 pointer-events-none"
       role="status"
       aria-live="polite"
       aria-label="Notifications"
     >
-      <AnimatePresence mode="wait">
-        {visible && (
-          <m.div
-            key={current.id}
-            className="pointer-events-auto bg-bg border border-border rounded-xl shadow-lg overflow-hidden"
-            initial={{ y: -60, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -60, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 400, damping: 30 }}
-          >
-            <div className="flex items-center gap-3 pr-3">
-              {/* Gradient left border */}
-              <div
-                className="w-1 self-stretch shrink-0"
-                style={{ background: `linear-gradient(180deg, ${app.violet}, ${app.vert})` }}
-              />
-              <div className="flex-1 py-3">
-                <p className="text-[12px] text-text font-medium">
-                  <span className="mr-1.5" aria-hidden="true">{current.icon}</span>
-                  {current.message}
-                </p>
+      {/* Desktop clamp: mirrors AppShell phone frame (max-w-[440px], centered). */}
+      <div className="mx-auto w-full md:max-w-[440px] px-4 pt-3">
+        <AnimatePresence mode="wait">
+          {visible && (
+            <m.div
+              key={current.id}
+              className="pointer-events-auto bg-bg border border-border rounded-xl shadow-lg overflow-hidden"
+              initial={{ y: -60, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -60, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            >
+              <div className="flex items-center gap-3 pr-3">
+                {/* Gradient left border */}
+                <div
+                  className="w-1 self-stretch shrink-0"
+                  style={{ background: `linear-gradient(180deg, ${app.violet}, ${app.vert})` }}
+                />
+                <div className="flex-1 py-3">
+                  <p className="text-[12px] text-text font-medium">
+                    <span className="mr-1.5" aria-hidden="true">{current.icon}</span>
+                    {current.message}
+                  </p>
+                </div>
+                <button
+                  onClick={() => setDismissed(true)}
+                  className="shrink-0 w-7 h-7 flex items-center justify-center text-text-muted tap-target"
+                  aria-label="Fermer les notifications"
+                >
+                  <span className="text-[14px]">&times;</span>
+                </button>
               </div>
-              <button
-                onClick={() => setDismissed(true)}
-                className="shrink-0 w-7 h-7 flex items-center justify-center text-text-muted tap-target"
-                aria-label="Fermer les notifications"
-              >
-                <span className="text-[14px]">&times;</span>
-              </button>
-            </div>
-          </m.div>
-        )}
-      </AnimatePresence>
+            </m.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

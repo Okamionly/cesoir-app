@@ -6,6 +6,7 @@ import { MODES, MODE_KEYS } from "@/lib/modes";
 import type { Profile } from "@/lib/mock-profiles";
 import { useProfiles } from "@/lib/useProfiles";
 import { useGeolocation } from "@/lib/useGeolocation";
+import { useModeCounts } from "@/lib/useModeCounts";
 import { MODE_ICONS } from "@/components/ui/Icons";
 import { modesVariants } from "@/lib/motion-design";
 import PageHeader from "@/components/ui/PageHeader";
@@ -18,19 +19,21 @@ export default function ModesPage() {
   const reducedMotion = useReducedMotion();
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
 
-  // Load all nearby profiles once, then group by mode client-side.
+  // Load all nearby profiles once for card avatars (top-5 preview).
   const { latitude, longitude } = useGeolocation();
   const { profiles } = useProfiles(latitude ?? undefined, longitude ?? undefined);
 
-  const { topUsersByMode, countsByMode } = useMemo(() => {
+  // Counts come from `mode_activations` (deduplicated per user/mode) so
+  // desktop + mobile + refresh always show the same numbers, regardless
+  // of the radius/age/limit filters applied to `useProfiles`.
+  const { counts: countsByMode } = useModeCounts();
+
+  const topUsersByMode = useMemo(() => {
     const top: Record<string, Profile[]> = {};
-    const counts: Record<string, number> = {};
     for (const key of MODE_KEYS) {
-      const list = profiles.filter((p) => p.mode === key);
-      counts[key] = list.length;
-      top[key] = list.slice(0, 5);
+      top[key] = profiles.filter((p) => p.mode === key).slice(0, 5);
     }
-    return { topUsersByMode: top, countsByMode: counts };
+    return top;
   }, [profiles]);
 
   return (
