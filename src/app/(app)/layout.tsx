@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import { MotionConfig } from "motion/react";
 import AppChrome from "@/components/app/AppChrome";
+import AppShell from "@/components/app/AppShell";
+import KeyboardShortcuts from "@/components/app/KeyboardShortcuts";
 import OfflineBanner from "@/components/app/OfflineBanner";
 import PageLoader from "@/components/app/PageLoader";
 import { DarkModeProvider } from "@/components/ui/DarkModeProvider";
@@ -47,7 +49,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <MotionConfig reducedMotion="never">
             <LazyMotionMaxProvider>
               <ToastProvider>
-                <div className="min-h-screen bg-bg">
+                {/*
+                  AppShell wraps children in a phone-frame on desktop (>=768px)
+                  and passes through untouched on mobile. Keeps the long-standing
+                  min-h-screen + bg-bg contract but the visual container is now
+                  the frame, and the outer gradient provides ambient depth.
+                */}
+                <AppShell>
                   <OfflineBanner />
                   <main id="main-content" className="pb-safe">
                     <ErrorBoundary>
@@ -59,7 +67,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                     </ErrorBoundary>
                   </main>
                   <AppChrome />
-                </div>
+                </AppShell>
+                {/*
+                  KeyboardShortcuts sits OUTSIDE AppShell so its full-viewport
+                  overlay isn't clamped to 440px. It self-gates on !isMobile
+                  and renders nothing otherwise.
+                */}
+                <KeyboardShortcuts />
               </ToastProvider>
             </LazyMotionMaxProvider>
           </MotionConfig>

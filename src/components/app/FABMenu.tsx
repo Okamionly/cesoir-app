@@ -92,8 +92,12 @@ export function FABMenu() {
   return (
     // FAB partout (user choice 2026-04-20) — cohérent avec BottomNav mobile-first.
     // Position au-dessus de la BottomNav (90px ≈ nav 60px + marge 30px).
-    <div className="fixed bottom-[90px] right-4 z-[800]">
-      {/* Backdrop when open */}
+    // 2026-04-20 v2: on desktop, clamp horizontal anchor to the AppShell
+    // phone-frame (440px). Backdrop stays as a separate sibling so its
+    // `fixed inset-0` isn't trapped by the clamp wrapper's transform
+    // (transformed ancestors become a containing block for `fixed`).
+    <>
+      {/* Backdrop when open — sibling, not descendant, so it covers viewport */}
       <AnimatePresence>
         {isOpen && (
           <m.div
@@ -106,6 +110,9 @@ export function FABMenu() {
           />
         )}
       </AnimatePresence>
+
+      <div className="pointer-events-none fixed bottom-[90px] left-0 right-0 z-[800] md:bottom-[114px] md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-[440px]">
+      <div className="pointer-events-auto absolute bottom-0 right-4">
 
       {/* Action buttons */}
       <AnimatePresence>
@@ -162,6 +169,8 @@ export function FABMenu() {
           {isOpen ? "+" : "\u263E"}
         </span>
       </m.button>
+      </div>
     </div>
+    </>
   );
 }

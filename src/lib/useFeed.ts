@@ -30,6 +30,11 @@ interface UseFeedReturn {
   loadMore: () => Promise<void>;
   hasMore: boolean;
   loadingMore: boolean;
+  /** Count of realtime-inserted items that should trigger a "new items" banner.
+   * Clear it with `acknowledgeNew()`. */
+  newCount: number;
+  /** Called when the user clicks the "new items" banner or scrolls to top. */
+  acknowledgeNew: () => void;
 }
 
 // ---------- Constants ----------
@@ -70,6 +75,7 @@ export function useFeed(): UseFeedReturn {
   const [extra, setExtra] = useState<FeedActivity[]>([]);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMoreOverride, setHasMoreOverride] = useState<boolean | null>(null);
+  const [newCount, setNewCount] = useState(0);
   const offsetRef = useRef(0);
 
   // Initial page fetch (unified shape + AbortSignal)
@@ -214,6 +220,7 @@ export function useFeed(): UseFeedReturn {
             if (prev.some((a) => a.id === newActivity.id)) return prev;
             return [newActivity, ...prev];
           });
+          setNewCount((n) => n + 1);
 
           // Clear the isNew flag after 3 seconds so the glow fades
           setTimeout(() => {
@@ -226,16 +233,21 @@ export function useFeed(): UseFeedReturn {
     [],
   );
 
+  const acknowledgeNew = useCallback(() => setNewCount(0), []);
+
   return {
     activities: finalActivities,
     loading,
     error: error?.message ?? null,
     refresh: async () => {
       offsetRef.current = 0;
+      setNewCount(0);
       await refetch();
     },
     loadMore,
     hasMore,
     loadingMore,
+    newCount,
+    acknowledgeNew,
   };
 }

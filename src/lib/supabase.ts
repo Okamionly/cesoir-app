@@ -15,6 +15,7 @@ export type {
   DbSquad,
   DbSquadInvite,
   DbFeedActivity,
+  DbFeedReaction,
   DbChallenge,
   DbAchievement,
   DbKarmaTransaction,

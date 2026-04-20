@@ -160,6 +160,16 @@ export interface DbFeedActivity {
   created_at: string;
 }
 
+export type FeedReactionType = "heart" | "fire" | "laugh" | "celebrate";
+
+export interface DbFeedReaction {
+  id: string;
+  feed_activity_id: string;
+  user_id: string;
+  reaction: FeedReactionType;
+  created_at: string;
+}
+
 export interface DbChallenge {
   id: string;
   user_id: string;
@@ -323,6 +333,11 @@ export interface Database {
         Row: DbFeedActivity;
         Insert: Partial<DbFeedActivity> & Pick<DbFeedActivity, "user_id" | "type">;
         Update: Partial<DbFeedActivity>;
+      };
+      feed_reactions: {
+        Row: DbFeedReaction;
+        Insert: Partial<DbFeedReaction> & Pick<DbFeedReaction, "feed_activity_id" | "user_id" | "reaction">;
+        Update: Partial<DbFeedReaction>;
       };
       challenges: {
         Row: DbChallenge;

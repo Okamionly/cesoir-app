@@ -155,9 +155,11 @@ export default function BottomNav({
     <nav
       aria-label="Navigation principale"
       // User choice 2026-04-20: BottomNav partout (mobile-like on desktop).
-      // Pattern fort mobile-first comme Instagram web / TikTok web.
-      // Max-w-lg centered container already handles desktop aesthetics.
-      className="fixed bottom-0 left-0 right-0 z-50"
+      // 2026-04-20 v2: on desktop, clamp width to the AppShell phone-frame
+      // (440px) and snap bottom-corners to match the frame's rounded radius.
+      // Mobile stays full-width. Transform + left-1/2 centers the clamped
+      // version under the frame without disturbing mobile behaviour.
+      className="fixed bottom-0 left-0 right-0 z-50 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-full md:max-w-[440px] md:mb-6 md:rounded-b-[44px] md:overflow-hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       {/* Subtle top border */}
