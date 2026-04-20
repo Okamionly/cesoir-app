@@ -1,20 +1,21 @@
 "use client";
 
+/**
+ * NotificationPreview — floating top banner on /browse that rotates through
+ * *real* live stats pulled from Supabase (online users, open flash plans,
+ * trending mode of the last hour).
+ *
+ * If none of the signals have real data yet, the component renders nothing:
+ * we never fabricate counts, distances, or names.
+ */
+
 import { useState, useEffect, useCallback } from "react";
 import { m, AnimatePresence } from "motion/react";
 import { app } from "@/lib/design-tokens";
-
-const NOTIFICATIONS = [
-  "47 personnes sont dispos pres de toi ce soir",
-  "Night Owl explose ce soir (+200%)",
-  "Sarah est a 3 min de toi",
-  "Rappel : confirme ta dispo pour ce soir",
-  "Tu as un nouveau match !",
-];
-
-const ICONS = ["🔔", "🔥", "📍", "⏰", "🎉"];
+import { useLiveNotifications } from "@/lib/useLiveNotifications";
 
 export default function NotificationPreview() {
+  const { notifications } = useLiveNotifications();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [visible, setVisible] = useState(true);
   const [dismissed, setDismissed] = useState(false);
@@ -22,18 +23,27 @@ export default function NotificationPreview() {
   const advance = useCallback(() => {
     setVisible(false);
     setTimeout(() => {
-      setCurrentIndex((prev) => (prev + 1) % NOTIFICATIONS.length);
+      setCurrentIndex((prev) => {
+        if (notifications.length === 0) return 0;
+        return (prev + 1) % notifications.length;
+      });
       setVisible(true);
     }, 400);
-  }, []);
+  }, [notifications.length]);
 
   useEffect(() => {
-    if (dismissed) return;
+    if (dismissed || notifications.length <= 1) return;
     const interval = setInterval(advance, 5000);
     return () => clearInterval(interval);
-  }, [advance, dismissed]);
+  }, [advance, dismissed, notifications.length]);
 
   if (dismissed) return null;
+  if (notifications.length === 0) return null;
+
+  // Clamp at render time so we never point past the current array.
+  const safeIndex = currentIndex % notifications.length;
+  const current = notifications[safeIndex];
+  if (!current) return null;
 
   return (
     <div
@@ -45,7 +55,7 @@ export default function NotificationPreview() {
       <AnimatePresence mode="wait">
         {visible && (
           <m.div
-            key={currentIndex}
+            key={current.id}
             className="pointer-events-auto bg-bg border border-border rounded-xl shadow-lg overflow-hidden"
             initial={{ y: -60, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -60,8 +70,8 @@ export default function NotificationPreview() {
               />
               <div className="flex-1 py-3">
                 <p className="text-[12px] text-text font-medium">
-                  <span className="mr-1.5" aria-hidden="true">{ICONS[currentIndex]}</span>
-                  {NOTIFICATIONS[currentIndex]}
+                  <span className="mr-1.5" aria-hidden="true">{current.icon}</span>
+                  {current.message}
                 </p>
               </div>
               <button

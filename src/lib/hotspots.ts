@@ -1,11 +1,16 @@
+/**
+ * Static geographical definitions for Paris hotspot clusters.
+ *
+ * These are REAL Paris neighbourhoods/venues used as cluster centers.
+ * Live user counts are computed at runtime by `useHotspots()` from the
+ * `profiles` table (see `src/lib/useHotspots.ts`). NO mock counts.
+ */
 export interface Hotspot {
   id: string;
   name: string;
   lat: number;
   lng: number;
   radius: number; // meters
-  level: "calm" | "moderate" | "hot" | "fire";
-  activeUsers: number;
   topMode: string;
   description: string;
 }
@@ -17,8 +22,6 @@ export const PARIS_HOTSPOTS: Hotspot[] = [
     lat: 48.8566,
     lng: 2.3522,
     radius: 500,
-    level: "fire",
-    activeUsers: 42,
     topMode: "Night Owl",
     description: "Le quartier le plus actif ce soir",
   },
@@ -28,8 +31,6 @@ export const PARIS_HOTSPOTS: Hotspot[] = [
     lat: 48.8533,
     lng: 2.3692,
     radius: 400,
-    level: "hot",
-    activeUsers: 28,
     topMode: "Solo Diner",
     description: "Beaucoup de restos ouverts",
   },
@@ -39,8 +40,6 @@ export const PARIS_HOTSPOTS: Hotspot[] = [
     lat: 48.8867,
     lng: 2.3431,
     radius: 600,
-    level: "moderate",
-    activeUsers: 15,
     topMode: "Tourist Tonight",
     description: "Vue magique ce soir",
   },
@@ -50,8 +49,6 @@ export const PARIS_HOTSPOTS: Hotspot[] = [
     lat: 48.8584,
     lng: 2.3476,
     radius: 350,
-    level: "hot",
-    activeUsers: 31,
     topMode: "Culture Club",
     description: "Spectacles et sorties",
   },
@@ -61,8 +58,6 @@ export const PARIS_HOTSPOTS: Hotspot[] = [
     lat: 48.8654,
     lng: 2.3792,
     radius: 300,
-    level: "fire",
-    activeUsers: 38,
     topMode: "Night Owl",
     description: "Bars et soirees",
   },
@@ -72,8 +67,6 @@ export const PARIS_HOTSPOTS: Hotspot[] = [
     lat: 48.853,
     lng: 2.3328,
     radius: 450,
-    level: "moderate",
-    activeUsers: 18,
     topMode: "Sober Tonight",
     description: "Cafes et librairies",
   },
@@ -83,8 +76,6 @@ export const PARIS_HOTSPOTS: Hotspot[] = [
     lat: 48.8717,
     lng: 2.3842,
     radius: 400,
-    level: "calm",
-    activeUsers: 8,
     topMode: "Foodie Quest",
     description: "Street food diverse",
   },
@@ -94,8 +85,6 @@ export const PARIS_HOTSPOTS: Hotspot[] = [
     lat: 48.8714,
     lng: 2.3652,
     radius: 350,
-    level: "hot",
-    activeUsers: 24,
     topMode: "Dog Date",
     description: "Balades au bord de l'eau",
   },
@@ -105,8 +94,6 @@ export const PARIS_HOTSPOTS: Hotspot[] = [
     lat: 48.8822,
     lng: 2.3372,
     radius: 250,
-    level: "moderate",
-    activeUsers: 19,
     topMode: "Gamer Night",
     description: "Bars a jeux",
   },
@@ -116,14 +103,40 @@ export const PARIS_HOTSPOTS: Hotspot[] = [
     lat: 48.8485,
     lng: 2.3961,
     radius: 400,
-    level: "calm",
-    activeUsers: 6,
     topMode: "Fit Date",
     description: "Parc de Vincennes a cote",
   },
+  {
+    id: "11",
+    name: "Republique",
+    lat: 48.8675,
+    lng: 2.3637,
+    radius: 380,
+    topMode: "Plus-One",
+    description: "Place animee ce soir",
+  },
+  {
+    id: "12",
+    name: "Grands Boulevards",
+    lat: 48.8717,
+    lng: 2.3445,
+    radius: 320,
+    topMode: "Culture Club",
+    description: "Theatres et cinemas",
+  },
 ];
 
-export function getHotspotColor(level: Hotspot["level"]): string {
+/** Derive a level label from a live count — replaces the hardcoded level field. */
+export type HotspotLevel = "calm" | "moderate" | "hot" | "fire";
+
+export function countToLevel(count: number): HotspotLevel {
+  if (count >= 30) return "fire";
+  if (count >= 15) return "hot";
+  if (count >= 5) return "moderate";
+  return "calm";
+}
+
+export function getHotspotColor(level: HotspotLevel): string {
   switch (level) {
     case "calm":
       return "#06B6D4";
@@ -136,7 +149,7 @@ export function getHotspotColor(level: Hotspot["level"]): string {
   }
 }
 
-export function getHotspotLabel(level: Hotspot["level"]): string {
+export function getHotspotLabel(level: HotspotLevel): string {
   switch (level) {
     case "calm":
       return "Calme";

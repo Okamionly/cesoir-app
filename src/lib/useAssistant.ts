@@ -10,11 +10,21 @@
 // events, venues, and date ideas.
 
 import { useState, useCallback, useRef } from "react";
-import { MOCK_PROFILES, type Profile } from "@/lib/mock-profiles";
-import { MOCK_EVENTS, type PopUpEvent } from "@/lib/popup-events";
-import { DATE_IDEAS, type DateIdea } from "@/lib/dateIdeas";
-import { VENUES, type Venue } from "@/lib/venues";
+import { type Profile } from "@/lib/mock-profiles";
+import { type PopUpEvent } from "@/lib/popup-events";
+import { DATE_IDEAS } from "@/lib/dateIdeas";
+import { VENUES } from "@/lib/venues";
 import { PARIS_NEIGHBORHOODS } from "@/lib/neighborhoods";
+
+// Mock profile/event arrays were removed 2026-04-20. Until a real AI suggestion
+// endpoint (Anthropic/OpenAI) is wired in, the assistant seeds its suggestion
+// pipeline with empty datasets and returns an empty suggestions list — the UI
+// renders an empty-state gracefully.
+// TODO(ai): replace these datasets with a call to /api/assistant/suggestions
+// that generates suggestions from the user's recent activity + live profile
+// and event tables.
+const PROFILE_DATASET: Profile[] = [];
+const EVENT_DATASET: PopUpEvent[] = [];
 
 // ─────────────────────────────────────────
 // Types
@@ -194,15 +204,16 @@ function generateSuggestions(
   };
 
   const relevantModes = moodToMode[mood];
-  const matchProfiles = MOCK_PROFILES.filter((p) =>
+  const matchProfiles = PROFILE_DATASET.filter((p) =>
     relevantModes.includes(p.mode),
   );
 
-  // Pick a profile
-  const profile = matchProfiles[Math.floor(Math.random() * matchProfiles.length)] || MOCK_PROFILES[0];
+  // Pick a profile (suggestion A only produced when a profile is available)
+  const profile =
+    matchProfiles[Math.floor(Math.random() * matchProfiles.length)] ||
+    PROFILE_DATASET[0];
 
   // Find a venue matching location and budget
-  const budgetRange = budget === "gratuit" ? 1 : budget === "petit" ? 1 : 2;
   const locationVenues = VENUES.filter((v) => {
     if (location === "peu-importe") return true;
     return v.arrondissement.toLowerCase().includes(location.slice(0, 3)) ||
@@ -211,57 +222,62 @@ function generateSuggestions(
   const venuePool = locationVenues.length > 0 ? locationVenues : VENUES;
   const venue = venuePool[Math.floor(Math.random() * venuePool.length)];
 
-  const compatibility = 75 + Math.floor(Math.random() * 20);
+  if (profile && venue) {
+    const compatibility = 75 + Math.floor(Math.random() * 20);
 
-  suggestions.push({
-    id: "sug-1",
-    title: `${venue.type === "restaurant" ? "Diner" : "Soiree"} ${venue.type === "restaurant" ? "a" : "au"} ${venue.name}`,
-    description: `${group === "solo" ? "Rejoins" : "Retrouve"} ${profile.name} (${compatibility}% compatible) pour ${
-      venue.type === "restaurant"
-        ? "un diner"
-        : venue.type === "bar"
-          ? "un verre"
-          : "une sortie"
-    } ${mood === "chill" ? "tranquille" : mood === "festif" ? "de folie" : "sympa"}.`,
-    type: "match",
-    emoji: venue.type === "restaurant" ? "\uD83C\uDF7D\uFE0F" : venue.type === "bar" ? "\uD83C\uDF78" : "\uD83C\uDF1F",
-    compatibility,
-    matchName: profile.name,
-    matchPhoto: profile.photo,
-    location: `${venue.name}, ${venue.arrondissement}`,
-    price: budget === "gratuit" ? "Gratuit" : budget === "petit" ? "\u20AC" : "\u20AC\u20AC",
-    time: "20h00",
-    tags: [mood, venue.type, venue.arrondissement],
-    conversationStarters: [
-      `Demande a ${profile.name} quel est son endroit prefere a Paris`,
-      `Parle de ce qui t'a attire dans le mode ${mood}`,
-      `Raconte ta meilleure soiree improvisee`,
-    ],
-  });
+    suggestions.push({
+      id: "sug-1",
+      title: `${venue.type === "restaurant" ? "Diner" : "Soiree"} ${venue.type === "restaurant" ? "a" : "au"} ${venue.name}`,
+      description: `${group === "solo" ? "Rejoins" : "Retrouve"} ${profile.name} (${compatibility}% compatible) pour ${
+        venue.type === "restaurant"
+          ? "un diner"
+          : venue.type === "bar"
+            ? "un verre"
+            : "une sortie"
+      } ${mood === "chill" ? "tranquille" : mood === "festif" ? "de folie" : "sympa"}.`,
+      type: "match",
+      emoji: venue.type === "restaurant" ? "\uD83C\uDF7D\uFE0F" : venue.type === "bar" ? "\uD83C\uDF78" : "\uD83C\uDF1F",
+      compatibility,
+      matchName: profile.name,
+      matchPhoto: profile.photo,
+      location: `${venue.name}, ${venue.arrondissement}`,
+      price: budget === "gratuit" ? "Gratuit" : budget === "petit" ? "\u20AC" : "\u20AC\u20AC",
+      time: "20h00",
+      tags: [mood, venue.type, venue.arrondissement],
+      conversationStarters: [
+        `Demande a ${profile.name} quel est son endroit prefere a Paris`,
+        `Parle de ce qui t'a attire dans le mode ${mood}`,
+        `Raconte ta meilleure soiree improvisee`,
+      ],
+    });
+  }
 
   // --- Suggestion B: Event ---
-  const events = MOCK_EVENTS.filter((e) => {
+  const events = EVENT_DATASET.filter((e) => {
     if (group === "solo" && e.maxAttendees > 10) return true;
     if (group === "groupe") return true;
     return e.currentAttendees < e.maxAttendees;
   });
-  const event = events[Math.floor(Math.random() * events.length)] || MOCK_EVENTS[0];
+  const event =
+    events[Math.floor(Math.random() * events.length)] || EVENT_DATASET[0];
 
-  suggestions.push({
-    id: "sug-2",
-    title: event.title,
-    description: `${event.description} ${event.currentAttendees} personnes inscrites, ${event.maxAttendees - event.currentAttendees} places restantes.`,
-    type: "event",
-    emoji: "\uD83C\uDF89",
-    location: `${event.venue}, ${event.arrondissement}`,
-    price: budget === "gratuit" ? "Gratuit" : "\u20AC",
-    time: event.time,
-    tags: event.tags,
-    conversationStarters: [
-      "Presente-toi au groupe en partageant ton meilleur souvenir de soiree",
-      "Demande aux autres ce qui les a motives a venir",
-    ],
-  });
+  if (event) {
+    suggestions.push({
+      id: "sug-2",
+      title: event.title,
+      description: `${event.description} ${event.currentAttendees} personnes inscrites, ${event.maxAttendees - event.currentAttendees} places restantes.`,
+      type: "event",
+      emoji: "\uD83C\uDF89",
+      location: `${event.venue}, ${event.arrondissement}`,
+      price: budget === "gratuit" ? "Gratuit" : "\u20AC",
+      time: event.time,
+      tags: event.tags,
+      conversationStarters: [
+        "Presente-toi au groupe en partageant ton meilleur souvenir de soiree",
+        "Demande aux autres ce qui les a motives a venir",
+      ],
+    });
+  }
 
   // --- Suggestion C: Date Idea + Venue ---
   const moodToCategory: Record<MoodOption, string[]> = {

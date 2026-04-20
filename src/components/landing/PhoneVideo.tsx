@@ -162,11 +162,13 @@ function SceneModes() {
 }
 
 function SceneFeed() {
+  // Generic placeholders — no fake names, no fake distances. This is a landing
+  // page marketing mockup, not a real feed. Real data lives in /browse.
   const profiles = [
-    { name: "Marie, 26", mode: "Solo Diner", dist: "0.8 km", color: "#8B5CF6" },
-    { name: "Lucas, 31", mode: "Night Owl", dist: "1.2 km", color: "#6366F1" },
-    { name: "Amina, 24", mode: "Langues", dist: "2.1 km", color: "#06B6D4" },
-    { name: "Kevin, 28", mode: "Gaming", dist: "0.5 km", color: "#EC4899" },
+    { label: "Nouveau profil", mode: "Solo Diner", dist: "tout pres", color: "#8B5CF6" },
+    { label: "Quelqu'un comme toi", mode: "Night Owl", dist: "ce soir", color: "#6366F1" },
+    { label: "Match possible", mode: "Langues", dist: "pres de toi", color: "#06B6D4" },
+    { label: "Dispo maintenant", mode: "Gaming", dist: "juste a cote", color: "#EC4899" },
   ];
 
   return (
@@ -187,7 +189,7 @@ function SceneFeed() {
       <div className="space-y-2 overflow-hidden">
         {profiles.map((p, i) => (
           <m.div
-            key={p.name}
+            key={p.label}
             className="flex items-center gap-2 p-2.5 rounded-xl border border-white/5 bg-white/[0.02]"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -198,7 +200,7 @@ function SceneFeed() {
               style={{ background: `linear-gradient(135deg, ${p.color}, ${p.color}88)` }}
             />
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] font-bold text-white truncate">{p.name}</p>
+              <p className="text-[10px] font-bold text-white truncate">{p.label}</p>
               <p className="text-[8px] text-white/50">{p.mode} · {p.dist}</p>
             </div>
             <div
@@ -252,17 +254,18 @@ function SceneMatch() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5 }}
       >
-        Marie veut dîner à 20h<br />au <span className="text-[#8B5CF6] font-semibold">Petit Tonneau</span>
+        Un nouveau match<br />pour ce soir
       </m.p>
     </m.div>
   );
 }
 
 function SceneChat() {
+  // Generic preview — no named persona. Landing page marketing only.
   const messages = [
     { from: "them", text: "Hey ! On se fait ce Solo Diner ?", delay: 0 },
-    { from: "you", text: "Avec plaisir. 20h au Petit Tonneau ?", delay: 0.3 },
-    { from: "them", text: "Parfait, à tout de suite 🌙", delay: 0.6 },
+    { from: "you", text: "Avec plaisir. Ce soir, ca te dit ?", delay: 0.3 },
+    { from: "them", text: "Parfait, a tout de suite 🌙", delay: 0.6 },
   ];
 
   return (
@@ -276,7 +279,7 @@ function SceneChat() {
       <div className="flex items-center gap-2 pb-3 mb-2 border-b border-white/5">
         <div className="w-8 h-8 rounded-full" style={{ background: "linear-gradient(135deg, #8B5CF6, #8B5CF688)" }} />
         <div>
-          <p className="text-[11px] font-bold text-white">Marie</p>
+          <p className="text-[11px] font-bold text-white">Nouveau match</p>
           <p className="text-[8px] text-[#00FF88]">● En ligne</p>
         </div>
       </div>

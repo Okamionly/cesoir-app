@@ -6,10 +6,17 @@
 
 import type { ModeKey } from "./modes";
 import { MODES } from "./modes";
-import { PARIS_NEIGHBORHOODS, type Neighborhood } from "./neighborhoods";
-import { MOCK_PROFILES, type Profile } from "./mock-profiles";
-import { MOCK_EVENTS, type PopUpEvent } from "./popup-events";
+import { type Profile } from "./mock-profiles";
+import { type PopUpEvent } from "./popup-events";
 import { calculateCompatibility, type CompatProfile } from "./compatibility";
+
+// Mock profile/event arrays were removed 2026-04-20. The recommendation
+// engine now seeds its scoring pipelines with empty arrays; once real data
+// sources are wired (Supabase `profiles` + `events` tables), pass them into
+// `getPersonalizedFeed` via a `dataset` argument rather than re-importing
+// mocks.
+const PROFILE_DATASET: Profile[] = [];
+const EVENT_DATASET: PopUpEvent[] = [];
 
 // ─────────────────────────────────────────
 // Types
@@ -288,7 +295,7 @@ function getRecommendedProfiles(prefs: UserPreferences): RecommendedProfile[] {
     langs: ["FR"],
   };
 
-  const scored: RecommendedProfile[] = MOCK_PROFILES.map((profile) => {
+  const scored: RecommendedProfile[] = PROFILE_DATASET.map((profile) => {
     const profileCompat: CompatProfile = {
       modes: [profile.mode],
       age: profile.age,
@@ -349,7 +356,7 @@ function getRecommendedProfiles(prefs: UserPreferences): RecommendedProfile[] {
 // --- Recommended Events ---
 
 function getRecommendedEvents(prefs: UserPreferences): RecommendedEvent[] {
-  const scored: RecommendedEvent[] = MOCK_EVENTS.map((event) => {
+  const scored: RecommendedEvent[] = EVENT_DATASET.map((event) => {
     let score = 50; // base
 
     // Mode match
@@ -456,7 +463,7 @@ function getRecommendedVenues(prefs: UserPreferences): RecommendedVenue[] {
 
 function getTrendingEvents(): RecommendedEvent[] {
   // Events with the most attendees relative to capacity
-  const sorted = [...MOCK_EVENTS]
+  const sorted = [...EVENT_DATASET]
     .sort((a, b) => {
       const ratioA = a.currentAttendees / a.maxAttendees;
       const ratioB = b.currentAttendees / b.maxAttendees;

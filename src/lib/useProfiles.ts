@@ -72,7 +72,7 @@ export function useProfiles(
               color: app.violet,
               photo:
                 (p.avatar_url as string) ||
-                `https://randomuser.me/api/portraits/lego/${Math.floor(Math.random() * 10)}.jpg`,
+                `https://ui-avatars.com/api/?name=${encodeURIComponent((p.name as string) || "?")}&background=8B5CF6&color=fff&bold=true&size=256&format=svg`,
             }),
           );
           return { profiles: realProfiles, isReal: true };

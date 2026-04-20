@@ -43,7 +43,7 @@ function candidateToProfile(c: MatchCandidate): Profile {
     distance: c.distance_km,
     time: c.availableTime ?? "Dispo maintenant",
     color: "var(--color-accent)",
-    photo: c.avatar_url ?? `https://randomuser.me/api/portraits/lego/${Math.floor(Math.random() * 10)}.jpg`,
+    photo: c.avatar_url ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name || "?")}&background=8B5CF6&color=fff&bold=true&size=256&format=svg`,
   };
 }
 

@@ -17,69 +17,6 @@ import { RackFocus } from "@/components/motion/RackFocus";
 import { ArrowLeft, ChevronRight as LucideChevronRight, Star } from "@/components/ui/lucide";
 
 // ─────────────────────────────────────────
-// Mock testimonials per mode
-// ─────────────────────────────────────────
-
-const TESTIMONIALS: Record<string, { name: string; text: string; avatar: string }[]> = {
-  "solo-diner": [
-    { name: "Camille, 26", text: "J'ai trouve quelqu'un pour partager un ramen en 10 min. On se revoit jeudi !", avatar: "https://randomuser.me/api/portraits/women/21.jpg" },
-    { name: "Youssef, 30", text: "Fini les repas solo devant Netflix. CeSoir a change mes soirees.", avatar: "https://randomuser.me/api/portraits/men/45.jpg" },
-  ],
-  "plus-one": [
-    { name: "Lea, 28", text: "J'avais une place en plus pour un concert. Match en 5 min, soiree incroyable.", avatar: "https://randomuser.me/api/portraits/women/34.jpg" },
-    { name: "Hugo, 31", text: "Plus jamais de places perdues. CeSoir c'est le Vinted des +1.", avatar: "https://randomuser.me/api/portraits/men/52.jpg" },
-  ],
-  tourist: [
-    { name: "Emily, 25", text: "A local showed me hidden Paris spots I'd never find on TripAdvisor. Magic.", avatar: "https://randomuser.me/api/portraits/women/11.jpg" },
-    { name: "Marco, 34", text: "J'adore guider les voyageurs. On decouvre sa propre ville autrement.", avatar: "https://randomuser.me/api/portraits/men/68.jpg" },
-  ],
-  "night-owl": [
-    { name: "Luna, 24", text: "Balade a 2h du mat le long du canal. Les meilleures conversations.", avatar: "https://randomuser.me/api/portraits/women/18.jpg" },
-    { name: "Theo, 27", text: "Les noctambules se comprennent. Ce mode c'est notre QG.", avatar: "https://randomuser.me/api/portraits/men/84.jpg" },
-  ],
-  breakup: [
-    { name: "Marie, 30", text: "Zero pression, zero drague. Juste quelqu'un qui ecoute. Exactement ce qu'il fallait.", avatar: "https://randomuser.me/api/portraits/women/90.jpg" },
-    { name: "Antoine, 32", text: "Apres ma rupture, ce mode m'a aide a sortir de chez moi. Merci CeSoir.", avatar: "https://randomuser.me/api/portraits/men/15.jpg" },
-  ],
-  "new-in-town": [
-    { name: "Sofia, 23", text: "Arrivee a Paris sans connaitre personne. 3 semaines plus tard, j'ai un groupe d'amis.", avatar: "https://randomuser.me/api/portraits/women/12.jpg" },
-    { name: "Paul, 27", text: "Les ambassadeurs locaux sont incroyables. Ils connaissent tous les bons plans.", avatar: "https://randomuser.me/api/portraits/men/43.jpg" },
-  ],
-  langue: [
-    { name: "Marta, 26", text: "Mon francais a plus progresse en 2 soirees CeSoir qu'en 6 mois de cours.", avatar: "https://randomuser.me/api/portraits/women/79.jpg" },
-    { name: "Julien, 29", text: "Apprendre le japonais autour d'un cafe, c'est tellement plus fun qu'une app.", avatar: "https://randomuser.me/api/portraits/men/51.jpg" },
-  ],
-  "dog-date": [
-    { name: "Claire, 28", text: "Rex a trouve son meilleur pote au parc. Et moi aussi.", avatar: "https://randomuser.me/api/portraits/women/25.jpg" },
-    { name: "Maxime, 32", text: "Les bars dog-friendly de Paris, on les connait tous maintenant.", avatar: "https://randomuser.me/api/portraits/men/62.jpg" },
-  ],
-  seasonal: [
-    { name: "Luca, 29", text: "Mon meilleur Noel ? Avec 6 inconnus trouves sur CeSoir. Famille choisie.", avatar: "https://randomuser.me/api/portraits/men/91.jpg" },
-    { name: "Oceane, 31", text: "Anti-Valentine avec 8 celibataires. On a tellement ri que j'ai oublie mon ex.", avatar: "https://randomuser.me/api/portraits/women/36.jpg" },
-  ],
-  "fit-date": [
-    { name: "Kevin, 28", text: "Running a deux c'est 10x plus motivant. On fait 3 sorties par semaine maintenant.", avatar: "https://randomuser.me/api/portraits/men/29.jpg" },
-    { name: "Lea, 26", text: "J'ai trouve ma partenaire d'escalade ideale. Meme niveau, meme energie.", avatar: "https://randomuser.me/api/portraits/women/42.jpg" },
-  ],
-  "foodie-quest": [
-    { name: "Priya, 27", text: "On a trouve le meilleur pho de Paris ensemble. Mission accomplie.", avatar: "https://randomuser.me/api/portraits/women/64.jpg" },
-    { name: "Bastien, 30", text: "Street food tour a Belleville avec un inconnu. Meilleure soiree de l'annee.", avatar: "https://randomuser.me/api/portraits/men/47.jpg" },
-  ],
-  "culture-club": [
-    { name: "Gabriel, 33", text: "Debattre de Basquiat avec quelqu'un de passionne, ca n'a pas de prix.", avatar: "https://randomuser.me/api/portraits/men/73.jpg" },
-    { name: "Elise, 29", text: "Cinema d'auteur + discussion apres. Le combo parfait du mode Culture.", avatar: "https://randomuser.me/api/portraits/women/31.jpg" },
-  ],
-  "sober-tonight": [
-    { name: "Manon, 25", text: "Salon de the + jeux de societe. La preuve qu'on peut s'amuser sans alcool.", avatar: "https://randomuser.me/api/portraits/women/57.jpg" },
-    { name: "Lucas, 27", text: "Balade nocturne + patisserie. Simple, sobre, parfait.", avatar: "https://randomuser.me/api/portraits/men/24.jpg" },
-  ],
-  "gamer-night": [
-    { name: "Enzo, 23", text: "Mario Kart au bar avec des inconnus. J'ai perdu, j'ai paye les frites, j'ai adore.", avatar: "https://randomuser.me/api/portraits/men/16.jpg" },
-    { name: "Nina, 26", text: "On cherchait un joueur pour notre campagne D&D. Trouve en 20 min.", avatar: "https://randomuser.me/api/portraits/women/83.jpg" },
-  ],
-};
-
-// ─────────────────────────────────────────
 // Sub-components
 // ─────────────────────────────────────────
 
@@ -141,9 +78,6 @@ export default function ModeDetailPage({
     modeKey,
   );
   const activeCount = modeProfiles.length;
-
-  // Get testimonials for this mode
-  const testimonials = TESTIMONIALS[modeKey] ?? TESTIMONIALS["solo-diner"];
 
   // Avatar previews (first 3 profiles from this mode)
   const avatarPreviews = modeProfiles.slice(0, 3);
@@ -504,51 +438,8 @@ export default function ModeDetailPage({
         </section>
       )}
 
-      {/* ─── TEMOIGNAGES ─── */}
-      <section className="px-5 py-2" aria-labelledby="reviews-heading">
-        <m.h2
-          id="reviews-heading"
-          className="text-[15px] font-bold mb-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.9 }}
-        >
-          Temoignages
-        </m.h2>
-
-        <div className="space-y-3">
-          {testimonials.map((review, i) => (
-            <m.div
-              key={i}
-              className="bg-bg-card border border-border rounded-2xl p-4"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.95 + i * 0.12, ...springs.cinematic }}
-            >
-              <div className="flex items-center gap-3 mb-3">
-                <Image
-                  src={review.avatar}
-                  alt={review.name}
-                  width={36}
-                  height={36}
-                  className="w-9 h-9 rounded-full object-cover"
-                />
-                <div>
-                  <p className="text-[13px] font-bold">{review.name}</p>
-                  <div className="flex gap-0.5 text-warn">
-                    {[1, 2, 3, 4, 5].map((s) => (
-                      <StarIcon key={s} />
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <p className="text-[12px] text-text-muted leading-relaxed italic">
-                &ldquo;{review.text}&rdquo;
-              </p>
-            </m.div>
-          ))}
-        </div>
-      </section>
+      {/* Testimonials section removed — was seeded with mock users + randomuser.me avatars. */}
+      {/* TODO: wire real `mode_reviews` from Supabase once the table ships. */}
 
       {/* ─── CTA: ACTIVER CE MODE — Magnetic + glow ─── */}
       <div className="fixed bottom-0 left-0 right-0 z-50 px-5 pb-6 pt-4 bg-gradient-to-t from-bg via-bg/95 to-transparent">

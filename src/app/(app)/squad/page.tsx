@@ -27,14 +27,10 @@ interface Squad {
 
 // --- Helpers ---
 
-function photo(gender: "women" | "men", id: number): string {
-  return `https://randomuser.me/api/portraits/${gender}/${id}.jpg`;
-}
-
-function avatarFor(name: string, fallbackId: number): string {
-  // Deterministic randomuser avatar based on first char of name.
-  const code = name.charCodeAt(0) % 2 === 0 ? "women" : "men";
-  return photo(code, (fallbackId % 99) + 1);
+// Initials avatar fallback (no real people, SVG generated from name + violet background).
+function avatarFor(name: string, _fallbackId: number): string {
+  const safe = encodeURIComponent(name || "?");
+  return `https://ui-avatars.com/api/?name=${safe}&background=8B5CF6&color=fff&bold=true&size=256&format=svg`;
 }
 
 // --- Component ---
