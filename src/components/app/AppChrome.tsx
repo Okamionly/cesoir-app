@@ -2,7 +2,6 @@
 
 import { useAuth } from "@/context/AuthContext";
 import BottomNav from "@/components/app/BottomNav";
-import TopNav from "@/components/app/TopNav";
 import SOSButton from "@/components/app/SOSButton";
 import { FABMenu } from "@/components/app/FABMenu";
 
@@ -26,9 +25,7 @@ export default function AppChrome() {
 
   return (
     <>
-      {/* TopNav — desktop (md+), hidden on mobile */}
-      <TopNav />
-      {/* BottomNav + FAB — mobile (<md), hidden on desktop */}
+      {/* BottomNav partout (user choice 2026-04-20) — pattern mobile-first */}
       <FABMenu />
       <BottomNav />
       <SOSButton />

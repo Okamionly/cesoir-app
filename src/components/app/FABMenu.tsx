@@ -90,9 +90,9 @@ export function FABMenu() {
   }, [router]);
 
   return (
-    // md:hidden — FAB is a mobile interaction. On desktop it overlapped CTAs
-    // (Save, Join, etc.) per QA UI audit 2026-04-19.
-    <div className="fixed bottom-[90px] right-4 z-[800] md:hidden">
+    // FAB partout (user choice 2026-04-20) — cohérent avec BottomNav mobile-first.
+    // Position au-dessus de la BottomNav (90px ≈ nav 60px + marge 30px).
+    <div className="fixed bottom-[90px] right-4 z-[800]">
       {/* Backdrop when open */}
       <AnimatePresence>
         {isOpen && (
