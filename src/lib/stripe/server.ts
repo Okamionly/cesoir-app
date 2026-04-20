@@ -1,4 +1,5 @@
 import Stripe from "stripe";
+import { logger } from "@/lib/logger";
 
 /**
  * Server-side Stripe client.
@@ -14,7 +15,7 @@ const key = process.env.STRIPE_SECRET_KEY;
 
 if (!key && process.env.NODE_ENV === "production") {
   // En prod on veut savoir tout de suite que la clé manque
-  console.error("[stripe/server] STRIPE_SECRET_KEY is missing in production");
+  logger.error("stripe_secret_key_missing_in_production");
 }
 
 export const stripe = new Stripe(key ?? "sk_test_placeholder", {

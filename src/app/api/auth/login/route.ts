@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { apiError, apiRaw } from "@/lib/api/response";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
+import { authSchema } from "@/lib/validation";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/auth/login
@@ -22,19 +24,28 @@ const RATE_LIMIT_WINDOW_MS = 60_000;
 
 export async function POST(request: Request) {
   try {
-    const { email, password } = await request.json();
+    let rawBody: unknown;
+    try {
+      rawBody = await request.json();
+    } catch {
+      return apiError("Corps JSON invalide", 400, { code: "invalid_json" });
+    }
 
-    if (!email || !password) {
+    const parsed = authSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      logger.warn("api_auth_login_validation_failed", { fields: parsed.error.flatten().fieldErrors });
       return apiError("Email et mot de passe requis", 400, {
-        code: "missing_credentials",
+        code: "validation_failed",
+        details: { issues: parsed.error.flatten() },
       });
     }
+    const { email, password } = parsed.data;
 
     // H3 — rate limit by (ip, email) so neither a single IP nor a single
     // account can be brute-forced.
     const ip = getClientIp(request);
-    const normalizedEmail = String(email).toLowerCase().trim();
-    const rl = checkRateLimit(
+    const normalizedEmail = email.toLowerCase().trim();
+    const rl = await checkRateLimit(
       `login:${ip}:${normalizedEmail}`,
       RATE_LIMIT_MAX,
       RATE_LIMIT_WINDOW_MS,
@@ -74,7 +85,7 @@ export async function POST(request: Request) {
       },
     });
   } catch {
-    console.error("[/api/auth/login] unexpected error");
+    logger.error("api_auth_login_unexpected_error");
     return apiError("Erreur serveur", 500, { code: "internal_error" });
   }
 }

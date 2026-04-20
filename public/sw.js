@@ -1,22 +1,48 @@
 // ---------- CeSoir Service Worker ----------
+//
+// Cache naming strategy (QA 2026-04-20):
+// - Old SW hardcoded CACHE_NAME = "cesoir-v1" → users stayed on stale builds
+//   forever after a Vercel deploy (SW would keep serving the cached HTML/JS
+//   from the previous release). Cache never busted.
+// - New strategy: the main thread posts a VERSION message at register time
+//   carrying NEXT_PUBLIC_APP_VERSION (build SHA or timestamp). The SW uses
+//   that as the cache bucket suffix (cesoir-<version>) and drops every other
+//   bucket on activate. Fallback to "cesoir-v0" if no version is posted yet,
+//   so the first fetch after install still works.
+// - Registration URL is also /sw.js?v=<version> so the browser byte-diffs the
+//   worker on each deploy and triggers the updatefound path automatically.
+//
+// Privacy hardening (RGPD, QA 2026-04-20):
+// - Supabase REST/Storage/Realtime responses are NEVER cached. Previously any
+//   `supabase.co` URL went through networkFirst and got stored in CacheStorage,
+//   which meant user B logging in on the same device could read user A's
+//   photos/messages from the cache. Now we bypass the SW entirely for those.
+// - The main thread wipes all caches on logout (see AuthContext.signOut).
 
-const CACHE_NAME = "cesoir-v1";
-const OFFLINE_QUEUE_STORE = "cesoir-offline-sync";
+let RUNTIME_VERSION = "v0";
+let CACHE_NAME = "cesoir-v0";
 
-// Critical assets to pre-cache during install
+// Critical assets to pre-cache during install.
+// NOTE: "/" is intentionally omitted — caching the landing page masks auth
+// redirects (logged-out user sees logged-in snapshot). We cache the offline
+// fallback instead.
 const PRECACHE_ASSETS = [
-  "/",
-  "/browse",
+  "/offline",
   "/manifest.json",
   "/icon-192.png",
   "/icon-512.png",
 ];
 
-// Patterns that should use network-first strategy (API calls, dynamic data)
-const NETWORK_FIRST_PATTERNS = [
-  /\/api\//,
+// Patterns that MUST bypass the SW entirely — never read, never write cache.
+// Supabase auth/storage/rest leak PII across sessions if cached.
+const BYPASS_PATTERNS = [
   /supabase\.co/,
   /\/auth\//,
+];
+
+// Patterns that use network-first (stale fallback only if network dies).
+const NETWORK_FIRST_PATTERNS = [
+  /\/api\//,
 ];
 
 // ---------- Install ----------
@@ -58,6 +84,12 @@ self.addEventListener("fetch", (event) => {
   // Skip chrome-extension and other non-http(s) requests
   if (!request.url.startsWith("http")) return;
 
+  // Hard bypass — never touch cache for Supabase/auth (PII boundary)
+  const isBypass = BYPASS_PATTERNS.some((pattern) =>
+    pattern.test(request.url)
+  );
+  if (isBypass) return; // let the browser fetch natively, SW stays out
+
   // Network-first for API and dynamic content
   const isNetworkFirst = NETWORK_FIRST_PATTERNS.some((pattern) =>
     pattern.test(request.url)
@@ -83,9 +115,9 @@ async function cacheFirst(request) {
     }
     return response;
   } catch {
-    // Return offline fallback for navigation requests
+    // Return dedicated offline fallback for navigation requests
     if (request.mode === "navigate") {
-      const fallback = await caches.match("/");
+      const fallback = await caches.match("/offline");
       if (fallback) return fallback;
     }
     return new Response("Hors connexion", {
@@ -205,6 +237,8 @@ self.addEventListener("notificationclick", (event) => {
 
 // ---------- Background Sync ----------
 
+const OFFLINE_QUEUE_STORE = "cesoir-offline-sync";
+
 self.addEventListener("sync", (event) => {
   if (event.tag === OFFLINE_QUEUE_STORE) {
     event.waitUntil(processOfflineQueue());
@@ -226,7 +260,43 @@ async function processOfflineQueue() {
 // ---------- Message Handler ----------
 
 self.addEventListener("message", (event) => {
-  if (event.data && event.data.type === "SKIP_WAITING") {
+  if (!event.data) return;
+
+  if (event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
+    return;
+  }
+
+  // VERSION message: the main thread posts this right after registration with
+  // the current build ID. We adopt it as the cache bucket name so every new
+  // deploy creates a fresh bucket and the old one gets GC'd on activate.
+  if (event.data.type === "VERSION" && typeof event.data.version === "string") {
+    const newVersion = event.data.version;
+    if (newVersion && newVersion !== RUNTIME_VERSION) {
+      RUNTIME_VERSION = newVersion;
+      CACHE_NAME = `cesoir-${newVersion}`;
+      // Re-precache into the new bucket and drop older ones. We don't await
+      // here — postMessage handlers can't respond to waitUntil, but the
+      // install/activate cycle of the next worker will clean up stragglers.
+      caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE_ASSETS)).catch(() => {
+        // Offline or precache URL 404 — ignore, cache will fill opportunistically
+      });
+      caches.keys().then((keys) => {
+        keys
+          .filter((key) => key !== CACHE_NAME && key.startsWith("cesoir-"))
+          .forEach((key) => caches.delete(key));
+      });
+    }
+    return;
+  }
+
+  // WIPE_CACHES: triggered on logout. Clears every cache bucket so the next
+  // user on the device can't see the previous session's photos/messages via
+  // CacheStorage.
+  if (event.data.type === "WIPE_CACHES") {
+    event.waitUntil?.(
+      caches.keys().then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
+    );
+    return;
   }
 });

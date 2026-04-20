@@ -4,7 +4,10 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "./supabase";
 import type { DbConversation, DbMessage, DbProfile } from "./supabase";
 import type { RealtimeChannel } from "@supabase/supabase-js";
-import { useRealtimeChannel } from "@/lib/hooks/useSupabaseQuery";
+import {
+  namespacedChannelName,
+  useRealtimeChannel,
+} from "@/lib/hooks/useSupabaseQuery";
 
 // ---------- Types ----------
 
@@ -127,11 +130,13 @@ export function useConversations(userId: string | undefined) {
   }, [fetchConversations]);
 
   // realtime: refresh list when any related message arrives (unified cleanup)
+  // Channel already keyed by userId; namespacing helper makes the scheme
+  // consistent with the rest of the realtime hooks.
   useRealtimeChannel(
     (client) =>
       userId
         ? client
-            .channel(`conv-list-${userId}`)
+            .channel(namespacedChannelName("conv-list", userId))
             .on(
               "postgres_changes",
               {
@@ -314,11 +319,13 @@ export function useChat(conversationId: string | undefined, userId: string | und
   }, [conversationId, userId, loadingMore, hasMore]);
 
   // subscribe to new messages in this conversation (unified cleanup)
+  // Name includes userId so both participants (who share the conversation)
+  // don't collide on a single Supabase-realtime channel name.
   useRealtimeChannel(
     (client) =>
       conversationId && userId
         ? client
-            .channel(`chat-${conversationId}`)
+            .channel(namespacedChannelName(`chat-${conversationId}`, userId))
             .on(
               "postgres_changes",
               {

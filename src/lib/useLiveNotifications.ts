@@ -19,7 +19,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import { useRealtimeChannel } from "@/lib/hooks/useSupabaseQuery";
+import {
+  namespacedChannelName,
+  useRealtimeChannel,
+} from "@/lib/hooks/useSupabaseQuery";
+import { useAuth } from "@/context/AuthContext";
 import { MODES, type ModeKey } from "@/lib/modes";
 
 export interface LiveNotification {
@@ -57,6 +61,8 @@ export function useLiveNotifications(): {
   notifications: LiveNotification[];
   loading: boolean;
 } {
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
   const [notifications, setNotifications] = useState<LiveNotification[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -144,10 +150,12 @@ export function useLiveNotifications(): {
   }, []);
 
   // Realtime: refresh when source tables change.
+  // Channel is namespaced per-user so multiple sessions don't collide on
+  // a single "live-notifications" key (Supabase realtime would dedup).
   useRealtimeChannel(
     (client) =>
       client
-        .channel("live-notifications")
+        .channel(namespacedChannelName("live-notifications", userId))
         .on(
           "postgres_changes",
           { event: "*", schema: "public", table: "profiles" },
@@ -163,7 +171,7 @@ export function useLiveNotifications(): {
           { event: "*", schema: "public", table: "mode_activations" },
           () => void refreshRef.current(),
         ),
-    [],
+    [userId],
   );
 
   return { notifications, loading };

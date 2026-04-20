@@ -11,6 +11,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { findMatches, type MatchCandidate, type MatchOptions } from "@/lib/matching";
+import { logger } from "@/lib/logger";
 
 // ─── Constants ───
 
@@ -158,7 +159,7 @@ export function useSmartQueue(options: Omit<MatchOptions, "limit"> = {}): UseSma
       const message =
         err instanceof Error ? err.message : "Erreur lors du chargement";
       setError(message);
-      console.error("[useSmartQueue] fetch failed:", err);
+      logger.error("use_smart_queue_fetch_failed", { err: String(err) });
 
       // Fall back to cached queue if available
       const cached = getCachedQueue();

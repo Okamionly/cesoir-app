@@ -12,7 +12,10 @@ import { supabase } from "./supabase";
 import type { DbConversation, DbProfile } from "./supabase-types";
 import { useAuth } from "@/context/AuthContext";
 import { useAsyncResource } from "@/lib/hooks/useAsyncResource";
-import { useRealtimeChannel } from "@/lib/hooks/useSupabaseQuery";
+import {
+  namespacedChannelName,
+  useRealtimeChannel,
+} from "@/lib/hooks/useSupabaseQuery";
 
 // ---------- Types ----------
 
@@ -157,12 +160,20 @@ export function useConversations(): UseConversationsReturn {
   const conversationsRef = useRef(conversations);
   conversationsRef.current = conversations;
 
-  // Real-time subscriptions: new conversations + new/updated messages
+  // Real-time subscriptions: new conversations + new/updated messages.
+  // Channel name: base "conversations" + userId + instanceId so that
+  // multiple mounts of this hook (e.g. StrictMode double-mount, multi-tab)
+  // never collide on the Supabase realtime global namespace.
   useRealtimeChannel(
     (client) =>
       userId
         ? client
-            .channel(`conversations-${userId}-${instanceId}`)
+            .channel(
+              namespacedChannelName(
+                `conversations-${instanceId}`,
+                userId,
+              ),
+            )
             .on(
               "postgres_changes",
               {

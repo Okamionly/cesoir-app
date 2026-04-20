@@ -3,6 +3,7 @@
 import React from "react";
 import { m } from "motion/react";
 import { micro, springs } from "@/lib/motion-design";
+import { logger } from "@/lib/logger";
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -28,8 +29,13 @@ export default class ErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
-    console.error("[ErrorBoundary] Caught error:", error);
-    console.error("[ErrorBoundary] Component stack:", errorInfo.componentStack);
+    logger.error("error_boundary_caught", {
+      boundary: "root",
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack,
+    });
   }
 
   handleReset = (): void => {

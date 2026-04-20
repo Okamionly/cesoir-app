@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { stripe, isStripeConfigured } from "@/lib/stripe/server";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
+import { stripePortalSchema, type StripePortalInput } from "@/lib/validation";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/stripe/portal
@@ -15,10 +17,6 @@ import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
-
-interface PortalBody {
-  returnUrl?: string;
-}
 
 function resolveBaseUrl(request: Request): string {
   const envUrl = process.env.NEXT_PUBLIC_APP_URL;
@@ -62,15 +60,28 @@ export async function POST(request: Request) {
   }
 
   // Rate limit 10/min per user.
-  const rl = checkRateLimit(`stripe-portal:${user.id}`, 10, 60_000);
+  const rl = await checkRateLimit(`stripe-portal:${user.id}`, 10, 60_000);
   if (!rl.ok) return rateLimitResponse(rl);
 
-  // --- Body ---
-  let body: PortalBody = {};
+  // --- Body (optional) ---
+  let body: StripePortalInput = {};
   try {
-    body = (await request.json()) as PortalBody;
+    const raw = await request.json();
+    const parsed = stripePortalSchema.safeParse(raw);
+    if (!parsed.success) {
+      logger.warn("api_stripe_portal_validation_failed", { fields: parsed.error.flatten().fieldErrors });
+      return NextResponse.json(
+        {
+          error: "validation_failed",
+          code: "validation_failed",
+          issues: parsed.error.flatten(),
+        },
+        { status: 400 },
+      );
+    }
+    body = parsed.data;
   } catch {
-    // body is optional — tolerate empty
+    // body is optional — tolerate empty / malformed (no body at all is OK)
   }
 
   // --- Find customer ID ---
@@ -82,7 +93,7 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (subError) {
-    console.error("[/api/stripe/portal] db error:", subError.message);
+    logger.error("api_stripe_portal_db_error", { err: subError.message });
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 
@@ -107,7 +118,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ url: session.url });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Erreur Stripe";
-    console.error("[/api/stripe/portal] failed:", message);
+    logger.error("api_stripe_portal_failed", { err: message });
     return NextResponse.json(
       { error: "Impossible d'ouvrir le portail de facturation" },
       { status: 500 },

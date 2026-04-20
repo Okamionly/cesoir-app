@@ -21,6 +21,7 @@ import { useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { useSupabaseQuery } from "@/lib/hooks/useSupabaseQuery";
+import { logger } from "@/lib/logger";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -145,7 +146,7 @@ export function useUserSettings(): UseUserSettingsReturn {
           { onConflict: "user_id" },
         );
       if (upsertError) {
-        console.error("[useUserSettings] upsert failed:", upsertError.message);
+        logger.error("use_user_settings_upsert_failed", { err: upsertError.message });
         throw new Error(upsertError.message);
       }
       await refetch();

@@ -4,6 +4,7 @@ import { useCallback, useMemo } from "react";
 import { supabase } from "./supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useAsyncResource } from "@/lib/hooks/useAsyncResource";
+import { logger } from "./logger";
 
 // ---------- Types ----------
 
@@ -146,7 +147,7 @@ export function usePlans(options: UsePlansOptions = {}): UsePlansReturn {
         if (err.message?.toLowerCase().includes("abort")) {
           throw new Error(err.message);
         }
-        console.error("[usePlans] fetch failed:", err.message);
+        logger.error("use_plans_fetch_failed", { err: err.message });
         throw new Error(err.message);
       }
 
@@ -259,7 +260,7 @@ export function usePlans(options: UsePlansOptions = {}): UsePlansReturn {
         .single();
 
       if (err) {
-        console.error("[usePlans] create failed:", err.message);
+        logger.error("use_plans_create_failed", { err: err.message });
         return null;
       }
 

@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from "react";
 import { supabase } from "@/lib/supabase";
+import { wipeServiceWorkerCaches } from "@/lib/registerSW";
+import { logger } from "@/lib/logger";
 import type { User } from "@supabase/supabase-js";
 
 interface AuthContextType {
@@ -48,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
       if (refreshError) {
         // Token refresh failed — force re-login
-        console.error("Session refresh failed:", refreshError.message);
+        logger.error("auth_session_refresh_failed", { err: refreshError.message });
         await supabase.auth.signOut();
         setUser(null);
         _currentUserId = null;
@@ -125,6 +127,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await supabase.from("profiles").update({ is_online: false }).eq("id", user.id);
     }
     await supabase.auth.signOut();
+    // RGPD: wipe every CacheStorage bucket so the next user on this device
+    // cannot access the previous session's photos/messages via the SW cache.
+    // Must run *after* signOut() so in-flight Supabase requests finish first.
+    await wipeServiceWorkerCaches();
     setUser(null);
   }, [user]);
 

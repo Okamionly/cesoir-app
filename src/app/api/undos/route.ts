@@ -1,6 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
+import { undoSchema } from "@/lib/validation";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/undos
@@ -23,11 +25,6 @@ import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
-
-interface UndoBody {
-  targetId: string;
-  originalAction: "like" | "pass" | "superlike";
-}
 
 function todayStartUTC(): string {
   const d = new Date();
@@ -55,26 +52,29 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Session invalide" }, { status: 401 });
   }
 
-  const rl = checkRateLimit(`undos:${user.id}`, 10, 60_000);
+  const rl = await checkRateLimit(`undos:${user.id}`, 10, 60_000);
   if (!rl.ok) return rateLimitResponse(rl);
 
-  let body: UndoBody;
+  let rawBody: unknown;
   try {
-    body = (await request.json()) as UndoBody;
+    rawBody = await request.json();
   } catch {
     return NextResponse.json({ error: "Corps JSON invalide" }, { status: 400 });
   }
 
-  const { targetId, originalAction } = body;
-  if (!targetId || typeof targetId !== "string") {
-    return NextResponse.json({ error: "targetId requis" }, { status: 400 });
-  }
-  if (!["like", "pass", "superlike"].includes(originalAction)) {
+  const parsed = undoSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    logger.warn("api_undos_validation_failed", { fields: parsed.error.flatten().fieldErrors });
     return NextResponse.json(
-      { error: "originalAction invalide" },
+      {
+        error: "validation_failed",
+        code: "validation_failed",
+        issues: parsed.error.flatten(),
+      },
       { status: 400 },
     );
   }
+  const { targetId, originalAction } = parsed.data;
 
   // --- Delete the interaction (so target can be re-swiped) ---
   const { error: delErr } = await db
@@ -85,7 +85,7 @@ export async function POST(request: Request) {
     .eq("action", originalAction);
 
   if (delErr) {
-    console.error("[/api/undos] interaction delete failed:", delErr.message);
+    logger.error("api_undos_interaction_delete_failed", { err: delErr.message });
     return NextResponse.json(
       { error: "Erreur suppression interaction" },
       { status: 500 },
@@ -104,7 +104,7 @@ export async function POST(request: Request) {
     .single();
 
   if (insErr) {
-    console.error("[/api/undos] undo insert failed:", insErr.message);
+    logger.error("api_undos_insert_failed", { err: insErr.message });
     return NextResponse.json(
       { error: "Erreur enregistrement undo" },
       { status: 500 },
@@ -148,7 +148,7 @@ export async function GET(request: Request) {
     .order("undone_at", { ascending: false });
 
   if (error) {
-    console.error("[/api/undos GET] failed:", error.message);
+    logger.error("api_undos_get_failed", { err: error.message });
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 

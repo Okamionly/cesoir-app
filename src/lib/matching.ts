@@ -1,3 +1,5 @@
+import { logger } from "./logger";
+
 // ========================================
 // CeSoir Matching Algorithm
 // The heart of the app: find someone to go out with TONIGHT.
@@ -271,7 +273,7 @@ export async function findMatches(
   );
 
   if (nearbyError || !nearbyRaw) {
-    console.error("[matching] nearby_profiles RPC failed:", nearbyError?.message);
+    logger.error("matching_nearby_profiles_rpc_failed", { err: nearbyError?.message });
     return [];
   }
 

@@ -1,13 +1,11 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit";
+import { squadJoinSchema } from "@/lib/validation";
+import { logger } from "@/lib/logger";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
-
-interface JoinBody {
-  invite_code: string;
-}
 
 interface SquadRow {
   id: string;
@@ -28,7 +26,7 @@ export async function POST(request: Request) {
   // Rate limit 5/min per IP — blocks brute-force of 6-char invite codes
   // (36^6 = 2.2G combinations but attacker can still spray).
   const ip = getClientIp(request);
-  const rl = checkRateLimit(`squad-join:${ip}`, 5, 60_000);
+  const rl = await checkRateLimit(`squad-join:${ip}`, 5, 60_000);
   if (!rl.ok) return rateLimitResponse(rl);
 
   const authHeader = request.headers.get("authorization");
@@ -50,17 +48,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Session invalide" }, { status: 401 });
   }
 
-  let body: JoinBody;
+  let rawBody: unknown;
   try {
-    body = await request.json();
+    rawBody = await request.json();
   } catch {
     return NextResponse.json({ error: "Corps JSON invalide" }, { status: 400 });
   }
 
-  const code = (body.invite_code ?? "").trim().toUpperCase();
-  if (code.length !== 6) {
-    return NextResponse.json({ error: "Code invalide (6 caracteres)" }, { status: 400 });
+  const parsed = squadJoinSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    logger.warn("api_squad_join_validation_failed", { fields: parsed.error.flatten().fieldErrors });
+    return NextResponse.json(
+      {
+        error: "Code invalide (6 caracteres)",
+        code: "validation_failed",
+        issues: parsed.error.flatten(),
+      },
+      { status: 400 },
+    );
   }
+  const code = parsed.data.invite_code.trim().toUpperCase();
 
   // 1. Lookup invite
   const { data: inviteData, error: inviteErr } = await db
@@ -114,7 +121,7 @@ export async function POST(request: Request) {
     .eq("id", squad.id);
 
   if (updateErr) {
-    console.error("[/api/squad/join] update squad failed:", updateErr.message);
+    logger.error("api_squad_join_update_failed", { err: updateErr.message });
     return NextResponse.json({ error: "Erreur mise a jour squad" }, { status: 500 });
   }
 
@@ -124,7 +131,7 @@ export async function POST(request: Request) {
     .eq("id", invite.id);
 
   if (markErr) {
-    console.error("[/api/squad/join] mark invite used failed:", markErr.message);
+    logger.error("api_squad_join_mark_invite_failed", { err: markErr.message });
   }
 
   return NextResponse.json({ joined: true, squad_id: squad.id });

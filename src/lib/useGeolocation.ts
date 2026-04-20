@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { logger } from "@/lib/logger";
 
 // -----------------------------------------------------------
 // Types
@@ -81,7 +82,7 @@ export function useGeolocation(): UseGeolocationResult {
         });
       } catch {
         // Non-critical -- location still works locally even if RPC fails
-        console.warn("[useGeolocation] update_location RPC failed");
+        logger.warn("use_geolocation_update_location_rpc_failed");
       }
     },
     [user],

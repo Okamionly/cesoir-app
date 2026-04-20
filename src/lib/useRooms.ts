@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { supabase } from "./supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useAsyncResource } from "@/lib/hooks/useAsyncResource";
+import { logger } from "./logger";
 import { useRealtimeChannel } from "@/lib/hooks/useSupabaseQuery";
 
 // ---------- Types ----------
@@ -81,7 +82,7 @@ export function useRooms(): UseRoomsReturn {
         .abortSignal(signal);
 
       if (err) {
-        console.error("[useRooms] fetch failed:", err.message);
+        logger.error("use_rooms_fetch_failed", { err: err.message });
         throw new Error(err.message);
       }
 
@@ -133,7 +134,7 @@ export function useRooms(): UseRoomsReturn {
         .select("id")
         .single();
       if (err) {
-        console.error("[useRooms] createRoom failed:", err.message);
+        logger.error("use_rooms_create_failed", { err: err.message });
         return null;
       }
       void refetch();

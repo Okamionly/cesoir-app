@@ -1,6 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
+import { walletActionSchema } from "@/lib/validation";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/wallet/roses
@@ -19,11 +21,6 @@ import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
-
-interface WalletBody {
-  action: "spend" | "earn";
-  amount: number;
-}
 
 export async function POST(request: Request) {
   // --- Auth ---
@@ -47,30 +44,30 @@ export async function POST(request: Request) {
   }
 
   // --- Rate limit: 10/min per user ---
-  const rl = checkRateLimit(`wallet:${user.id}`, 10, 60_000);
+  const rl = await checkRateLimit(`wallet:${user.id}`, 10, 60_000);
   if (!rl.ok) return rateLimitResponse(rl);
 
-  // --- Parse body ---
-  let body: WalletBody;
+  // --- Parse + validate body ---
+  let rawBody: unknown;
   try {
-    body = (await request.json()) as WalletBody;
+    rawBody = await request.json();
   } catch {
     return NextResponse.json({ error: "Corps JSON invalide" }, { status: 400 });
   }
 
-  const { action, amount } = body;
-  if (action !== "spend" && action !== "earn") {
+  const parsed = walletActionSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    logger.warn("api_wallet_roses_validation_failed", { fields: parsed.error.flatten().fieldErrors });
     return NextResponse.json(
-      { error: "action doit etre 'spend' ou 'earn'" },
+      {
+        error: "validation_failed",
+        code: "validation_failed",
+        issues: parsed.error.flatten(),
+      },
       { status: 400 },
     );
   }
-  if (typeof amount !== "number" || !Number.isFinite(amount) || amount <= 0) {
-    return NextResponse.json(
-      { error: "amount doit etre un entier positif" },
-      { status: 400 },
-    );
-  }
+  const { action, amount } = parsed.data;
 
   // --- Fetch current balance (upsert row if missing) ---
   const { data: wallet, error: selectErr } = await db
@@ -80,7 +77,7 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (selectErr) {
-    console.error("[/api/wallet/roses] select failed:", selectErr.message);
+    logger.error("api_wallet_roses_select_failed", { err: selectErr.message });
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 
@@ -120,7 +117,7 @@ export async function POST(request: Request) {
     );
 
   if (upsertErr) {
-    console.error("[/api/wallet/roses] upsert failed:", upsertErr.message);
+    logger.error("api_wallet_roses_upsert_failed", { err: upsertErr.message });
     return NextResponse.json({ error: "Erreur ecriture wallet" }, { status: 500 });
   }
 
@@ -157,7 +154,7 @@ export async function GET(request: Request) {
     .maybeSingle();
 
   if (error) {
-    console.error("[/api/wallet/roses GET] failed:", error.message);
+    logger.error("api_wallet_roses_get_failed", { err: error.message });
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 

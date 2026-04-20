@@ -1,6 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
+import { z } from "zod";
+import { logger } from "@/lib/logger";
+
+const idParamSchema = z.object({ id: z.string().uuid("id doit être un UUID") });
 
 /**
  * DELETE /api/undos/[id]
@@ -39,13 +43,23 @@ export async function DELETE(request: Request, context: RouteContext) {
     return NextResponse.json({ error: "Session invalide" }, { status: 401 });
   }
 
-  const rl = checkRateLimit(`undos-del:${user.id}`, 10, 60_000);
+  const rl = await checkRateLimit(`undos-del:${user.id}`, 10, 60_000);
   if (!rl.ok) return rateLimitResponse(rl);
 
-  const { id } = await context.params;
-  if (!id || typeof id !== "string") {
-    return NextResponse.json({ error: "id requis" }, { status: 400 });
+  const params = await context.params;
+  const parsed = idParamSchema.safeParse(params);
+  if (!parsed.success) {
+    logger.warn("api_undos_delete_validation_failed", { fields: parsed.error.flatten().fieldErrors });
+    return NextResponse.json(
+      {
+        error: "validation_failed",
+        code: "validation_failed",
+        issues: parsed.error.flatten(),
+      },
+      { status: 400 },
+    );
   }
+  const { id } = parsed.data;
 
   // RLS constrains DELETE to rows owned by the user — extra eq for defence.
   const { data: deleted, error } = await db
@@ -56,7 +70,7 @@ export async function DELETE(request: Request, context: RouteContext) {
     .select("id");
 
   if (error) {
-    console.error("[/api/undos/:id DELETE] failed:", error.message);
+    logger.error("api_undos_delete_failed", { err: error.message });
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
+import { logger } from "@/lib/logger";
 
 /**
  * Client-side Stripe singleton.
@@ -20,9 +21,7 @@ export function getStripe(): Promise<Stripe | null> {
   if (!stripePromise) {
     const key = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
     if (!key) {
-      console.warn(
-        "[stripe/client] NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY missing — checkout disabled.",
-      );
+      logger.warn("stripe_client_publishable_key_missing");
       stripePromise = Promise.resolve(null);
       return stripePromise;
     }

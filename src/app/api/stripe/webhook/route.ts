@@ -1,8 +1,25 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import type Stripe from "stripe";
+import { z } from "zod";
 import { stripe } from "@/lib/stripe/server";
 import { getPlanByPriceId, getShopProductById } from "@/lib/stripe/plans";
+import { logger } from "@/lib/logger";
+
+/**
+ * Metadata schema — even though Stripe signs the payload, we validate the
+ * user-scoped metadata fields before we issue DB writes (checkout session
+ * metadata is populated by our own /api/stripe/checkout route, so a schema
+ * drift here is a bug worth catching at the boundary).
+ */
+const userIdShape = z.string().min(1).max(64);
+const checkoutMetadataSchema = z.object({
+  supabase_user_id: userIdShape.optional(),
+  plan_id: z.string().max(64).optional(),
+  product_id: z.string().max(64).optional(),
+  product_type: z.string().max(32).optional(),
+  quantity: z.string().max(8).optional(),
+});
 
 /**
  * POST /api/stripe/webhook
@@ -46,9 +63,17 @@ function getServiceRoleClient() {
 // ─────────────────────────────────────────
 
 async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
-  const userId = session.metadata?.supabase_user_id ?? session.client_reference_id;
+  const metaParsed = checkoutMetadataSchema.safeParse(session.metadata ?? {});
+  if (!metaParsed.success) {
+    logger.warn("api_stripe_webhook_checkout_metadata_invalid", {
+      fields: metaParsed.error.flatten().fieldErrors,
+    });
+    return;
+  }
+  const userId =
+    metaParsed.data.supabase_user_id ?? session.client_reference_id ?? null;
   if (!userId) {
-    console.warn("[webhook] checkout.session.completed without user id");
+    logger.warn("api_stripe_webhook_checkout_no_user_id");
     return;
   }
   const db = getServiceRoleClient();
@@ -69,8 +94,8 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       ? session.payment_intent
       : session.payment_intent.id;
 
-    const productId = session.metadata?.product_id ?? "unknown";
-    const productType = session.metadata?.product_type ?? "unknown";
+    const productId = metaParsed.data.product_id ?? "unknown";
+    const productType = metaParsed.data.product_type ?? "unknown";
     const product = getShopProductById(productId);
 
     const { error } = await db.from("purchases").upsert(
@@ -90,7 +115,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       { onConflict: "stripe_payment_intent_id" },
     );
     if (error) {
-      console.error("[webhook] purchase insert failed:", error.message);
+      logger.error("api_stripe_webhook_purchase_insert_failed", { err: error.message });
     }
   }
 }
@@ -128,7 +153,7 @@ async function upsertSubscription(
   );
 
   if (error) {
-    console.error("[webhook] subscription upsert failed:", error.message);
+    logger.error("api_stripe_webhook_sub_upsert_failed", { err: error.message });
   }
 }
 
@@ -145,7 +170,7 @@ async function handleSubscriptionUpdated(sub: Stripe.Subscription) {
       .limit(1)
       .maybeSingle();
     if (!existing?.user_id) {
-      console.warn("[webhook] subscription update: no user mapping for", sub.id);
+      logger.warn("api_stripe_webhook_sub_no_user_mapping", { subId: sub.id });
       return;
     }
     await upsertSubscription(db, existing.user_id, sub);
@@ -161,7 +186,7 @@ async function handleSubscriptionDeleted(sub: Stripe.Subscription) {
     .update({ status: "canceled", cancel_at_period_end: false })
     .eq("stripe_subscription_id", sub.id);
   if (error) {
-    console.error("[webhook] sub delete failed:", error.message);
+    logger.error("api_stripe_webhook_sub_delete_failed", { err: error.message });
   }
 }
 
@@ -185,7 +210,7 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
     .update({ status: "past_due" })
     .eq("stripe_subscription_id", subscriptionId);
   if (error) {
-    console.error("[webhook] invoice fail update:", error.message);
+    logger.error("api_stripe_webhook_invoice_fail_update", { err: error.message });
   }
 }
 
@@ -200,7 +225,7 @@ async function handlePaymentIntentSucceeded(pi: Stripe.PaymentIntent) {
     .eq("stripe_payment_intent_id", pi.id);
   if (error && error.code !== "PGRST116") {
     // PGRST116 = no rows found, which is fine (first event was checkout.session.completed)
-    console.error("[webhook] pi succeed update:", error.message);
+    logger.error("api_stripe_webhook_pi_succeed_update", { err: error.message });
   }
 }
 
@@ -210,7 +235,7 @@ async function handlePaymentIntentSucceeded(pi: Stripe.PaymentIntent) {
 
 export async function POST(request: Request) {
   if (!WEBHOOK_SECRET) {
-    console.error("[webhook] STRIPE_WEBHOOK_SECRET missing");
+    logger.error("api_stripe_webhook_secret_missing");
     return NextResponse.json({ error: "Webhook not configured" }, { status: 503 });
   }
 
@@ -227,7 +252,7 @@ export async function POST(request: Request) {
     event = stripe.webhooks.constructEvent(rawBody, signature, WEBHOOK_SECRET);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Invalid signature";
-    console.error("[webhook] signature verification failed:", message);
+    logger.error("api_stripe_webhook_signature_failed", { err: message });
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
@@ -259,7 +284,7 @@ export async function POST(request: Request) {
     }
   } catch (err) {
     const message = err instanceof Error ? err.message : "Handler error";
-    console.error(`[webhook] ${event.type} handler failed:`, message);
+    logger.error("api_stripe_webhook_handler_failed", { eventType: event.type, err: message });
     // Return 500 so Stripe retries
     return NextResponse.json({ error: "Handler failed" }, { status: 500 });
   }

@@ -1,6 +1,7 @@
 import { createClient as createAnonClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/account/delete
@@ -57,7 +58,7 @@ export async function POST(request: Request) {
 
     // Rate limit 1/hour per user — prevents accidental spam / double-click.
     // Placed AFTER auth so we key on userId (anonymous attackers are 401'd).
-    const rl = checkRateLimit(`account-delete:${userId}`, 1, 60 * 60_000);
+    const rl = await checkRateLimit(`account-delete:${userId}`, 1, 60 * 60_000);
     if (!rl.ok) return rateLimitResponse(rl);
 
     // ─── Delete avatar files first (irreversible but small risk if profile
@@ -72,7 +73,7 @@ export async function POST(request: Request) {
         .from("avatars")
         .remove(paths);
       if (rmError) {
-        console.error("[/api/account/delete] avatar remove failed:", rmError.message);
+        logger.error("api_account_delete_avatar_remove_failed", { err: rmError.message });
       }
       avatarsDeleted = removed?.length ?? 0;
     }
@@ -86,7 +87,7 @@ export async function POST(request: Request) {
       .select("id");
 
     if (profileError) {
-      console.error("[/api/account/delete] profile delete failed:", profileError.message);
+      logger.error("api_account_delete_profile_failed", { err: profileError.message });
       return NextResponse.json(
         { error: "Échec de la suppression du profil" },
         { status: 500 },
@@ -95,7 +96,7 @@ export async function POST(request: Request) {
 
     if (!deletedRows || deletedRows.length === 0) {
       // Should not happen with the new DELETE policy, but defend in depth.
-      console.error("[/api/account/delete] profile delete returned 0 rows for user", userId);
+      logger.error("api_account_delete_profile_zero_rows", { userId });
       return NextResponse.json(
         { error: "Profil non trouvé ou déjà supprimé" },
         { status: 404 },
@@ -116,10 +117,7 @@ export async function POST(request: Request) {
         userId,
       );
       if (adminError) {
-        console.error(
-          "[/api/account/delete] admin.deleteUser failed:",
-          adminError.message,
-        );
+        logger.error("api_account_delete_admin_user_failed", { err: adminError.message });
         orphanWarning =
           "Compte auth orphelin — contacter le support pour cleanup complet.";
       } else {
@@ -128,7 +126,7 @@ export async function POST(request: Request) {
     } else {
       orphanWarning =
         "SUPABASE_SERVICE_ROLE_KEY non configurée — l'entrée auth.users reste (orphelin RGPD).";
-      console.warn("[/api/account/delete]", orphanWarning);
+      logger.warn("api_account_delete_orphan_auth", { warning: orphanWarning });
     }
 
     return NextResponse.json({
@@ -142,7 +140,7 @@ export async function POST(request: Request) {
       },
     });
   } catch (e) {
-    console.error("[/api/account/delete] unexpected error:", e);
+    logger.error("api_account_delete_unexpected", { err: String(e) });
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }

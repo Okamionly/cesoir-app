@@ -3,7 +3,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "./supabase";
 import { useAsyncResource } from "@/lib/hooks/useAsyncResource";
-import { useRealtimeChannel } from "@/lib/hooks/useSupabaseQuery";
+import {
+  namespacedChannelName,
+  useRealtimeChannel,
+} from "@/lib/hooks/useSupabaseQuery";
+import { useAuth } from "@/context/AuthContext";
 import type { DbFeedActivity, DbProfile, FeedActivityType } from "./supabase-types";
 
 // ---------- Types ----------
@@ -71,6 +75,8 @@ interface FeedPayload {
 // ---------- Hook ----------
 
 export function useFeed(): UseFeedReturn {
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
   // Augmented/mutated state (extra items from pagination or realtime inserts)
   const [extra, setExtra] = useState<FeedActivity[]>([]);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -193,9 +199,14 @@ export function useFeed(): UseFeedReturn {
   }, [loadingMore, hasMore, baseActivities]);
 
   // ---- Realtime subscription ----
+  // Channel is namespaced per-user: Supabase realtime uses channel names
+  // as a global key, so `client.channel("feed-realtime")` shared across
+  // sessions makes remounts and multi-tab users collide silently.
   useRealtimeChannel(
     (client) =>
-      client.channel("feed-realtime").on(
+      client
+        .channel(namespacedChannelName("feed-realtime", userId))
+        .on(
         "postgres_changes",
         {
           event: "INSERT",
@@ -230,7 +241,7 @@ export function useFeed(): UseFeedReturn {
           }, 3000);
         },
       ),
-    [],
+    [userId],
   );
 
   const acknowledgeNew = useCallback(() => setNewCount(0), []);

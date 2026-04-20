@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useAsyncResource } from "@/lib/hooks/useAsyncResource";
+import { logger } from "@/lib/logger";
 import type { ReportReason } from "@/lib/supabase-types";
 
 // ------------------------------------------------------------------
@@ -196,7 +197,7 @@ export function useSafety(): UseSafetyResult {
         created_at: timestamp,
       });
     } catch (err) {
-      console.error("[useSafety] SOS DB log failed:", err);
+      logger.error("use_safety_sos_log_failed", { err: String(err) });
     }
 
     // 2. Notify each trusted contact via edge functions
@@ -217,7 +218,7 @@ export function useSafety(): UseSafetyResult {
             body: { to: contact.phone, message },
           });
         } catch {
-          console.warn("[useSafety] SMS failed for", contact.name);
+          logger.warn("use_safety_sms_failed", { contact: contact.name });
         }
       }
     }
@@ -258,7 +259,7 @@ export function useSafety(): UseSafetyResult {
               last_checkin_at: new Date().toISOString(),
             }),
         ).catch((err) => {
-          console.error("[useSafety] Failed to create check-in record:", err);
+          logger.error("use_safety_checkin_create_failed", { err: String(err) });
         });
       }
 
@@ -287,7 +288,7 @@ export function useSafety(): UseSafetyResult {
                 .eq("user_id", userId)
                 .eq("status", "active"),
             ).catch((err) => {
-              console.error("[useSafety] Failed to mark check-in as alert:", err);
+              logger.error("use_safety_checkin_alert_failed", { err: String(err) });
             });
 
             // Trigger SOS-like notification for missed check-in
@@ -311,10 +312,10 @@ export function useSafety(): UseSafetyResult {
                       },
                     }),
                   ).catch((err) => {
-                    console.error(
-                      `[useSafety] Failed to send check-in alert SMS to ${contact.name}:`,
-                      err,
-                    );
+                    logger.error("use_safety_checkin_alert_sms_failed", {
+                      contact: contact.name,
+                      err: String(err),
+                    });
                   });
                 }
               }
@@ -355,7 +356,7 @@ export function useSafety(): UseSafetyResult {
           .eq("user_id", userId)
           .eq("status", "active"),
       ).catch((err) => {
-        console.error("[useSafety] Failed to update check-in to safe:", err);
+        logger.error("use_safety_checkin_safe_failed", { err: String(err) });
       });
     }
 
@@ -385,7 +386,7 @@ export function useSafety(): UseSafetyResult {
           .eq("user_id", userId)
           .eq("status", "active"),
       ).catch((err) => {
-        console.error("[useSafety] Failed to cancel check-in record:", err);
+        logger.error("use_safety_checkin_cancel_failed", { err: String(err) });
       });
     }
 
@@ -409,7 +410,7 @@ export function useSafety(): UseSafetyResult {
           created_at: new Date().toISOString(),
         });
       } catch (err) {
-        console.error("[useSafety] Report insert failed:", err);
+        logger.error("use_safety_report_insert_failed", { err: String(err) });
       }
 
       addAction(

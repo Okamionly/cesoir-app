@@ -8,11 +8,14 @@
  * { data, loading, error, refetch }. Safe for strict-mode double-mount.
  *
  * `useRealtimeChannel` : wraps a RealtimeChannel subscription with guaranteed
- * cleanup (unsubscribe + ref reset) on unmount or dep change.
+ * cleanup (unsubscribe + ref reset) on unmount or dep change. Wave 12: adds
+ * exponential backoff on CHANNEL_ERROR/TIMED_OUT/CLOSED, immediate reconnect
+ * on `window.online`, and per-user channel namespacing helper.
  */
 import type { RefObject } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 import type {
   PostgrestError,
   RealtimeChannel,
@@ -80,52 +83,196 @@ export function useSupabaseQuery<T>(
 }
 
 /**
- * Subscribe to a Supabase realtime channel with guaranteed cleanup.
+ * Namespaces a realtime channel name with the current user id. Supabase
+ * channels are a global namespace on the realtime server: if two tabs (or
+ * two users) open `client.channel("feed-realtime")`, Supabase deduplicates
+ * under the hood and the second caller silently shares the first
+ * subscription. The symptom in production is "reactions stuck" or a feed
+ * that stops updating on remount.
+ *
+ * Always pass a stable per-user suffix. Falls back to "anon" for
+ * unauthenticated visitors (each tab still collides there, but that is
+ * acceptable for read-only public channels).
+ */
+export function namespacedChannelName(
+  base: string,
+  userId: string | null | undefined,
+): string {
+  return `${base}:${userId ?? "anon"}`;
+}
+
+/**
+ * Subscribe to a Supabase realtime channel with guaranteed cleanup and
+ * auto-reconnect.
  *
  * `factory` receives the supabase client and must return an unsubscribed
- * RealtimeChannel. The hook calls `.subscribe()` and handles cleanup:
- * channel.unsubscribe() + ref nulled on unmount/dep-change.
+ * RealtimeChannel (or null to skip). The hook calls `.subscribe()` with a
+ * status callback that retries on CHANNEL_ERROR/TIMED_OUT/CLOSED with
+ * exponential backoff (1s → 30s cap). Reconnect is forced immediately when
+ * the browser fires `window.online`.
+ *
+ * Consumer factories may still attach their own `.subscribe()` callback
+ * (e.g. for presence tracking). supabase-js dedupes subscribe calls when
+ * the channel is already joining/joined, so the inner user-callback +
+ * our retry wrapper coexist safely.
  *
  * Returns `{ channelRef }` — a stable React ref pointing to the active
  * channel (or `null` when unsubscribed/pending). Consumers that need to
  * `.send()` broadcast events or track presence state can read the ref
  * inside callbacks without re-subscribing.
- *
- * Note: the legacy signature returned the ref directly. Existing callers
- * that ignored the return value remain compatible.
  */
 export interface RealtimeChannelHandle {
   channelRef: RefObject<RealtimeChannel | null>;
 }
 
+export interface UseRealtimeChannelOptions {
+  enabled?: boolean;
+  /** Initial retry delay, doubles each failure. Defaults to 1000ms. */
+  initialBackoffMs?: number;
+  /** Ceiling for exponential backoff. Defaults to 30000ms. */
+  maxBackoffMs?: number;
+  /** Called for each non-success status — useful for telemetry. */
+  onStatus?: (
+    status:
+      | "SUBSCRIBED"
+      | "CHANNEL_ERROR"
+      | "TIMED_OUT"
+      | "CLOSED",
+    err?: Error,
+  ) => void;
+}
+
 export function useRealtimeChannel(
   factory: (client: typeof supabase) => RealtimeChannel | null,
   deps: readonly unknown[],
-  options: { enabled?: boolean } = {},
+  options: UseRealtimeChannelOptions = {},
 ): RealtimeChannelHandle {
-  const { enabled = true } = options;
+  const {
+    enabled = true,
+    initialBackoffMs = 1000,
+    maxBackoffMs = 30_000,
+    onStatus,
+  } = options;
   const channelRef = useRef<RealtimeChannel | null>(null);
   const factoryRef = useRef(factory);
+  const onStatusRef = useRef(onStatus);
   useEffect(() => {
     factoryRef.current = factory;
   }, [factory]);
+  useEffect(() => {
+    onStatusRef.current = onStatus;
+  }, [onStatus]);
 
   useEffect(() => {
     if (!enabled) return;
-    const channel = factoryRef.current(supabase);
-    if (!channel) return;
-    channelRef.current = channel;
-    channel.subscribe();
-    return () => {
+    let cancelled = false;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
+    let backoffMs = initialBackoffMs;
+    let currentChannel: RealtimeChannel | null = null;
+
+    const cleanupChannel = (ch: RealtimeChannel | null) => {
+      if (!ch) return;
       try {
-        channel.unsubscribe();
+        ch.unsubscribe();
       } catch {
         // ignore double-unsubscribe
       }
+      try {
+        supabase.removeChannel(ch);
+      } catch {
+        // ignore removeChannel errors (channel may already be gone)
+      }
+    };
+
+    const connect = () => {
+      if (cancelled) return;
+      const built = factoryRef.current(supabase);
+      if (!built) {
+        channelRef.current = null;
+        return;
+      }
+      currentChannel = built;
+      channelRef.current = built;
+
+      // We wrap .subscribe() so we own the status callback. If the factory
+      // also called .subscribe() internally (rare — only presence tracking
+      // does this), supabase-js treats the second call as a no-op when the
+      // channel is already joining/joined.
+      built.subscribe((status, err) => {
+        if (cancelled) return;
+        if (status === "SUBSCRIBED") {
+          backoffMs = initialBackoffMs; // reset on healthy connect
+          onStatusRef.current?.(status);
+          return;
+        }
+        if (
+          status === "CHANNEL_ERROR" ||
+          status === "TIMED_OUT" ||
+          status === "CLOSED"
+        ) {
+          const asError =
+            err instanceof Error
+              ? err
+              : new Error(`realtime channel status=${status}`);
+          onStatusRef.current?.(status, asError);
+          // Only log genuine failures, not the expected CLOSED on cleanup.
+          logger.warn("realtime_channel_retry", {
+            backoffMs,
+            status,
+            err: asError.message,
+          });
+          // Tear down the dead channel, then schedule a retry.
+          const dead = currentChannel;
+          currentChannel = null;
+          channelRef.current = null;
+          cleanupChannel(dead);
+          if (cancelled) return;
+          retryTimer = setTimeout(() => {
+            retryTimer = null;
+            backoffMs = Math.min(maxBackoffMs, backoffMs * 2);
+            connect();
+          }, backoffMs);
+        }
+      });
+    };
+
+    const forceReconnect = () => {
+      if (cancelled) return;
+      // Network came back — cancel any pending backoff and retry immediately.
+      if (retryTimer) {
+        clearTimeout(retryTimer);
+        retryTimer = null;
+      }
+      backoffMs = initialBackoffMs;
+      const dead = currentChannel;
+      currentChannel = null;
       channelRef.current = null;
+      cleanupChannel(dead);
+      connect();
+    };
+
+    connect();
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("online", forceReconnect);
+    }
+
+    return () => {
+      cancelled = true;
+      if (retryTimer) {
+        clearTimeout(retryTimer);
+        retryTimer = null;
+      }
+      if (typeof window !== "undefined") {
+        window.removeEventListener("online", forceReconnect);
+      }
+      const toClean = currentChannel;
+      currentChannel = null;
+      channelRef.current = null;
+      cleanupChannel(toClean);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, ...deps]);
+  }, [enabled, initialBackoffMs, maxBackoffMs, ...deps]);
 
   return { channelRef };
 }

@@ -11,6 +11,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { findMatches, type MatchCandidate, type MatchOptions } from "@/lib/matching";
+import { logger } from "@/lib/logger";
 
 /** Auto-refresh interval in milliseconds. */
 const REFRESH_INTERVAL_MS = 30_000;
@@ -57,7 +58,7 @@ export function useMatches(options: MatchOptions = {}): UseMatchesResult {
       const message =
         err instanceof Error ? err.message : "Erreur lors de la recherche";
       setError(message);
-      console.error("[useMatches] fetch failed:", err);
+      logger.error("use_matches_fetch_failed", { err: String(err) });
     } finally {
       setLoading(false);
     }

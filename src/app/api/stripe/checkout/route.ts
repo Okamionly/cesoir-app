@@ -8,6 +8,8 @@ import {
   SHOP_PRODUCTS,
 } from "@/lib/stripe/plans";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
+import { stripeCheckoutSchema } from "@/lib/validation";
 
 /**
  * POST /api/stripe/checkout
@@ -23,13 +25,6 @@ import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
-
-interface CheckoutBody {
-  priceId: string;
-  mode: "subscription" | "payment";
-  successUrl?: string;
-  cancelUrl?: string;
-}
 
 function resolveBaseUrl(request: Request): string {
   const envUrl = process.env.NEXT_PUBLIC_APP_URL;
@@ -73,28 +68,30 @@ export async function POST(request: Request) {
   }
 
   // Rate limit 10/min per user (prevent spam customer creation).
-  const rl = checkRateLimit(`stripe-checkout:${user.id}`, 10, 60_000);
+  const rl = await checkRateLimit(`stripe-checkout:${user.id}`, 10, 60_000);
   if (!rl.ok) return rateLimitResponse(rl);
 
-  // --- Parse body ---
-  let body: CheckoutBody;
+  // --- Parse + validate body ---
+  let rawBody: unknown;
   try {
-    body = (await request.json()) as CheckoutBody;
+    rawBody = await request.json();
   } catch {
     return NextResponse.json({ error: "Corps JSON invalide" }, { status: 400 });
   }
 
-  const { priceId, mode, successUrl, cancelUrl } = body;
-
-  if (!priceId || typeof priceId !== "string") {
-    return NextResponse.json({ error: "priceId requis" }, { status: 400 });
-  }
-  if (mode !== "subscription" && mode !== "payment") {
+  const parsed = stripeCheckoutSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    logger.warn("api_stripe_checkout_validation_failed", { fields: parsed.error.flatten().fieldErrors });
     return NextResponse.json(
-      { error: "mode doit être 'subscription' ou 'payment'" },
+      {
+        error: "validation_failed",
+        code: "validation_failed",
+        issues: parsed.error.flatten(),
+      },
       { status: 400 },
     );
   }
+  const { priceId, mode, successUrl, cancelUrl } = parsed.data;
 
   // --- Validate priceId against our whitelist ---
   const plan = getPlanByPriceId(priceId);
@@ -182,7 +179,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ url: session.url, sessionId: session.id });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Erreur Stripe";
-    console.error("[/api/stripe/checkout] failed:", message);
+    logger.error("api_stripe_checkout_failed", { err: message });
     return NextResponse.json(
       { error: "Impossible de créer la session de paiement" },
       { status: 500 },

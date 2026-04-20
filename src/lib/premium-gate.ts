@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { logger } from "@/lib/logger";
 
 /**
  * Premium gate helpers.
@@ -40,7 +41,7 @@ export async function isPremium(userId: string): Promise<boolean> {
     .maybeSingle();
 
   if (error) {
-    console.error("[premium-gate] isPremium query failed:", error.message);
+    logger.error("premium_gate_is_premium_failed", { err: error.message });
     return false;
   }
   return !!data;

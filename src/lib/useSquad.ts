@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { supabase } from "./supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useAsyncResource } from "@/lib/hooks/useAsyncResource";
+import { logger } from "./logger";
 
 // ---------- Types ----------
 
@@ -97,7 +98,7 @@ export function useSquad(): UseSquadReturn {
         .abortSignal(signal);
 
       if (err) {
-        console.error("[useSquad] fetch failed:", err.message);
+        logger.error("use_squad_fetch_failed", { err: err.message });
         throw new Error(err.message);
       }
 
@@ -186,7 +187,7 @@ export function useSquad(): UseSquadReturn {
         .select("id")
         .single();
       if (err) {
-        console.error("[useSquad] createSquad failed:", err.message);
+        logger.error("use_squad_create_failed", { err: err.message });
         return null;
       }
       void refetch();
@@ -209,7 +210,7 @@ export function useSquad(): UseSquadReturn {
         .select("code")
         .single();
       if (err) {
-        console.error("[useSquad] generateInvite failed:", err.message);
+        logger.error("use_squad_generate_invite_failed", { err: err.message });
         return null;
       }
       void refetch();

@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { supabase } from "./supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useAsyncResource } from "@/lib/hooks/useAsyncResource";
+import { logger } from "./logger";
 
 // ---------- Types ----------
 
@@ -79,7 +80,7 @@ export function usePlans(): UsePlansReturn {
         .abortSignal(signal);
 
       if (err) {
-        console.error("[usePlans] fetch failed:", err.message);
+        logger.error("use_match_plan_fetch_failed", { err: err.message });
         throw new Error(err.message);
       }
 
@@ -110,7 +111,7 @@ export function usePlans(): UsePlansReturn {
         .single();
 
       if (err) {
-        console.error("[usePlans] proposePlan failed:", err.message);
+        logger.error("use_match_plan_propose_failed", { err: err.message });
         return null;
       }
       void refetch();
@@ -127,7 +128,7 @@ export function usePlans(): UsePlansReturn {
         .update({ status })
         .eq("id", planId);
       if (err) {
-        console.error("[usePlans] respondPlan failed:", err.message);
+        logger.error("use_match_plan_respond_failed", { err: err.message });
         return false;
       }
       void refetch();

@@ -1,12 +1,17 @@
 import { describe, it, expect } from "vitest";
 import { checkRateLimit, getClientIp, rateLimitResponse } from "./rate-limit";
 
-describe("checkRateLimit", () => {
-  it("allows hits under the limit", () => {
+// These tests exercise the in-memory fallback path. When UPSTASH_REDIS_REST_URL
+// and UPSTASH_REDIS_REST_TOKEN are NOT set (normal test env), checkRateLimit
+// routes to the per-process Map and gives identical semantics to the previous
+// sync implementation. The function is now async — callers must `await`.
+
+describe("checkRateLimit (in-memory fallback)", () => {
+  it("allows hits under the limit", async () => {
     const key = `test-under-${Math.random()}`;
-    const r1 = checkRateLimit(key, 3, 60_000);
-    const r2 = checkRateLimit(key, 3, 60_000);
-    const r3 = checkRateLimit(key, 3, 60_000);
+    const r1 = await checkRateLimit(key, 3, 60_000);
+    const r2 = await checkRateLimit(key, 3, 60_000);
+    const r3 = await checkRateLimit(key, 3, 60_000);
 
     expect(r1.ok).toBe(true);
     expect(r2.ok).toBe(true);
@@ -14,11 +19,11 @@ describe("checkRateLimit", () => {
     expect(r3.remaining).toBe(0);
   });
 
-  it("blocks after limit reached and returns retryAfter", () => {
+  it("blocks after limit reached and returns retryAfter", async () => {
     const key = `test-block-${Math.random()}`;
-    checkRateLimit(key, 2, 60_000);
-    checkRateLimit(key, 2, 60_000);
-    const blocked = checkRateLimit(key, 2, 60_000);
+    await checkRateLimit(key, 2, 60_000);
+    await checkRateLimit(key, 2, 60_000);
+    const blocked = await checkRateLimit(key, 2, 60_000);
 
     expect(blocked.ok).toBe(false);
     expect(blocked.remaining).toBe(0);
@@ -26,22 +31,22 @@ describe("checkRateLimit", () => {
     expect(blocked.retryAfter).toBeLessThanOrEqual(60);
   });
 
-  it("isolates buckets per key", () => {
+  it("isolates buckets per key", async () => {
     const keyA = `iso-a-${Math.random()}`;
     const keyB = `iso-b-${Math.random()}`;
 
-    checkRateLimit(keyA, 1, 60_000);
-    const blockedA = checkRateLimit(keyA, 1, 60_000);
-    const freshB = checkRateLimit(keyB, 1, 60_000);
+    await checkRateLimit(keyA, 1, 60_000);
+    const blockedA = await checkRateLimit(keyA, 1, 60_000);
+    const freshB = await checkRateLimit(keyB, 1, 60_000);
 
     expect(blockedA.ok).toBe(false);
     expect(freshB.ok).toBe(true);
   });
 
-  it("decrements remaining correctly", () => {
+  it("decrements remaining correctly", async () => {
     const key = `remain-${Math.random()}`;
-    const r1 = checkRateLimit(key, 5, 60_000);
-    const r2 = checkRateLimit(key, 5, 60_000);
+    const r1 = await checkRateLimit(key, 5, 60_000);
+    const r2 = await checkRateLimit(key, 5, 60_000);
 
     expect(r1.remaining).toBe(4);
     expect(r2.remaining).toBe(3);

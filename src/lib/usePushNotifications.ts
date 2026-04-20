@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { registerServiceWorker } from "./registerSW";
+import { logger } from "./logger";
 
 // ---------- Types ----------
 
@@ -52,9 +53,7 @@ async function sendSubscriptionToServer(
   // TODO: Replace with actual Supabase edge function endpoint
   const endpoint = process.env.NEXT_PUBLIC_PUSH_SUBSCRIPTION_URL;
   if (!endpoint) {
-    console.warn(
-      "[Push] NEXT_PUBLIC_PUSH_SUBSCRIPTION_URL non configuree. Abonnement stocke localement.",
-    );
+    logger.warn("push_subscription_url_missing");
     return;
   }
 
@@ -163,7 +162,7 @@ export function usePushNotifications(): PushNotificationHook {
       setIsLoading(false);
       return true;
     } catch (error) {
-      console.error("[Push] Erreur lors de l'abonnement :", error);
+      logger.error("push_subscribe_failed", { err: String(error) });
       setIsLoading(false);
       return false;
     }
@@ -184,7 +183,7 @@ export function usePushNotifications(): PushNotificationHook {
 
       setIsSubscribed(false);
     } catch (error) {
-      console.error("[Push] Erreur lors du desabonnement :", error);
+      logger.error("push_unsubscribe_failed", { err: String(error) });
     } finally {
       setIsLoading(false);
     }

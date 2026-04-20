@@ -1,8 +1,10 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
-import type { SwipeRequest, SwipeResponse } from "@/types/matching";
+import type { SwipeResponse } from "@/types/matching";
 import { getDailyLikeCap } from "@/lib/premium-gate";
+import { swipeSchema } from "@/lib/validation";
+import { logger } from "@/lib/logger";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
@@ -48,25 +50,30 @@ export async function POST(request: Request) {
 
   const userId = user.id;
 
-  // --- Parse body ---
-  let body: SwipeRequest;
+  // --- Parse + validate body ---
+  let rawBody: unknown;
   try {
-    body = await request.json();
+    rawBody = await request.json();
   } catch {
     return NextResponse.json({ error: "Corps JSON invalide" }, { status: 400 });
   }
 
-  const { targetId, direction, mode } = body;
-
-  if (!targetId || typeof targetId !== "string") {
-    return NextResponse.json({ error: "targetId requis" }, { status: 400 });
-  }
-  if (!["like", "pass", "superlike"].includes(direction)) {
+  const parsed = swipeSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    const fieldErrors = parsed.error.flatten().fieldErrors;
+    logger.warn("api_swipe_validation_failed", { fields: fieldErrors });
+    // Surface the first error for backwards-compat error matching.
+    const firstErr =
+      fieldErrors.direction?.[0] ??
+      fieldErrors.targetId?.[0] ??
+      "validation_failed";
     return NextResponse.json(
-      { error: "direction invalide (like | pass | superlike)" },
+      { error: firstErr, code: "validation_failed", issues: parsed.error.flatten() },
       { status: 400 },
     );
   }
+  const { targetId, direction, mode } = parsed.data;
+
   if (targetId === userId) {
     return NextResponse.json(
       { error: "Impossible de swiper son propre profil" },
@@ -85,7 +92,7 @@ export async function POST(request: Request) {
     .gte("created_at", todayStartUTC());
 
   if (countError) {
-    console.error("[/api/swipe] rate-limit count failed:", countError.message);
+    logger.error("api_swipe_rate_limit_count_failed", { err: countError.message });
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 
@@ -120,7 +127,7 @@ export async function POST(request: Request) {
         { status: 409 },
       );
     }
-    console.error("[/api/swipe] insert failed:", insertError.message);
+    logger.error("api_swipe_insert_failed", { err: insertError.message });
     return NextResponse.json(
       { error: "Erreur lors de l'enregistrement" },
       { status: 500 },

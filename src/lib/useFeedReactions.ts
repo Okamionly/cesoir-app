@@ -16,7 +16,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "./supabase";
 import { useAuth } from "@/context/AuthContext";
-import { useRealtimeChannel } from "@/lib/hooks/useSupabaseQuery";
+import {
+  namespacedChannelName,
+  useRealtimeChannel,
+} from "@/lib/hooks/useSupabaseQuery";
 import type { DbFeedReaction, FeedReactionType } from "./supabase-types";
 
 // ---------- Types ----------
@@ -126,10 +129,13 @@ export function useFeedReactions(feedActivityIds: readonly string[]): UseFeedRea
   }, [idsKey, userId]);
 
   // ---- Realtime: single subscription for all visible activity ids ----
+  // Channel is namespaced per-user: a shared channel name across sessions
+  // would collide on Supabase realtime, causing "reactions stuck" on
+  // remount because the first subscriber wins the dedup.
   useRealtimeChannel(
     (client) =>
       client
-        .channel("feed-reactions-realtime")
+        .channel(namespacedChannelName("feed-reactions-realtime", userId))
         .on(
           "postgres_changes",
           { event: "INSERT", schema: "public", table: "feed_reactions" },
@@ -175,7 +181,7 @@ export function useFeedReactions(feedActivityIds: readonly string[]): UseFeedRea
             });
           },
         ),
-    [],
+    [userId],
   );
 
   // ---- Toggle ----

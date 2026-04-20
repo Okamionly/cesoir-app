@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { supabase } from "./supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useAsyncResource } from "@/lib/hooks/useAsyncResource";
+import { logger } from "./logger";
 
 // ---------- Types ----------
 
@@ -76,7 +77,7 @@ export function useChallenges(): UseChallengesReturn {
         .abortSignal(signal);
 
       if (err) {
-        console.error("[useChallenges] fetch failed:", err.message);
+        logger.error("use_challenges_fetch_failed", { err: err.message });
         throw new Error(err.message);
       }
 
@@ -115,7 +116,7 @@ export function useChallenges(): UseChallengesReturn {
         .eq("id", challengeId);
 
       if (err) {
-        console.error("[useChallenges] increment failed:", err.message);
+        logger.error("use_challenges_increment_failed", { err: err.message });
       }
       setOptimistic(null);
       void refetch();
@@ -139,7 +140,7 @@ export function useChallenges(): UseChallengesReturn {
         .update({ completed: true, progress: target.total })
         .eq("id", challengeId);
       if (err) {
-        console.error("[useChallenges] complete failed:", err.message);
+        logger.error("use_challenges_complete_failed", { err: err.message });
       }
       setOptimistic(null);
       void refetch();

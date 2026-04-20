@@ -3,9 +3,8 @@ import type { ModeKey } from "@/lib/modes";
 import type { RecommendationsResponse } from "@/types/matching";
 import { requireUser, AuthError } from "@/lib/api/auth";
 import { apiError, apiRaw } from "@/lib/api/response";
-
-/** Whitelisted gender filter values (B1 — validate inputs at API boundary). */
-const GENDER_FILTERS = new Set(["men", "women", "all", "nonbinary"]);
+import { recommendationsQuerySchema } from "@/lib/validation";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: Request) {
   let ctx;
@@ -20,55 +19,40 @@ export async function GET(request: Request) {
   const { user } = ctx;
 
   const { searchParams } = new URL(request.url);
+  const rawQuery = Object.fromEntries(searchParams.entries());
 
-  const lat = parseFloat(searchParams.get("lat") ?? "");
-  const lng = parseFloat(searchParams.get("lng") ?? "");
-
-  if (isNaN(lat) || isNaN(lng)) {
-    return apiError("Parametres lat et lng requis", 400, {
-      code: "missing_latlng",
+  const parsed = recommendationsQuerySchema.safeParse(rawQuery);
+  if (!parsed.success) {
+    logger.warn("api_recommendations_validation_failed", { fields: parsed.error.flatten().fieldErrors });
+    return apiError("Parametres invalides", 400, {
+      code: "validation_failed",
+      details: { issues: parsed.error.flatten() },
     });
   }
 
-  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-    return apiError("lat/lng hors plage", 400, { code: "invalid_latlng" });
-  }
+  const { lat, lng, mode: rawMode, maxDistance, minAge, maxAge, limit, genderFilter } =
+    parsed.data;
 
-  const rawMode = searchParams.get("mode");
   const mode: ModeKey | null = rawMode ? (rawMode as ModeKey) : null;
-  const maxDistance = Math.min(
-    parseFloat(searchParams.get("maxDistance") ?? "10") || 10,
-    50,
-  );
-  const minAge = parseInt(searchParams.get("minAge") ?? "") || undefined;
-  const maxAge = parseInt(searchParams.get("maxAge") ?? "") || undefined;
-  const limit = Math.min(parseInt(searchParams.get("limit") ?? "10") || 10, 50);
-
-  const rawGender = searchParams.get("genderFilter");
-  let genderFilter: string | null = null;
-  if (rawGender !== null) {
-    if (!GENDER_FILTERS.has(rawGender)) {
-      return apiError("genderFilter invalide", 400, {
-        code: "invalid_gender_filter",
-      });
-    }
-    genderFilter = rawGender === "all" ? null : rawGender;
-  }
+  const effMaxDistance = Math.min(maxDistance ?? 10, 50);
+  const effLimit = Math.min(limit ?? 10, 50);
+  const effGender: string | null =
+    genderFilter && genderFilter !== "all" ? genderFilter : null;
 
   try {
     const candidates = await findMatches(user.id, lat, lng, {
       mode,
-      maxDistance,
+      maxDistance: effMaxDistance,
       minAge,
       maxAge,
-      limit,
-      genderFilter,
+      limit: effLimit,
+      genderFilter: effGender,
     });
 
     const body: RecommendationsResponse = { candidates };
     return apiRaw(body);
   } catch (err) {
-    console.error("[/api/recommendations]", err);
+    logger.error("api_recommendations_failed", { err: String(err) });
     return apiError("Erreur serveur", 500, { code: "internal_error" });
   }
 }
