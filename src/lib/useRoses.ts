@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { supabase } from "./supabase";
+import { MONETIZATION_ENABLED } from "./featureFlags";
 
 // ─────────────────────────────────────────
 // Types
@@ -99,15 +100,29 @@ async function mutateBalance(
 // Hook
 // ─────────────────────────────────────────
 
+/**
+ * Sentinel for "unlimited" roses — used when monetization is off so any UI
+ * that branches on `canAfford` / `roses > 0` keeps working as if the user is
+ * always premium. Large enough that no client-side decrement can exhaust it
+ * in a single session, and any `NaN` falls back safely to 0.
+ */
+const UNLIMITED_ROSES = Number.MAX_SAFE_INTEGER;
+
 export function useRoses(): UseRosesReturn {
-  const [roses, setRoses] = useState(0);
-  const [isPremium, setIsPremium] = useState(false);
+  const [roses, setRoses] = useState(MONETIZATION_ENABLED ? 0 : UNLIMITED_ROSES);
+  const [isPremium, setIsPremium] = useState(!MONETIZATION_ENABLED);
   const [history, setHistory] = useState<RoseTransaction[]>([]);
   const [nextFreeRose, setNextFreeRose] = useState<Date | null>(null);
   const hydrated = useRef(false);
 
-  // Hydrate from server on mount
+  // Hydrate from server on mount (skipped while monetization is off —
+  // `/api/wallet/roses` returns 503, and we don't want the UI to flicker
+  // through "0 roses" before landing on the unlimited sentinel).
   useEffect(() => {
+    if (!MONETIZATION_ENABLED) {
+      hydrated.current = true;
+      return;
+    }
     let cancelled = false;
     (async () => {
       const serverBalance = await fetchBalance();
@@ -141,12 +156,39 @@ export function useRoses(): UseRosesReturn {
   }, []);
 
   const canAfford = useCallback(
-    (cost: number) => roses >= cost,
+    (cost: number) => {
+      // Free-first: every spend "succeeds" without touching the wallet.
+      if (!MONETIZATION_ENABLED) return true;
+      return roses >= cost;
+    },
     [roses],
   );
 
   const useRose = useCallback(
     (amount: number, reason: string): boolean => {
+      // Free-first: roses are effectively unlimited — skip server call,
+      // skip optimistic decrement, but still log the action to history so
+      // features that read intent (e.g. super-like receipts) keep working.
+      if (!MONETIZATION_ENABLED) {
+        const tx: RoseTransaction = {
+          id: crypto.randomUUID(),
+          type: "spend",
+          amount: 0,
+          reason,
+          timestamp: new Date().toISOString(),
+        };
+        setHistory((prev) => {
+          const updated = [tx, ...prev].slice(0, 50);
+          try {
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+          } catch {
+            // noop
+          }
+          return updated;
+        });
+        return true;
+      }
+
       if (roses < amount) return false;
 
       // Optimistic update (UI stays snappy); rollback on server error.
@@ -187,6 +229,28 @@ export function useRoses(): UseRosesReturn {
   );
 
   const addRoses = useCallback((amount: number, reason: string) => {
+    // Free-first: balance stays pegged at UNLIMITED_ROSES — no server write
+    // (the /api/wallet/roses route rejects with 503). Still log in history.
+    if (!MONETIZATION_ENABLED) {
+      const tx: RoseTransaction = {
+        id: crypto.randomUUID(),
+        type: "earn",
+        amount: 0,
+        reason,
+        timestamp: new Date().toISOString(),
+      };
+      setHistory((prev) => {
+        const updated = [tx, ...prev].slice(0, 50);
+        try {
+          localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+        } catch {
+          // noop
+        }
+        return updated;
+      });
+      return;
+    }
+
     setRoses((p) => p + amount); // optimistic
     const tx: RoseTransaction = {
       id: crypto.randomUUID(),

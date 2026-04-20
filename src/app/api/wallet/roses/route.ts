@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { walletActionSchema } from "@/lib/validation";
 import { logger } from "@/lib/logger";
+import { isMonetizationEnabledServer } from "@/lib/featureFlags";
 
 /**
  * POST /api/wallet/roses
@@ -23,6 +24,13 @@ const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 
 export async function POST(request: Request) {
+  // Free-first launch: roses wallet mutations are blocked while monetization
+  // is off. Reading still works (GET) so latent UI can render 0 without crashing.
+  if (!isMonetizationEnabledServer()) {
+    logger.warn("api_wallet_roses_mutate_blocked_monetization_disabled");
+    return NextResponse.json({ error: "monetization_disabled" }, { status: 503 });
+  }
+
   // --- Auth ---
   const authHeader = request.headers.get("authorization");
   if (!authHeader?.startsWith("Bearer ")) {

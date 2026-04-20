@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { logger } from "@/lib/logger";
+import { isMonetizationEnabledServer } from "@/lib/featureFlags";
 
 /**
  * Premium gate helpers.
@@ -11,6 +12,10 @@ import { logger } from "@/lib/logger";
  * Les limites (ex: nb de likes / jour) sont définies dans les routes
  * qui consomment ce helper — pas ici. Ce module ne fait qu'exposer
  * le fait "l'utilisateur a-t-il une subscription active ?".
+ *
+ * Free-first launch (Wave 13, 2026-04-20): when monetization is OFF, every
+ * user is treated as premium (unlimited likes, no gates). The table query
+ * is skipped entirely to save a DB round-trip on every swipe.
  */
 
 const ACTIVE_STATUSES = ["active", "trialing"] as const;
@@ -28,8 +33,12 @@ export type SubscriptionStatus =
 /**
  * Returns true if the user has an active or trialing subscription.
  * Meant to be called from server code (API routes, Server Components).
+ *
+ * Returns `true` unconditionally while monetization is disabled — every
+ * feature that was previously premium-gated is now universally free.
  */
 export async function isPremium(userId: string): Promise<boolean> {
+  if (!isMonetizationEnabledServer()) return true;
   if (!userId) return false;
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -58,8 +67,15 @@ export async function isPremium(userId: string): Promise<boolean> {
 export const FREE_TIER_DAILY_LIKES = 100;
 export const PREMIUM_TIER_DAILY_LIKES = Infinity;
 
-/** Return the daily like cap for a user based on their tier. */
+/**
+ * Return the daily like cap for a user based on their tier.
+ *
+ * Free-first launch: returns Infinity for everyone when monetization is
+ * disabled — no user-visible cap, no DB call. Flip the flag to reintroduce
+ * tiers.
+ */
 export async function getDailyLikeCap(userId: string): Promise<number> {
+  if (!isMonetizationEnabledServer()) return PREMIUM_TIER_DAILY_LIKES;
   const premium = await isPremium(userId);
   return premium ? PREMIUM_TIER_DAILY_LIKES : FREE_TIER_DAILY_LIKES;
 }

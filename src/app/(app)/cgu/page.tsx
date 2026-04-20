@@ -21,9 +21,10 @@ export default function CGUPage() {
         { t: "5. Contenu", c: "Tu es responsable du contenu que tu publies. CeSoir se reserve le droit de supprimer tout contenu qui viole nos regles communautaires." },
         { t: "6. Securite", c: "CeSoir met en place des mesures de securite (verification, moderation, signalement) mais ne peut garantir l'identite ou le comportement des utilisateurs." },
         { t: "7. Propriete intellectuelle", c: "CeSoir et son contenu (logo, design, code) sont proteges par le droit de la propriete intellectuelle." },
-        { t: "8. Resiliation", c: "Tu peux supprimer ton compte a tout moment. CeSoir peut suspendre ou supprimer un compte qui viole ces conditions." },
-        { t: "9. Limitation de responsabilite", c: "CeSoir est fourni 'tel quel'. Nous ne garantissons pas les resultats des rencontres ni la disponibilite continue du service." },
-        { t: "10. Contact", c: "Pour toute question : contact@cesoir.app" },
+        { t: "8. Service gratuit", c: "CeSoir est actuellement gratuit a 100%. Aucun achat in-app, aucun abonnement, aucune fonctionnalite payante. Si un modele payant est introduit a l'avenir, les utilisateurs seront notifies au moins 30 jours a l'avance et pourront choisir de ne jamais etre factures." },
+        { t: "9. Resiliation", c: "Tu peux supprimer ton compte a tout moment. CeSoir peut suspendre ou supprimer un compte qui viole ces conditions." },
+        { t: "10. Limitation de responsabilite", c: "CeSoir est fourni 'tel quel'. Nous ne garantissons pas les resultats des rencontres ni la disponibilite continue du service." },
+        { t: "11. Contact", c: "Pour toute question : contact@cesoir.app" },
       ].map(s => (
         <div key={s.t} className="mb-6">
           <h2 className="text-sm font-bold mb-2">{s.t}</h2>

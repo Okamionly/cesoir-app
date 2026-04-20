@@ -29,6 +29,7 @@ import { haptics } from "@/lib/haptics";
 import { useSwipeUndo } from "@/lib/useSwipeUndo";
 import { useMatchCap } from "@/lib/useMatchCap";
 import { useRoses } from "@/lib/useRoses";
+import { MONETIZATION_ENABLED } from "@/lib/featureFlags";
 import { app as appTokens } from "@/lib/design-tokens";
 import ModeSwitcher from "@/components/app/ModeSwitcher";
 
@@ -340,14 +341,25 @@ export default function BrowsePage() {
               {matchesUsed} matchs utilises ce soir.
             </p>
             <p className="text-[13px] text-text-muted mb-6">
-              Reviens a {resetTime} ou passe Premium.
+              {MONETIZATION_ENABLED
+                ? `Reviens a ${resetTime} ou passe Premium.`
+                : `Reviens a ${resetTime} pour continuer.`}
             </p>
-            <Link
-              href="/premium"
-              className="inline-block gradient-bg text-white px-8 py-3 rounded-full text-[14px] font-semibold"
-            >
-              Passer Premium
-            </Link>
+            {MONETIZATION_ENABLED ? (
+              <Link
+                href="/premium"
+                className="inline-block gradient-bg text-white px-8 py-3 rounded-full text-[14px] font-semibold"
+              >
+                Passer Premium
+              </Link>
+            ) : (
+              <Link
+                href="/why-free"
+                className="inline-block gradient-bg text-white px-8 py-3 rounded-full text-[14px] font-semibold"
+              >
+                Pourquoi gratuit ?
+              </Link>
+            )}
           </motion.div>
         </motion.div>
       )}

@@ -17,7 +17,7 @@ export default function PrivacyPage() {
         { t: "1. Donnees collectees", c: "Nous collectons : prenom, age, email, position geographique (avec ton consentement), preferences de rencontre, et les messages echanges sur la plateforme." },
         { t: "2. Utilisation des donnees", c: "Tes donnees servent a : creer ton profil, te suggerer des personnes proches, permettre la messagerie, et ameliorer le service." },
         { t: "3. Geolocalisation", c: "La position GPS est utilisee uniquement pour trouver des personnes pres de toi. Tu peux desactiver la geolocalisation a tout moment dans les parametres." },
-        { t: "4. Partage des donnees", c: "Nous ne vendons jamais tes donnees. Seules les informations de ton profil public sont visibles par les autres utilisateurs." },
+        { t: "4. Partage des donnees", c: "Nous ne vendons jamais tes donnees. Seules les informations de ton profil public sont visibles par les autres utilisateurs. CeSoir etant 100% gratuit, aucune donnee n'est transmise a des processeurs de paiement tiers (Stripe, etc.) tant qu'aucune transaction n'est effectuee." },
         { t: "5. Securite", c: "Tes donnees sont chiffrees en transit et au repos. Les mots de passe sont haches et jamais stockes en clair." },
         { t: "6. Conservation", c: "Tes donnees sont conservees tant que ton compte est actif. A la suppression du compte, tes donnees sont effacees sous 30 jours." },
         { t: "7. Tes droits (RGPD)", c: "Tu as le droit d'acceder, modifier, exporter ou supprimer tes donnees a tout moment. Contacte-nous a privacy@cesoir.app." },

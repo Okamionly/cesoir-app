@@ -1,12 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { m, AnimatePresence } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import { useSubscription } from "@/lib/useSubscription";
 import { SUBSCRIPTION_PLANS, formatPrice, type SubscriptionPlan } from "@/lib/stripe/plans";
 import { BENEFITS } from "@/lib/premium-benefits";
 import { app as appTokens } from "@/lib/design-tokens";
+import { MONETIZATION_ENABLED } from "@/lib/featureFlags";
 import Link from "next/link";
 
 // Premium gold shimmer — resolved via design tokens so the page stays
@@ -75,8 +77,19 @@ function FAQItem({ question, answer, index }: { question: string; answer: string
 // ─────────────────────────────────────────
 
 export default function PremiumPage() {
+  const router = useRouter();
   const { isPremium, subscription, isLoading, error, startCheckout, openPortal } = useSubscription();
   const [busy, setBusy] = useState<string | null>(null);
+
+  // Free-first launch: redirect to /why-free when monetization is off.
+  // The page itself stays compiled so Wave N+1 can flip the flag without a rebuild.
+  // IMPORTANT: the early `return null` comes *after* all hooks so React's
+  // rules-of-hooks invariant is preserved.
+  useEffect(() => {
+    if (!MONETIZATION_ENABLED) {
+      router.replace("/why-free");
+    }
+  }, [router]);
 
   // Only show paid plans in the picker
   const paidPlans = useMemo(
@@ -90,6 +103,10 @@ export default function PremiumPage() {
   });
 
   const selectedPlan: SubscriptionPlan | undefined = paidPlans.find((p) => p.id === selectedPlanId);
+
+  if (!MONETIZATION_ENABLED) {
+    return null;
+  }
 
   const handleSubscribe = async () => {
     if (!selectedPlan) return;

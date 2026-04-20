@@ -4,6 +4,7 @@ import { stripe, isStripeConfigured } from "@/lib/stripe/server";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { stripePortalSchema, type StripePortalInput } from "@/lib/validation";
 import { logger } from "@/lib/logger";
+import { isMonetizationEnabledServer } from "@/lib/featureFlags";
 
 /**
  * POST /api/stripe/portal
@@ -32,6 +33,12 @@ function resolveBaseUrl(request: Request): string {
 }
 
 export async function POST(request: Request) {
+  // Free-first launch: portal is inert while monetization is off.
+  if (!isMonetizationEnabledServer()) {
+    logger.warn("api_stripe_portal_blocked_monetization_disabled");
+    return NextResponse.json({ error: "monetization_disabled" }, { status: 503 });
+  }
+
   if (!isStripeConfigured()) {
     return NextResponse.json(
       { error: "Stripe n'est pas configuré." },

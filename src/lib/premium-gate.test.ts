@@ -4,11 +4,22 @@ import { createMockSupabase, createQueryBuilder } from "@/test/mocks/supabase";
 /**
  * premium-gate.ts pulls `createClient` from `@/lib/supabase/server`.
  * We mock that module before importing the target.
+ *
+ * Free-first launch (Wave 13): premium-gate now short-circuits via the
+ * featureFlags module when monetization is off. The tests pin monetization
+ * ON so they continue to cover the tiered logic that will re-activate when
+ * the founder flips the flag in Wave N+1.
  */
 const mockSupabase = createMockSupabase();
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => mockSupabase),
+}));
+
+vi.mock("@/lib/featureFlags", () => ({
+  MONETIZATION_ENABLED: true,
+  FEATURE_FLAGS: { monetizationEnabled: true },
+  isMonetizationEnabledServer: () => true,
 }));
 
 import {

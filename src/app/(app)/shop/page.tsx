@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { m, AnimatePresence, type Variants } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import { useToast } from "@/components/ui/Toast";
@@ -8,6 +9,7 @@ import { useRoses } from "@/lib/useRoses";
 import { useSubscription } from "@/lib/useSubscription";
 import { usePurchases } from "@/lib/usePurchases";
 import { SHOP_PRODUCTS, formatPrice, type ShopProduct } from "@/lib/stripe/plans";
+import { MONETIZATION_ENABLED } from "@/lib/featureFlags";
 import Link from "next/link";
 import PageHeader from "@/components/ui/PageHeader";
 import { app as appTokens } from "@/lib/design-tokens";
@@ -38,11 +40,21 @@ const floatVariants: Variants = {
 // ─────────────────────────────────────────
 
 export default function ShopPage() {
+  const router = useRouter();
   const { toast } = useToast();
   const { roses, nextFreeRose } = useRoses();
   const { isPremium } = useSubscription();
   const { buy, error: purchasesError } = usePurchases();
   const [buying, setBuying] = useState<string | null>(null);
+
+  // Free-first launch: redirect to /why-free when monetization is off.
+  // IMPORTANT: keep the hook-order stable — do the redirect via useEffect
+  // (side effect) and only short-circuit rendering *after* all hooks run.
+  useEffect(() => {
+    if (!MONETIZATION_ENABLED) {
+      router.replace("/why-free");
+    }
+  }, [router]);
 
   const rosePacks = useMemo(
     () => SHOP_PRODUCTS.filter((p) => p.productType === "roses"),
@@ -52,6 +64,10 @@ export default function ShopPage() {
     () => SHOP_PRODUCTS.filter((p) => p.productType === "boosts"),
     [],
   );
+
+  if (!MONETIZATION_ENABLED) {
+    return null;
+  }
 
   const handleBuy = async (item: ShopProduct) => {
     setBuying(item.id);

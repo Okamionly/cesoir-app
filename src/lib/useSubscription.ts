@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { MONETIZATION_ENABLED } from "@/lib/featureFlags";
 
 /**
  * Subscription hook — fetches the current user's Stripe subscription state
@@ -57,6 +58,15 @@ export function useSubscription(): UseSubscriptionReturn {
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
+    // Free-first: skip the DB read — no subscriptions are provisioned while
+    // monetization is off, and the `isPremium` memo below resolves to true
+    // unconditionally. Saves one round-trip on every page render.
+    if (!MONETIZATION_ENABLED) {
+      setSubscription(null);
+      setIsLoading(false);
+      return;
+    }
+
     if (!user?.id) {
       setSubscription(null);
       setIsLoading(false);
@@ -87,6 +97,8 @@ export function useSubscription(): UseSubscriptionReturn {
   }, [refresh]);
 
   const isPremium = useMemo(() => {
+    // Free-first: every user gets the premium experience (no gating anywhere).
+    if (!MONETIZATION_ENABLED) return true;
     if (!subscription) return false;
     return ACTIVE_STATUSES.includes(subscription.status);
   }, [subscription]);
@@ -98,6 +110,12 @@ export function useSubscription(): UseSubscriptionReturn {
 
   const startCheckout = useCallback(
     async (priceId: string) => {
+      // Free-first guard — matches the 503 on /api/stripe/checkout. UI should
+      // never reach here (paywall surfaces are hidden), but defence-in-depth.
+      if (!MONETIZATION_ENABLED) {
+        setError("L'app est 100% gratuite — pas de paiement nécessaire.");
+        return;
+      }
       const token = await getAccessToken();
       if (!token) {
         setError("Session expirée. Reconnecte-toi.");
@@ -126,6 +144,10 @@ export function useSubscription(): UseSubscriptionReturn {
   );
 
   const openPortal = useCallback(async () => {
+    if (!MONETIZATION_ENABLED) {
+      setError("L'app est 100% gratuite — pas de portail de facturation.");
+      return;
+    }
     const token = await getAccessToken();
     if (!token) {
       setError("Session expirée. Reconnecte-toi.");

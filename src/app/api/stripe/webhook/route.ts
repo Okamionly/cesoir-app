@@ -5,6 +5,7 @@ import { z } from "zod";
 import { stripe } from "@/lib/stripe/server";
 import { getPlanByPriceId, getShopProductById } from "@/lib/stripe/plans";
 import { logger } from "@/lib/logger";
+import { isMonetizationEnabledServer } from "@/lib/featureFlags";
 
 /**
  * Metadata schema — even though Stripe signs the payload, we validate the
@@ -234,6 +235,14 @@ async function handlePaymentIntentSucceeded(pi: Stripe.PaymentIntent) {
 // ─────────────────────────────────────────
 
 export async function POST(request: Request) {
+  // Free-first launch: webhook stays compiled but rejects until the founder
+  // flips `STRIPE_ENABLED=true`. Return 503 so Stripe's retry backoff kicks
+  // in instead of marking the endpoint as succeeded without work.
+  if (!isMonetizationEnabledServer()) {
+    logger.warn("api_stripe_webhook_blocked_monetization_disabled");
+    return NextResponse.json({ error: "monetization_disabled" }, { status: 503 });
+  }
+
   if (!WEBHOOK_SECRET) {
     logger.error("api_stripe_webhook_secret_missing");
     return NextResponse.json({ error: "Webhook not configured" }, { status: 503 });

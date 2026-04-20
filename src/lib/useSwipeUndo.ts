@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { supabase } from "./supabase";
 import type { Profile } from "./mock-profiles";
+import { MONETIZATION_ENABLED } from "./featureFlags";
 
 // ─── Types ───────────────────────────────────────
 
@@ -85,8 +86,15 @@ async function recordUndo(
  * The `undo()` API stays synchronous (returns Profile immediately) to
  * keep the existing optimistic UI in browse/page.tsx. The DB roundtrip
  * (delete interaction + insert undo row) fires in the background.
+ *
+ * Free-first launch (Wave 13): the `isPremium` prop is still accepted for
+ * forward-compat, but when `MONETIZATION_ENABLED` is false we coerce it to
+ * true so every user gets unlimited undos. Flip the flag later to restore
+ * daily caps.
  */
-export function useSwipeUndo(isPremium = false): UseSwipeUndoReturn {
+export function useSwipeUndo(isPremiumProp = false): UseSwipeUndoReturn {
+  // Free-first: treat everyone as premium while monetization is off.
+  const isPremium = !MONETIZATION_ENABLED || isPremiumProp;
   const [stack, setStack] = useState<
     Array<Profile & { __action?: "like" | "pass" | "superlike" }>
   >([]);

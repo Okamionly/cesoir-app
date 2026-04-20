@@ -10,6 +10,7 @@ import {
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 import { stripeCheckoutSchema } from "@/lib/validation";
+import { isMonetizationEnabledServer } from "@/lib/featureFlags";
 
 /**
  * POST /api/stripe/checkout
@@ -40,6 +41,14 @@ function resolveBaseUrl(request: Request): string {
 }
 
 export async function POST(request: Request) {
+  // Free-first launch: monetization surfaces are inert until the founder flips
+  // the flag (feature flag + STRIPE_ENABLED env). Short-circuit before any
+  // auth/rate-limit work so bots and probes don't spin up customers.
+  if (!isMonetizationEnabledServer()) {
+    logger.warn("api_stripe_checkout_blocked_monetization_disabled");
+    return NextResponse.json({ error: "monetization_disabled" }, { status: 503 });
+  }
+
   if (!isStripeConfigured()) {
     return NextResponse.json(
       { error: "Stripe n'est pas configuré. Contacte l'admin." },

@@ -495,6 +495,13 @@ export default function SceneController() {
             </Link>
             <span className="text-white/60 text-[8px]" aria-hidden="true">·</span>
             <Link
+              href="/why-free"
+              className="text-[10px] text-white/70 hover:text-white transition-colors tracking-wide px-2 py-3 inline-flex items-center min-h-11"
+            >
+              Pourquoi gratuit ?
+            </Link>
+            <span className="text-white/60 text-[8px]" aria-hidden="true">·</span>
+            <Link
               href="/cgu"
               className="text-[10px] text-white/70 hover:text-white transition-colors tracking-wide px-2 py-3 inline-flex items-center min-h-11"
             >
