@@ -4,8 +4,8 @@ import { use, useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { m, AnimatePresence } from "motion/react";
-import { chatVariants, springs, micro } from "@/lib/motion-design";
+import { m, AnimatePresence, useReducedMotion } from "motion/react";
+import { chatVariants, springs } from "@/lib/motion-design";
 import { useAuth } from "@/context/AuthContext";
 import { useChat, useTypingIndicator, useConversationPresence } from "@/lib/useChat";
 import { supabase } from "@/lib/supabase";
@@ -13,6 +13,8 @@ import type { DbProfile, DbConversation } from "@/lib/supabase";
 import ErrorState from "@/components/ui/ErrorState";
 import { MODES } from "@/lib/modes";
 import type { ModeKey } from "@/lib/modes";
+import { haptics } from "@/lib/haptics";
+import { TypingIndicator as PeerTypingIndicator } from "@/components/messages/TypingIndicator";
 
 // Chat feature components
 import SparkTimer from "@/components/chat/SparkTimer";
@@ -21,7 +23,7 @@ import { ReactionWrapper, type Reaction } from "@/components/chat/EmojiReaction"
 import { PlanProposalButton, PlanCard, type PlanData } from "@/components/chat/PlanProposal";
 import { LocationShareButton, LocationCard } from "@/components/chat/LocationShare";
 import { IceBreakerButton, GameCard, type GameData } from "@/components/chat/IceBreakerGame";
-import { PlaylistShareButton, SharedPlaylist, MusicCard, MOCK_SHARED_PLAYLIST, type SongData } from "@/components/chat/PlaylistShare";
+import { PlaylistShareButton, SharedPlaylist, MusicCard, EMPTY_SHARED_PLAYLIST, type SongData } from "@/components/chat/PlaylistShare";
 import { PlusMenu } from "@/components/chat/PlusMenu";
 import VibeCheck, { VibeCheckButton } from "@/components/chat/VibeCheck";
 import AIWingman from "@/components/chat/AIWingman";
@@ -128,56 +130,6 @@ function ChatBubble({ content, isOwn, time, showTail, readAt }: { content: strin
   );
 }
 
-function TypingIndicator() {
-  return (
-    <div className="flex justify-start mt-2" role="status" aria-label="Envoi en cours">
-      <div className="bg-bg-card rounded-2xl rounded-bl-md px-4 py-3 flex gap-1 items-center">
-        {[0, 1, 2].map((i) => (
-          <m.div
-            key={i}
-            className="w-2 h-2 rounded-full bg-text-muted"
-            animate={chatVariants.typingDot(i)}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ---------- Mock data for demo ----------
-
-const MOCK_MATCHED_AT = new Date(Date.now() - 3600 * 1000).toISOString(); // 1 hour ago
-
-const MOCK_REACTIONS: Record<string, Reaction[]> = {
-  "mock-1": [{ emoji: "❤️", count: 1, byMe: false }],
-  "mock-3": [{ emoji: "🔥", count: 2, byMe: true }, { emoji: "😂", count: 1, byMe: false }],
-};
-
-const MOCK_SPECIAL_MESSAGES: SpecialMessage[] = [
-  {
-    id: "special-voice-1",
-    type: "voice",
-    isOwn: false,
-    createdAt: new Date(Date.now() - 1800 * 1000).toISOString(),
-    voiceDuration: 15,
-  },
-  {
-    id: "special-plan-1",
-    type: "plan",
-    isOwn: false,
-    createdAt: new Date(Date.now() - 900 * 1000).toISOString(),
-    plan: {
-      activity: "Verre",
-      location: "Le Perchoir, Paris 11",
-      time: "21h",
-      status: "pending",
-    },
-  },
-];
-
-const MOCK_PLAYLIST: SongData[] = [
-  { artist: "Daft Punk", title: "Something About Us" },
-];
 
 // ---------- Main page ----------
 
@@ -194,9 +146,16 @@ export default function ConversationPage({
     user?.id,
   );
 
+  const reducedMotion = useReducedMotion();
   const [inputValue, setInputValue] = useState("");
   const [peer, setPeer] = useState<Pick<DbProfile, "id" | "name" | "avatar_url" | "is_online"> | null>(null);
   const [convoMode, setConvoMode] = useState<string | null>(null);
+  const [matchedAtIso, setMatchedAtIso] = useState<string | null>(null);
+  // Scroll-to-bottom FAB state
+  const [showScrollDown, setShowScrollDown] = useState(false);
+  const [unreadWhileScrolledUp, setUnreadWhileScrolledUp] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const wasAtBottomRef = useRef(true);
   /**
    * Tracks conversation-metadata lookup so we can tell "still loading" from
    * "lookup finished, convo does not exist". Before this, `.eq("id", id)`
@@ -224,17 +183,17 @@ export default function ConversationPage({
     peer?.id,
   );
 
-  // State for special messages
-  const [specialMessages, setSpecialMessages] = useState<SpecialMessage[]>(MOCK_SPECIAL_MESSAGES);
-  const [reactions, setReactions] = useState<Record<string, Reaction[]>>(MOCK_REACTIONS);
-  const [playlist, setPlaylist] = useState<SongData[]>(MOCK_PLAYLIST);
+  // State for special messages (populated from real chat events, starts empty).
+  const [specialMessages, setSpecialMessages] = useState<SpecialMessage[]>([]);
+  const [reactions, setReactions] = useState<Record<string, Reaction[]>>({});
+  const [playlist, setPlaylist] = useState<SongData[]>([]);
 
   // Vibe Check state
   const [showVibeCheck, setShowVibeCheck] = useState(false);
 
   // SharedPlaylist overlay state
   const [showSharedPlaylist, setShowSharedPlaylist] = useState(false);
-  const [sharedPlaylistSongs, setSharedPlaylistSongs] = useState<SongData[]>(MOCK_SHARED_PLAYLIST);
+  const [sharedPlaylistSongs, setSharedPlaylistSongs] = useState<SongData[]>(EMPTY_SHARED_PLAYLIST);
 
   // WeMetFeedback state — auto-detect: show if conversation has enough messages (simulating a date happened)
   const [showWeMetFeedback, setShowWeMetFeedback] = useState(false);
@@ -274,6 +233,7 @@ export default function ConversationPage({
 
       const typed = convo as DbConversation;
       setConvoMode(typed.mode);
+      setMatchedAtIso(typed.created_at ?? null);
       setConversationStatus("found");
 
       const peerId = typed.user_a === user.id ? typed.user_b : typed.user_a;
@@ -298,10 +258,59 @@ export default function ConversationPage({
     }
   }, [conversationId, user?.id, messages.length, markAsRead]);
 
-  // auto-scroll to bottom
+  // Observe scroll position to toggle the scroll-to-bottom FAB
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, specialMessages]);
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      const distanceFromBottom =
+        el.scrollHeight - el.scrollTop - el.clientHeight;
+      const atBottom = distanceFromBottom < 120;
+      wasAtBottomRef.current = atBottom;
+      setShowScrollDown(!atBottom);
+      if (atBottom) {
+        setUnreadWhileScrolledUp(0);
+      }
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => el.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Track previous message counts so we can derive "new messages since
+  // scrolled-up" without calling setState directly in the effect body on
+  // every render. The derivation runs only when the lengths actually grow.
+  const lastSeenCountsRef = useRef({
+    messages: messages.length,
+    specials: specialMessages.length,
+  });
+  useEffect(() => {
+    const last = lastSeenCountsRef.current;
+    const grew =
+      messages.length + specialMessages.length > last.messages + last.specials;
+    lastSeenCountsRef.current = {
+      messages: messages.length,
+      specials: specialMessages.length,
+    };
+    if (wasAtBottomRef.current) {
+      messagesEndRef.current?.scrollIntoView({
+        behavior: reducedMotion ? "auto" : "smooth",
+      });
+    } else if (grew) {
+      // Derive via a separate microtask so this effect body stays synchronous.
+      const raf = requestAnimationFrame(() => {
+        setUnreadWhileScrolledUp((n) => n + 1);
+      });
+      return () => cancelAnimationFrame(raf);
+    }
+  }, [messages, specialMessages, reducedMotion]);
+
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: reducedMotion ? "auto" : "smooth",
+    });
+    setUnreadWhileScrolledUp(0);
+  }, [reducedMotion]);
 
   const handleSend = useCallback(async () => {
     const text = inputValue.trim();
@@ -310,17 +319,20 @@ export default function ConversationPage({
     // Run message screening
     const result = screenMessage(text);
     if (result.severity === "block") {
+      haptics.error();
       setScreeningResult(result);
       setPendingMessage(null);
       return;
     }
     if (result.severity === "warning") {
+      haptics.light();
       setScreeningResult(result);
       setPendingMessage(text);
       return;
     }
 
     // Clean message — send directly
+    haptics.medium();
     setInputValue("");
     stopTyping();
     await sendMessage(text);
@@ -537,7 +549,7 @@ export default function ConversationPage({
         hideTitle
         leftSlot={
           <div className="flex items-center gap-3 min-w-0">
-            {/* Avatar */}
+            {/* Avatar + online pulse ring */}
             <div className="relative shrink-0">
               {peer?.avatar_url ? (
                 <Image
@@ -556,10 +568,29 @@ export default function ConversationPage({
                 </div>
               )}
               {(peerPresence.isOnline || peer?.is_online) && (
-                <div
-                  className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-safe border-2 border-bg"
-                  aria-label="En ligne"
-                />
+                <>
+                  {!reducedMotion && (
+                    <m.span
+                      aria-hidden
+                      className="absolute -inset-0.5 rounded-full border-2 pointer-events-none"
+                      style={{ borderColor: "var(--color-safe)" }}
+                      animate={{
+                        scale: [1, 1.18, 1],
+                        opacity: [0.75, 0, 0.75],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                      }}
+                    />
+                  )}
+                  <span
+                    className="absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-bg"
+                    style={{ background: "var(--color-safe)" }}
+                    aria-label="En ligne"
+                  />
+                </>
               )}
             </div>
 
@@ -595,8 +626,8 @@ export default function ConversationPage({
         }
       />
 
-      {/* Spark Timer */}
-      <SparkTimer matchedAt={MOCK_MATCHED_AT} />
+      {/* Spark Timer — only once the conversation's creation timestamp is known */}
+      {matchedAtIso && <SparkTimer matchedAt={matchedAtIso} />}
 
       {/* WeMetFeedback prompt — shows when a date likely happened */}
       {weMetDetected && !showWeMetFeedback && (
@@ -621,7 +652,14 @@ export default function ConversationPage({
       )}
 
       {/* Messages area */}
-      <div className="flex-1 overflow-y-auto px-4 py-3" role="log" aria-label="Messages" aria-live="polite">
+      <div
+        ref={scrollContainerRef}
+        className="relative flex-1 overflow-y-auto px-4 py-3"
+        role="log"
+        aria-label="Messages"
+        aria-live="polite"
+        aria-relevant="additions text"
+      >
         {loading && (
           <div className="flex justify-center items-center py-12">
             <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
@@ -758,25 +796,65 @@ export default function ConversationPage({
           })}
         </AnimatePresence>
 
-        {sending && <TypingIndicator />}
+        <AnimatePresence>
+          {sending && <PeerTypingIndicator key="sending-indicator" />}
+        </AnimatePresence>
 
-        {peerTyping && (
-          <div className="flex justify-start mt-2">
-            <div className="bg-bg-card rounded-2xl rounded-bl-md px-4 py-3 flex gap-1.5 items-center">
-              <span className="text-xs text-text-muted font-medium">{peerTyping} ecrit</span>
-              {[0, 1, 2].map((i) => (
-                <m.div
-                  key={i}
-                  className="w-1.5 h-1.5 rounded-full bg-text-muted"
-                  animate={chatVariants.typingDot(i)}
-                />
-              ))}
-            </div>
-          </div>
-        )}
+        <AnimatePresence>
+          {peerTyping && (
+            <PeerTypingIndicator key="peer-typing" peerName={peerTyping} />
+          )}
+        </AnimatePresence>
 
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Scroll-to-bottom FAB */}
+      <AnimatePresence>
+        {showScrollDown && (
+          <m.button
+            type="button"
+            onClick={scrollToBottom}
+            initial={{ opacity: 0, y: 12, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 12, scale: 0.9 }}
+            transition={springs.snap}
+            className="fixed right-4 z-30 flex items-center justify-center w-11 h-11 rounded-full bg-bg-card border border-border shadow-lg hover:border-accent/40 hover:text-accent transition-colors text-text-muted tap-target"
+            style={{ bottom: "calc(5.5rem + env(safe-area-inset-bottom))" }}
+            aria-label={
+              unreadWhileScrolledUp > 0
+                ? `${unreadWhileScrolledUp} nouveau${unreadWhileScrolledUp > 1 ? "x" : ""} message${unreadWhileScrolledUp > 1 ? "s" : ""}, descendre`
+                : "Descendre au dernier message"
+            }
+          >
+            <svg
+              width={18}
+              height={18}
+              viewBox="0 0 24 24"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M6 9L12 15L18 9"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            {unreadWhileScrolledUp > 0 && (
+              <m.span
+                className="absolute -top-1 -right-1 min-w-[1.1rem] h-[1.1rem] px-1 rounded-full gradient-bg text-[10px] font-bold text-white flex items-center justify-center"
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={springs.elastic}
+              >
+                {unreadWhileScrolledUp}
+              </m.span>
+            )}
+          </m.button>
+        )}
+      </AnimatePresence>
 
       {/* AI Wingman suggestions */}
       <AIWingman
@@ -847,12 +925,23 @@ export default function ConversationPage({
           {/* Voice note button (always visible) */}
           <VoiceRecordButton onRecordComplete={handleVoiceRecord} />
 
-          {/* Send button */}
+          {/* Send button — scales + glows when input has text */}
           <m.button
             onClick={handleSend}
             disabled={!inputValue.trim() || sending}
-            className="tap-target shrink-0 w-11 h-11 rounded-full gradient-bg flex items-center justify-center transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            className="tap-target shrink-0 w-11 h-11 rounded-full gradient-bg flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label="Envoyer le message"
+            animate={
+              reducedMotion
+                ? undefined
+                : inputValue.trim()
+                  ? {
+                      scale: 1.08,
+                      boxShadow:
+                        "0 0 22px color-mix(in srgb, var(--color-accent) 45%, transparent)",
+                    }
+                  : { scale: 1, boxShadow: "0 0 0px transparent" }
+            }
             whileTap={{ scale: 0.85 }}
             transition={springs.micro}
           >

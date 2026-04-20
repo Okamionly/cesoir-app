@@ -3,7 +3,9 @@
 import { useMemo, useState } from "react";
 import { m, useReducedMotion, type Variants } from "motion/react";
 import { MODES, MODE_KEYS } from "@/lib/modes";
-import { MOCK_PROFILES } from "@/lib/mock-profiles";
+import type { Profile } from "@/lib/mock-profiles";
+import { useProfiles } from "@/lib/useProfiles";
+import { useGeolocation } from "@/lib/useGeolocation";
 import { MODE_ICONS } from "@/components/ui/Icons";
 import { modesVariants } from "@/lib/motion-design";
 import PageHeader from "@/components/ui/PageHeader";
@@ -16,14 +18,20 @@ export default function ModesPage() {
   const reducedMotion = useReducedMotion();
   const [hoveredKey, setHoveredKey] = useState<string | null>(null);
 
-  // Precompute top users per mode — avoids re-filtering on every hover
-  const topUsersByMode = useMemo(() => {
-    const map = {} as Record<string, typeof MOCK_PROFILES>;
+  // Load all nearby profiles once, then group by mode client-side.
+  const { latitude, longitude } = useGeolocation();
+  const { profiles } = useProfiles(latitude ?? undefined, longitude ?? undefined);
+
+  const { topUsersByMode, countsByMode } = useMemo(() => {
+    const top: Record<string, Profile[]> = {};
+    const counts: Record<string, number> = {};
     for (const key of MODE_KEYS) {
-      map[key] = MOCK_PROFILES.filter((p) => p.mode === key).slice(0, 5);
+      const list = profiles.filter((p) => p.mode === key);
+      counts[key] = list.length;
+      top[key] = list.slice(0, 5);
     }
-    return map;
-  }, []);
+    return { topUsersByMode: top, countsByMode: counts };
+  }, [profiles]);
 
   return (
     <div className="min-h-screen bg-bg">
@@ -45,7 +53,7 @@ export default function ModesPage() {
       >
         {MODE_KEYS.map((key, index) => {
           const mode = MODES[key];
-          const count = MOCK_PROFILES.filter((p) => p.mode === key).length;
+          const count = countsByMode[key] ?? 0;
           const Icon = MODE_ICONS[key];
           const topUsers = topUsersByMode[key] ?? [];
 

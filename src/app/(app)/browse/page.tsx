@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { browseVariants, springs, micro, easings } from "@/lib/motion-design";
 import { Magnetic } from "@/components/motion/Magnetic";
 import { ModeKey, MODES } from "@/lib/modes";
-import { MOCK_PROFILES, Profile } from "@/lib/mock-profiles";
+import type { Profile } from "@/lib/mock-profiles";
 import { useSwipe } from "@/lib/useSwipe";
 import { useAuth } from "@/context/AuthContext";
 import { useGeolocation } from "@/lib/useGeolocation";
@@ -74,14 +74,7 @@ export default function BrowsePage() {
   const { roses, useRose, canAfford } = useRoses();
 
   // Convert scored matches to Profile shape for SwipeCard
-  const realProfiles: Profile[] = matches.map(candidateToProfile);
-
-  // Fallback to mock data for demo
-  const mockFallback: Profile[] =
-    filter === "all"
-      ? MOCK_PROFILES
-      : MOCK_PROFILES.filter((p) => p.mode === filter);
-  const list = realProfiles.length > 0 ? realProfiles : mockFallback;
+  const list: Profile[] = matches.map(candidateToProfile);
 
   const card = list[idx];
   const next1 = list[idx + 1];
@@ -266,7 +259,7 @@ export default function BrowsePage() {
         )}
 
         {/* Error state */}
-        {error && !loading && matches.length === 0 && realProfiles.length === 0 && (
+        {error && !loading && matches.length === 0 && (
           <div className="w-full h-full flex flex-col items-center justify-center text-center px-8">
             <p className="text-[14px] text-text-muted mb-4">{error}</p>
             <button onClick={refresh} className="gradient-bg text-white px-6 py-2.5 rounded-full text-[13px] font-semibold">

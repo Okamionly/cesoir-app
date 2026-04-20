@@ -6,6 +6,7 @@ import { m, AnimatePresence } from "motion/react";
 import { springs, ambient } from "@/lib/motion-design";
 import { useSquad } from "@/lib/useSquad";
 import PageHeader from "@/components/ui/PageHeader";
+import EmptyState from "@/components/ui/EmptyState";
 import { Plus, Check } from "@/components/ui/lucide";
 
 // --- Types ---
@@ -36,96 +37,6 @@ function avatarFor(name: string, fallbackId: number): string {
   return photo(code, (fallbackId % 99) + 1);
 }
 
-// --- Mock Data (8 squads) ---
-
-const MOCK_SQUADS: Squad[] = [
-  {
-    id: "s1",
-    members: [
-      { id: "m1", name: "Marie", photo: photo("women", 90) },
-      { id: "m2", name: "Lucas", photo: photo("men", 24) },
-      { id: "m3", name: "Chloe", photo: photo("women", 67) },
-    ],
-    activity: "Soiree cinema",
-    distance: 2.1,
-    mode: "Plus-One",
-  },
-  {
-    id: "s2",
-    members: [
-      { id: "m4", name: "Thomas", photo: photo("men", 75) },
-      { id: "m5", name: "Ines", photo: photo("women", 52) },
-    ],
-    activity: "Bar gaming",
-    distance: 1.5,
-    mode: "Gamer Night",
-  },
-  {
-    id: "s3",
-    members: [
-      { id: "m6", name: "Hugo", photo: photo("men", 41) },
-      { id: "m7", name: "Lea", photo: photo("women", 42) },
-      { id: "m8", name: "Priya", photo: photo("women", 64) },
-      { id: "m9", name: "Kevin", photo: photo("men", 29) },
-    ],
-    activity: "Running nocturne",
-    distance: 0.8,
-    mode: "Fit Date",
-  },
-  {
-    id: "s4",
-    members: [
-      { id: "m10", name: "Manon", photo: photo("women", 57) },
-      { id: "m11", name: "Agathe", photo: photo("women", 76) },
-    ],
-    activity: "Salon de the",
-    distance: 3.2,
-    mode: "Sober Tonight",
-  },
-  {
-    id: "s5",
-    members: [
-      { id: "m12", name: "Gabriel", photo: photo("men", 73) },
-      { id: "m13", name: "Elise", photo: photo("women", 31) },
-      { id: "m14", name: "Raphael", photo: photo("men", 82) },
-    ],
-    activity: "Expo Basquiat",
-    distance: 4.0,
-    mode: "Culture Club",
-  },
-  {
-    id: "s6",
-    members: [
-      { id: "m15", name: "Claire", photo: photo("women", 25) },
-      { id: "m16", name: "Maxime", photo: photo("men", 62) },
-    ],
-    activity: "Balade chiens",
-    distance: 1.9,
-    mode: "Dog Date",
-  },
-  {
-    id: "s7",
-    members: [
-      { id: "m17", name: "Enzo", photo: photo("men", 16) },
-      { id: "m18", name: "Nina", photo: photo("women", 83) },
-      { id: "m19", name: "Axel", photo: photo("men", 39) },
-    ],
-    activity: "Escape game",
-    distance: 2.6,
-    mode: "Gamer Night",
-  },
-  {
-    id: "s8",
-    members: [
-      { id: "m20", name: "Yasmine", photo: photo("women", 71) },
-      { id: "m21", name: "Luna", photo: photo("women", 18) },
-    ],
-    activity: "Street food Belleville",
-    distance: 3.5,
-    mode: "Foodie Quest",
-  },
-];
-
 // --- Component ---
 
 export default function SquadPage() {
@@ -148,8 +59,8 @@ export default function SquadPage() {
       }))
     : [];
 
-  // Map real DB squads to fallback view shape, with placeholder activity/distance
-  const MOCK_FALLBACK_SQUADS: Squad[] = activeSquads.map((s, idx) => ({
+  // Map real DB squads to view-model shape
+  const displaySquads: Squad[] = activeSquads.map((s, idx) => ({
     id: s.id,
     members: s.members.map((m, i) => ({
       id: m.id,
@@ -360,7 +271,14 @@ export default function SquadPage() {
           </m.h2>
 
           <div className="space-y-3">
-            {(MOCK_FALLBACK_SQUADS.length > 0 ? MOCK_FALLBACK_SQUADS : MOCK_SQUADS).map((squad, i) => (
+            {displaySquads.length === 0 && (
+              <EmptyState
+                emoji="☾"
+                title="Aucun squad actif pour le moment"
+                subtitle="Cree le tien ou rejoins avec un code"
+              />
+            )}
+            {displaySquads.map((squad, i) => (
               /* 2. Squad cards: initial={opacity:0, y:40, scale:0.9} with springs.heavy + stagger 0.1 */
               <m.div
                 key={squad.id}

@@ -98,40 +98,6 @@ function getTypeConfig(type: ExtendedNotifType): TypeConfig {
 
 // ---------- Mock data ----------
 
-function photo(gender: "women" | "men", id: number): string {
-  return `https://randomuser.me/api/portraits/${gender}/${id}.jpg`;
-}
-
-const now = Date.now();
-
-const MOCK_NOTIFICATIONS: NotificationItem[] = [
-  // Today
-  { id: "n1", type: "match", title: "Match avec Sarah !", body: "Vous vous plaisez mutuellement. Dites bonjour !", timestamp: new Date(now - 12 * 60 * 1000).toISOString(), read: false, data: { matchedUserId: "u1", photo: photo("women", 90) } },
-  { id: "n2", type: "message", title: "Nouveau message de Claire", body: "Rex est trop content ! A tout a l'heure au parc", timestamp: new Date(now - 35 * 60 * 1000).toISOString(), read: false, data: { conversationId: "c2", photo: photo("women", 67) } },
-  { id: "n3", type: "like", title: "Marta t'a like", body: "Tu lui plais. Swipe pour voir !", timestamp: new Date(now - 2 * 3600 * 1000).toISOString(), read: false, data: { likerId: "u3", photo: photo("women", 42) } },
-  { id: "n4", type: "challenge", title: "Defi complete ! +50 XP", body: "Tu as complete le defi 'Premier Message'", timestamp: new Date(now - 3 * 3600 * 1000).toISOString(), read: true, data: {} },
-  { id: "n5", type: "event", title: "Thomas organise Soiree Ciné", body: "Ce soir a 20h au MK2 Bastille, 4 places restantes", timestamp: new Date(now - 4 * 3600 * 1000).toISOString(), read: false, data: { eventId: "e1", photo: photo("men", 75) } },
-
-  // Yesterday
-  { id: "n6", type: "message", title: "Nouveau message de Lucas", body: "On se retrouve devant l'entree principale ?", timestamp: new Date(now - 26 * 3600 * 1000).toISOString(), read: true, data: { conversationId: "c3", photo: photo("men", 24) } },
-  { id: "n7", type: "match", title: "Match avec Ines !", body: "Vous adorez tous les deux les balades avec chien", timestamp: new Date(now - 28 * 3600 * 1000).toISOString(), read: true, data: { matchedUserId: "u5", photo: photo("women", 52) } },
-  { id: "n8", type: "system", title: "Profil verifie", body: "Ta verification par selfie est validee. Bravo !", timestamp: new Date(now - 30 * 3600 * 1000).toISOString(), read: true, data: {} },
-  { id: "n9", type: "like", title: "Hugo t'a like", body: "Un superlike ! Tu lui plais vraiment.", timestamp: new Date(now - 32 * 3600 * 1000).toISOString(), read: true, data: { likerId: "u6", photo: photo("men", 41) } },
-  { id: "n10", type: "review", title: "Nouvel avis de Marie", body: "Marie t'a laisse 5 etoiles. Superbe soiree !", timestamp: new Date(now - 36 * 3600 * 1000).toISOString(), read: true, data: { reviewerId: "u7", photo: photo("women", 90) } },
-
-  // This week
-  { id: "n11", type: "challenge", title: "Defi complete ! +100 XP", body: "Tu as complete le defi 'Globe-Trotter' : 5 modes", timestamp: new Date(now - 3 * 24 * 3600 * 1000).toISOString(), read: true, data: {} },
-  { id: "n12", type: "match", title: "Match avec Priya !", body: "Un match en mode Foodie Quest. Bon appetit !", timestamp: new Date(now - 3 * 24 * 3600 * 1000).toISOString(), read: true, data: { matchedUserId: "u8", photo: photo("women", 64) } },
-  { id: "n13", type: "event", title: "Lea organise Yoga Session", body: "Samedi 10h au Jardin du Luxembourg", timestamp: new Date(now - 4 * 24 * 3600 * 1000).toISOString(), read: true, data: { eventId: "e2", photo: photo("women", 42) } },
-  { id: "n14", type: "system", title: "Bienvenue sur CeSoir !", body: "Ton aventure commence. Explore les 14 modes !", timestamp: new Date(now - 5 * 24 * 3600 * 1000).toISOString(), read: true, data: {} },
-  { id: "n15", type: "message", title: "Nouveau message de Axel", body: "J'ai reserve l'escape game pour samedi !", timestamp: new Date(now - 4 * 24 * 3600 * 1000).toISOString(), read: true, data: { conversationId: "c5", photo: photo("men", 39) } },
-  { id: "n16", type: "like", title: "Chloe t'a like", body: "Tu lui plais. Swipe pour voir !", timestamp: new Date(now - 5 * 24 * 3600 * 1000).toISOString(), read: true, data: { likerId: "u10", photo: photo("women", 67) } },
-  { id: "n17", type: "match", title: "Match avec Jules !", body: "Vous etes tous les deux en mode Gamer Night", timestamp: new Date(now - 5 * 24 * 3600 * 1000).toISOString(), read: true, data: { matchedUserId: "u11", photo: photo("men", 33) } },
-  { id: "n18", type: "review", title: "Nouvel avis de Thomas", body: "Thomas t'a laisse 4 etoiles. Belle soiree !", timestamp: new Date(now - 6 * 24 * 3600 * 1000).toISOString(), read: true, data: { reviewerId: "u4", photo: photo("men", 75) } },
-  { id: "n19", type: "challenge", title: "Defi complete ! +80 XP", body: "100 messages envoyes. Tu es un vrai bavard !", timestamp: new Date(now - 6 * 24 * 3600 * 1000).toISOString(), read: true, data: {} },
-  { id: "n20", type: "system", title: "Mise a jour disponible", body: "Decouvre les nouveaux modes et fonctionnalites", timestamp: new Date(now - 6 * 24 * 3600 * 1000).toISOString(), read: true, data: {} },
-];
-
 // ---------- Date grouping ----------
 
 type DayGroup = "today" | "yesterday" | "week";
@@ -351,29 +317,19 @@ export default function NotificationsPage() {
   const router = useRouter();
   const { user } = useAuth();
 
-  // Try real hook, fall back to mock
+  // Real notifications hook.
   const realNotifs = useNotifications(user?.id);
-  const hasRealData = realNotifs.notifications.length > 0;
 
-  // Local state for mock data management
-  const [mockNotifs, setMockNotifs] = useState<NotificationItem[]>(MOCK_NOTIFICATIONS);
-  const [mockAllRead, setMockAllRead] = useState(false);
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
-  // Merge real + mock into unified list
+  // Normalize real notifications into view shape.
   const notifications: NotificationItem[] = useMemo(() => {
-    if (hasRealData) {
-      return realNotifs.notifications.map((n: AppNotification) => ({
-        ...n,
-        type: n.type as ExtendedNotifType,
-      }));
-    }
-    return mockNotifs.map((n) => ({
+    return realNotifs.notifications.map((n: AppNotification) => ({
       ...n,
-      read: mockAllRead ? true : n.read,
+      type: n.type as ExtendedNotifType,
     }));
-  }, [hasRealData, realNotifs.notifications, mockNotifs, mockAllRead]);
+  }, [realNotifs.notifications]);
 
   // Filter by tab + dismissed
   const filtered = useMemo(() => {
@@ -394,24 +350,14 @@ export default function NotificationsPage() {
 
   // Handlers
   const handleMarkAllRead = useCallback(() => {
-    if (hasRealData) {
-      realNotifs.markAllAsRead();
-    } else {
-      setMockAllRead(true);
-    }
-  }, [hasRealData, realNotifs]);
+    realNotifs.markAllAsRead();
+  }, [realNotifs]);
 
   const handleMarkRead = useCallback(
     (id: string) => {
-      if (hasRealData) {
-        realNotifs.markAsRead(id);
-      } else {
-        setMockNotifs((prev) =>
-          prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
-        );
-      }
+      realNotifs.markAsRead(id);
     },
-    [hasRealData, realNotifs],
+    [realNotifs],
   );
 
   const handleDismiss = useCallback((id: string) => {
@@ -527,7 +473,7 @@ export default function NotificationsPage() {
                   onDismiss={handleDismiss}
                   onTap={handleTap}
                   onMarkRead={handleMarkRead}
-                  allRead={mockAllRead && !hasRealData}
+                  allRead={false}
                 />
               );
             });

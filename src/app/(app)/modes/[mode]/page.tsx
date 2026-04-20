@@ -7,7 +7,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { MODES, type ModeKey } from "@/lib/modes";
 import { VENUES } from "@/lib/venues";
-import { MOCK_PROFILES } from "@/lib/mock-profiles";
+import { useProfiles } from "@/lib/useProfiles";
+import { useGeolocation } from "@/lib/useGeolocation";
 import { springs, ambient } from "@/lib/motion-design";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
@@ -132,9 +133,14 @@ export default function ModeDetailPage({
   // Filter venues compatible with this mode
   const modeVenues = VENUES.filter((v) => v.compatible_modes.includes(modeKey)).slice(0, 3);
 
-  // Count active users in this mode (mock)
-  const modeProfiles = MOCK_PROFILES.filter((p) => p.mode === modeKey);
-  const activeCount = modeProfiles.length * 12 + (modeKey.length * 7) % 30;
+  // Real profiles for this mode — powers the count and avatar preview.
+  const { latitude, longitude } = useGeolocation();
+  const { profiles: modeProfiles } = useProfiles(
+    latitude ?? undefined,
+    longitude ?? undefined,
+    modeKey,
+  );
+  const activeCount = modeProfiles.length;
 
   // Get testimonials for this mode
   const testimonials = TESTIMONIALS[modeKey] ?? TESTIMONIALS["solo-diner"];

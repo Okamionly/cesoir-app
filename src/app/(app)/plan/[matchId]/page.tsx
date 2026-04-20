@@ -45,9 +45,10 @@ const ACTIVITIES = [
   { key: "sport", label: "Sport", emoji: "\uD83C\uDFCB\uFE0F" },
 ];
 
-// Mock match data (in a real app, fetched from Supabase by matchId)
-const MOCK_MATCH = {
-  name: "Camille",
+// TODO: fetch from Supabase using the matchId param (conversation → peer profile).
+// For now the page uses a placeholder while the backend wiring is in flight.
+const MATCH_PLACEHOLDER = {
+  name: "ton match",
   avatar: null as string | null,
   mode: "plus-one" as const,
 };
@@ -256,7 +257,7 @@ export default function DatePlannerPage() {
       <PageHeader
         onBack={step > 1 ? goBack : () => router.back()}
         hideTitle
-        leftSlot={<MatchHeader name={MOCK_MATCH.name} avatar={MOCK_MATCH.avatar} />}
+        leftSlot={<MatchHeader name={MATCH_PLACEHOLDER.name} avatar={MATCH_PLACEHOLDER.avatar} />}
         slotBelowTitle={<ProgressDots current={step} />}
       />
 
@@ -458,12 +459,12 @@ export default function DatePlannerPage() {
                   <div className="flex items-center gap-3 pb-4 border-b border-border">
                     <div className="w-12 h-12 rounded-full gradient-bg p-[2px]">
                       <div className="w-full h-full rounded-full bg-bg flex items-center justify-center text-[18px] font-black text-accent">
-                        {MOCK_MATCH.name.charAt(0)}
+                        {MATCH_PLACEHOLDER.name.charAt(0)}
                       </div>
                     </div>
                     <div>
                       <p className="text-[15px] font-bold text-text">
-                        Soiree avec {MOCK_MATCH.name}
+                        Soiree avec {MATCH_PLACEHOLDER.name}
                       </p>
                       <p className="text-[11px] text-text-muted">Ce soir</p>
                     </div>
@@ -546,10 +547,10 @@ export default function DatePlannerPage() {
                     transition={springs.elastic}
                     className="inline-flex items-center gap-2"
                   >
-                    {"\u2713"} Envoye a {MOCK_MATCH.name} !
+                    {"\u2713"} Envoye a {MATCH_PLACEHOLDER.name} !
                   </motion.span>
                 ) : (
-                  <>Envoyer a {MOCK_MATCH.name}</>
+                  <>Envoyer a {MATCH_PLACEHOLDER.name}</>
                 )}
               </motion.button>
             </motion.div>

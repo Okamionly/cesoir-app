@@ -3,67 +3,23 @@
 import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { m, AnimatePresence } from "motion/react";
-import { useAuth } from "@/context/AuthContext";
+import { m } from "motion/react";
 import { useConversations } from "@/lib/useConversations";
 import type { ConversationPreview } from "@/lib/useConversations";
 import { MODES } from "@/lib/modes";
 import type { ModeKey } from "@/lib/modes";
 import { springs } from "@/lib/motion-design";
-import EmptyState from "@/components/ui/EmptyState";
-import SparkTimer from "@/components/chat/SparkTimer";
-import ExpiryTimer from "@/components/chat/ExpiryTimer";
 import { FlashNoteReceived } from "@/components/chat/FlashNote";
 import PageHeader from "@/components/ui/PageHeader";
+import { ConversationRow } from "@/components/messages/ConversationRow";
+import { EmptyConversations } from "@/components/messages/EmptyConversations";
 
-// Mock matched-at times for demo (each convo matched at different times)
-const MOCK_MATCHED_AT: Record<string, string> = {
-  "1": new Date(Date.now() - 3600 * 1000).toISOString(),      // 1h ago
-  "2": new Date(Date.now() - 5400 * 1000).toISOString(),      // 1h30 ago
-  "3": new Date(Date.now() - 6800 * 1000).toISOString(),      // ~1h53 ago
-  "4": new Date(Date.now() - 1200 * 1000).toISOString(),      // 20min ago
-};
-
-// ---------- Mock data (fallback / demo mode) ----------
-
-const mockChats: ConversationPreview[] = [
-  { id: "1", peer: { id: "m1", name: "Sarah", avatar_url: null, is_online: true }, lastMessage: "Super ! On se retrouve a 20h au resto ?", lastMessageSenderId: null, lastMessageAt: new Date().toISOString(), unreadCount: 2, mode: "solo-diner", createdAt: new Date().toISOString() },
-  { id: "2", peer: { id: "m2", name: "Claire", avatar_url: null, is_online: true }, lastMessage: "Rex est trop content ! A tout a l'heure", lastMessageSenderId: null, lastMessageAt: new Date().toISOString(), unreadCount: 1, mode: "dog-date", createdAt: new Date().toISOString() },
-  { id: "3", peer: { id: "m3", name: "Marta", avatar_url: null, is_online: false }, lastMessage: "Perfecto ! Hablamos en espanol et francais", lastMessageSenderId: null, lastMessageAt: new Date().toISOString(), unreadCount: 0, mode: "langue", createdAt: new Date().toISOString() },
-  { id: "4", peer: { id: "m4", name: "Thomas", avatar_url: null, is_online: false }, lastMessage: "J'ai pris les places, RDV devant le cinema", lastMessageSenderId: null, lastMessageAt: new Date().toISOString(), unreadCount: 0, mode: "plus-one", createdAt: new Date().toISOString() },
-];
-
-// ---------- Mock FlashNotes ----------
-
-const MOCK_FLASH_NOTES = [
-  {
-    id: "fn-1",
-    senderName: "Lea",
-    message: "J'adore ton profil ! On se prend un verre ce soir ?",
-    time: "Il y a 12 min",
-  },
-];
-
-// IDs of new matches that haven't chatted yet (for ExpiryTimer display)
-const NEW_MATCH_IDS = new Set(["1", "4"]);
+// Flash notes and new-match IDs come from backend hooks — empty until wired.
+// TODO: wire to useFlashNotes() + backend "new_match" flag on conversations.
+const FLASH_NOTES: Array<{ id: string; senderName: string; message: string; time: string }> = [];
+const NEW_MATCH_IDS: Set<string> = new Set();
 
 // ---------- Helpers ----------
-
-function formatTime(iso: string): string {
-  const d = new Date(iso);
-  const now = new Date();
-  const diffMs = now.getTime() - d.getTime();
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffDays === 0) {
-    return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
-  }
-  if (diffDays === 1) return "Hier";
-  if (diffDays < 7) {
-    return d.toLocaleDateString("fr-FR", { weekday: "short" });
-  }
-  return d.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
-}
 
 function getModeInfo(mode: string | null) {
   if (!mode || !(mode in MODES)) return null;
@@ -76,220 +32,6 @@ function getAvatarColor(mode: string | null): string {
 }
 
 // ---------- Sub-components ----------
-
-function ConversationRow({
-  convo,
-  index,
-  onArchive,
-  onDelete,
-}: {
-  convo: ConversationPreview;
-  index: number;
-  onArchive?: (id: string) => void;
-  onDelete?: (id: string) => void;
-}) {
-  const modeInfo = getModeInfo(convo.mode);
-  const hasUnread = convo.unreadCount > 0;
-  const avatarColor = getAvatarColor(convo.mode);
-  const [showActions, setShowActions] = useState(false);
-  const [contextMenu, setContextMenu] = useState(false);
-  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const touchStartXRef = useRef(0);
-  const swipeThreshold = 80;
-
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    touchStartXRef.current = e.touches[0].clientX;
-    longPressTimerRef.current = setTimeout(() => {
-      setContextMenu(true);
-    }, 600);
-  }, []);
-
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    const deltaX = touchStartXRef.current - e.touches[0].clientX;
-    if (Math.abs(deltaX) > 10 && longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-    if (deltaX > swipeThreshold) {
-      setShowActions(true);
-    } else if (deltaX < -30) {
-      setShowActions(false);
-    }
-  }, []);
-
-  const handleTouchEnd = useCallback(() => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-  }, []);
-
-  return (
-    <m.div
-      className="relative overflow-hidden"
-      role="listitem"
-      initial={{ opacity: 0, x: -30, filter: "blur(4px)" }}
-      animate={{ opacity: 1, x: 0, filter: "blur(0px)" }}
-      transition={{ ...springs.heavy, delay: index * 0.06 }}
-      whileHover={{ y: -1, boxShadow: "0 6px 18px color-mix(in srgb, var(--color-accent) 12%, transparent)", transition: springs.gentle }}
-      whileTap={{ scale: 0.98, transition: springs.micro }}
-    >
-      {/* Swipe reveal actions */}
-      <AnimatePresence>
-        {showActions && (
-          <m.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute right-0 top-0 bottom-0 flex items-stretch z-10"
-          >
-            <button
-              onClick={() => {
-                onArchive?.(convo.id);
-                setShowActions(false);
-              }}
-              className="flex items-center justify-center px-5 bg-amber-500 text-white text-xs font-bold"
-            >
-              Archiver
-            </button>
-            <button
-              onClick={() => {
-                onDelete?.(convo.id);
-                setShowActions(false);
-              }}
-              className="flex items-center justify-center px-5 bg-red-500 text-white text-xs font-bold"
-            >
-              Supprimer
-            </button>
-          </m.div>
-        )}
-      </AnimatePresence>
-
-      {/* Context menu (long press) */}
-      <AnimatePresence>
-        {contextMenu && (
-          <>
-            <m.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40"
-              onClick={() => setContextMenu(false)}
-            />
-            <m.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.15 }}
-              className="absolute right-4 top-2 z-50 bg-bg-card border border-border rounded-xl shadow-xl overflow-hidden min-w-[160px]"
-            >
-              <button
-                onClick={() => {
-                  onArchive?.(convo.id);
-                  setContextMenu(false);
-                }}
-                className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-text hover:bg-bg active:bg-border/50 transition-colors"
-              >
-                <span className="text-base">📦</span>
-                <span>Archiver</span>
-              </button>
-              <div className="h-px bg-border" />
-              <button
-                onClick={() => {
-                  onDelete?.(convo.id);
-                  setContextMenu(false);
-                }}
-                className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-red-500 hover:bg-bg active:bg-border/50 transition-colors"
-              >
-                <span className="text-base">🗑️</span>
-                <span>Supprimer</span>
-              </button>
-            </m.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      <Link
-        href={`/chat/${convo.id}`}
-        className="flex items-center gap-3.5 px-4 py-3.5 active:bg-bg-card transition-colors cursor-pointer border-b border-border/50 relative z-0"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onContextMenu={(e) => {
-          e.preventDefault();
-          setContextMenu(true);
-        }}
-      >
-        {/* Avatar */}
-        <div className="relative shrink-0">
-          {convo.peer.avatar_url ? (
-            <Image
-              src={convo.peer.avatar_url}
-              alt={convo.peer.name}
-              width={56}
-              height={56}
-              className="w-14 h-14 rounded-full object-cover"
-            />
-          ) : (
-            <div
-              className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-bold text-white"
-              style={{ background: avatarColor }}
-            >
-              {convo.peer.name[0]}
-            </div>
-          )}
-          {convo.peer.is_online && (
-            <div className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-safe border-2 border-bg" />
-          )}
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between mb-0.5">
-            <span className={`text-[15px] ${hasUnread ? "font-bold text-text" : "font-semibold text-text"}`}>
-              {convo.peer.name}
-            </span>
-            <div className="flex items-center gap-1.5">
-              {NEW_MATCH_IDS.has(convo.id) && MOCK_MATCHED_AT[convo.id] && (
-                <ExpiryTimer
-                  matchedAt={MOCK_MATCHED_AT[convo.id]}
-                  compact
-                  conversationStarted={false}
-                />
-              )}
-              {MOCK_MATCHED_AT[convo.id] && (
-                <SparkTimer matchedAt={MOCK_MATCHED_AT[convo.id]} compact />
-              )}
-              <span className={`text-[11px] ${hasUnread ? "text-accent font-semibold" : "text-text-muted"}`}>
-                {formatTime(convo.lastMessageAt)}
-              </span>
-            </div>
-          </div>
-          <div className="flex items-center justify-between gap-2">
-            <p className={`text-[13px] truncate ${hasUnread ? "text-text font-medium" : "text-text-muted"}`}>
-              {convo.lastMessage ?? "Aucun message"}
-            </p>
-            {hasUnread && (
-              <m.span
-                className="shrink-0 w-5 h-5 gradient-bg rounded-full flex items-center justify-center text-[10px] font-bold text-white"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={springs.elastic}
-              >
-                {convo.unreadCount}
-              </m.span>
-            )}
-          </div>
-          {modeInfo && (
-            <span className="text-[10px] text-text-muted mt-0.5">
-              {modeInfo.icon} {modeInfo.name}
-            </span>
-          )}
-        </div>
-      </Link>
-    </m.div>
-  );
-}
 
 function MatchBubble({ convo }: { convo: ConversationPreview }) {
   const avatarColor = getAvatarColor(convo.mode);
@@ -334,13 +76,41 @@ function MatchBubble({ convo }: { convo: ConversationPreview }) {
 // ---------- Main page ----------
 
 export default function ChatPage() {
-  const { user } = useAuth();
-  const { conversations: realConversations, loading, totalUnread, refresh } = useConversations();
+  const { conversations, loading, totalUnread, refresh } = useConversations();
 
-  // Fallback to mock data when conversations is empty (demo mode)
-  const conversations = realConversations.length > 0 ? realConversations : mockChats;
   const withUnread = conversations.filter((c) => c.unreadCount > 0);
-  const displayUnread = realConversations.length > 0 ? totalUnread : conversations.reduce((sum, c) => sum + c.unreadCount, 0);
+  const displayUnread = totalUnread;
+
+  /**
+   * Track which row (if any) is currently hovered so siblings can shrink.
+   * null = nothing hovered.
+   */
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  // Locally-archived / deleted / pinned rows — non-persistent, UI demo only.
+  const [hiddenIds, setHiddenIds] = useState<Set<string>>(new Set());
+  const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
+
+  const visibleConversations = conversations.filter((c) => !hiddenIds.has(c.id));
+  const pinned = visibleConversations.filter((c) => pinnedIds.has(c.id));
+  const regular = visibleConversations.filter((c) => !pinnedIds.has(c.id));
+
+  const handleArchive = useCallback((id: string) => {
+    setHiddenIds((prev) => new Set(prev).add(id));
+  }, []);
+  const handleDelete = useCallback((id: string) => {
+    setHiddenIds((prev) => new Set(prev).add(id));
+  }, []);
+  const handlePin = useCallback((id: string) => {
+    setPinnedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
 
   // --- Pull-to-refresh ---
   const mainRef = useRef<HTMLDivElement>(null);
@@ -416,19 +186,19 @@ export default function ChatPage() {
       />
 
       {/* FlashNotes recus */}
-      {MOCK_FLASH_NOTES.length > 0 && (
+      {FLASH_NOTES.length > 0 && (
         <div className="px-4 py-3 border-b border-border">
           <p className="text-[10px] text-text-muted uppercase tracking-widest font-semibold mb-2">
             FlashNotes recus
           </p>
-          {MOCK_FLASH_NOTES.map((fn) => (
+          {FLASH_NOTES.map((fn) => (
             <FlashNoteReceived
               key={fn.id}
               senderName={fn.senderName}
               message={fn.message}
               time={fn.time}
               onReply={() => {
-                // Navigate to chat or open compose — mock for now
+                // Navigate to chat or open compose.
               }}
             />
           ))}
@@ -512,23 +282,67 @@ export default function ChatPage() {
 
       {/* Chat list */}
       {!loading && (
-        <div role="list" aria-label="Conversations">
-          <p className="text-[10px] text-text-muted uppercase tracking-widest font-semibold px-4 pt-4 pb-2">Conversations</p>
-          {conversations.length === 0 && (
-            <EmptyState
-              emoji="💬"
-              title="Aucune conversation"
-              subtitle="Explore les profils et envoie un message !"
-            />
+        <>
+          {visibleConversations.length === 0 ? (
+            <EmptyConversations />
+          ) : (
+            <div
+              onMouseLeave={() => setHoveredId(null)}
+              aria-live="polite"
+            >
+              {pinned.length > 0 && (
+                <div role="list" aria-label="Conversations epinglees">
+                  <p className="text-[10px] text-accent uppercase tracking-widest font-semibold px-4 pt-4 pb-2 flex items-center gap-1.5">
+                    <span aria-hidden="true">{"\u{1F4CC}"}</span>
+                    Epinglees
+                  </p>
+                  {pinned.map((convo, i) => (
+                    <ConversationRow
+                      key={convo.id}
+                      convo={convo}
+                      index={i}
+                      isHovered={hoveredId === convo.id}
+                      isAnyHovered={hoveredId !== null}
+                      onHoverStart={() => setHoveredId(convo.id)}
+                      onHoverEnd={() =>
+                        setHoveredId((id) => (id === convo.id ? null : id))
+                      }
+                      onArchive={handleArchive}
+                      onDelete={handleDelete}
+                      onPin={handlePin}
+                      matchedAt={convo.createdAt}
+                      isNewMatch={NEW_MATCH_IDS.has(convo.id)}
+                    />
+                  ))}
+                </div>
+              )}
+
+              <div role="list" aria-label="Conversations">
+                <p className="text-[10px] text-text-muted uppercase tracking-widest font-semibold px-4 pt-4 pb-2">
+                  Conversations
+                </p>
+                {regular.map((convo, i) => (
+                  <ConversationRow
+                    key={convo.id}
+                    convo={convo}
+                    index={i}
+                    isHovered={hoveredId === convo.id}
+                    isAnyHovered={hoveredId !== null}
+                    onHoverStart={() => setHoveredId(convo.id)}
+                    onHoverEnd={() =>
+                      setHoveredId((id) => (id === convo.id ? null : id))
+                    }
+                    onArchive={handleArchive}
+                    onDelete={handleDelete}
+                    onPin={handlePin}
+                    matchedAt={convo.createdAt}
+                    isNewMatch={NEW_MATCH_IDS.has(convo.id)}
+                  />
+                ))}
+              </div>
+            </div>
           )}
-          {conversations.map((convo, i) => (
-            <ConversationRow
-              key={convo.id}
-              convo={convo}
-              index={i}
-            />
-          ))}
-        </div>
+        </>
       )}
     </div>
   );

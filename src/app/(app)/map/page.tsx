@@ -8,8 +8,8 @@ import Link from "next/link";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { useAuth } from "@/context/AuthContext";
 import { useProfiles } from "@/lib/useProfiles";
-import { MOCK_PROFILES, Profile } from "@/lib/mock-profiles";
-import { MODES, ModeKey } from "@/lib/modes";
+import type { Profile } from "@/lib/mock-profiles";
+import { ModeKey } from "@/lib/modes";
 import { MODE_COLORS } from "@/lib/mode-colors";
 import { app as appTokens } from "@/lib/design-tokens";
 import { useHotspots } from "@/lib/useHotspots";
@@ -17,7 +17,6 @@ import { HeatmapFallback } from "@/components/map/HeatmapOverlay";
 import LiveActivityPanel from "@/components/map/LiveActivityPanel";
 import CrossLinkCard from "@/components/app/CrossLinkCard";
 import PageHeader from "@/components/ui/PageHeader";
-import MotionImage from "@/components/motion/MotionImage";
 import { ChevronRight } from "@/components/ui/lucide";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -26,11 +25,8 @@ import MapSearchBar from "@/components/map/MapSearchBar";
 import MapFiltersSheet, { DEFAULT_FILTERS, type MapFilters } from "@/components/map/MapFiltersSheet";
 import MapFloatingActions from "@/components/map/MapFloatingActions";
 import MapCarousel, { type MapCarouselItem } from "@/components/map/MapCarousel";
-
-function fakePos(lat: number, lng: number, km: number) {
-  const r = km / 111;
-  return { lat: lat + (Math.random() - 0.5) * 2 * r, lng: lng + (Math.random() - 0.5) * 2 * r };
-}
+import ProfileFlyInCard from "@/components/map/ProfileFlyInCard";
+import { createProfilePin, ensurePinStyles, type ProfilePinHandle } from "@/components/map/ProfilePin";
 
 interface OpenEvent {
   id: string;
@@ -54,11 +50,22 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
+function isPointerFineMedia(): boolean {
+  if (typeof window === "undefined" || !window.matchMedia) return false;
+  return window.matchMedia("(pointer: fine)").matches;
+}
+
+/** DOM zoom gate — below this zoom we collapse to cluster symbols and
+ *  avoid spinning up dozens of DOM marker nodes. */
+const DOM_PIN_ZOOM_THRESHOLD = 12;
+
 export default function MapPage() {
-  const { user } = useAuth();
+  // useAuth consumed for future gating (e.g. only show crush pin for signed-in users).
+  useAuth();
   const { latitude, longitude, error, loading } = useGeolocation();
-  const [selected, setSelected] = useState<ProfileWithPos | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<OpenEvent | null>(null);
+  const [flyInAnchor, setFlyInAnchor] = useState<{ x: number; y: number } | null>(null);
   const [mounted, setMounted] = useState(false);
   const [filters, setFilters] = useState<MapFilters>(DEFAULT_FILTERS);
   const [showFilters, setShowFilters] = useState(false);
@@ -66,24 +73,23 @@ export default function MapPage() {
   const [mapFailed, setMapFailed] = useState(false);
   const [zoom, setZoom] = useState(13);
   const [bounds, setBounds] = useState<[number, number, number, number] | null>(null);
+  const [geoStale, setGeoStale] = useState(false);
+  const [lastGeoAt, setLastGeoAt] = useState<number | null>(null);
   const mapContainer = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
-  const markersRef = useRef<maplibregl.Marker[]>([]);
-  const eventMarkersRef = useRef<maplibregl.Marker[]>([]);
+  const pinHandlesRef = useRef<Map<string, { handle: ProfilePinHandle; marker: maplibregl.Marker }>>(new Map());
+  const clusterMarkersRef = useRef<maplibregl.Marker[]>([]);
+  const eventMarkersRef = useRef<{ handle: ProfilePinHandle; marker: maplibregl.Marker }[]>([]);
   const center = latitude && longitude ? { lat: latitude, lng: longitude } : { lat: 48.8566, lng: 2.3522 };
   const currentModeFilter: ModeKey | undefined = filters.modes.length === 1 ? filters.modes[0] : undefined;
   const { profiles: realProfiles } = useProfiles(latitude ?? undefined, longitude ?? undefined, currentModeFilter);
   const { hotspots: liveHotspots } = useHotspots();
 
-  // Combine real + mock profiles with positions
+  // Real profiles with positions derived from geolocation
   const profilesWithPos = useMemo<ProfileWithPos[]>(() => {
-    const src: Profile[] = realProfiles.length > 0 ? realProfiles : MOCK_PROFILES;
-    return src.map((p, i) => ({
+    return realProfiles.map((p, i) => ({
       ...p,
-      pos: realProfiles.length > 0
-        ? { lat: center.lat + (Math.random() - 0.5) * 0.02, lng: center.lng + (Math.random() - 0.5) * 0.02 }
-        : fakePos(center.lat, center.lng, p.distance),
-      // Mark ~60% of profiles as online for live pulse demo
+      pos: { lat: center.lat + (Math.random() - 0.5) * 0.02, lng: center.lng + (Math.random() - 0.5) * 0.02 },
       online: i % 3 !== 0,
     }));
   }, [realProfiles, center.lat, center.lng]);
@@ -99,16 +105,8 @@ export default function MapPage() {
     });
   }, [profilesWithPos, filters]);
 
-  // Mock open events (filtered by toggle)
-  const openEvents = useMemo<OpenEvent[]>(() => {
-    if (!filters.showEvents) return [];
-    return [
-      { id: "ev1", title: "Apero chez Marie", time: "20h", spots: "3/8 places", lat: center.lat + 0.005, lng: center.lng + 0.008 },
-      { id: "ev2", title: "Soiree jeux Oberkampf", time: "19h30", spots: "5/10 places", lat: center.lat - 0.004, lng: center.lng + 0.003 },
-      { id: "ev3", title: "Concert rooftop", time: "21h", spots: "12/20 places", lat: center.lat + 0.007, lng: center.lng - 0.006 },
-      { id: "ev4", title: "Diner partage Belleville", time: "20h30", spots: "4/6 places", lat: center.lat - 0.006, lng: center.lng - 0.004 },
-    ];
-  }, [center.lat, center.lng, filters.showEvents]);
+  // Open events come from backend (not yet wired) — empty until hook exists.
+  const openEvents = useMemo<OpenEvent[]>(() => [], []);
 
   // --- Build supercluster index for profile points --------------------------
   const clusterIndex = useMemo(() => {
@@ -132,15 +130,31 @@ export default function MapPage() {
     return m;
   }, [filtered]);
 
+  const selected = selectedId ? profileById.get(selectedId) ?? null : null;
+
   useEffect(() => { setMounted(true); }, []);
+
+  // Inject pin CSS once on mount so initial pins render correctly.
+  useEffect(() => {
+    if (!mounted) return;
+    ensurePinStyles();
+  }, [mounted]);
 
   // Init map once when mounted
   useEffect(() => {
     if (!mounted || !mapContainer.current || mapRef.current) return;
 
+    // Prefer dark tiles when the OS asks for dark mode; fall back to positron.
+    const darkMode = typeof window !== "undefined"
+      && window.matchMedia
+      && window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const styleUrl = darkMode
+      ? "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
+      : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
+
     const map = new maplibregl.Map({
       container: mapContainer.current,
-      style: "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+      style: styleUrl,
       center: [center.lng, center.lat],
       zoom: 13,
       attributionControl: false,
@@ -171,8 +185,6 @@ export default function MapPage() {
       setMapFailed(false);
       updateViewport();
 
-      // Native heatmap source + layer for the hotspots data.
-      // Added once; visibility toggled via layout property on filter change.
       if (!map.getSource("activity-heat")) {
         map.addSource("activity-heat", {
           type: "geojson",
@@ -204,6 +216,13 @@ export default function MapPage() {
     map.on("zoom", onMove);
     map.on("error", () => setMapFailed(true));
 
+    // Clicking the bare map clears selection (focus mode reset).
+    map.on("click", () => {
+      setSelectedId(null);
+      setSelectedEvent(null);
+      setFlyInAnchor(null);
+    });
+
     return () => {
       clearTimeout(fallbackTimer);
       if (rafId !== null) cancelAnimationFrame(rafId);
@@ -217,10 +236,23 @@ export default function MapPage() {
   const didFirstCenterRef = useRef(false);
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || didFirstCenterRef.current || !latitude || !longitude) return;
-    map.easeTo({ center: [longitude, latitude], zoom: 14, duration: 600 });
-    didFirstCenterRef.current = true;
+    if (!map || !latitude || !longitude) return;
+    setLastGeoAt(Date.now());
+    setGeoStale(false);
+    if (!didFirstCenterRef.current) {
+      map.easeTo({ center: [longitude, latitude], zoom: 14, duration: 600 });
+      didFirstCenterRef.current = true;
+    }
   }, [latitude, longitude]);
+
+  // Mark geolocation as stale if >5min since last fix (breathing glow cue).
+  useEffect(() => {
+    if (lastGeoAt === null) return;
+    const id = window.setInterval(() => {
+      setGeoStale(Date.now() - lastGeoAt > 5 * 60 * 1000);
+    }, 30_000);
+    return () => window.clearInterval(id);
+  }, [lastGeoAt]);
 
   // --- Feed heatmap source from live hotspots -------------------------------
   useEffect(() => {
@@ -241,49 +273,35 @@ export default function MapPage() {
       if (map.getLayer("activity-heat-layer")) {
         map.setLayoutProperty("activity-heat-layer", "visibility", filters.showHeatmap ? "visible" : "none");
       }
+      // Reduce heatmap prominence when a pin is selected (focus mode).
+      if (map.getLayer("activity-heat-layer")) {
+        map.setPaintProperty(
+          "activity-heat-layer",
+          "heatmap-opacity",
+          selectedId || selectedEvent ? 0.4 : 0.7,
+        );
+      }
     };
     if (map.isStyleLoaded()) apply();
     else map.once("load", apply);
-  }, [liveHotspots, filters.showHeatmap]);
+  }, [liveHotspots, filters.showHeatmap, selectedId, selectedEvent]);
 
-  // --- Render clustered profile markers -------------------------------------
+  // --- Render clustered profile markers with ProfilePin ---------------------
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !bounds) return;
 
-    // Inject marker keyframes once
-    if (!document.getElementById("map-marker-styles")) {
-      const style = document.createElement("style");
-      style.id = "map-marker-styles";
-      style.textContent = `
-        @keyframes radial-burst {
-          0% { transform: scale(0); opacity: 0; }
-          60% { transform: scale(1.15); opacity: 1; }
-          100% { transform: scale(1); opacity: 1; }
-        }
-        @keyframes online-pulse {
-          0% { transform: scale(1); opacity: 0.8; }
-          70% { transform: scale(1.8); opacity: 0; }
-          100% { transform: scale(1.8); opacity: 0; }
-        }
-        @keyframes event-pulse {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.08); }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .map-marker, .event-marker { animation: none !important; }
-          .online-pulse-ring { display: none !important; }
-        }
-      `;
-      document.head.appendChild(style);
-    }
-
-    // Remove old markers
-    markersRef.current.forEach(m => m.remove());
-    markersRef.current = [];
+    const reduced = prefersReducedMotion();
+    const pointerFine = isPointerFineMedia();
+    const useDomPins = zoom >= DOM_PIN_ZOOM_THRESHOLD;
 
     const clusters = clusterIndex.getClusters(bounds, Math.round(zoom));
-    const reduced = prefersReducedMotion();
+
+    // --- Clusters are always DOM (small count) --------------------------
+    clusterMarkersRef.current.forEach(m => m.remove());
+    clusterMarkersRef.current = [];
+
+    const nextPinIds = new Set<string>();
 
     clusters.forEach((c, idx) => {
       const [lng, lat] = c.geometry.coordinates;
@@ -294,7 +312,7 @@ export default function MapPage() {
         const count = cf.properties.point_count;
         const size = Math.min(64, 36 + count * 2);
         const el = document.createElement("div");
-        el.className = "map-marker";
+        el.className = "cesoir-cluster-pin";
         el.style.cssText = `
           width: ${size}px; height: ${size}px; border-radius: 50%;
           background: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
@@ -302,93 +320,185 @@ export default function MapPage() {
           display: flex; align-items: center; justify-content: center; cursor: pointer;
           box-shadow: 0 0 24px color-mix(in srgb, var(--color-accent) 40%, transparent);
           border: 2px solid white;
-          ${reduced ? "" : `animation: radial-burst 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) ${Math.min(idx * 0.02, 0.4)}s both;`}
+          ${reduced ? "" : `animation: cesoir-cluster-burst 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) ${Math.min(idx * 0.02, 0.4)}s both;`}
         `;
         el.textContent = `${count}`;
-        el.onclick = () => {
-          const expansionZoom = clusterIndex.getClusterExpansionZoom(cf.properties.cluster_id as unknown as number);
+
+        el.onclick = async (e) => {
+          e.stopPropagation();
+          const clusterId = cf.properties.cluster_id as unknown as number;
+          const expansionZoom = clusterIndex.getClusterExpansionZoom(clusterId);
+
+          // Fan-out animation: fetch leaves, project them to screen, animate
+          // them briefly toward their final positions before flying in.
+          if (!reduced) {
+            try {
+              const leaves = clusterIndex.getLeaves(clusterId, 12, 0) as PointFeature[];
+              const rootPoint = map.project([lng, lat]);
+              const fanNodes = leaves.map((leaf) => {
+                const node = document.createElement("div");
+                node.className = "cesoir-cluster-fan-node";
+                const [leafLng, leafLat] = leaf.geometry.coordinates;
+                const leafPoint = map.project([leafLng, leafLat]);
+                const dx = leafPoint.x - rootPoint.x;
+                const dy = leafPoint.y - rootPoint.y;
+                const dist = Math.hypot(dx, dy) || 1;
+                const nx = (dx / dist) * 20;
+                const ny = (dy / dist) * 20;
+                node.style.cssText = `
+                  position: absolute;
+                  left: ${rootPoint.x - 6}px;
+                  top: ${rootPoint.y - 6}px;
+                  width: 12px; height: 12px; border-radius: 50%;
+                  background: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
+                  opacity: 0; pointer-events: none;
+                  transition: transform 280ms cubic-bezier(0.2,0.8,0.2,1), opacity 280ms ease-out;
+                  z-index: 5;
+                `;
+                return { node, tx: nx, ty: ny };
+              });
+              const container = map.getContainer();
+              fanNodes.forEach(({ node }) => container.appendChild(node));
+              requestAnimationFrame(() => {
+                fanNodes.forEach(({ node, tx, ty }) => {
+                  node.style.opacity = "0.85";
+                  node.style.transform = `translate(${tx}px, ${ty}px) scale(1)`;
+                });
+              });
+              setTimeout(() => {
+                fanNodes.forEach(({ node }) => {
+                  node.style.opacity = "0";
+                });
+              }, 260);
+              setTimeout(() => {
+                fanNodes.forEach(({ node }) => node.remove());
+              }, 520);
+            } catch {
+              // ignore fan-out failures
+            }
+          }
+
           map.easeTo({ center: [lng, lat], zoom: Math.min(expansionZoom + 0.5, 18), duration: 500 });
         };
-        const marker = new maplibregl.Marker({ element: el }).setLngLat([lng, lat]).addTo(map);
-        markersRef.current.push(marker);
-      } else {
-        const pf = c as PointFeature;
-        const profile = profileById.get(pf.properties.profileId);
-        if (!profile) return;
-        const color = MODE_COLORS[profile.mode] || "var(--color-accent)";
-
-        const el = document.createElement("div");
-        el.className = "map-marker";
-        el.style.cssText = `
-          position: relative;
-          width: 40px; height: 40px; border-radius: 50%; overflow: visible;
-          cursor: pointer;
-          ${reduced ? "" : `animation: radial-burst 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) ${Math.min(idx * 0.02, 0.3)}s both;`}
-        `;
-
-        const img = document.createElement("div");
-        img.style.cssText = `
-          width: 40px; height: 40px; border-radius: 50%; overflow: hidden;
-          border: 3px solid ${color}; box-shadow: 0 0 12px ${color}44;
-          background-image: url("${profile.photo}"); background-size: cover; background-position: center;
-          transition: transform 0.2s;
-        `;
-        el.appendChild(img);
-
-        // Live pulse ring for online profiles
-        if (profile.online && !reduced) {
-          const ring = document.createElement("div");
-          ring.className = "online-pulse-ring";
-          ring.style.cssText = `
-            position: absolute; inset: -6px; border-radius: 50%;
-            border: 2px solid ${color};
-            animation: online-pulse 2s ease-out infinite;
-            pointer-events: none;
-          `;
-          el.appendChild(ring);
-        }
-
-        el.onmouseenter = () => { img.style.transform = "scale(1.15)"; };
-        el.onmouseleave = () => { img.style.transform = "scale(1)"; };
-        el.onclick = () => { setSelected(profile); setSelectedEvent(null); };
 
         const marker = new maplibregl.Marker({ element: el }).setLngLat([lng, lat]).addTo(map);
-        markersRef.current.push(marker);
+        clusterMarkersRef.current.push(marker);
+        return;
+      }
+
+      if (!useDomPins) return;
+
+      const pf = c as PointFeature;
+      const profile = profileById.get(pf.properties.profileId);
+      if (!profile) return;
+      nextPinIds.add(profile.id);
+
+      const existing = pinHandlesRef.current.get(profile.id);
+      if (existing) {
+        // Pool reuse: move the existing marker to the new coords.
+        existing.marker.setLngLat([lng, lat]);
+        return;
+      }
+
+      const color = MODE_COLORS[profile.mode] || "var(--color-accent)";
+      const handle = createProfilePin({
+        photo: profile.photo,
+        color,
+        online: profile.online,
+        reduced,
+        pointerFine,
+        variant: "profile",
+        animationDelay: Math.min(idx * 0.02, 0.3),
+        onClick: () => {
+          const screenPt = map.project([lng, lat]);
+          const container = map.getContainer().getBoundingClientRect();
+          setFlyInAnchor({ x: container.left + screenPt.x, y: container.top + screenPt.y });
+          setSelectedId(profile.id);
+          setSelectedEvent(null);
+        },
+      });
+      const marker = new maplibregl.Marker({ element: handle.element }).setLngLat([lng, lat]).addTo(map);
+      pinHandlesRef.current.set(profile.id, { handle, marker });
+    });
+
+    // Remove any pins that are no longer in the current cluster set.
+    Array.from(pinHandlesRef.current.entries()).forEach(([id, { handle, marker }]) => {
+      if (!nextPinIds.has(id)) {
+        handle.destroy();
+        marker.remove();
+        pinHandlesRef.current.delete(id);
       }
     });
   }, [bounds, zoom, clusterIndex, profileById]);
 
-  // --- Render event markers -------------------------------------------------
+  // --- Apply focus mode styles imperatively on every selection change ------
+  useEffect(() => {
+    pinHandlesRef.current.forEach(({ handle }, id) => {
+      handle.update({
+        focused: id === selectedId,
+        dimmed: Boolean(selectedId) && id !== selectedId,
+      });
+    });
+    eventMarkersRef.current.forEach(({ handle }) => {
+      handle.update({
+        dimmed: Boolean(selectedId || selectedEvent),
+      });
+    });
+  }, [selectedId, selectedEvent]);
+
+  // --- Render event markers using ProfilePin variant="event" ---------------
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
 
-    eventMarkersRef.current.forEach(m => m.remove());
+    eventMarkersRef.current.forEach(({ handle, marker }) => {
+      handle.destroy();
+      marker.remove();
+    });
     eventMarkersRef.current = [];
 
     const reduced = prefersReducedMotion();
+    const pointerFine = isPointerFineMedia();
 
-    openEvents.forEach(ev => {
-      const el = document.createElement("div");
-      el.className = "event-marker";
-      el.style.cssText = `
-        width: 48px; height: 48px; border-radius: 50%; cursor: pointer;
-        background: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
-        display: flex; align-items: center; justify-content: center;
-        box-shadow: 0 0 20px color-mix(in srgb, var(--color-accent) 40%, transparent);
-        border: 2px solid white;
-        font-size: 22px;
-        ${reduced ? "" : "animation: event-pulse 2s ease-in-out infinite;"}
-      `;
-      el.textContent = "🎉";
-      el.onclick = () => { setSelectedEvent(ev); setSelected(null); };
-
-      const marker = new maplibregl.Marker({ element: el }).setLngLat([ev.lng, ev.lat]).addTo(map);
-      eventMarkersRef.current.push(marker);
+    openEvents.forEach((ev, idx) => {
+      const handle = createProfilePin({
+        color: appTokens.amberStar,
+        reduced,
+        pointerFine,
+        variant: "event",
+        emoji: "⚡",
+        animationDelay: Math.min(idx * 0.03, 0.2),
+        onClick: () => {
+          setSelectedEvent(ev);
+          setSelectedId(null);
+          setFlyInAnchor(null);
+        },
+      });
+      const marker = new maplibregl.Marker({ element: handle.element }).setLngLat([ev.lng, ev.lat]).addTo(map);
+      eventMarkersRef.current.push({ handle, marker });
     });
   }, [openEvents]);
 
-  // --- Carousel items: profiles + events currently in viewport bounds -------
+  // --- Cleanup all markers on unmount --------------------------------------
+  useEffect(() => {
+    const pinHandles = pinHandlesRef.current;
+    const eventMarkers = eventMarkersRef.current;
+    const clusterMarkers = clusterMarkersRef.current;
+    return () => {
+      pinHandles.forEach(({ handle, marker }) => {
+        handle.destroy();
+        marker.remove();
+      });
+      pinHandles.clear();
+      eventMarkers.forEach(({ handle, marker }) => {
+        handle.destroy();
+        marker.remove();
+      });
+      clusterMarkers.forEach(m => m.remove());
+    };
+  }, []);
+
+  // --- Carousel items -------------------------------------------------------
   const carouselItems = useMemo<MapCarouselItem[]>(() => {
     const items: MapCarouselItem[] = [];
     if (bounds) {
@@ -416,7 +526,7 @@ export default function MapPage() {
             subtitle: `${ev.time} · ${ev.spots}`,
             lat: ev.lat,
             lng: ev.lng,
-            emoji: "🎉",
+            emoji: "⚡",
           });
         }
       });
@@ -429,6 +539,8 @@ export default function MapPage() {
     const map = mapRef.current;
     if (!map || !latitude || !longitude) return;
     map.easeTo({ center: [longitude, latitude], zoom: 14, duration: 600 });
+    setLastGeoAt(Date.now());
+    setGeoStale(false);
   }, [latitude, longitude]);
 
   const handleSearchSelect = useCallback((lat: number, lng: number) => {
@@ -443,12 +555,40 @@ export default function MapPage() {
     map.easeTo({ center: [item.lng, item.lat], zoom: 16, duration: 500 });
     if (item.type === "profile") {
       const p = profileById.get(item.id);
-      if (p) { setSelected(p); setSelectedEvent(null); }
+      if (p) {
+        const screenPt = map.project([item.lng, item.lat]);
+        const container = map.getContainer().getBoundingClientRect();
+        setFlyInAnchor({ x: container.left + screenPt.x, y: container.top + screenPt.y });
+        setSelectedId(p.id);
+        setSelectedEvent(null);
+      }
     } else if (item.type === "event") {
       const ev = openEvents.find(e => e.id === item.id);
-      if (ev) { setSelectedEvent(ev); setSelected(null); }
+      if (ev) { setSelectedEvent(ev); setSelectedId(null); setFlyInAnchor(null); }
     }
   }, [profileById, openEvents]);
+
+  const handleCloseFlyIn = useCallback(() => {
+    setSelectedId(null);
+    setFlyInAnchor(null);
+  }, []);
+
+  // Keep fly-in anchor tracking the pin on map move (so card slides with pin).
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !selected) return;
+    const update = () => {
+      const pt = map.project([selected.pos.lng, selected.pos.lat]);
+      const rect = map.getContainer().getBoundingClientRect();
+      setFlyInAnchor({ x: rect.left + pt.x, y: rect.top + pt.y });
+    };
+    map.on("move", update);
+    map.on("zoom", update);
+    return () => {
+      map.off("move", update);
+      map.off("zoom", update);
+    };
+  }, [selected]);
 
   const activeFilterCount =
     filters.modes.length +
@@ -562,7 +702,7 @@ export default function MapPage() {
                   animate="visible"
                   custom={i}
                   whileTap={micro.tapScale}
-                  onClick={() => { setSelected(p); setSelectedEvent(null); }}
+                  onClick={() => { setSelectedId(p.id); setSelectedEvent(null); setFlyInAnchor(null); }}
                 >
                   <Image src={p.photo} alt={p.name} fill sizes="40px" style={{ objectFit: "cover" }} />
                 </m.button>
@@ -588,6 +728,7 @@ export default function MapPage() {
             onRecenter={handleRecenter}
             onRoute={() => setShowRouteModal(true)}
             canRecenter={Boolean(latitude && longitude)}
+            geoStale={geoStale}
           />
         )}
 
@@ -605,70 +746,15 @@ export default function MapPage() {
           </div>
         )}
 
-        {/* Selected profile sheet */}
+        {/* Cinematic fly-in card for selected profile */}
         <AnimatePresence>
           {selected && (
-            <m.div
-              className="absolute bottom-24 left-3 right-3 z-[1000]"
-              initial={{ y: "100%", opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: "100%", opacity: 0 }}
-              transition={springs.heavy}
-            >
-              <div className="bg-bg border border-border rounded-2xl p-4 shadow-glow">
-                <m.button
-                  onClick={() => setSelected(null)}
-                  className="absolute top-3 right-3 w-7 h-7 rounded-full bg-bg-card border border-border flex items-center justify-center text-xs text-text-muted tap-target"
-                  aria-label="Fermer"
-                  whileHover={{ scale: 1.1, rotate: 15 }}
-                  whileTap={{ scale: 0.9 }}
-                  transition={springs.micro}
-                >✕</m.button>
-
-                <div className="flex items-center gap-3 mb-3">
-                  <MotionImage
-                    src={selected.photo}
-                    alt={selected.name}
-                    width={56}
-                    height={56}
-                    className="w-14 h-14 rounded-full object-cover border-2"
-                    style={{ borderColor: MODE_COLORS[selected.mode] }}
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ ...springs.elastic, delay: 0.1 }}
-                  />
-                  <div>
-                    <h3 className="text-[15px] font-bold">{selected.name}, {selected.age}</h3>
-                    <div className="flex items-center gap-2 text-[11px] text-text-muted">
-                      <span>📍 {selected.distance} km</span>
-                      <span className="text-accent font-semibold">{selected.time}</span>
-                      {selected.online && <span className="flex items-center gap-1 text-safe"><span className="w-1.5 h-1.5 rounded-full bg-safe inline-block animate-pulse" />Actif</span>}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-1.5 mb-2">
-                  <span className="bg-accent/10 border border-accent/15 px-2.5 py-0.5 rounded-full text-[10px] text-accent font-medium">
-                    {MODES[selected.mode].icon} {MODES[selected.mode].name}
-                  </span>
-                  {selected.cuisine && <span className="bg-bg-card border border-border px-2 py-0.5 rounded-full text-[10px] text-text-muted">🍽️ {selected.cuisine}</span>}
-                  {selected.dog && <span className="bg-bg-card border border-border px-2 py-0.5 rounded-full text-[10px] text-text-muted">🐶 {selected.dog}</span>}
-                </div>
-
-                <p className="text-[12px] text-text-muted leading-relaxed line-clamp-2 mb-3">{selected.bio}</p>
-
-                <div className="flex gap-2">
-                  <m.button
-                    className="flex-1 gradient-bg text-white py-2.5 rounded-full text-[12px] font-semibold tap-target"
-                    whileTap={micro.tapScale}
-                  >♥ Like</m.button>
-                  <m.button
-                    className="px-4 py-2.5 border border-border rounded-full text-[12px] font-medium text-text-muted tap-target"
-                    whileTap={micro.tapScale}
-                  >Profil</m.button>
-                </div>
-              </div>
-            </m.div>
+            <ProfileFlyInCard
+              key={selected.id}
+              profile={selected}
+              anchor={flyInAnchor}
+              onClose={handleCloseFlyIn}
+            />
           )}
         </AnimatePresence>
 
@@ -698,7 +784,7 @@ export default function MapPage() {
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     transition={{ ...springs.elastic, delay: 0.1 }}
-                  >🎉</m.div>
+                  >⚡</m.div>
                   <div>
                     <h3 className="text-[15px] font-bold text-text">{selectedEvent.title}</h3>
                     <p className="text-[11px] text-text-muted">{selectedEvent.time} · {selectedEvent.spots}</p>
@@ -727,7 +813,7 @@ export default function MapPage() {
                           whileTap={{ scale: 0.97 }}
                           onClick={() => { setSelectedEvent(ev); }}
                         >
-                          <span className="text-sm">🎉</span>
+                          <span className="text-sm">⚡</span>
                           <div className="flex-1 min-w-0">
                             <p className="text-[11px] font-semibold text-text truncate">{ev.title}</p>
                             <p className="text-[9px] text-text-muted">{ev.time} · {ev.spots}</p>

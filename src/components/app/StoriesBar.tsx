@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { m } from "motion/react";
 import { springs } from "@/lib/motion-design";
-import { MOCK_PROFILES } from "@/lib/mock-profiles";
+import { useProfiles } from "@/lib/useProfiles";
+import { useGeolocation } from "@/lib/useGeolocation";
 import { ModeKey } from "@/lib/modes";
 import { Plus } from "@/components/ui/lucide";
 import StoryCreator from "./StoryCreator";
@@ -20,31 +21,29 @@ interface StoryUser {
   viewed: boolean;
 }
 
-// ─── Data ────────────────────────────────────────
-
-function generateStoryUsers(): StoryUser[] {
-  const selected = MOCK_PROFILES.slice(0, 8);
-  return selected.map((p, i) => ({
-    id: p.id,
-    name: p.name,
-    photo: p.photo,
-    mode: p.mode,
-    online: i < 4,
-    viewed: i >= 5,
-  }));
-}
-
 // ─── Component ───────────────────────────────────
 
 export default function StoriesBar() {
   const router = useRouter();
-  const [users, setUsers] = useState<StoryUser[]>([]);
   const [viewedIds, setViewedIds] = useState<Set<string>>(new Set());
   const [creatorOpen, setCreatorOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  const { latitude, longitude } = useGeolocation();
+  const { profiles } = useProfiles(latitude ?? undefined, longitude ?? undefined);
+
+  const users: StoryUser[] = useMemo(() => {
+    return profiles.slice(0, 8).map((p, i) => ({
+      id: p.id,
+      name: p.name,
+      photo: p.photo,
+      mode: p.mode,
+      online: i < 4,
+      viewed: false,
+    }));
+  }, [profiles]);
+
   useEffect(() => {
-    setUsers(generateStoryUsers());
     const today = new Date().toISOString().split("T")[0];
     const stored = localStorage.getItem(`cesoir-stories-viewed-${today}`);
     if (stored) {

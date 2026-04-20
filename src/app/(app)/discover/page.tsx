@@ -6,7 +6,7 @@ import Image from "next/image";
 import { m, AnimatePresence } from "motion/react";
 import { discoverVariants, springs, micro } from "@/lib/motion-design";
 import { ModeKey, MODES, MODE_KEYS } from "@/lib/modes";
-import { MOCK_PROFILES, type Profile } from "@/lib/mock-profiles";
+import type { Profile } from "@/lib/mock-profiles";
 import { MODE_ICONS, IconSearch, IconX } from "@/components/ui/Icons";
 import { Filter, Check } from "@/components/ui/lucide";
 import CrossLinkCard from "@/components/app/CrossLinkCard";
@@ -133,7 +133,7 @@ export default function DiscoverPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
-  // Real profiles via Supabase RPC (nearby_profiles); MOCK_PROFILES bootstrap when empty.
+  // Real profiles via Supabase RPC (nearby_profiles).
   const { latitude, longitude } = useGeolocation();
   const modeFilter = filters.mode === "all" ? undefined : filters.mode;
 
@@ -156,7 +156,7 @@ export default function DiscoverPage() {
     }
   })();
 
-  const { profiles: realProfiles, isReal } = useProfiles(
+  const { profiles: realProfiles } = useProfiles(
     latitude ?? undefined,
     longitude ?? undefined,
     modeFilter,
@@ -166,7 +166,7 @@ export default function DiscoverPage() {
       maxAge: ageBounds.maxAge,
     },
   );
-  const sourceProfiles: Profile[] = isReal && realProfiles.length > 0 ? realProfiles : MOCK_PROFILES;
+  const sourceProfiles: Profile[] = realProfiles;
 
   // Filter + sort profiles
   const filteredProfiles = useMemo(() => {

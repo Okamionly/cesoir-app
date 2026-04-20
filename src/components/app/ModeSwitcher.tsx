@@ -1,37 +1,17 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import { ModeKey, MODES, MODE_KEYS } from "@/lib/modes";
 import { MODE_ICONS, IconStar } from "@/components/ui/Icons";
+import { useProfiles } from "@/lib/useProfiles";
+import { useGeolocation } from "@/lib/useGeolocation";
 import {
   MODE_SWITCHER_ALL_COLOR,
   MODE_SWITCHER_LIVE_COLOR,
   MODE_SWITCHER_RING_END,
 } from "@/lib/mode-switcher-colors";
-
-// ─────────────────────────────────────────
-// Mock active user counts per mode
-// ─────────────────────────────────────────
-
-const MOCK_ACTIVE_COUNTS: Record<ModeKey | "all", number> = {
-  all: 247,
-  "solo-diner": 42,
-  "plus-one": 38,
-  tourist: 15,
-  "night-owl": 56,
-  breakup: 11,
-  "new-in-town": 23,
-  langue: 19,
-  "dog-date": 14,
-  seasonal: 8,
-  "fit-date": 31,
-  "foodie-quest": 27,
-  "culture-club": 18,
-  "sober-tonight": 12,
-  "gamer-night": 33,
-};
 
 // ─────────────────────────────────────────
 // Props
@@ -49,6 +29,23 @@ interface ModeSwitcherProps {
 export default function ModeSwitcher({ active, onChange }: ModeSwitcherProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Real per-mode active counts — derived from nearby profiles.
+  const { latitude, longitude } = useGeolocation();
+  const { profiles } = useProfiles(latitude ?? undefined, longitude ?? undefined);
+  const activeCounts = useMemo(() => {
+    const counts: Record<ModeKey | "all", number> = {
+      all: profiles.length,
+      "solo-diner": 0, "plus-one": 0, tourist: 0, "night-owl": 0,
+      breakup: 0, "new-in-town": 0, langue: 0, "dog-date": 0,
+      seasonal: 0, "fit-date": 0, "foodie-quest": 0, "culture-club": 0,
+      "sober-tonight": 0, "gamer-night": 0,
+    };
+    for (const p of profiles) {
+      if (p.mode in counts) counts[p.mode] = (counts[p.mode] ?? 0) + 1;
+    }
+    return counts;
+  }, [profiles]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -106,7 +103,7 @@ export default function ModeSwitcher({ active, onChange }: ModeSwitcherProps) {
 
         {/* Active count */}
         <span className="text-[10px] text-text-muted font-medium">
-          {MOCK_ACTIVE_COUNTS[active]} actifs
+          {activeCounts[active]} actifs
         </span>
 
         {/* Chevron */}
@@ -144,7 +141,7 @@ export default function ModeSwitcher({ active, onChange }: ModeSwitcherProps) {
               key="all"
               label="Tous les modes"
               icon={<IconStar size={16} className="text-accent" />}
-              count={MOCK_ACTIVE_COUNTS.all}
+              count={activeCounts.all}
               isActive={active === "all"}
               color={MODE_SWITCHER_ALL_COLOR}
               onClick={() => { onChange("all"); setOpen(false); }}
@@ -163,7 +160,7 @@ export default function ModeSwitcher({ active, onChange }: ModeSwitcherProps) {
                   label={mode.name}
                   icon={Icon ? <Icon size={16} className="text-accent" /> : null}
                   emoji={mode.icon}
-                  count={MOCK_ACTIVE_COUNTS[key]}
+                  count={activeCounts[key]}
                   isActive={active === key}
                   color={mode.color}
                   badge={mode.badge}

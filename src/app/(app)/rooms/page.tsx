@@ -48,101 +48,6 @@ const CATEGORIES: { key: RoomCategory; label: string }[] = [
   { key: "ambiance", label: "Ambiance" },
 ];
 
-// --- Mock data ---
-
-const MOCK_ROOMS: MockRoom[] = [
-  {
-    id: "r1",
-    title: "Apero virtuel",
-    host: { name: "Sofia M.", avatar: "https://i.pravatar.cc/150?img=1" },
-    speakers: [
-      { name: "Lucas D.", avatar: "https://i.pravatar.cc/150?img=3" },
-      { name: "Nadia K.", avatar: "https://i.pravatar.cc/150?img=5" },
-    ],
-    listenerCount: 23,
-    category: "discussion",
-    modeLabel: "Night Owl",
-    modeColor: ROOM_MODE_COLORS["night-owl"],
-    modeIcon: "\uD83C\uDF19",
-    startedMinutesAgo: 12,
-  },
-  {
-    id: "r2",
-    title: "Debat du soir",
-    host: { name: "Maxime R.", avatar: "https://i.pravatar.cc/150?img=8" },
-    speakers: [
-      { name: "Chloe V.", avatar: "https://i.pravatar.cc/150?img=9" },
-      { name: "Youssef G.", avatar: "https://i.pravatar.cc/150?img=11" },
-      { name: "Lina B.", avatar: "https://i.pravatar.cc/150?img=16" },
-    ],
-    listenerCount: 41,
-    category: "debat",
-    modeLabel: "Culture Club",
-    modeColor: ROOM_MODE_COLORS["culture-club"],
-    modeIcon: "\uD83C\uDFAD",
-    startedMinutesAgo: 34,
-  },
-  {
-    id: "r3",
-    title: "Musique chill",
-    host: { name: "Amira L.", avatar: "https://i.pravatar.cc/150?img=20" },
-    speakers: [
-      { name: "Thomas P.", avatar: "https://i.pravatar.cc/150?img=12" },
-    ],
-    listenerCount: 15,
-    category: "ambiance",
-    modeLabel: "Sober Tonight",
-    modeColor: ROOM_MODE_COLORS["sober-tonight"],
-    modeIcon: "\uD83C\uDF75",
-    startedMinutesAgo: 8,
-  },
-  {
-    id: "r4",
-    title: "Speed dating vocal",
-    host: { name: "Julien F.", avatar: "https://i.pravatar.cc/150?img=15" },
-    speakers: [
-      { name: "Camille H.", avatar: "https://i.pravatar.cc/150?img=23" },
-      { name: "Robin T.", avatar: "https://i.pravatar.cc/150?img=33" },
-    ],
-    listenerCount: 37,
-    category: "discussion",
-    modeLabel: "Plus-One",
-    modeColor: ROOM_MODE_COLORS["plus-one"],
-    modeIcon: "\uD83C\uDFAC",
-    startedMinutesAgo: 19,
-  },
-  {
-    id: "r5",
-    title: "Raconter sa soiree",
-    host: { name: "Ines D.", avatar: "https://i.pravatar.cc/150?img=25" },
-    speakers: [
-      { name: "Nathan W.", avatar: "https://i.pravatar.cc/150?img=53" },
-      { name: "Lea S.", avatar: "https://i.pravatar.cc/150?img=44" },
-      { name: "Omar B.", avatar: "https://i.pravatar.cc/150?img=52" },
-    ],
-    listenerCount: 29,
-    category: "debat",
-    modeLabel: "Solo Diner",
-    modeColor: ROOM_MODE_COLORS["solo-diner"],
-    modeIcon: "\uD83C\uDF7D\uFE0F",
-    startedMinutesAgo: 45,
-  },
-  {
-    id: "r6",
-    title: "Conseils mode",
-    host: { name: "Clara J.", avatar: "https://i.pravatar.cc/150?img=32" },
-    speakers: [
-      { name: "Hugo M.", avatar: "https://i.pravatar.cc/150?img=57" },
-    ],
-    listenerCount: 11,
-    category: "ambiance",
-    modeLabel: "Foodie Quest",
-    modeColor: ROOM_MODE_COLORS["foodie-quest"],
-    modeIcon: "\uD83D\uDD25",
-    startedMinutesAgo: 5,
-  },
-];
-
 // --- Variants ---
 
 const containerVariants: Variants = {
@@ -287,9 +192,8 @@ export default function RoomsPage() {
   const [activeCategory, setActiveCategory] = useState<RoomCategory>("tous");
   const { rooms: dbRooms, loading } = useRooms();
 
-  // Map DB rooms to MockRoom shape (UI contract), fall back to mock if empty
+  // Map DB rooms to MockRoom shape (UI contract).
   const liveRooms: MockRoom[] = useMemo(() => {
-    if (dbRooms.length === 0) return MOCK_ROOMS;
     return dbRooms.map((r: Room): MockRoom => {
       const m = modeMeta(r.mode);
       return {

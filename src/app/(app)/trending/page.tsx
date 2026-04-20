@@ -31,23 +31,6 @@ interface TrendingRow {
 
 type SortOption = "popular" | "closest" | "new";
 
-// --- Mock Data (12 venues) ---
-
-const MOCK_VENUES: Venue[] = [
-  { id: "v1", name: "Le Petit Cler", type: "Bistrot", neighborhood: "7e arr.", distance: 0.4, people: 18, modes: ["solo-diner", "foodie-quest"] },
-  { id: "v2", name: "Meltdown Bar", type: "Bar gaming", neighborhood: "Republique", distance: 1.2, people: 32, modes: ["gamer-night", "plus-one"] },
-  { id: "v3", name: "Palais de Tokyo", type: "Musee / Expo", neighborhood: "16e arr.", distance: 3.8, people: 24, modes: ["culture-club"] },
-  { id: "v4", name: "Cafe Craft", type: "Cafe", neighborhood: "Oberkampf", distance: 0.9, people: 11, modes: ["sober-tonight", "langue"] },
-  { id: "v5", name: "Le Baron Rouge", type: "Bar a vin", neighborhood: "Bastille", distance: 1.5, people: 27, modes: ["solo-diner", "night-owl"] },
-  { id: "v6", name: "Parc des Buttes-Chaumont", type: "Parc", neighborhood: "19e arr.", distance: 2.3, people: 15, modes: ["dog-date", "fit-date"] },
-  { id: "v7", name: "Le Dernier Bar Avant la Fin du Monde", type: "Bar geek", neighborhood: "Chatelet", distance: 2.0, people: 41, modes: ["gamer-night", "plus-one"] },
-  { id: "v8", name: "Le Bouillon Chartier", type: "Restaurant", neighborhood: "Grands Boulevards", distance: 1.8, people: 22, modes: ["solo-diner", "tourist"] },
-  { id: "v9", name: "Jardin du Luxembourg", type: "Parc", neighborhood: "6e arr.", distance: 2.5, people: 9, modes: ["fit-date", "sober-tonight"] },
-  { id: "v10", name: "Hasard Ludique", type: "Tiers-lieu", neighborhood: "18e arr.", distance: 3.1, people: 19, modes: ["culture-club", "sober-tonight"] },
-  { id: "v11", name: "Arcade Street", type: "Arcade bar", neighborhood: "Bastille", distance: 1.6, people: 35, modes: ["gamer-night"] },
-  { id: "v12", name: "Chez Janou", type: "Restaurant", neighborhood: "Marais", distance: 1.1, people: 14, modes: ["foodie-quest", "solo-diner"] },
-];
-
 const FILTER_MODES: ModeKey[] = ["solo-diner", "night-owl", "gamer-night", "culture-club", "fit-date", "foodie-quest", "sober-tonight", "dog-date"];
 
 // --- Component ---
@@ -97,7 +80,7 @@ export default function TrendingPage() {
     };
   }, []);
 
-  const sourceVenues: Venue[] = liveVenues && liveVenues.length > 0 ? liveVenues : MOCK_VENUES;
+  const sourceVenues: Venue[] = liveVenues ?? [];
 
   const sortOptions: { key: SortOption; label: string }[] = [
     { key: "popular", label: "Plus populaire" },
@@ -305,8 +288,8 @@ export default function TrendingPage() {
         {filtered.length === 0 && (
           <EmptyState
             emoji="📍"
-            title="Aucun lieu pour ce filtre"
-            subtitle="Essaie un autre mode"
+            title={activeMode ? "Aucun lieu pour ce filtre" : "Pas encore de lieux trending"}
+            subtitle={activeMode ? "Essaie un autre mode" : "Les spots populaires apparaitront des que l'activite monte"}
           />
         )}
       </m.div>

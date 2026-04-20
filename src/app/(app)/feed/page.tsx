@@ -42,30 +42,6 @@ interface FeedItem {
   isNew?: boolean;
 }
 
-// --- Mock Data (fallback for demo mode) ---
-
-function photo(gender: "women" | "men", id: number): string {
-  return `https://randomuser.me/api/portraits/${gender}/${id}.jpg`;
-}
-
-const MOCK_FEED: FeedItem[] = [
-  { id: "f1", type: "availability", name: "Marie", photo: photo("women", 90), text: "vient de confirmer dispo en Solo Diner", mode: "solo-diner", createdAtIso: "", timeAgo: "il y a 2 min", online: true, isReal: false },
-  { id: "f2", type: "looking", name: "Lucas", photo: photo("men", 24), text: "cherche un +1 pour un concert a Bastille", mode: "plus-one", createdAtIso: "", timeAgo: "il y a 5 min", online: true, isReal: false },
-  { id: "f3", type: "area", name: "CeSoir", photo: "", text: "3 nouvelles personnes actives a Chatelet", mode: "night-owl", createdAtIso: "", timeAgo: "il y a 8 min", online: false, isReal: false },
-  { id: "f4", type: "trending", name: "CeSoir", photo: "", text: "Gamer Night trending ce soir", mode: "gamer-night", createdAtIso: "", timeAgo: "il y a 12 min", online: false, isReal: false },
-  { id: "f5", type: "availability", name: "Chloe", photo: photo("women", 67), text: "est dispo pour un foodie tour a Belleville", mode: "foodie-quest", createdAtIso: "", timeAgo: "il y a 15 min", online: true, isReal: false },
-  { id: "f6", type: "looking", name: "Thomas", photo: photo("men", 75), text: "cherche quelqu'un pour une expo au Palais de Tokyo", mode: "culture-club", createdAtIso: "", timeAgo: "il y a 18 min", online: false, isReal: false },
-  { id: "f7", type: "area", name: "CeSoir", photo: "", text: "5 personnes actives pres du Canal Saint-Martin", mode: "sober-tonight", createdAtIso: "", timeAgo: "il y a 20 min", online: false, isReal: false },
-  { id: "f8", type: "availability", name: "Ines", photo: photo("women", 52), text: "propose une balade avec son chien au Parc Monceau", mode: "dog-date", createdAtIso: "", timeAgo: "il y a 22 min", online: true, isReal: false },
-  { id: "f9", type: "trending", name: "CeSoir", photo: "", text: "Sober Tonight en forte hausse dans le 10e", mode: "sober-tonight", createdAtIso: "", timeAgo: "il y a 25 min", online: false, isReal: false },
-  { id: "f10", type: "looking", name: "Lea", photo: photo("women", 42), text: "cherche un partenaire de yoga au Luxembourg", mode: "fit-date", createdAtIso: "", timeAgo: "il y a 30 min", online: true, isReal: false },
-  { id: "f11", type: "availability", name: "Hugo", photo: photo("men", 41), text: "est dispo pour un running nocturne", mode: "fit-date", createdAtIso: "", timeAgo: "il y a 35 min", online: false, isReal: false },
-  { id: "f12", type: "area", name: "CeSoir", photo: "", text: "8 nouvelles personnes actives a Oberkampf", mode: "night-owl", createdAtIso: "", timeAgo: "il y a 40 min", online: false, isReal: false },
-  { id: "f13", type: "availability", name: "Priya", photo: photo("women", 64), text: "cherche quelqu'un pour tester un restau coreen", mode: "foodie-quest", createdAtIso: "", timeAgo: "il y a 45 min", online: true, isReal: false },
-  { id: "f14", type: "trending", name: "CeSoir", photo: "", text: "Dog Date explose dans le 16e", mode: "dog-date", createdAtIso: "", timeAgo: "il y a 50 min", online: false, isReal: false },
-  { id: "f15", type: "looking", name: "Axel", photo: photo("men", 39), text: "monte une equipe pour un escape game a Republique", mode: "gamer-night", createdAtIso: "", timeAgo: "il y a 55 min", online: true, isReal: false },
-];
-
 // --- Helpers ---
 
 function formatRelativeTime(dateStr: string): string {
@@ -160,20 +136,12 @@ export default function FeedPage() {
 
   const [refreshing, setRefreshing] = useState(false);
   const [timestampTick, setTimestampTick] = useState(0);
-  const [demoSeed, setDemoSeed] = useState(0);
   const listRef = useRef<HTMLUListElement>(null);
 
-  const useDemoMode = supaError != null || (activities.length === 0 && !supaLoading);
-
   const rawItems = useMemo(() => {
-    if (useDemoMode) {
-      const shuffled = [...MOCK_FEED];
-      if (demoSeed > 0) shuffled.sort(() => Math.random() - 0.5);
-      return shuffled;
-    }
     return activities.map(activityToFeedItem);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activities, useDemoMode, timestampTick, demoSeed]);
+  }, [activities, timestampTick]);
 
   // Apply filter (client-side; "friends"/"nearby" fall back to "all" until backend wiring lands)
   const items = useMemo(() => {
@@ -203,28 +171,21 @@ export default function FeedPage() {
   const { get: getReactions, toggle: toggleReaction } = useFeedReactions(realActivityIds);
 
   useEffect(() => {
-    if (useDemoMode) return;
     const interval = setInterval(() => {
       setTimestampTick((t) => t + 1);
     }, 30_000);
     return () => clearInterval(interval);
-  }, [useDemoMode]);
+  }, []);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    if (useDemoMode) {
-      await new Promise((r) => setTimeout(r, 800));
-      setDemoSeed((s) => s + 1);
-    } else {
-      await refresh();
-    }
+    await refresh();
     setRefreshing(false);
-  }, [useDemoMode, refresh]);
+  }, [refresh]);
 
   const handleLoadMore = useCallback(async () => {
-    if (useDemoMode) return;
     await loadMore();
-  }, [useDemoMode, loadMore]);
+  }, [loadMore]);
 
   const handleBannerClick = useCallback(() => {
     acknowledgeNew();
@@ -233,8 +194,8 @@ export default function FeedPage() {
     }
   }, [acknowledgeNew, reducedMotion]);
 
-  const showLoadMore = useDemoMode ? false : hasMore;
-  const isLoading = !useDemoMode && supaLoading;
+  const showLoadMore = hasMore;
+  const isLoading = supaLoading;
 
   const content = (
     <>
@@ -247,12 +208,12 @@ export default function FeedPage() {
         onDismiss={acknowledgeNew}
       />
 
-      {useDemoMode && (
+      {supaError && (
         <div
-          className="mx-4 mt-2 mb-1 rounded-xl bg-card border border-dashed border-border px-3 py-2 text-[11px] text-text-muted"
+          className="mx-4 mt-2 mb-1 rounded-xl bg-card border border-border px-3 py-2 text-[11px] text-text-muted"
           role="note"
         >
-          Mode démo — l&apos;activité réelle apparaîtra ici dès qu&apos;elle est disponible
+          Impossible de charger l&apos;activite en direct pour le moment.
         </div>
       )}
 

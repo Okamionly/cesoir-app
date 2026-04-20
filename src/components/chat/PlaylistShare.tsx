@@ -21,18 +21,8 @@ export interface SongData {
   addedBy?: "me" | "them";
 }
 
-// ─────────────────────────────────────────
-// Mock: 6 French songs for shared playlist
-// ─────────────────────────────────────────
-
-export const MOCK_SHARED_PLAYLIST: SongData[] = [
-  { artist: "Stromae", title: "Papaoutai", addedBy: "me" },
-  { artist: "Angele", title: "Balance Ton Quoi", addedBy: "them" },
-  { artist: "Aya Nakamura", title: "Djadja", addedBy: "me" },
-  { artist: "Edith Piaf", title: "La Vie En Rose", addedBy: "them" },
-  { artist: "Indila", title: "Derniere Danse", addedBy: "me" },
-  { artist: "Maitre Gims", title: "Sappes comme jamais", addedBy: "them" },
-];
+// Starter shared playlist — empty until the users add songs.
+export const EMPTY_SHARED_PLAYLIST: SongData[] = [];
 
 // ─────────────────────────────────────────
 // PlaylistShareButton — add a song
