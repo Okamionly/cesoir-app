@@ -62,7 +62,8 @@ export default function MidnightReset() {
   const isUrgent = hours === 0 && minutes < 60;
   const isDramatic = totalMs > 0 && totalMs <= 60_000; // last 60 seconds
 
-  // Show celebration overlay when reset triggers
+  // Show celebration overlay when reset triggers.
+  // Fix (2026-04-23): reduced from 3s → 2s + tap-to-dismiss.
   useEffect(() => {
     if (isResetting) {
       setShowOverlay(true);
@@ -71,11 +72,16 @@ export default function MidnightReset() {
       const timer = setTimeout(() => {
         setShowOverlay(false);
         setStars([]);
-      }, 3000);
+      }, 2000);
 
       return () => clearTimeout(timer);
     }
   }, [isResetting]);
+
+  const dismissOverlay = () => {
+    setShowOverlay(false);
+    setStars([]);
+  };
 
   return (
     <>
@@ -162,13 +168,21 @@ export default function MidnightReset() {
       <AnimatePresence>
         {showOverlay && (
           <m.div
-            className="fixed inset-0 z-[350] flex flex-col items-center justify-center"
+            className="fixed inset-0 z-[350] flex flex-col items-center justify-center cursor-pointer"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
             role="alert"
-            aria-label="Nouveau jour"
+            aria-label="Nouveau jour — touche pour fermer"
+            onClick={dismissOverlay}
+            onKeyDown={(e) => {
+              if (e.key === "Escape" || e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                dismissOverlay();
+              }
+            }}
+            tabIndex={0}
           >
             {/* Dark backdrop */}
             <m.div
@@ -251,6 +265,27 @@ export default function MidnightReset() {
               >
                 Nouveaux matchs, nouveaux challenges, nouvelle energie
               </m.p>
+
+              {/* Dismiss hint + button — fix 2026-04-23 : user could not skip the 3s overlay */}
+              <m.button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  dismissOverlay();
+                }}
+                className="mt-8 px-5 py-2 rounded-full text-[13px] font-medium border tap-target"
+                style={{
+                  color: MIDNIGHT_SUBTITLE_COLOR,
+                  borderColor: MIDNIGHT_SUBTEXT_COLOR,
+                  background: "transparent",
+                }}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.0 }}
+                aria-label="Fermer l'ecran Nouveau jour"
+              >
+                Continuer &rarr;
+              </m.button>
             </div>
           </m.div>
         )}

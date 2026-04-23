@@ -115,11 +115,12 @@ export function useMidnightReset(): UseMidnightResetReturn {
     setLastResetDate(today);
     setHasResetToday(true);
 
-    // Hold the "resetting" state for 3 seconds for the celebration overlay
+    // Hold the "resetting" state for 2 seconds for the celebration overlay
+    // (down from 3s — user feedback: feels blocking).
     setTimeout(() => {
       setIsResetting(false);
       resetInProgressRef.current = false;
-    }, 3000);
+    }, 2000);
   }, []);
 
   // ─── Force reset (manual trigger) ───
@@ -129,12 +130,23 @@ export function useMidnightReset(): UseMidnightResetReturn {
   }, [performReset]);
 
   // ─── Check if app was opened after midnight without a reset ───
+  // Fix (2026-04-23): only trigger when the user had a PREVIOUS reset recorded
+  // AND that date is stale. First-ever visitors (lastReset === null) should NOT
+  // see the celebration — they haven't earned "a new day" yet, and seeing a
+  // full-screen blocking overlay on their first click is disorienting.
   useEffect(() => {
     const lastReset = getLastResetDate();
     const today = getTodayStr();
 
+    if (lastReset === null) {
+      // First-ever visitor — seed the storage silently so tomorrow triggers properly.
+      setLastResetDate(today);
+      setHasResetToday(true);
+      return;
+    }
+
     if (lastReset !== today) {
-      // App opened after midnight — trigger reset
+      // App opened after midnight on a returning user — trigger reset.
       performReset();
     }
   }, [performReset]);
