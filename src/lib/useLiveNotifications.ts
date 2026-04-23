@@ -154,23 +154,29 @@ export function useLiveNotifications(): {
   // a single "live-notifications" key (Supabase realtime would dedup).
   useRealtimeChannel(
     (client) =>
-      client
-        .channel(namespacedChannelName("live-notifications", userId))
-        .on(
-          "postgres_changes",
-          { event: "*", schema: "public", table: "profiles" },
-          () => void refreshRef.current(),
-        )
-        .on(
-          "postgres_changes",
-          { event: "*", schema: "public", table: "flash_plans" },
-          () => void refreshRef.current(),
-        )
-        .on(
-          "postgres_changes",
-          { event: "*", schema: "public", table: "mode_activations" },
-          () => void refreshRef.current(),
-        ),
+      // Gate on userId: without a JWT, supabase.realtime.setAuth() hasn't
+      // been called with the user's token yet, so the WebSocket would open
+      // with the anon key and the server rejects postgres_changes → spam of
+      // CHANNEL_ERROR retries. Return null until auth is hydrated.
+      userId
+        ? client
+            .channel(namespacedChannelName("live-notifications", userId))
+            .on(
+              "postgres_changes",
+              { event: "*", schema: "public", table: "profiles" },
+              () => void refreshRef.current(),
+            )
+            .on(
+              "postgres_changes",
+              { event: "*", schema: "public", table: "flash_plans" },
+              () => void refreshRef.current(),
+            )
+            .on(
+              "postgres_changes",
+              { event: "*", schema: "public", table: "mode_activations" },
+              () => void refreshRef.current(),
+            )
+        : null,
     [userId],
   );
 

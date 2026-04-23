@@ -204,9 +204,12 @@ export function useFeed(): UseFeedReturn {
   // sessions makes remounts and multi-tab users collide silently.
   useRealtimeChannel(
     (client) =>
-      client
-        .channel(namespacedChannelName("feed-realtime", userId))
-        .on(
+      // Gate on userId to avoid anon-key WebSocket handshake (fails with
+      // HTTP 401 before AuthContext.setAuth pushes the JWT).
+      userId
+        ? client
+            .channel(namespacedChannelName("feed-realtime", userId))
+            .on(
         "postgres_changes",
         {
           event: "INSERT",
@@ -240,7 +243,8 @@ export function useFeed(): UseFeedReturn {
             );
           }, 3000);
         },
-      ),
+      )
+        : null,
     [userId],
   );
 

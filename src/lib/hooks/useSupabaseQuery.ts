@@ -83,22 +83,33 @@ export function useSupabaseQuery<T>(
 }
 
 /**
- * Namespaces a realtime channel name with the current user id. Supabase
- * channels are a global namespace on the realtime server: if two tabs (or
- * two users) open `client.channel("feed-realtime")`, Supabase deduplicates
- * under the hood and the second caller silently shares the first
- * subscription. The symptom in production is "reactions stuck" or a feed
- * that stops updating on remount.
+ * Namespaces a realtime channel name with the current user id.
  *
- * Always pass a stable per-user suffix. Falls back to "anon" for
- * unauthenticated visitors (each tab still collides there, but that is
- * acceptable for read-only public channels).
+ * Supabase caches channels internally by topic string — if two components
+ * (or a component + its StrictMode double-mount) ask for the same topic
+ * while the previous instance is still in `joining` / `joined` state,
+ * supabase-js hands back the cached instance. Any `.on()` call on a
+ * subscribed channel then throws:
+ *   "cannot add postgres_changes callbacks … after subscribe()"
+ *
+ * Wave 14 patch: `namespacedChannelName(base, userId)` now also mixes in a
+ * caller-supplied instance nonce (typically `useId()` or a stable uuid
+ * ref) so each mount gets a globally unique channel name. `nonce` is
+ * optional to preserve Wave 12 call sites; when omitted we fall back to
+ * `Math.random()` on first call for non-React callers (tests, utilities).
+ *
+ * Falls back to `"anon"` for unauthenticated visitors. Consumers should
+ * still gate subscriptions on `userId` (return `null` from the factory)
+ * to avoid opening WebSockets with the anon key before AuthContext has
+ * pushed the user's JWT into `supabase.realtime.setAuth()`.
  */
 export function namespacedChannelName(
   base: string,
   userId: string | null | undefined,
+  nonce?: string,
 ): string {
-  return `${base}:${userId ?? "anon"}`;
+  const n = nonce ?? Math.random().toString(36).slice(2, 10);
+  return `${base}:${userId ?? "anon"}:${n}`;
 }
 
 /**

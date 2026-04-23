@@ -134,11 +134,14 @@ export function useFeedReactions(feedActivityIds: readonly string[]): UseFeedRea
   // remount because the first subscriber wins the dedup.
   useRealtimeChannel(
     (client) =>
-      client
-        .channel(namespacedChannelName("feed-reactions-realtime", userId))
-        .on(
-          "postgres_changes",
-          { event: "INSERT", schema: "public", table: "feed_reactions" },
+      // Gate on userId — skip subscription when anon so the WS doesn't open
+      // with the anon key before AuthContext pushes the JWT.
+      userId
+        ? client
+            .channel(namespacedChannelName("feed-reactions-realtime", userId))
+            .on(
+              "postgres_changes",
+              { event: "INSERT", schema: "public", table: "feed_reactions" },
           (payload) => {
             const row = payload.new as DbFeedReaction;
             if (!idsRef.current.includes(row.feed_activity_id)) return;
@@ -180,7 +183,8 @@ export function useFeedReactions(feedActivityIds: readonly string[]): UseFeedRea
               return { ...prev, [activityId]: nextEntry };
             });
           },
-        ),
+        )
+        : null,
     [userId],
   );
 
