@@ -259,7 +259,7 @@ export default function BrowsePage() {
             {[0, 1, 2].map((i) => (
               <motion.div
                 key={i}
-                className="w-full rounded-[28px] bg-border/30"
+                className="w-full rounded-3xl bg-border/30"
                 style={{
                   height: i === 0 ? "70%" : i === 1 ? "60%" : "50%",
                   position: i === 0 ? "relative" : "absolute",
@@ -307,7 +307,7 @@ export default function BrowsePage() {
                 {/* Stacked card behind — physical depth illusion */}
                 {next1 && (
                   <motion.div
-                    className="absolute inset-x-5 top-1 bottom-2 rounded-[28px] overflow-hidden z-[1]"
+                    className="absolute inset-x-5 top-1 bottom-2 rounded-3xl overflow-hidden z-[1]"
                     animate={browseVariants.stack.behind(1)}
                     style={{ scale: swipe.nextScale }}
                   >

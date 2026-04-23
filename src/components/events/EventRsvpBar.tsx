@@ -19,6 +19,7 @@ import { Check, UserPlus, X } from "@/components/ui/lucide";
 import { springs } from "@/lib/motion-design";
 import { app } from "@/lib/design-tokens";
 import { haptics } from "@/lib/haptics";
+import { useInteractive } from "@/lib/hooks/useInteractive";
 import type { RsvpStatus } from "@/lib/events-types";
 
 export interface EventRsvpBarProps {
@@ -43,6 +44,10 @@ export default function EventRsvpBar({
     },
     [onChange],
   );
+
+  // Unified interactive motion props (tap/hover/reduced-motion guard)
+  const cancelInteractive = useInteractive({ disabled: saving });
+  const primaryInteractive = useInteractive({ disabled: saving, scaleTap: 0.96 });
 
   const inviteHref = `/chat?invite=${encodeURIComponent(eventId)}`;
 
@@ -82,7 +87,7 @@ export default function EventRsvpBar({
               <m.button
                 type="button"
                 onClick={() => handlePick(null)}
-                whileTap={{ scale: 0.92 }}
+                {...cancelInteractive}
                 disabled={saving}
                 className="tap-target shrink-0 w-10 h-10 rounded-full bg-card border border-border flex items-center justify-center text-text-muted hover:text-text disabled:opacity-50"
                 aria-label="Annuler mon RSVP"
@@ -95,7 +100,7 @@ export default function EventRsvpBar({
               <m.button
                 type="button"
                 onClick={() => handlePick("going")}
-                whileTap={{ scale: 0.96 }}
+                {...primaryInteractive}
                 disabled={saving}
                 className="flex-1 rounded-full px-4 py-2.5 text-[13px] font-semibold text-white transition-all disabled:opacity-50"
                 style={{
@@ -109,7 +114,7 @@ export default function EventRsvpBar({
               <m.button
                 type="button"
                 onClick={() => handlePick(isMaybe ? null : "maybe")}
-                whileTap={{ scale: 0.96 }}
+                {...primaryInteractive}
                 disabled={saving}
                 className={[
                   "rounded-full px-4 py-2.5 text-[13px] font-semibold transition-colors disabled:opacity-50",

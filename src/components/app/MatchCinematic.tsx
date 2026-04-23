@@ -18,7 +18,7 @@ import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { m, AnimatePresence } from "motion/react";
-import { springs, easings } from "@/lib/motion-design";
+import { springs, easings, moodMatchVariants } from "@/lib/motion-design";
 import { haptics } from "@/lib/haptics";
 import { playSound } from "@/lib/sounds";
 import { MODES, type ModeKey, isActiveMode } from "@/lib/modes";
@@ -233,23 +233,23 @@ export default function MatchCinematic({
               </div>
             </m.div>
 
-            {/* Name */}
+            {/* Name — uses moodMatchVariants.matchCard signature (rubber spring w/ rotateZ) */}
             <m.h2
               id="match-cinematic-title"
               className="text-3xl font-black text-white mb-2"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ ...springs.heavy, delay: 0.6 }}
+              variants={moodMatchVariants.matchCard}
+              initial="hidden"
+              animate="visible"
             >
               {peerName}
             </m.h2>
 
-            {/* Dynamic phrase */}
+            {/* Dynamic phrase — uses moodMatchVariants.compatText signature (blur → clear cinematic) */}
             <m.p
               className="text-[14px] text-white/70 leading-relaxed mb-8 max-w-xs"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ ...springs.heavy, delay: 0.75 }}
+              variants={moodMatchVariants.compatText}
+              initial="hidden"
+              animate="visible"
             >
               {phrase}
             </m.p>

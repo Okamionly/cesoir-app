@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  CeSoir — Event OG landscape template (1200×630)
+  Same content structure as portrait flyer, adapted for Open Graph share cards.
+  Production version: `src/app/(app)/events/[id]/opengraph-image.tsx` (Edge runtime, dynamic).
+  This SVG = static design reference / Figma import source.
+-->
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="1200" height="630" viewBox="0 0 1200 630"
+     role="img" aria-label="CeSoir event OG template">
+  <title>CeSoir — Event OG template</title>
+  <desc>Open Graph landscape — titre event + venue + date + moon watermark</desc>
+
+  <defs>
+    <mask id="og-moon-mask">
+      <rect width="90" height="90" fill="black"/>
+      <circle cx="45" cy="45" r="34" fill="white"/>
+      <circle cx="53" cy="40" r="30" fill="black"/>
+    </mask>
+
+    <linearGradient id="og-bg-grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0A0A0D" stop-opacity="0.2"/>
+      <stop offset="50%" stop-color="#0A0A0D" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#0A0A0D" stop-opacity="0.95"/>
+    </linearGradient>
+  </defs>
+
+  <!-- BACKGROUND / flyer_url zone -->
+  <rect width="1200" height="630" fill="#0A0A0D"/>
+  <rect width="1200" height="630" fill="#1A1A2E" opacity="0.4"/>
+
+  <!-- Dark gradient overlay -->
+  <rect width="1200" height="630" fill="url(#og-bg-grad)"/>
+
+  <!-- Moon watermark top-right -->
+  <g transform="translate(1070, 40)">
+    <rect width="90" height="90" fill="#8B5CF6" mask="url(#og-moon-mask)"/>
+    <text x="-50" y="60" text-anchor="end"
+          font-family="'Space Grotesk', sans-serif"
+          font-weight="700" font-size="32" fill="#FFFFFF" letter-spacing="-1">
+      CeSoir
+    </text>
+  </g>
+
+  <!-- Category chip -->
+  <g transform="translate(64, 420)">
+    <rect x="0" y="0" width="180" height="40" rx="20" fill="#8B5CF6"/>
+    <text x="20" y="27" font-family="'Space Grotesk', sans-serif"
+          font-weight="600" font-size="18" fill="#FFFFFF" letter-spacing="2">
+      {{CATEGORY}}
+    </text>
+  </g>
+
+  <!-- Event title -->
+  <g transform="translate(64, 500)">
+    <text font-family="'Space Grotesk', sans-serif"
+          font-weight="700" font-size="56" fill="#FFFFFF" letter-spacing="-2">
+      {{EVENT_TITLE}}
+    </text>
+  </g>
+
+  <!-- Venue + city + date -->
+  <g transform="translate(64, 560)">
+    <text font-family="'Outfit', sans-serif"
+          font-weight="400" font-size="24" fill="#A1A1AA">
+      {{VENUE_NAME}} · {{CITY}}
+    </text>
+    <text y="32" font-family="'Outfit', sans-serif"
+          font-weight="600" font-size="22" fill="#00FF88">
+      {{DATE_TIME}}
+    </text>
+  </g>
+</svg>

@@ -41,8 +41,14 @@ export const app = {
   bgDark: "#111111",
   border: "#EBEBEB",
   text: "#111111",
-  textMuted: "#888888",
+  /* AA 2026-04-23 — darkened from #888 to hit 4.5:1 on white body text */
+  textMuted: "#707070",
   textSoft: "#666666",
+  /* Trust / safety signal tokens */
+  trustVerified: "#00FF88",
+  trustPending:  "#F59E0B",
+  trustFlagged:  "#EF4444",
+  trustNeutral:  "#888888",
   violet: "#8B5CF6",
   vert: "#00FF88",
   /** Dark-green ink used for "tu y es" / success text pairs on light chips.
@@ -121,7 +127,11 @@ export const typography = {
   small:   { fontSize: 12, lineHeight: 18 },
   body:    { fontSize: 14, lineHeight: 21 },
   title:   { fontSize: 16, lineHeight: 24 },
+  /** 20px — added 2026-04-23 to fill gap between title(16) & heading(22). */
+  lg:      { fontSize: 20, lineHeight: 28 },
   heading: { fontSize: 22, lineHeight: 30 },
+  /** 24px — added 2026-04-23 for section headers between heading(22) & display(32). */
+  "2xl":   { fontSize: 24, lineHeight: 32 },
   display: { fontSize: 32, lineHeight: 40 },
   hero:    { fontSize: 48, lineHeight: 56 },
 } as const;
@@ -138,6 +148,8 @@ export const radius = {
   lg: 16,
   xl: 20,
   "2xl": 24,
+  /** 28px — phone-card tier, added 2026-04-23 for SwipeCard/browse shells. */
+  "3xl": 28,
   round: 9999,
 } as const;
 

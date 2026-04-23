@@ -223,7 +223,7 @@ function ModeOption({
         {/* Gradient border ring for active mode */}
         {isActive && (
           <motion.div
-            className="absolute -inset-[2px] rounded-[10px]"
+            className="absolute -inset-[2px] rounded-md"
             style={{
               background: `linear-gradient(135deg, ${color}, ${MODE_SWITCHER_RING_END})`,
               padding: 2,

@@ -101,6 +101,7 @@ function FeedSkeleton() {
 // --- Component ---
 
 const containerVariants = feedVariants.container;
+const itemVariants = feedVariants.card;
 
 export default function FeedPage() {
   const router = useRouter();
@@ -251,10 +252,10 @@ export default function FeedPage() {
                 return (
                   <m.li
                     key={item.id}
-                    initial={{ opacity: 0, y: -16, scale: 0.97, filter: "blur(4px)" }}
-                    animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
-                    exit={{ opacity: 0, x: -40, scale: 0.95, transition: { duration: 0.18 } }}
-                    transition={{ ...springs.heavy, stiffness: 200 }}
+                    variants={itemVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
                     layout
                     whileHover={{ y: -2, transition: springs.gentle }}
                     whileTap={{ scale: 0.99, transition: springs.micro }}

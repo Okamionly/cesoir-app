@@ -137,10 +137,10 @@ export default function PhotoUpload({
             <img
               src={displayUrl}
               alt="Photo de profil"
-              className="w-full h-full rounded-[13px] object-cover"
+              className="w-full h-full rounded-md object-cover"
             />
           ) : (
-            <div className="w-full h-full rounded-[13px] bg-bg flex items-center justify-center text-[36px] font-black text-accent">
+            <div className="w-full h-full rounded-md bg-bg flex items-center justify-center text-[36px] font-black text-accent">
               {fallbackLetter}
             </div>
           )}

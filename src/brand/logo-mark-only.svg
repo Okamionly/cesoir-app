@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  CeSoir — Mark only (crescent moon)
+  64 × 64 viewBox — use for favicon, app icon, watermark.
+  Color locked #8B5CF6 violet.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="CeSoir">
+  <title>CeSoir mark</title>
+  <desc>Lune violette croissant — marque CeSoir</desc>
+  <defs>
+    <mask id="crescent-mark-mask">
+      <rect width="64" height="64" fill="black"/>
+      <circle cx="32" cy="32" r="24" fill="white"/>
+      <circle cx="40" cy="28" r="22" fill="black"/>
+    </mask>
+  </defs>
+  <rect width="64" height="64" fill="#8B5CF6" mask="url(#crescent-mark-mask)"/>
+</svg>

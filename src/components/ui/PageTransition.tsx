@@ -1,15 +1,7 @@
 "use client";
 
-import { m } from "motion/react";
+// Canonical implementation lives in `src/components/motion/PageTransition.tsx`.
+// This module is kept for backward-compat with existing imports from
+// `@/components/ui/PageTransition`.
 
-export default function PageTransition({ children }: { children: React.ReactNode }) {
-  return (
-    <m.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
-    >
-      {children}
-    </m.div>
-  );
-}
+export { PageTransition as default, PageTransition } from "@/components/motion/PageTransition";

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  CeSoir — Logo full (moon + wordmark)
+  240 × 60 — crescent moon (☾) #8B5CF6 + "CeSoir" wordmark in Space Grotesk Bold #111111
+  DO NOT modify moon angle / shape / color — ADR required.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="60" viewBox="0 0 240 60" role="img" aria-label="CeSoir">
+  <title>CeSoir</title>
+  <desc>Lune violette croissant suivie du wordmark CeSoir</desc>
+
+  <!-- Crescent moon (pure vector, not unicode) -->
+  <!-- Outer disc minus inner shifted disc creates the ☾ crescent opening on the right -->
+  <defs>
+    <mask id="crescent-mask">
+      <rect width="60" height="60" fill="black"/>
+      <circle cx="30" cy="30" r="22" fill="white"/>
+      <circle cx="38" cy="26" r="20" fill="black"/>
+    </mask>
+  </defs>
+  <g>
+    <rect width="60" height="60" fill="#8B5CF6" mask="url(#crescent-mask)"/>
+  </g>
+
+  <!-- Wordmark "CeSoir" — Space Grotesk Bold, -0.02em tracking -->
+  <text
+    x="72"
+    y="42"
+    font-family="'Space Grotesk', system-ui, sans-serif"
+    font-weight="700"
+    font-size="34"
+    letter-spacing="-0.68"
+    fill="#111111"
+  >CeSoir</text>
+</svg>

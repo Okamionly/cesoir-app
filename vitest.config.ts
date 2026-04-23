@@ -23,7 +23,8 @@ export default defineConfig({
         setupFiles: ["./src/test/setup.ts"],
         css: true,
         include: ["src/**/*.{test,spec}.{ts,tsx}"],
-        exclude: ["node_modules", ".next", "dist"]
+        // `tests/e2e/*.spec.ts` is owned by Playwright (see playwright.config.ts).
+        exclude: ["node_modules", ".next", "dist", "tests/e2e/**"]
       }
     }, {
       extends: true,

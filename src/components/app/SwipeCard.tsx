@@ -74,7 +74,7 @@ export default function SwipeCard({
 
   return (
     <motion.div
-      className="relative w-full h-full rounded-[28px] overflow-hidden select-none z-[2]"
+      className="relative w-full h-full rounded-3xl overflow-hidden select-none z-[2]"
       style={{ x, rotate, cursor: "grab" }}
       drag="x"
       dragConstraints={{ left: 0, right: 0 }}

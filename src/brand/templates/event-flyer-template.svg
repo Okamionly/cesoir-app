@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  CeSoir — Event flyer template (Instagram Story 1080×1350, 4:5 feed-safe)
+  Dynamic zones commented below. Use as Figma Frame template (import as SVG).
+  Palette strictly tokens: #0A0A0D / #FFFFFF / #8B5CF6 / #00FF88.
+-->
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="1080" height="1350" viewBox="0 0 1080 1350"
+     role="img" aria-label="CeSoir event flyer template">
+  <title>CeSoir — Event flyer template</title>
+  <desc>Flyer event Instagram Story — zones dynamiques venue/titre/date/lineup/CTA</desc>
+
+  <defs>
+    <!-- Mask de lune watermark -->
+    <mask id="flyer-moon-mask">
+      <rect width="100" height="100" fill="black"/>
+      <circle cx="50" cy="50" r="38" fill="white"/>
+      <circle cx="60" cy="44" r="34" fill="black"/>
+    </mask>
+
+    <!-- Gradient background cinematic -->
+    <radialGradient id="flyer-bg" cx="50%" cy="30%" r="90%">
+      <stop offset="0%" stop-color="#8B5CF6" stop-opacity="0.5"/>
+      <stop offset="40%" stop-color="#0A0A0D" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#0A0A0D" stop-opacity="1"/>
+    </radialGradient>
+
+    <!-- Overlay gradient bas du flyer -->
+    <linearGradient id="flyer-overlay" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0A0A0D" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#0A0A0D" stop-opacity="0.95"/>
+    </linearGradient>
+  </defs>
+
+  <!-- BACKGROUND -->
+  <rect width="1080" height="1350" fill="#0A0A0D"/>
+  <rect width="1080" height="1350" fill="url(#flyer-bg)"/>
+
+  <!-- === ZONE 1 : IMAGE (replace with venue photo or flyer_url) === -->
+  <!-- Dev hint: swap this rect for an <image> href='{flyer_url}' preserveAspectRatio='xMidYMid slice' -->
+  <rect x="0" y="0" width="1080" height="1350" fill="#1A1A2E" opacity="0.35"/>
+
+  <!-- === DARK OVERLAY BOTTOM === -->
+  <rect x="0" y="600" width="1080" height="750" fill="url(#flyer-overlay)"/>
+
+  <!-- === ZONE 2 : HEADER venue (top-left) === -->
+  <g transform="translate(64, 80)">
+    <text font-family="'Space Grotesk', sans-serif" font-weight="500"
+          font-size="28" fill="#888888" letter-spacing="4">
+      {{VENUE_NAME}}
+    </text>
+    <text y="42" font-family="'Outfit', sans-serif" font-weight="400"
+          font-size="22" fill="#666666" letter-spacing="2">
+      {{CITY}}
+    </text>
+  </g>
+
+  <!-- === MOON WATERMARK top-right === -->
+  <g transform="translate(920, 64)">
+    <rect width="100" height="100" fill="#8B5CF6" mask="url(#flyer-moon-mask)"/>
+  </g>
+
+  <!-- === ZONE 3 : TITRE EVENT (center-bottom, big) === -->
+  <g transform="translate(64, 860)">
+    <text font-family="'Space Grotesk', sans-serif" font-weight="700"
+          font-size="88" fill="#FFFFFF" letter-spacing="-4">
+      {{EVENT_TITLE}}
+    </text>
+  </g>
+
+  <!-- === ZONE 4 : DATE + HEURE === -->
+  <g transform="translate(64, 980)">
+    <rect x="0" y="0" width="340" height="56" rx="28" fill="#8B5CF6"/>
+    <text x="28" y="38" font-family="'Space Grotesk', sans-serif"
+          font-weight="600" font-size="24" fill="#FFFFFF" letter-spacing="1">
+      {{DATE_TIME}}
+    </text>
+  </g>
+
+  <!-- === ZONE 5 : LINEUP (sous-titre) === -->
+  <g transform="translate(64, 1080)">
+    <text font-family="'Outfit', sans-serif" font-weight="500"
+          font-size="28" fill="#A1A1AA" letter-spacing="0.5">
+      {{LINEUP_OR_SUBTITLE}}
+    </text>
+  </g>
+
+  <!-- === ZONE 6 : CTA + cesoir.app === -->
+  <g transform="translate(64, 1200)">
+    <text font-family="'Outfit', sans-serif" font-weight="600"
+          font-size="24" fill="#00FF88" letter-spacing="2">
+      RSVP SUR CESOIR.APP
+    </text>
+    <text y="40" font-family="'Outfit', sans-serif" font-weight="400"
+          font-size="18" fill="#666666">
+      Personne ne dîne seul ce soir.
+    </text>
+  </g>
+
+  <!-- === COORDONNEES CTA (bas-droit : QR ou url courte) === -->
+  <g transform="translate(880, 1240)">
+    <text font-family="'Space Grotesk', sans-serif" font-weight="700"
+          font-size="26" fill="#FFFFFF" letter-spacing="-0.5" text-anchor="end">
+      cesoir.app
+    </text>
+  </g>
+</svg>
