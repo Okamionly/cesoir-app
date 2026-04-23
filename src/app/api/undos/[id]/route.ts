@@ -1,14 +1,14 @@
-import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { z } from "zod";
 import { logger } from "@/lib/logger";
+import { requireUser, AuthError } from "@/lib/api/auth";
 
 const idParamSchema = z.object({ id: z.string().uuid("id doit être un UUID") });
 
 /**
  * DELETE /api/undos/[id]
- * Auth: Bearer <access_token>
+ * Auth: unified `requireUser` (Bearer or SSR cookie).
  *
  * Removes an undo record. Rarely used — exposed so the client can revert
  * an accidental undo within the same session. Does NOT re-insert the
@@ -17,31 +17,20 @@ const idParamSchema = z.object({ id: z.string().uuid("id doit être un UUID") })
  * Rate limit: 10/min per user.
  */
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
-
 // Next 16 async context: params is a Promise
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function DELETE(request: Request, context: RouteContext) {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+  let ctx;
+  try {
+    ctx = await requireUser(request);
+  } catch (err) {
+    if (err instanceof AuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
+    throw err;
   }
-  const token = authHeader.slice(7);
-
-  const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    global: { headers: { Authorization: `Bearer ${token}` } },
-  });
-
-  const {
-    data: { user },
-    error: authError,
-  } = await db.auth.getUser();
-
-  if (authError || !user) {
-    return NextResponse.json({ error: "Session invalide" }, { status: 401 });
-  }
+  const { user, supabase: db } = ctx;
 
   const rl = await checkRateLimit(`undos-del:${user.id}`, 10, 60_000);
   if (!rl.ok) return rateLimitResponse(rl);

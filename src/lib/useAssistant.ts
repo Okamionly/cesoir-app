@@ -194,13 +194,15 @@ function generateSuggestions(
   const suggestions: AssistantSuggestion[] = [];
 
   // --- Suggestion A: Match + Venue ---
+  // Wave 15: 4 core modes only. Mood -> mode mapping compressed.
+  // TODO WAVE-16: re-expand when killed modes return.
   const moodToMode: Record<MoodOption, string[]> = {
-    aventureux: ["night-owl", "fit-date", "tourist"],
-    social: ["plus-one", "new-in-town", "gamer-night"],
-    romantique: ["solo-diner", "culture-club"],
-    chill: ["sober-tonight", "breakup", "langue"],
+    aventureux: ["night-owl", "plus-one"],
+    social: ["plus-one", "solo-diner"],
+    romantique: ["solo-diner", "foodie-quest"],
+    chill: ["solo-diner", "foodie-quest"],
     festif: ["night-owl", "plus-one", "foodie-quest"],
-    curieux: ["tourist", "culture-club", "foodie-quest"],
+    curieux: ["foodie-quest", "plus-one"],
   };
 
   const relevantModes = moodToMode[mood];

@@ -1,11 +1,8 @@
-import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit";
 import { squadJoinSchema } from "@/lib/validation";
 import { logger } from "@/lib/logger";
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+import { requireUser, AuthError } from "@/lib/api/auth";
 
 interface SquadRow {
   id: string;
@@ -29,24 +26,17 @@ export async function POST(request: Request) {
   const rl = await checkRateLimit(`squad-join:${ip}`, 5, 60_000);
   if (!rl.ok) return rateLimitResponse(rl);
 
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+  // --- Auth (unified helper, Wave 15) ---
+  let ctx;
+  try {
+    ctx = await requireUser(request);
+  } catch (err) {
+    if (err instanceof AuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
+    throw err;
   }
-  const token = authHeader.slice(7);
-
-  const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    global: { headers: { Authorization: `Bearer ${token}` } },
-  });
-
-  const {
-    data: { user },
-    error: authError,
-  } = await db.auth.getUser();
-
-  if (authError || !user) {
-    return NextResponse.json({ error: "Session invalide" }, { status: 401 });
-  }
+  const { user, supabase: db } = ctx;
 
   let rawBody: unknown;
   try {

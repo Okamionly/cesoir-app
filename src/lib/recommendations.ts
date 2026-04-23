@@ -201,28 +201,20 @@ export function getUserPreferences(_userId?: string): UserPreferences {
 
 function getDefaultModes(): ModeKey[] {
   const hour = new Date().getHours();
-  if (hour >= 22 || hour < 4) return ["night-owl", "gamer-night", "solo-diner"];
-  if (hour >= 18) return ["solo-diner", "plus-one", "foodie-quest", "culture-club"];
-  if (hour >= 12) return ["fit-date", "dog-date", "culture-club"];
-  return ["fit-date", "dog-date", "sober-tonight"];
+  // Wave 15: 4 core modes only. TODO WAVE-16: expand once PMF validated.
+  if (hour >= 22 || hour < 4) return ["night-owl", "solo-diner", "plus-one"];
+  if (hour >= 18) return ["solo-diner", "plus-one", "foodie-quest"];
+  if (hour >= 12) return ["foodie-quest", "plus-one"];
+  return ["plus-one", "foodie-quest"];
 }
 
 function inferBudget(modes: ModeKey[]): BudgetTendency {
+  // Wave 15: only active modes — killed modes removed.
   const budgetModes: Partial<Record<ModeKey, BudgetTendency>> = {
     "solo-diner": "moderate",
     "plus-one": "moderate",
-    "tourist": "moderate",
     "night-owl": "budget",
-    "breakup": "budget",
-    "new-in-town": "free",
-    "langue": "free",
-    "dog-date": "free",
-    "seasonal": "moderate",
-    "fit-date": "free",
     "foodie-quest": "premium",
-    "culture-club": "moderate",
-    "sober-tonight": "budget",
-    "gamer-night": "budget",
   };
   const first = modes[0];
   if (first && budgetModes[first]) return budgetModes[first]!;
@@ -230,21 +222,12 @@ function inferBudget(modes: ModeKey[]): BudgetTendency {
 }
 
 function inferInterests(modes: ModeKey[]): string[] {
+  // Wave 15: only active modes.
   const modeInterests: Partial<Record<ModeKey, string[]>> = {
     "solo-diner": ["gastronomie", "vin", "conversation"],
     "plus-one": ["sorties", "evenements", "culture"],
-    "tourist": ["decouverte", "photo", "local"],
     "night-owl": ["nuit", "musique", "aventure"],
-    "breakup": ["ecoute", "bienveillance", "detente"],
-    "new-in-town": ["rencontres", "quartier", "integration"],
-    "langue": ["langues", "international", "echange"],
-    "dog-date": ["animaux", "nature", "balade"],
-    "seasonal": ["fetes", "celebrer", "saison"],
-    "fit-date": ["sport", "sante", "outdoor"],
     "foodie-quest": ["cuisine", "street-food", "decouverte culinaire"],
-    "culture-club": ["art", "musees", "spectacle"],
-    "sober-tonight": ["tranquille", "the", "jeux de societe"],
-    "gamer-night": ["jeux video", "retro gaming", "competition"],
   };
   const interests = new Set<string>();
   for (const mode of modes) {

@@ -1,8 +1,10 @@
 // ---------- Conversation Starters by Mode ----------
+// Wave 15: active modes are solo-diner / plus-one / night-owl / foodie-quest.
+// Other keys kept for WAVE-16 when killed modes revisit. Using broader type.
 
 import type { ModeKey } from "./modes";
 
-const STARTERS: Record<ModeKey, string[]> = {
+const STARTERS: Record<string, string[]> = {
   "solo-diner": [
     "Tu as un spot prefere dans le quartier, {name} ?",
     "C'est quoi ton plat guilty pleasure ?",

@@ -36,8 +36,12 @@ export interface UseSafetyResult {
   checkIn: () => void;
   /** Cancel the check-in timer entirely */
   cancelCheckIn: () => void;
-  /** Report a user for violating community guidelines */
-  reportUser: (userId: string, reason: ReportReason, details?: string) => Promise<void>;
+  /** Report a user for violating community guidelines. Returns true if report was saved. */
+  reportUser: (userId: string, reason: ReportReason, details?: string, contextType?: "profile"|"chat"|"room"|"plan"|"match"|"event", contextId?: string) => Promise<boolean>;
+  /** Block a user (mutual-block semantics) */
+  blockUser: (userId: string, reason?: string) => Promise<boolean>;
+  /** Unblock a user */
+  unblockUser: (userId: string) => Promise<boolean>;
   /** Whether a check-in timer is currently running */
   isCheckInActive: boolean;
   /** Seconds left until the next check-in prompt */
@@ -182,13 +186,14 @@ export function useSafety(): UseSafetyResult {
     setSosActive(true);
 
     const position = await getCurrentPosition();
-    const lat = position?.lat ?? 0;
-    const lng = position?.lng ?? 0;
+    const lat = position?.lat ?? null;
+    const lng = position?.lng ?? null;
     const timestamp = new Date().toISOString();
 
-    // 1. Log SOS event in database
+    // 1. Log SOS event in database (real table — migration 016)
+    let sosLogged = false;
     try {
-      await supabase.from("sos_events").insert({
+      const { error } = await supabase.from("sos_events").insert({
         user_id: userId,
         latitude: lat,
         longitude: lng,
@@ -196,6 +201,8 @@ export function useSafety(): UseSafetyResult {
         status: "triggered",
         created_at: timestamp,
       });
+      if (error) throw error;
+      sosLogged = true;
     } catch (err) {
       logger.error("use_safety_sos_log_failed", { err: String(err) });
     }
@@ -227,7 +234,9 @@ export function useSafety(): UseSafetyResult {
     addAction(
       setRecentActions,
       "sos",
-      `SOS declenche - ${trustedContacts.length} contact(s) alerte(s)`,
+      sosLogged
+        ? `SOS declenche - ${trustedContacts.length} contact(s) alerte(s)`
+        : `SOS declenche (log echoue) - ${trustedContacts.length} contact(s) alerte(s)`,
     );
 
     setSosActive(false);
@@ -394,30 +403,85 @@ export function useSafety(): UseSafetyResult {
   }, [userId]);
 
   // ------------------------------------------------------------------
-  // reportUser
+  // reportUser (wired to real `user_reports` table — migration 016)
   // ------------------------------------------------------------------
   const reportUser = useCallback(
-    async (reportedUserId: string, reason: ReportReason, details: string = "") => {
-      if (!userId) return;
+    async (
+      reportedUserId: string,
+      reason: ReportReason,
+      details: string = "",
+      contextType?: "profile" | "chat" | "room" | "plan" | "match" | "event",
+      contextId?: string,
+    ): Promise<boolean> => {
+      if (!userId) return false;
+      if (userId === reportedUserId) {
+        logger.warn("use_safety_self_report_blocked");
+        return false;
+      }
 
       try {
-        await supabase.from("reports").insert({
+        const { error } = await supabase.from("user_reports").insert({
           reporter_id: userId,
           reported_id: reportedUserId,
           reason,
-          details,
+          details: details.slice(0, 2000),
+          context_type: contextType ?? null,
+          context_id: contextId ?? null,
           status: "pending" as const,
+          priority: 3,
           created_at: new Date().toISOString(),
         });
+        if (error) throw error;
+
+        addAction(setRecentActions, "report", `Profil signale: ${reason}`);
+        return true;
       } catch (err) {
         logger.error("use_safety_report_insert_failed", { err: String(err) });
+        addAction(setRecentActions, "report", `Signalement echoue: ${reason}`);
+        return false;
       }
+    },
+    [userId],
+  );
 
-      addAction(
-        setRecentActions,
-        "report",
-        `Profil signale: ${reason}`,
-      );
+  // ------------------------------------------------------------------
+  // blockUser / unblockUser (user_blocks — migration 016)
+  // ------------------------------------------------------------------
+  const blockUser = useCallback(
+    async (blockedUserId: string, reason: string = ""): Promise<boolean> => {
+      if (!userId || userId === blockedUserId) return false;
+      try {
+        const { error } = await supabase.from("user_blocks").upsert({
+          blocker_id: userId,
+          blocked_id: blockedUserId,
+          reason: reason || null,
+          created_at: new Date().toISOString(),
+        });
+        if (error) throw error;
+        return true;
+      } catch (err) {
+        logger.error("use_safety_block_failed", { err: String(err) });
+        return false;
+      }
+    },
+    [userId],
+  );
+
+  const unblockUser = useCallback(
+    async (blockedUserId: string): Promise<boolean> => {
+      if (!userId) return false;
+      try {
+        const { error } = await supabase
+          .from("user_blocks")
+          .delete()
+          .eq("blocker_id", userId)
+          .eq("blocked_id", blockedUserId);
+        if (error) throw error;
+        return true;
+      } catch (err) {
+        logger.error("use_safety_unblock_failed", { err: String(err) });
+        return false;
+      }
     },
     [userId],
   );
@@ -431,6 +495,8 @@ export function useSafety(): UseSafetyResult {
     checkIn,
     cancelCheckIn,
     reportUser,
+    blockUser,
+    unblockUser,
     isCheckInActive,
     checkInTimeLeft,
     sosActive,

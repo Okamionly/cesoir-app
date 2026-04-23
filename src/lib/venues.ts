@@ -1,4 +1,8 @@
 import type { ModeKey } from "./modes";
+import { isActiveMode } from "./modes";
+
+// Wave 15 PMF focus: `compatible_modes` below authored with 14-mode vocabulary.
+// Legacy slugs stored as-is; filtered at read time via `suggestVenue`.
 
 // ─────────────────────────────────────────
 // Venue types & interface
@@ -25,7 +29,13 @@ export interface Venue {
   rating: number;
   priceRange: 1 | 2 | 3;
   popular: boolean;
-  compatible_modes: ModeKey[];
+  /** Raw mode slugs; may include legacy keys. Use `activeModesOf()` to filter. */
+  compatible_modes: string[];
+}
+
+/** Returns only active-mode entries from a venue's compatible_modes list. */
+export function activeModesOf(venue: Pick<Venue, "compatible_modes">): ModeKey[] {
+  return venue.compatible_modes.filter(isActiveMode);
 }
 
 // ─────────────────────────────────────────

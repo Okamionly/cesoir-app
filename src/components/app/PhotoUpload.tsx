@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
+import { checkPhoto } from "@/lib/nsfw";
 
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const MAX_SIZE_MB = 5;
@@ -32,7 +33,7 @@ export default function PhotoUpload({
 
   const displayUrl = preview || currentAvatarUrl;
 
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
     const file = e.target.files?.[0];
     if (!file) return;
@@ -45,6 +46,21 @@ export default function PhotoUpload({
       setError(`Taille max : ${MAX_SIZE_MB} Mo`);
       return;
     }
+
+    // NSFW pre-check (V5 Wave 15 — Trust & Safety)
+    setUploading(true);
+    setProgress(5);
+    const nsfwResult = await checkPhoto(file);
+    if (!nsfwResult.safe) {
+      setUploading(false);
+      setProgress(0);
+      setError(
+        `Photo refusee : contenu inapproprie detecte (${nsfwResult.categories.join(", ")}). Merci de choisir une autre photo.`,
+      );
+      return;
+    }
+    setUploading(false);
+    setProgress(0);
 
     // Show local preview immediately
     const objectUrl = URL.createObjectURL(file);

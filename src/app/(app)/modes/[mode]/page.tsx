@@ -5,7 +5,7 @@ import { m } from "motion/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { MODES, type ModeKey } from "@/lib/modes";
+import { MODES, type ModeKey, isKilledMode } from "@/lib/modes";
 import { VENUES } from "@/lib/venues";
 import { useProfiles } from "@/lib/useProfiles";
 import { useEvents } from "@/lib/useEvents";
@@ -121,12 +121,22 @@ export default function ModeDetailPage({
   }, [user, modeKey, router]);
 
   // If mode doesn't exist, show 404-like state (all hooks above have run).
+  // Killed modes (Wave 15 PMF focus) show a friendlier message.
   if (!modeData) {
+    const killed = isKilledMode(modeSlug);
     return (
-      <div className="min-h-screen bg-bg flex flex-col items-center justify-center px-6">
-        <span className="text-5xl mb-4">🤷</span>
-        <h1 className="text-xl font-bold mb-2">Mode introuvable</h1>
-        <p className="text-sm text-text-muted mb-6">Ce mode n&apos;existe pas encore.</p>
+      <div className="min-h-screen bg-bg flex flex-col items-center justify-center px-6 text-center">
+        <span className="text-5xl mb-4" aria-hidden="true">
+          {killed ? "🌱" : "🤷"}
+        </span>
+        <h1 className="text-xl font-bold mb-2">
+          {killed ? "Bientot disponible" : "Mode introuvable"}
+        </h1>
+        <p className="text-sm text-text-muted mb-6 max-w-xs">
+          {killed
+            ? "On re-ouvre ce mode des qu'il a sa PMF. En attendant, essaye nos 4 modes actifs."
+            : "Ce mode n'existe pas encore."}
+        </p>
         <Link href="/modes" className="text-sm text-accent font-semibold">
           Retour aux modes
         </Link>

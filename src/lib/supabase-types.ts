@@ -1,18 +1,22 @@
 // ========================================
-// CeSoir Supabase Database Types — hand-written canonical types
+// CeSoir Supabase Database Types — canonical module
 // ========================================
 //
-// NOTE: A freshly generated types file lives at
-//   `src/lib/supabase-types.generated.ts`
-// That file is the source-of-truth for table column types. To regenerate:
-//   npx supabase gen types typescript --project-id ycyxmvzilzkusecpgvbi \
-//     > src/lib/supabase-types.generated.ts
+// The `Database` type exported from this file is composed of:
+//   1. The fully-typed `public.Tables` / `public.Views` / `public.Functions`
+//      produced by `supabase gen types` (`./supabase-types.generated.ts`).
+//   2. Wave-14 tables not yet present in the generated file
+//      (`./supabase-types-extensions.ts` — deleted automatically once the
+//      generator emits them).
 //
-// This file is kept because it also exports domain enums (Gender,
-// InteractionAction, ModeType, etc.) and aliased row types (DbProfile,
-// DbFeedActivity, ...) used throughout the app. A later refactor could
-// migrate callers to `Database["public"]["Tables"]["X"]["Row"]` from the
-// generated file and remove this hand-written layer.
+// Domain enums (Gender, InteractionAction, ModeType, ...) and the `Db*`
+// aliases used throughout the app live in this file so callers have a
+// single stable import path. The `Database` export is what
+// `SupabaseClient<Database>` consumes.
+//
+// To refresh column shapes: `npm run db:types`.
+// The CI drift guard (`db-types-drift` job) fails PRs when the generated
+// file changes without a matching commit.
 
 // ----------------------------------------
 // Enums / Union Types
@@ -27,9 +31,11 @@ export type ReportReason =
   | "inappropriate_content"
   | "spam"
   | "underage"
+  | "violence_threat"
+  | "catfish"
   | "scam"
   | "other";
-export type ReportStatus = "pending" | "reviewed" | "actioned" | "dismissed";
+export type ReportStatus = "pending" | "reviewing" | "actioned" | "dismissed" | "escalated";
 export type ModeType =
   | "solo-diner"
   | "plus-one"
@@ -338,169 +344,36 @@ export interface DbMatch {
 // ----------------------------------------
 // Database Type (Supabase-compatible)
 // ----------------------------------------
+//
+// Composition:
+//   - `GeneratedDatabase` comes from `supabase-types.generated.ts` (source
+//     of truth, emitted by `supabase gen types`).
+//   - `WaveFourteenTables` patches in Events + Feed Reactions tables that
+//     the generator hasn't yet picked up.
+// Once the generator emits Wave-14 tables, delete
+// `supabase-types-extensions.ts` and drop the intersection below.
+//
+// We use a helper type `MergeTables` to union the generated and
+// hand-patched table maps — a raw `A & B` intersection causes Postgrest's
+// overload inference to collapse rows to `never` on shared table names.
 
-export interface Database {
-  public: {
-    Tables: {
-      profiles: {
-        Row: DbProfile;
-        Insert: Partial<DbProfile> & Pick<DbProfile, "id" | "name" | "age" | "gender" | "looking_for">;
-        Update: Partial<DbProfile>;
-      };
-      mode_activations: {
-        Row: DbModeActivation;
-        Insert: Partial<DbModeActivation> & Pick<DbModeActivation, "user_id" | "mode">;
-        Update: Partial<DbModeActivation>;
-      };
-      interactions: {
-        Row: DbInteraction;
-        Insert: Partial<DbInteraction> & Pick<DbInteraction, "from_user" | "to_user" | "action">;
-        Update: Partial<DbInteraction>;
-      };
-      conversations: {
-        Row: DbConversation;
-        Insert: Partial<DbConversation> & Pick<DbConversation, "user_a" | "user_b">;
-        Update: Partial<DbConversation>;
-      };
-      messages: {
-        Row: DbMessage;
-        Insert: Partial<DbMessage> & Pick<DbMessage, "conversation_id" | "sender_id" | "content">;
-        Update: Partial<DbMessage>;
-      };
-      reviews: {
-        Row: DbReview;
-        Insert: Partial<DbReview> & Pick<DbReview, "reviewer_id" | "reviewed_id" | "rating">;
-        Update: Partial<DbReview>;
-      };
-      reports: {
-        Row: DbReport;
-        Insert: Partial<DbReport> & Pick<DbReport, "reporter_id" | "reported_id" | "reason">;
-        Update: Partial<DbReport>;
-      };
-      squads: {
-        Row: DbSquad;
-        Insert: Partial<DbSquad> & Pick<DbSquad, "name" | "creator_id">;
-        Update: Partial<DbSquad>;
-      };
-      squad_invites: {
-        Row: DbSquadInvite;
-        Insert: Partial<DbSquadInvite> & Pick<DbSquadInvite, "squad_id" | "inviter_id" | "code">;
-        Update: Partial<DbSquadInvite>;
-      };
-      feed_activities: {
-        Row: DbFeedActivity;
-        Insert: Partial<DbFeedActivity> & Pick<DbFeedActivity, "user_id" | "type">;
-        Update: Partial<DbFeedActivity>;
-      };
-      feed_reactions: {
-        Row: DbFeedReaction;
-        Insert: Partial<DbFeedReaction> & Pick<DbFeedReaction, "feed_activity_id" | "user_id" | "reaction">;
-        Update: Partial<DbFeedReaction>;
-      };
-      challenges: {
-        Row: DbChallenge;
-        Insert: Partial<DbChallenge> & Pick<DbChallenge, "user_id" | "challenge_type" | "total">;
-        Update: Partial<DbChallenge>;
-      };
-      achievements: {
-        Row: DbAchievement;
-        Insert: Partial<DbAchievement> & Pick<DbAchievement, "user_id" | "achievement_key">;
-        Update: Partial<DbAchievement>;
-      };
-      karma_transactions: {
-        Row: DbKarmaTransaction;
-        Insert: Partial<DbKarmaTransaction> & Pick<DbKarmaTransaction, "user_id" | "amount">;
-        Update: Partial<DbKarmaTransaction>;
-      };
-      streaks: {
-        Row: DbStreak;
-        Insert: Partial<DbStreak> & Pick<DbStreak, "user_id">;
-        Update: Partial<DbStreak>;
-      };
-      popup_events: {
-        Row: DbPopupEvent;
-        Insert: Partial<DbPopupEvent> & Pick<DbPopupEvent, "creator_id" | "title" | "event_time">;
-        Update: Partial<DbPopupEvent>;
-      };
-      event_attendees: {
-        Row: DbEventAttendee;
-        Insert: Partial<DbEventAttendee> & Pick<DbEventAttendee, "event_id" | "user_id">;
-        Update: Partial<DbEventAttendee>;
-      };
-      trusted_contacts: {
-        Row: DbTrustedContact;
-        Insert: Partial<DbTrustedContact> & Pick<DbTrustedContact, "user_id" | "name" | "phone">;
-        Update: Partial<DbTrustedContact>;
-      };
-      checkins: {
-        Row: DbCheckin;
-        Insert: Partial<DbCheckin> & Pick<DbCheckin, "user_id">;
-        Update: Partial<DbCheckin>;
-      };
-      user_settings: {
-        Row: DbUserSettings;
-        Insert: Partial<DbUserSettings> & Pick<DbUserSettings, "user_id">;
-        Update: Partial<DbUserSettings>;
-      };
-      availability: {
-        Row: DbAvailability;
-        Insert: Partial<DbAvailability> & Pick<DbAvailability, "user_id" | "day_of_week">;
-        Update: Partial<DbAvailability>;
-      };
-      events: {
-        Row: DbEvent;
-        Insert: Partial<DbEvent> &
-          Pick<DbEvent, "slug" | "title" | "venue_name" | "venue_location" | "starts_at">;
-        Update: Partial<DbEvent>;
-      };
-      event_rsvps: {
-        Row: DbEventRsvp;
-        Insert: Partial<DbEventRsvp> & Pick<DbEventRsvp, "event_id" | "user_id">;
-        Update: Partial<DbEventRsvp>;
-      };
-    };
-    Views: {
-      matches: {
-        Row: DbMatch;
-      };
-      events_with_counts: {
-        Row: DbEventWithCounts;
-      };
-    };
-    Functions: {
-      nearby_profiles: {
-        Args: {
-          user_lat: number;
-          user_lng: number;
-          radius_km?: number;
-          mode_filter?: string | null;
-          gender_filter?: string | null;
-          limit_count?: number;
-        };
-        Returns: Array<{
-          id: string;
-          name: string;
-          age: number;
-          gender: string;
-          bio: string;
-          avatar_url: string | null;
-          is_verified: boolean;
-          distance_km: number;
-          mode: string | null;
-          available_time: string | null;
-          mode_details: Record<string, unknown> | null;
-          lat: number;
-          lng: number;
-        }>;
-      };
-      update_location: {
-        Args: {
-          user_id: string;
-          lat: number;
-          lng: number;
-        };
-        Returns: void;
-      };
-    };
+import type { Database as GeneratedDatabase } from "./supabase-types.generated";
+import type { WaveFourteenTables } from "./supabase-types-extensions";
+
+type GenTables = GeneratedDatabase["public"]["Tables"];
+
+// Union the two maps: generated tables keep their shapes; Wave-14 tables
+// are layered on top without colliding with generated keys.
+type MergedTables = {
+  [K in keyof GenTables | keyof WaveFourteenTables]: K extends keyof GenTables
+    ? GenTables[K]
+    : K extends keyof WaveFourteenTables
+      ? WaveFourteenTables[K]
+      : never;
+};
+
+export type Database = Omit<GeneratedDatabase, "public"> & {
+  public: Omit<GeneratedDatabase["public"], "Tables"> & {
+    Tables: MergedTables;
   };
-}
+};

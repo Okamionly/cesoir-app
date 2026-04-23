@@ -4,6 +4,12 @@
  * Returns 200 when the app is up and Supabase round-trips a trivial
  * select, 503 otherwise. Vercel / uptime monitors / Kubernetes probes
  * can all consume this. No auth required (info is non-sensitive).
+ *
+ * Production strict mode (Wave 15)
+ *   When `NODE_ENV === 'production'` (or `VERCEL_ENV === 'production'`)
+ *   and the DB is `unconfigured`, we return 503 instead of 200. A prod
+ *   deployment missing Supabase env vars is a hard misconfiguration —
+ *   it must page the operator, not succeed silently.
  */
 import { NextResponse } from "next/server";
 import { createClient as createAnonClient } from "@supabase/supabase-js";
@@ -32,10 +38,25 @@ async function checkSupabase(): Promise<CheckStatus> {
   }
 }
 
+function isProduction(): boolean {
+  return (
+    process.env.VERCEL_ENV === "production" ||
+    process.env.NODE_ENV === "production"
+  );
+}
+
 export async function GET() {
   const db = await checkSupabase();
+  const prod = isProduction();
+
+  // In production: `unconfigured` is treated as degraded. Anywhere else
+  // (dev / preview / test) we tolerate it so local builds without env
+  // vars can still boot.
+  const isHealthy =
+    db === "ok" || (db === "unconfigured" && !prod);
+
   const body = {
-    status: db === "ok" || db === "unconfigured" ? "ok" : "degraded",
+    status: isHealthy ? "ok" : "degraded",
     checks: {
       app: "ok" as const,
       db,
@@ -44,8 +65,13 @@ export async function GET() {
     env: process.env.VERCEL_ENV ?? process.env.NODE_ENV,
     ts: new Date().toISOString(),
   };
+
+  if (!isHealthy) {
+    logger.error("health_check_failed", { db, prod, env: body.env });
+  }
+
   return NextResponse.json(body, {
-    status: body.status === "ok" ? 200 : 503,
+    status: isHealthy ? 200 : 503,
     headers: { "Cache-Control": "no-store" },
   });
 }

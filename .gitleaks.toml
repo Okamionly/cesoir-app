@@ -1,0 +1,30 @@
+# gitleaks config — extends default rules, adds project-specific allowlist.
+# https://github.com/gitleaks/gitleaks/blob/master/config/gitleaks.toml
+title = "CeSoir gitleaks config"
+
+[extend]
+# Inherit default Stripe/Supabase/AWS/GitHub/OpenAI rules.
+useDefault = true
+
+[allowlist]
+description = "Safe placeholders (tests, docs, mock configs)"
+paths = [
+  '''node_modules/''',
+  '''\.next/''',
+  '''coverage/''',
+  '''storybook-static/''',
+  '''qa-screenshots(-e2e)?/''',
+  '''logs/''',
+  '''supabase/\.branches/''',
+]
+regexes = [
+  # Test / doc placeholders used in CI and seeds — not real secrets.
+  '''test-anon-key''',
+  '''https://test\.supabase\.co''',
+  '''sk_test_XXXX''',
+  '''whsec_XXXX''',
+  # Public Supabase anon-style tokens embedded in docs (they're PUBLIC by
+  # design — the JWT `role` = `anon` and RLS enforces access). Still linted
+  # at boundaries, but not a secret leak.
+  '''eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+''',
+]

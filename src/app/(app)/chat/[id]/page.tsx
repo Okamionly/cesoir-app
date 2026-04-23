@@ -14,6 +14,7 @@ import ErrorState from "@/components/ui/ErrorState";
 import { MODES } from "@/lib/modes";
 import type { ModeKey } from "@/lib/modes";
 import { haptics } from "@/lib/haptics";
+import { trackFirstTime } from "@/lib/analytics";
 import { TypingIndicator as PeerTypingIndicator } from "@/components/messages/TypingIndicator";
 
 // Chat feature components
@@ -337,8 +338,10 @@ export default function ConversationPage({
     setInputValue("");
     stopTyping();
     await sendMessage(text);
+    // Wave 15 · CPO core-loop event #5
+    trackFirstTime("first_chat_message", { conversation_id: conversationId });
     inputRef.current?.focus();
-  }, [inputValue, sendMessage, stopTyping]);
+  }, [inputValue, sendMessage, stopTyping, conversationId]);
 
   /** Confirm sending a warned message */
   const handleConfirmSend = useCallback(async () => {
@@ -348,8 +351,10 @@ export default function ConversationPage({
     setPendingMessage(null);
     stopTyping();
     await sendMessage(pendingMessage);
+    // Wave 15 · CPO core-loop event #5
+    trackFirstTime("first_chat_message", { conversation_id: conversationId });
     inputRef.current?.focus();
-  }, [pendingMessage, sendMessage, stopTyping]);
+  }, [pendingMessage, sendMessage, stopTyping, conversationId]);
 
   /** Dismiss screening warning */
   const handleDismissScreening = useCallback(() => {
@@ -429,7 +434,11 @@ export default function ConversationPage({
         plan,
       },
     ]);
-  }, []);
+    // Wave 15 · CPO core-loop event #6
+    trackFirstTime("first_plan_created", {
+      conversation_id: conversationId,
+    });
+  }, [conversationId]);
 
   const handlePlanAccept = useCallback((msgId: string) => {
     setSpecialMessages((prev) =>
@@ -880,18 +889,22 @@ export default function ConversationPage({
         whileFocus={{ y: -2 }}
         transition={springs.micro}
       >
+        {/* ──────────────────────────────────────────
+            Wave 15 · CPO — 4 top-level actions only:
+              1. Send (at the right)
+              2. Voice note
+              3. Propose plan (event)
+              4. Location share
+            Everything else (IceBreaker, Playlist, Event invite,
+            Planifier hub) moved into the + menu with clear labels.
+           ────────────────────────────────────────── */}
         <div className="flex items-end gap-2">
-          {/* Plus menu for secondary actions */}
+          {/* Plus menu — secondary actions with labels */}
           <PlusMenu>
-            <LocationShareButton onShare={handleLocationShare} />
             <IceBreakerButton onStartGame={handleStartGame} />
             <PlaylistShareButton onAddSong={handleAddSong} />
             <EventInviteButton
               onInvite={(ev) => {
-                // Compose a concise invite message. Uses the French short
-                // weekday + HHhMM format so the recipient instantly sees
-                // when / where. Safe to send as plain text — no schema
-                // migration needed for this first iteration.
                 const d = new Date(ev.startAt);
                 const day = d
                   .toLocaleDateString("fr-FR", { weekday: "short" })
@@ -904,20 +917,22 @@ export default function ConversationPage({
                 void sendMessage(msg);
               }}
             />
-            {/* Shared playlist full view button */}
+            {/* Playlist full view */}
             <button
               type="button"
               onClick={() => setShowSharedPlaylist(true)}
               className="tap-target shrink-0 w-11 h-11 rounded-full bg-bg-card border border-border flex items-center justify-center text-text-muted hover:text-accent hover:border-accent/30 transition-colors active:scale-95"
               aria-label="Playlist commune"
+              title="Playlist commune"
             >
               <span className="text-lg">🎵</span>
             </button>
-            {/* Planifier button */}
+            {/* Planifier hub */}
             <Link
               href={`/plan/${conversationId}`}
               className="tap-target shrink-0 w-11 h-11 rounded-full bg-bg-card border border-border flex items-center justify-center text-text-muted hover:text-accent hover:border-accent/30 transition-colors active:scale-95"
               aria-label="Planifier un rendez-vous"
+              title="Planifier un rendez-vous"
             >
               <span className="text-lg">📅</span>
             </Link>
@@ -938,10 +953,13 @@ export default function ConversationPage({
             transition={springs.micro}
           />
 
-          {/* Plan proposal button (always visible) */}
+          {/* Top-level action #2 — Location share */}
+          <LocationShareButton onShare={handleLocationShare} />
+
+          {/* Top-level action #3 — Propose plan */}
           <PlanProposalButton onSubmit={handlePlanSubmit} />
 
-          {/* Voice note button (always visible) */}
+          {/* Top-level action #4 — Voice note */}
           <VoiceRecordButton onRecordComplete={handleVoiceRecord} />
 
           {/* Send button — scales + glows when input has text */}

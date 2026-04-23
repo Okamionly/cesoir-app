@@ -16,6 +16,7 @@ import { useState, useCallback, useEffect } from "react";
 import { m, AnimatePresence } from "motion/react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
+import { trackFirstTime } from "@/lib/analytics";
 import {
   WEMET_STAR_ACTIVE,
   WEMET_STAR_INACTIVE,
@@ -127,6 +128,14 @@ export default function WeMetFeedback({
         tags: feedback.tags ?? [],
         created_at: new Date().toISOString(),
       });
+
+      // Wave 15 · CPO core-loop event #7 — only fire on positive met+rating
+      if (feedback.met && (feedback.rating ?? 0) >= 3) {
+        trackFirstTime("first_irl_confirmed", {
+          peer_id: peerId,
+          rating: feedback.rating ?? null,
+        });
+      }
     } catch (err) {
       console.error("[WeMetFeedback] save failed:", err);
     }

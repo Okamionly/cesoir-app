@@ -23,11 +23,39 @@ type PageState = "loading" | "found" | "invalid";
 // ─── Helpers ─────────────────────────────
 
 async function fetchInviteData(code: string): Promise<InviteData | null> {
-  // Look up the invite code in squad_invites
+  const upper = code.toUpperCase();
+
+  // ─── Path 1 : personal invite_codes (Wave 15 launch-gate) ────
+  // Verify via /api/invites/claim — that route uses the service role so
+  // anon visitors can preview a code even though the `invite_codes` table
+  // has no public SELECT policy.
+  try {
+    const res = await fetch("/api/invites/claim", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: upper, verify: true }),
+    });
+    if (res.ok) {
+      const body = (await res.json()) as { valid?: boolean; code?: string };
+      if (body.valid && body.code) {
+        return {
+          code: body.code,
+          inviterName: "Un membre",
+          inviterInitial: "☾",
+          squadName: null,
+          type: "friend",
+        };
+      }
+    }
+  } catch {
+    // fall through — try legacy squad_invites path
+  }
+
+  // ─── Path 2 : legacy squad_invites (pre-Wave 15) ─────────────
   const { data: invite, error } = await supabase
     .from("squad_invites")
     .select("*")
-    .eq("code", code.toUpperCase())
+    .eq("code", upper)
     .is("used_by", null)
     .single();
 

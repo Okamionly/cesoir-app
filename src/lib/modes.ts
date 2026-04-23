@@ -1,18 +1,31 @@
+// ==============================================================
+// WAVE 15 — PMF FOCUS: 4 core modes only.
+// User research Montpellier: 4 modes is the sweet spot for
+// discovery + decision. 10 other modes killed (Wave 16+ revisit).
+//
+// KILLED (TODO WAVE-16):
+//   - tourist          -> merge into "Plus-One" (event focus)
+//   - breakup          -> feature complexity / liability
+//   - new-in-town      -> merge into onboarding flow
+//   - langue           -> blue ocean but <5% demand in MTP
+//   - dog-date         -> niche, <3% demand
+//   - seasonal         -> time-boxed, not core loop
+//   - fit-date         -> niche, rebuild as activity filter
+//   - sober-tonight    -> filter, not mode
+//   - gamer-night      -> niche, rebuild as venue tag
+//   - culture-club     -> merge into "Foodie Quest" umbrella
+// ==============================================================
+
 export type ModeKey =
   | "solo-diner"
   | "plus-one"
-  | "tourist"
   | "night-owl"
-  | "breakup"
-  | "new-in-town"
-  | "langue"
-  | "dog-date"
-  | "seasonal"
-  | "fit-date"
-  | "foodie-quest"
-  | "culture-club"
-  | "sober-tonight"
-  | "gamer-night";
+  | "foodie-quest";
+
+// TODO WAVE-16: killed modes (kept as type comments for reference)
+// | "tourist" | "breakup" | "new-in-town" | "langue" | "dog-date"
+// | "seasonal" | "fit-date" | "culture-club" | "sober-tonight"
+// | "gamer-night";
 
 export interface ModeDefinition {
   key: ModeKey;
@@ -45,14 +58,6 @@ export const MODES: Record<ModeKey, ModeDefinition> = {
     badgeColor: "pink",
     tags: ["Soiree", "Concert", "Cinema", "Vernissage"],
   },
-  tourist: {
-    key: "tourist",
-    icon: "✈️",
-    name: "Tourist Tonight",
-    color: "#06b6d4",
-    description: "De passage ? Les locaux t'accueillent pour une soiree authentique.",
-    tags: ["Local Guide", "Expat", "Business Trip"],
-  },
   "night-owl": {
     key: "night-owl",
     icon: "🌙",
@@ -62,62 +67,6 @@ export const MODES: Record<ModeKey, ModeDefinition> = {
     badge: "23h+",
     badgeColor: "indigo",
     tags: ["Kebab", "Balade 2h", "Bar late", "Insomnie"],
-  },
-  breakup: {
-    key: "breakup",
-    icon: "💜",
-    name: "Breakup Recovery",
-    color: "#22c55e",
-    description: "Zero pression. Juste quelqu'un pour parler ce soir.",
-    badge: "Safe Space",
-    badgeColor: "green",
-    tags: ["Ecoute", "Pas romantique", "Glace + film"],
-  },
-  "new-in-town": {
-    key: "new-in-town",
-    icon: "📦",
-    name: "New in Town",
-    color: "#f59e0b",
-    description: "Tu connais personne ? Les ambassadeurs locaux te guident.",
-    tags: ["Decouverte", "Bons plans", "Integration"],
-  },
-  langue: {
-    key: "langue",
-    icon: "🌐",
-    name: "Langue Exchange",
-    color: "#06b6d4",
-    description: "Pratique une langue autour d'un verre ce soir.",
-    tags: ["Anglais", "Espagnol", "Arabe", "Japonais"],
-  },
-  "dog-date": {
-    key: "dog-date",
-    icon: "🐶",
-    name: "Dog Date",
-    color: "#f59e0b",
-    description: "Ton chien est le meilleur wingman. Balade ensemble.",
-    badge: "Fan fav",
-    badgeColor: "pink",
-    tags: ["Golden", "Bouledogue", "Berger", "Caniche"],
-  },
-  seasonal: {
-    key: "seasonal",
-    icon: "🎄",
-    name: "Seasonal Emergency",
-    color: "#ef4444",
-    description: "Noel seul ? Nouvel An seul ? Saint-Valentin seul ? Plus jamais.",
-    badge: "Prochain event",
-    badgeColor: "amber",
-    tags: ["Noel", "Nouvel An", "Saint-Valentin"],
-  },
-  "fit-date": {
-    key: "fit-date",
-    icon: "💪",
-    name: "Fit Date",
-    color: "#f97316",
-    description: "Trouve un partenaire de sport ce soir. Running, yoga, escalade...",
-    badge: "Nouveau",
-    badgeColor: "pink",
-    tags: ["Running", "Yoga", "Escalade", "Crossfit", "Natation"],
   },
   "foodie-quest": {
     key: "foodie-quest",
@@ -129,32 +78,31 @@ export const MODES: Record<ModeKey, ModeDefinition> = {
     badgeColor: "pink",
     tags: ["Street Food", "Gastronomie", "Brunch", "Cuisine du monde"],
   },
-  "culture-club": {
-    key: "culture-club",
-    icon: "🎭",
-    name: "Culture Club",
-    color: "#7c3aed",
-    description: "Musee, expo, theatre, cinema d'auteur. Pour les esprits curieux.",
-    tags: ["Expo", "Theatre", "Cinema", "Lecture", "Debat"],
-  },
-  "sober-tonight": {
-    key: "sober-tonight",
-    icon: "🍵",
-    name: "Sober Tonight",
-    color: "#059669",
-    description: "Sorties 100% sans alcool. The, balade, jeux, patisserie.",
-    badge: "Blue Ocean",
-    badgeColor: "green",
-    tags: ["Mocktails", "The", "Jeux", "Balade", "Patisserie"],
-  },
-  "gamer-night": {
-    key: "gamer-night",
-    icon: "🎮",
-    name: "Gamer Night",
-    color: "#2563eb",
-    description: "Bar gaming, soiree JdR, LAN party, jeux de societe ce soir.",
-    tags: ["JdR", "Bar Gaming", "Console", "Board Games", "E-sport"],
-  },
 };
 
 export const MODE_KEYS = Object.keys(MODES) as ModeKey[];
+
+// ==============================================================
+// Legacy mode lookup — returns null for killed modes.
+// Use to gracefully guard pages/URLs referencing old slugs.
+// ==============================================================
+export const LEGACY_MODE_KEYS = new Set<string>([
+  "tourist",
+  "breakup",
+  "new-in-town",
+  "langue",
+  "dog-date",
+  "seasonal",
+  "fit-date",
+  "culture-club",
+  "sober-tonight",
+  "gamer-night",
+]);
+
+export function isKilledMode(slug: string): boolean {
+  return LEGACY_MODE_KEYS.has(slug);
+}
+
+export function isActiveMode(slug: string): slug is ModeKey {
+  return slug in MODES;
+}

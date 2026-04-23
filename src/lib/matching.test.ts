@@ -75,8 +75,8 @@ describe("calculateMatchScore", () => {
     const userModes: ModeKey[] = ["solo-diner"];
     const { breakdown, sharedModes } = calculateMatchScore(
       userModes,
-      makeCandidate({ mode: "night-owl" }),
-      ["night-owl"],
+      makeCandidate({ mode: "foodie-quest" }),
+      ["foodie-quest"],
       0,
       0,
     );
@@ -86,11 +86,11 @@ describe("calculateMatchScore", () => {
   });
 
   it("rewards 3+ shared modes with 40 pts (cap)", () => {
-    const userModes: ModeKey[] = ["solo-diner", "night-owl", "tourist"];
+    const userModes: ModeKey[] = ["solo-diner", "night-owl", "plus-one"];
     const { breakdown } = calculateMatchScore(
       userModes,
       makeCandidate({ mode: "solo-diner" }),
-      ["solo-diner", "night-owl", "tourist"],
+      ["solo-diner", "night-owl", "plus-one"],
       0,
       0,
     );
@@ -157,9 +157,9 @@ describe("calculateMatchScore", () => {
 
   it("clamps the final score to 100 even if raw sums exceed it", () => {
     const { score } = calculateMatchScore(
-      ["solo-diner", "night-owl", "tourist"],
+      ["solo-diner", "night-owl", "plus-one"],
       makeCandidate({ distance_km: 0.1, is_verified: true, available_time: new Date().toISOString() }),
-      ["solo-diner", "night-owl", "tourist"],
+      ["solo-diner", "night-owl", "plus-one"],
       100,
       5,
     );
@@ -213,12 +213,12 @@ describe("calculateMatchScore", () => {
   it("rewards 2 shared modes with 33 pts (mid tier)", () => {
     const { breakdown } = calculateMatchScore(
       ["solo-diner", "night-owl"],
-      makeCandidate({ mode: "tourist" }),
+      makeCandidate({ mode: "plus-one" }),
       ["solo-diner", "night-owl"],
       0,
       0,
     );
-    // 33 base, no mode bonus since candidate.mode "tourist" is not in user modes
+    // 33 base, no mode bonus since candidate.mode "plus-one" is not in user modes
     expect(breakdown.mode).toBe(33);
   });
 

@@ -42,11 +42,18 @@ export const authSchema = z.object({
 // Swipe / matching
 // ─────────────────────────────────────────────────────────────
 
-/** Mode keys — keep in sync with `src/lib/modes.ts` MODE_KEYS. */
+/**
+ * Mode keys — keep in sync with `src/lib/modes.ts` MODE_KEYS.
+ * Wave 15 PMF focus: 4 active modes. Legacy slugs accepted at API boundary
+ * for backwards-compat (clients may still send old enum on first deploy)
+ * but are ignored downstream.
+ */
 const MODE_KEY_VALUES = [
-  "solo-diner", "plus-one", "tourist", "night-owl", "breakup",
-  "new-in-town", "langue", "dog-date", "seasonal", "fit-date",
-  "foodie-quest", "culture-club", "sober-tonight", "gamer-night",
+  // Active (Wave 15)
+  "solo-diner", "plus-one", "night-owl", "foodie-quest",
+  // TODO WAVE-16: accepted for backwards-compat until 30-day client rollout.
+  "tourist", "breakup", "new-in-town", "langue", "dog-date",
+  "seasonal", "fit-date", "culture-club", "sober-tonight", "gamer-night",
 ] as const;
 
 export const swipeSchema = z.object({

@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { m, AnimatePresence } from "motion/react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
+import { trackAcquisition, track, identifyUser, captureFirstVisit, trackFirstTime } from "@/lib/analytics";
 import PhotoUpload from "@/components/app/PhotoUpload";
 import { landing } from "@/lib/design-tokens";
 import { springs, easings } from "@/lib/motion-design";
@@ -48,8 +49,20 @@ const stepVariants = {
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { signUp, loading: authLoading, error: authError } = useAuth();
-  const [step, setStep] = useState(1);
+
+  // Wave 15 (2026-04-23) : invite-only launch.
+  //   step 0 = invite code gate
+  //   step 1 = identity
+  //   step 2 = photo
+  //   step 3 = bio
+  const [step, setStep] = useState(0);
+  const [inviteCode, setInviteCode] = useState("");
+  const [, setInviteValid] = useState(false);
+  const [inviteChecking, setInviteChecking] = useState(false);
+  const [inviteError, setInviteError] = useState("");
+
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
   const [email, setEmail] = useState("");
@@ -64,8 +77,66 @@ export default function RegisterPage() {
   const stepOneInvalid =
     !gender || !lookingFor || !name || !email || !password || !age;
 
+  // If an invite code is passed in the URL (e.g. from /invite/[code]),
+  // auto-verify it and skip the gate. Falls through to step 0 on failure.
+  useEffect(() => {
+    const urlCode = searchParams?.get("invite")?.trim();
+    if (!urlCode) return;
+    setInviteCode(urlCode.toUpperCase());
+    void verifyInviteCode(urlCode);
+    // We intentionally run this once per URL change — no function deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  async function verifyInviteCode(candidate: string) {
+    setInviteChecking(true);
+    setInviteError("");
+    try {
+      const res = await fetch("/api/invites/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: candidate.trim(), verify: true }),
+      });
+      const data = (await res.json()) as { valid?: boolean; reason?: string };
+      if (res.ok && data.valid) {
+        setInviteValid(true);
+        setStep(1);
+      } else {
+        setInviteValid(false);
+        if (data.reason === "used") setInviteError("Ce code a deja ete utilise.");
+        else if (data.reason === "expired") setInviteError("Ce code a expire.");
+        else setInviteError("Code introuvable.");
+      }
+    } catch {
+      setInviteError("Erreur reseau. Reessaye.");
+    } finally {
+      setInviteChecking(false);
+    }
+  }
+
+  async function claimInviteCode(candidate: string): Promise<boolean> {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session?.access_token) return false;
+
+    const res = await fetch("/api/invites/claim", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ code: candidate.trim() }),
+    });
+    return res.ok;
+  }
+
   async function handleCreateAccount() {
     setError("");
+
+    // Ensure we have a UTM snapshot before we lose the window (e.g. hard
+    // navigation). Idempotent — no-op after the first capture.
+    captureFirstVisit();
 
     const user = await signUp(email, password, {
       name,
@@ -77,6 +148,36 @@ export default function RegisterPage() {
     if (!user) {
       setError(authError || "Erreur lors de l'inscription");
       return;
+    }
+
+    // Claim the invite now that we have an authenticated session. Do not
+    // block account creation on claim failure — the code was pre-verified
+    // and the UX is graceful even if claiming races.
+    if (inviteCode) {
+      void claimInviteCode(inviteCode);
+    }
+
+    // Wire PostHog identity + persist first-touch attribution on the profile
+    // row. Both calls are safe to await in parallel — failures are logged
+    // but do not block onboarding.
+    identifyUser(user.id, { name });
+    // Wave 15 · CPO core-loop event #1
+    trackFirstTime("register_complete", {
+      step: 1,
+      invite: inviteCode || "none",
+    });
+    // Keep the fine-grain "register_complete" track() for backwards-compat
+    // analytics boards that look at raw counts rather than activation %.
+    track("register_complete", { step: 1, invite: inviteCode || "none" });
+    await trackAcquisition({ userId: user.id });
+
+    // Fire the mint RPC so the user immediately has 3 codes to share.
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionData.session?.access_token) {
+      void fetch("/api/invites/mine", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${sessionData.session.access_token}` },
+      });
     }
 
     setTempUserId(user.id);
@@ -141,11 +242,11 @@ export default function RegisterPage() {
           className="flex gap-1.5 mb-7"
           role="progressbar"
           aria-valuenow={step}
-          aria-valuemin={1}
+          aria-valuemin={0}
           aria-valuemax={3}
           aria-label={`Etape ${step} sur 3`}
         >
-          {[1, 2, 3].map((s) => (
+          {[0, 1, 2, 3].map((s) => (
             <div
               key={s}
               className="h-1 flex-1 rounded-full overflow-hidden"
@@ -165,6 +266,74 @@ export default function RegisterPage() {
         </div>
 
         <AnimatePresence mode="wait">
+          {/* Step 0 — invite code */}
+          {step === 0 && (
+            <m.div
+              key="step0"
+              variants={stepVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+            >
+              <h1 className="font-display text-2xl font-bold mb-1 tracking-tight">
+                Sur invitation
+              </h1>
+              <p className="text-sm text-white/60 mb-6">
+                CeSoir est en invitation uniquement pour les 3 premiers mois.
+                Entre ton code pour rejoindre la waitlist prioritaire.
+              </p>
+              <div className="space-y-4">
+                <FormField
+                  label="Code d'invitation"
+                  variant="dark"
+                  required
+                  hint="Donne par un(e) ami(e). 8 caracteres."
+                >
+                  <FormInput
+                    type="text"
+                    value={inviteCode}
+                    onChange={(e) =>
+                      setInviteCode(e.target.value.toUpperCase().replace(/\s/g, ""))
+                    }
+                    placeholder="CESOIR01"
+                    autoCapitalize="characters"
+                    autoComplete="one-time-code"
+                    maxLength={16}
+                    variant="dark"
+                    size="md"
+                  />
+                </FormField>
+                {inviteError && (
+                  <p className="text-xs text-red-400" role="alert">
+                    {inviteError}
+                  </p>
+                )}
+                <FormSubmit
+                  type="button"
+                  onClick={() => verifyInviteCode(inviteCode)}
+                  isLoading={inviteChecking}
+                  loadingLabel="Verification..."
+                  disabled={!inviteCode || inviteCode.length < 4}
+                  hasError={Boolean(inviteError)}
+                  variant="dark"
+                  magnetic={false}
+                >
+                  Valider le code
+                </FormSubmit>
+                <p className="text-[10px] text-white/40 text-center mt-2 leading-relaxed">
+                  Pas de code ?{" "}
+                  <Link
+                    href="/"
+                    className="underline"
+                    style={{ color: landing.vert }}
+                  >
+                    Rejoindre la waitlist
+                  </Link>
+                </p>
+              </div>
+            </m.div>
+          )}
+
           {/* Step 1 — identity */}
           {step === 1 && (
             <m.div

@@ -4,11 +4,12 @@ import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { walletActionSchema } from "@/lib/validation";
 import { logger } from "@/lib/logger";
 import { isMonetizationEnabledServer } from "@/lib/featureFlags";
+import { requireUser, AuthError } from "@/lib/api/auth";
 
 /**
  * POST /api/wallet/roses
  * Body: { action: 'spend' | 'earn', amount: number }
- * Auth: Bearer <access_token>
+ * Auth: unified `requireUser` (Bearer or SSR cookie).
  *
  * Increments/decrements the user's Roses balance server-side. Before
  * audit 2026-04-19 the balance lived in localStorage — a user who
@@ -21,7 +22,6 @@ import { isMonetizationEnabledServer } from "@/lib/featureFlags";
  */
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 
 export async function POST(request: Request) {
   // Free-first launch: roses wallet mutations are blocked while monetization
@@ -31,25 +31,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "monetization_disabled" }, { status: 503 });
   }
 
-  // --- Auth ---
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+  // --- Auth (unified helper, Wave 15) ---
+  let ctx;
+  try {
+    ctx = await requireUser(request);
+  } catch (err) {
+    if (err instanceof AuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
+    throw err;
   }
-  const token = authHeader.slice(7);
-
-  const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    global: { headers: { Authorization: `Bearer ${token}` } },
-  });
-
-  const {
-    data: { user },
-    error: authError,
-  } = await db.auth.getUser();
-
-  if (authError || !user) {
-    return NextResponse.json({ error: "Session invalide" }, { status: 401 });
-  }
+  const { user, supabase: db } = ctx;
 
   // --- Rate limit: 10/min per user ---
   const rl = await checkRateLimit(`wallet:${user.id}`, 10, 60_000);
@@ -136,24 +128,16 @@ export async function POST(request: Request) {
  * GET /api/wallet/roses — read balance (client uses this to hydrate).
  */
 export async function GET(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+  let ctx;
+  try {
+    ctx = await requireUser(request);
+  } catch (err) {
+    if (err instanceof AuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
+    throw err;
   }
-  const token = authHeader.slice(7);
-
-  const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    global: { headers: { Authorization: `Bearer ${token}` } },
-  });
-
-  const {
-    data: { user },
-    error: authError,
-  } = await db.auth.getUser();
-
-  if (authError || !user) {
-    return NextResponse.json({ error: "Session invalide" }, { status: 401 });
-  }
+  const { user, supabase: db } = ctx;
 
   const { data: wallet, error } = await db
     .from("user_wallet")

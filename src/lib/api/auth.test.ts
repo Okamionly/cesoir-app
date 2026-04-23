@@ -136,14 +136,27 @@ describe("requireUser (default resolver)", () => {
     expect(ssrCreateClient).not.toHaveBeenCalled();
   });
 
-  it("falls back to SSR path when no Bearer header is present", async () => {
+  it("falls back to SSR path when no Bearer header is present and Supabase cookie exists", async () => {
     ssrGetUser.mockResolvedValue({
       data: { user: { id: "u-cookie" } },
       error: null,
     });
-    const req = new Request("https://example.com");
+    const req = new Request("https://example.com", {
+      headers: { cookie: "sb-myproj-auth-token=eyJ.foo.bar; other=1" },
+    });
     const ctx = await requireUser(req);
     expect(ctx.user.id).toBe("u-cookie");
+    expect(supabaseJsCreateClient).not.toHaveBeenCalled();
+  });
+
+  it("rejects with `missing_auth` when neither Bearer header nor Supabase cookie is present", async () => {
+    const req = new Request("https://example.com");
+    await expect(requireUser(req)).rejects.toMatchObject({
+      code: "missing_auth",
+      status: 401,
+    });
+    // Should short-circuit without touching cookies() / createClient.
+    expect(ssrCreateClient).not.toHaveBeenCalled();
     expect(supabaseJsCreateClient).not.toHaveBeenCalled();
   });
 });

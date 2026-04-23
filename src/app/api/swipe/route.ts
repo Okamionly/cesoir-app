@@ -1,13 +1,10 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { SwipeResponse } from "@/types/matching";
 import { getDailyLikeCap } from "@/lib/premium-gate";
 import { swipeSchema } from "@/lib/validation";
 import { logger } from "@/lib/logger";
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
+import { requireUser, AuthError } from "@/lib/api/auth";
 
 /** Postgres unique-constraint violation. */
 const PG_UNIQUE_VIOLATION = "23505";
@@ -28,26 +25,17 @@ function todayStartUTC(): string {
 }
 
 export async function POST(request: Request) {
-  // --- Auth ---
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+  // --- Auth (unified helper, Wave 15) ---
+  let ctx;
+  try {
+    ctx = await requireUser(request);
+  } catch (err) {
+    if (err instanceof AuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
+    throw err;
   }
-  const token = authHeader.slice(7);
-
-  const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    global: { headers: { Authorization: `Bearer ${token}` } },
-  });
-
-  const {
-    data: { user },
-    error: authError,
-  } = await db.auth.getUser();
-
-  if (authError || !user) {
-    return NextResponse.json({ error: "Session invalide" }, { status: 401 });
-  }
-
+  const { user, supabase: db } = ctx;
   const userId = user.id;
 
   // --- Parse + validate body ---

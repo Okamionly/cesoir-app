@@ -16,7 +16,6 @@
 import { createClient as createBearerClient } from "@supabase/supabase-js";
 import { createClient as createSsrClient } from "@/lib/supabase/server";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
-import type { Database } from "@/lib/supabase-types";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
@@ -32,9 +31,24 @@ export class AuthError extends Error {
   }
 }
 
+/**
+ * AuthedContext carries a loosely-typed Supabase client on purpose.
+ *
+ * Callers dozens of routes deep use `.from("tableName")` and spread
+ * inserts without the full column shape (Wave-14 tables and the shape
+ * of a few legacy tables don't currently round-trip through the
+ * generator). Typing this as `SupabaseClient<Database>` would propagate
+ * `never` inference across every API route that consumes it. Routes
+ * that need a strict type can import `Database` directly from
+ * `@/lib/supabase-types` and cast on the specific call site.
+ *
+ * The server-side boundary we actually care about is validation (Zod)
+ * + RLS (Postgres), not TS strictness on the client proxy.
+ */
 export interface AuthedContext {
   user: User;
-  supabase: SupabaseClient<Database>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: SupabaseClient<any>;
 }
 
 /**
@@ -48,7 +62,7 @@ export async function requireUserBearer(request: Request): Promise<AuthedContext
   }
   const token = authHeader.slice(7);
 
-  const supabase = createBearerClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  const supabase = createBearerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     global: { headers: { Authorization: `Bearer ${token}` } },
     auth: { persistSession: false, autoRefreshToken: false },
   });
@@ -71,19 +85,34 @@ export async function requireUserSsr(): Promise<AuthedContext> {
   if (error || !data?.user) {
     throw new AuthError("Session invalide", 401, "invalid_session");
   }
-  return { user: data.user, supabase: supabase as unknown as SupabaseClient<Database> };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return { user: data.user, supabase: supabase as unknown as SupabaseClient<any> };
 }
 
 /**
  * Default `requireUser`. Tries Bearer first (API canonical), falls back to SSR
- * cookies if Bearer header is absent. Throws `AuthError` if neither works.
+ * cookies if the request carries a Supabase session cookie. Throws `AuthError`
+ * if neither works.
  *
- * Use this in API routes that don't care which pattern the client uses.
+ * Cookie sniffing avoids hitting `cookies()` in contexts that aren't request
+ * scopes (e.g. unit tests), which would otherwise throw a Next.js dynamic-API
+ * error the moment we enter the SSR branch with no auth header at all.
  */
 export async function requireUser(request: Request): Promise<AuthedContext> {
   const authHeader = request.headers.get("authorization");
   if (authHeader?.startsWith("Bearer ")) {
     return requireUserBearer(request);
   }
+
+  // Fall back to SSR only if the client actually sent a Supabase cookie. The
+  // cookie name uses the shared `sb-` prefix (@supabase/ssr). If no such
+  // cookie is present, we treat the request as unauthenticated without
+  // touching `cookies()` — avoids "called outside a request scope" in tests.
+  const cookieHeader = request.headers.get("cookie") ?? "";
+  const hasSupabaseCookie = /(?:^|;\s*)sb-[\w-]+-auth-token/i.test(cookieHeader);
+  if (!hasSupabaseCookie) {
+    throw new AuthError("Non authentifie", 401, "missing_auth");
+  }
+
   return requireUserSsr();
 }

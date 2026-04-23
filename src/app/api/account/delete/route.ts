@@ -2,12 +2,13 @@ import { createClient as createAnonClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
+import { requireUser, AuthError } from "@/lib/api/auth";
 
 /**
  * POST /api/account/delete
  *
  * Deletes the user's profile + avatars + auth.users entry.
- * Requires Bearer token in Authorization header.
+ * Auth via unified `requireUser()` (Bearer first, SSR cookie fallback).
  *
  * C2 — DELETE policies on profiles + storage.objects added in
  * migration 003_security_hardening (2026-04-19). Before that migration
@@ -22,39 +23,28 @@ import { logger } from "@/lib/logger";
  */
 export async function POST(request: Request) {
   try {
-    const authHeader = request.headers.get("authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return NextResponse.json({ error: "Non authentifie" }, { status: 401 });
+    // --- Auth (unified helper, Wave 15) ---
+    let ctx;
+    try {
+      ctx = await requireUser(request);
+    } catch (err) {
+      if (err instanceof AuthError) {
+        return NextResponse.json({ error: err.message }, { status: err.status });
+      }
+      throw err;
     }
-
-    const token = authHeader.split(" ")[1];
+    const { user, supabase: userClient } = ctx;
+    const userId = user.id;
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    if (!supabaseUrl || !anonKey) {
+    if (!supabaseUrl) {
       return NextResponse.json(
         { error: "Server configuration error" },
         { status: 500 },
       );
     }
-
-    // Anon client with the user's token — used for profile + storage delete
-    // (constrained by RLS policies, only the user's own rows).
-    const userClient = createAnonClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: `Bearer ${token}` } },
-    });
-
-    const {
-      data: { user },
-      error: authError,
-    } = await userClient.auth.getUser();
-    if (authError || !user) {
-      return NextResponse.json({ error: "Session invalide" }, { status: 401 });
-    }
-
-    const userId = user.id;
 
     // Rate limit 1/hour per user — prevents accidental spam / double-click.
     // Placed AFTER auth so we key on userId (anonymous attackers are 401'd).

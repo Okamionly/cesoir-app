@@ -3,6 +3,7 @@ import { Outfit, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import ServiceWorkerRegister from "@/components/app/ServiceWorkerRegister";
 import WebVitalsReporter from "@/components/app/WebVitalsReporter";
+import AcquisitionTracker from "@/components/app/AcquisitionTracker";
 import { app } from "@/lib/design-tokens";
 
 const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
@@ -84,6 +85,7 @@ export default function RootLayout({
         </a>
         <ServiceWorkerRegister />
         <WebVitalsReporter />
+        <AcquisitionTracker />
         {children}
       </body>
     </html>

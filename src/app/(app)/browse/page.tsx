@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
-import { browseVariants, springs, micro, easings } from "@/lib/motion-design";
+import { browseVariants, springs, micro } from "@/lib/motion-design";
 import { Magnetic } from "@/components/motion/Magnetic";
 import { ModeKey, MODES } from "@/lib/modes";
 import type { Profile } from "@/lib/mock-profiles";
@@ -18,7 +18,6 @@ import type { MatchCandidate } from "@/lib/matching";
 import type { ReportReason } from "@/lib/supabase-types";
 import { IconHeart, IconX, IconStar } from "@/components/ui/Icons";
 import SwipeCard from "@/components/app/SwipeCard";
-import MotionImage from "@/components/motion/MotionImage";
 import ReportSheet from "@/components/app/ReportSheet";
 import NotificationPreview from "@/components/app/NotificationPreview";
 import MidnightReset from "@/components/app/MidnightReset";
@@ -32,6 +31,8 @@ import { useRoses } from "@/lib/useRoses";
 import { MONETIZATION_ENABLED } from "@/lib/featureFlags";
 import { app as appTokens } from "@/lib/design-tokens";
 import ModeSwitcher from "@/components/app/ModeSwitcher";
+import MatchCinematic from "@/components/app/MatchCinematic";
+import { trackFirstTime } from "@/lib/analytics";
 
 /** Map a MatchCandidate from the scoring pipeline to the Profile shape used by SwipeCard */
 function candidateToProfile(c: MatchCandidate): Profile {
@@ -97,6 +98,12 @@ export default function BrowsePage() {
 
   const handleAction = useCallback(async (action: "like" | "pass") => {
     if (card) {
+      // Wave 15 · CPO core-loop event #3
+      trackFirstTime("first_swipe", {
+        direction: action,
+        mode: currentMatch?.sharedModes[0] ?? card.mode ?? null,
+      });
+
       // Push to undo stack before advancing
       pushSwipe(card);
 
@@ -111,6 +118,11 @@ export default function BrowsePage() {
           setMatch(card);
           setMatchConvoId(result.conversationId ?? null);
           incrementMatch();
+          // Wave 15 · CPO core-loop event #4
+          trackFirstTime("first_match", {
+            mode: mode ?? null,
+            peer_id: card.id,
+          });
         }
       } else {
         haptics.light();
@@ -130,6 +142,11 @@ export default function BrowsePage() {
 
     playSound("match");
     haptics.match();
+    // Wave 15 · CPO core-loop event #3 (superlike counts as first swipe)
+    trackFirstTime("first_swipe", {
+      direction: "superlike",
+      mode: currentMatch?.sharedModes[0] ?? card.mode ?? null,
+    });
     pushSwipe(card);
     const mode = currentMatch?.sharedModes[0] ?? card.mode;
     const result = await superlike(card.id, mode);
@@ -139,6 +156,7 @@ export default function BrowsePage() {
       setMatch(card);
       setMatchConvoId(null);
       incrementMatch();
+      trackFirstTime("first_match", { mode: mode ?? null, peer_id: card.id });
     }
     setIdx(i => Math.min(i + 1, list.length));
     setInfo(false);
@@ -376,8 +394,19 @@ export default function BrowsePage() {
         />
       )}
 
-      {/* Match toast */}
-      {match && <MatchToast profile={match} conversationId={matchConvoId} onDismiss={() => { setMatch(null); setMatchConvoId(null); }} />}
+      {/* Match cinematic takeover — Wave 15 · CPO brief */}
+      <MatchCinematic
+        open={Boolean(match)}
+        peerId={match?.id ?? ""}
+        peerName={match?.name ?? ""}
+        peerPhoto={match?.photo ?? ""}
+        sharedMode={currentMatch?.sharedModes[0] ?? match?.mode ?? null}
+        conversationId={matchConvoId}
+        onDismiss={() => {
+          setMatch(null);
+          setMatchConvoId(null);
+        }}
+      />
 
       {/* Report sheet */}
       {card && (
@@ -521,80 +550,5 @@ function EmptyState({ onReset }: { onReset: () => void }) {
   );
 }
 
-function MatchToast({ profile, conversationId, onDismiss }: { profile: Profile; conversationId: string | null; onDismiss: () => void }) {
-  return (
-    <motion.div
-      role="alert" aria-live="assertive"
-      className="fixed bottom-24 left-4 right-4 z-50"
-      initial={{ y: 120, opacity: 0, scale: 0.92, filter: "blur(8px)" }}
-      animate={{ y: 0, opacity: 1, scale: 1, filter: "blur(0px)" }}
-      exit={{ y: 60, opacity: 0, scale: 0.95, transition: { duration: 0.25, ease: easings.dramatic } }}
-      transition={{ ...springs.cinematic, stiffness: 140, damping: 22 }}
-    >
-      {/* Outer glow halo — subtle gradient pulse */}
-      <motion.div
-        className="absolute -inset-1 rounded-3xl pointer-events-none"
-        aria-hidden="true"
-        style={{
-          background: `linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 40%, transparent), color-mix(in srgb, ${appTokens.rose} 30%, transparent), color-mix(in srgb, var(--color-accent-2) 40%, transparent))`,
-          filter: "blur(16px)",
-        }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: [0.3, 0.55, 0.3] }}
-        transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-      />
-      <div className="relative bg-bg border border-accent/20 rounded-2xl p-4 shadow-glow">
-        <div className="flex items-center gap-3">
-          <div className="flex -space-x-3">
-            <motion.div
-              className="w-12 h-12 rounded-full gradient-bg p-[2px] z-10"
-              initial={{ scale: 0, rotate: -90 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ ...springs.elastic, delay: 0.1 }}
-            >
-              <div className="w-full h-full rounded-full bg-bg flex items-center justify-center text-[14px] font-bold text-accent">Y</div>
-            </motion.div>
-            <MotionImage
-              src={profile.photo}
-              alt={profile.name}
-              width={48}
-              height={48}
-              className="w-12 h-12 rounded-full object-cover border-2 border-bg"
-              initial={{ scale: 0, rotate: 90 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ ...springs.elastic, delay: 0.2 }}
-            />
-          </div>
-          <motion.div
-            className="flex-1 min-w-0"
-            initial={{ opacity: 0, x: 12 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ ...springs.heavy, delay: 0.25 }}
-          >
-            <p className="text-[14px] font-bold text-text"><span className="gradient-text">Match !</span> {profile.name}</p>
-            <p className="text-[11px] text-text-muted">Vous etes dispos ce soir</p>
-          </motion.div>
-          <Magnetic strength={0.22} radius={50}>
-            {conversationId ? (
-              <Link
-                href={`/chat/${conversationId}`}
-                onClick={onDismiss}
-                className="gradient-bg text-white px-4 py-2 rounded-full text-[12px] font-bold inline-block"
-              >
-                Ecrire
-              </Link>
-            ) : (
-              <motion.button
-                onClick={onDismiss}
-                whileTap={micro.tapScale}
-                className="gradient-bg text-white px-4 py-2 rounded-full text-[12px] font-bold"
-              >
-                Ecrire
-              </motion.button>
-            )}
-          </Magnetic>
-        </div>
-      </div>
-    </motion.div>
-  );
-}
+// Wave 15 · CPO — MatchToast replaced by full-screen MatchCinematic.
+// See src/components/app/MatchCinematic.tsx.

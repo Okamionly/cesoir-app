@@ -34,12 +34,13 @@ export default function ModeSwitcher({ active, onChange }: ModeSwitcherProps) {
   const { latitude, longitude } = useGeolocation();
   const { profiles } = useProfiles(latitude ?? undefined, longitude ?? undefined);
   const activeCounts = useMemo(() => {
+    // Wave 15: 4 active modes only.
     const counts: Record<ModeKey | "all", number> = {
       all: profiles.length,
-      "solo-diner": 0, "plus-one": 0, tourist: 0, "night-owl": 0,
-      breakup: 0, "new-in-town": 0, langue: 0, "dog-date": 0,
-      seasonal: 0, "fit-date": 0, "foodie-quest": 0, "culture-club": 0,
-      "sober-tonight": 0, "gamer-night": 0,
+      "solo-diner": 0,
+      "plus-one": 0,
+      "night-owl": 0,
+      "foodie-quest": 0,
     };
     for (const p of profiles) {
       if (p.mode in counts) counts[p.mode] = (counts[p.mode] ?? 0) + 1;

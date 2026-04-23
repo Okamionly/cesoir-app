@@ -31,7 +31,8 @@ interface TrendingRow {
 
 type SortOption = "popular" | "closest" | "new";
 
-const FILTER_MODES: ModeKey[] = ["solo-diner", "night-owl", "gamer-night", "culture-club", "fit-date", "foodie-quest", "sober-tonight", "dog-date"];
+// Wave 15 PMF focus: 4 active modes only.
+const FILTER_MODES: ModeKey[] = ["solo-diner", "plus-one", "night-owl", "foodie-quest"];
 
 // --- Component ---
 

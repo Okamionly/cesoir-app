@@ -50,9 +50,28 @@ const publicPrefixes = ["/p/", "/invite/", "/api/", "/_next/", "/icons/"];
 
 const authRoutes = ["/login", "/register"];
 
+/**
+ * B2B venue dashboard — Wave 15 (2026-04-23).
+ * Email whitelist lives in NEXT_PUBLIC_VENUE_OWNERS (comma-separated).
+ * All /venues/* routes are blocked for everyone else (fallback → /login).
+ * Kept NEXT_PUBLIC_ on purpose: the middleware and the client nav both
+ * need to read it. Security is enforced in the DB via RLS on events
+ * (service_role-only writes) — this flag just hides the UI.
+ */
+const venueOwnerEmails = new Set(
+  (process.env.NEXT_PUBLIC_VENUE_OWNERS ?? "")
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean),
+);
+
 function isPublicPath(pathname: string): boolean {
   if (publicRoutes.includes(pathname)) return true;
   return publicPrefixes.some((prefix) => pathname.startsWith(prefix));
+}
+
+function isVenuePath(pathname: string): boolean {
+  return pathname === "/venues" || pathname.startsWith("/venues/");
 }
 
 export async function proxy(request: NextRequest) {
@@ -104,6 +123,7 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isPublic = isPublicPath(pathname);
   const isAuthRoute = authRoutes.some((r) => pathname.startsWith(r));
+  const isVenue = isVenuePath(pathname);
 
   // Anything not explicitly public is gated. Catches /safety, /notifications,
   // /achievements, /trust, /reviews, /soiree, /events, /rooms, /squad, etc.
@@ -112,6 +132,24 @@ export async function proxy(request: NextRequest) {
     url.pathname = "/login";
     url.searchParams.set("redirectTo", pathname);
     return NextResponse.redirect(url);
+  }
+
+  // /venues/* — B2B dashboard, gated on email whitelist. A logged-in user
+  // who isn't in the list is redirected to /browse rather than /login (they
+  // are authenticated, just not authorized).
+  if (isVenue) {
+    if (!user) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      url.searchParams.set("redirectTo", pathname);
+      return NextResponse.redirect(url);
+    }
+    const email = user.email?.toLowerCase() ?? "";
+    if (!email || !venueOwnerEmails.has(email)) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/browse";
+      return NextResponse.redirect(url);
+    }
   }
 
   if (isAuthRoute && user) {

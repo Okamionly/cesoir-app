@@ -9,7 +9,8 @@ import { springs, micro } from "@/lib/motion-design";
 // MODE-SPECIFIC CONVERSATION STARTERS
 // ─────────────────────────────────────────
 
-const MODE_STARTERS: Record<ModeKey, string[]> = {
+// Wave 15: broader type allows legacy mode slugs in historic chat threads.
+const MODE_STARTERS: Record<string, string[]> = {
   "solo-diner": [
     "Tu connais un bon resto dans le coin?",
     "Cuisine preferee ce soir?",
@@ -94,7 +95,7 @@ const DEFAULT_STARTERS = [
 // Per-mode suggestions for later in the conversation
 // ─────────────────────────────────────────
 
-const MODE_FOLLOWUPS: Record<ModeKey, string[]> = {
+const MODE_FOLLOWUPS: Record<string, string[]> = {
   "solo-diner": [
     "Tu preferes quel quartier?",
     "Budget resto ce soir?",

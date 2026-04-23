@@ -1,23 +1,20 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { stripe, isStripeConfigured } from "@/lib/stripe/server";
 import { checkRateLimit, rateLimitResponse } from "@/lib/rate-limit";
 import { stripePortalSchema, type StripePortalInput } from "@/lib/validation";
 import { logger } from "@/lib/logger";
 import { isMonetizationEnabledServer } from "@/lib/featureFlags";
+import { requireUser, AuthError } from "@/lib/api/auth";
 
 /**
  * POST /api/stripe/portal
- * Auth : Bearer <access_token>
+ * Auth : unified `requireUser` (Bearer or SSR cookie).
  * Body : { returnUrl?: string } (optional)
  *
  * Crée une Billing Portal Session Stripe et retourne l'URL. Permet à
  * l'utilisateur de gérer sa subscription (annuler, mettre à jour CB,
  * voir factures, etc.).
  */
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 
 function resolveBaseUrl(request: Request): string {
   const envUrl = process.env.NEXT_PUBLIC_APP_URL;
@@ -46,25 +43,17 @@ export async function POST(request: Request) {
     );
   }
 
-  // --- Auth ---
-  const authHeader = request.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+  // --- Auth (unified helper, Wave 15) ---
+  let ctx;
+  try {
+    ctx = await requireUser(request);
+  } catch (err) {
+    if (err instanceof AuthError) {
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
+    throw err;
   }
-  const token = authHeader.slice(7);
-
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    global: { headers: { Authorization: `Bearer ${token}` } },
-  });
-
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return NextResponse.json({ error: "Session invalide" }, { status: 401 });
-  }
+  const { user, supabase } = ctx;
 
   // Rate limit 10/min per user.
   const rl = await checkRateLimit(`stripe-portal:${user.id}`, 10, 60_000);

@@ -526,6 +526,9 @@ export default function SceneController() {
 // ═══════════════════════════════════════════════════════════════════
 
 // ──────────────────── Scene 0: INTRO + CTA (merged) ────────────────────
+// Wave 15 CEO refonte: the hero must read in <5s and make the promise
+// unambiguous. Headline, sub-hero, CTA, proof line — in that order,
+// each with a clear function.
 function SceneIntroCTA() {
   return (
     <motion.div
@@ -544,36 +547,60 @@ function SceneIntroCTA() {
         LCP hero — rendered SSR-paintable (no initial hidden state, no delay)
         so Chrome picks this as the stable LCP candidate under 2.5s.
         Keep exit animation for smooth scene morph; suppress entrance anim.
+
+        Wave 15: headline states the promise geographically and emotionally.
+        No ambiguity about WHERE (Montpellier) and WHAT (never alone tonight).
       */}
       <motion.h1
-        className="font-display text-[44px] sm:text-[64px] md:text-[80px] lg:text-[92px] font-black leading-[0.95] tracking-tight mb-10 sm:mb-12"
+        className="font-display text-[36px] sm:text-[52px] md:text-[68px] lg:text-[78px] font-black leading-[0.98] tracking-tight mb-5 sm:mb-6"
         initial={false}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
         transition={{ duration: 0.4, ease: easings.out }}
       >
-        Ce soir,
+        Personne ne dîne seul
         <br />
-        c&apos;est <span style={gradientText}>ton</span> soir.
+        ce soir à <span style={gradientText}>Montpellier</span>.
       </motion.h1>
+
+      {/* Sub-hero: concrete promise in 3 atomic beats */}
+      <motion.p
+        className="text-[15px] sm:text-[18px] md:text-[20px] font-bold text-white/85 mb-9 sm:mb-11 max-w-xl leading-snug"
+        initial={false}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -6 }}
+        transition={{ duration: 0.5, ease: easings.out }}
+      >
+        <span className="text-[#00FF88]">Gratuit.</span>{" "}
+        <span className="text-white/85">Près de chez toi.</span>{" "}
+        <span className="text-white">Pour de vrai.</span>
+      </motion.p>
 
       <motion.div
         initial={false}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: -10 }}
         transition={{ ...springs.cinematic }}
-        className="flex flex-col items-center gap-3"
+        className="flex flex-col items-center gap-4"
       >
         <MagneticCTA />
 
+        {/* Proof line — directly addresses the "c'est payant en fait?"
+            objection, with a link for the sceptical user. */}
         <motion.p
-          className="text-[11px] sm:text-[12px] text-white/45 uppercase tracking-[0.3em]"
+          className="text-[11px] sm:text-[12px] text-white/55 tracking-wide max-w-[340px] leading-relaxed"
           initial={false}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.5 }}
         >
-          Gratuit <span className="mx-2">·</span> 30 secondes
+          Pas de paywall. Jamais.{" "}
+          <Link
+            href="/why-free"
+            className="text-[#8B5CF6] hover:text-[#00FF88] font-semibold underline-offset-4 hover:underline transition-colors"
+          >
+            Comment gratuit ?
+          </Link>
         </motion.p>
       </motion.div>
     </motion.div>
@@ -650,7 +677,7 @@ function MagneticCTA() {
         whileTap={{ scale: 0.97 }}
         transition={springs.snap}
       >
-        Rejoindre
+        Je rejoins
         <motion.span
           animate={{ x: [0, 4, 0] }}
           transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}

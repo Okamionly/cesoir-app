@@ -1,4 +1,10 @@
 import type { ModeKey } from "./modes";
+import { isActiveMode } from "./modes";
+
+// Wave 15 PMF focus: DATE_IDEAS below were authored when 14 modes existed.
+// Legacy mode slugs (tourist, breakup, etc.) are still present in the `modes`
+// arrays for historical reference, but filtered out at read time so only
+// active 4 modes are exposed to filters. TODO WAVE-16: prune legacy slugs.
 
 // ─────────────────────────────────────────
 // Types
@@ -22,11 +28,17 @@ export interface DateIdea {
   title: string;
   category: DateCategory;
   emoji: string;
-  modes: ModeKey[];
+  /** Authored with legacy 14-mode vocabulary; filtered at read time. */
+  modes: string[];
   duration: string;
   priceRange: PriceRange;
   bestTime: BestTime;
   description: string;
+}
+
+/** Returns only the active ModeKey entries from a legacy modes array. */
+function activeModes(modes: string[]): ModeKey[] {
+  return modes.filter(isActiveMode);
 }
 
 // ─────────────────────────────────────────
@@ -685,9 +697,9 @@ export function getIdeasByCategory(category: DateCategory): DateIdea[] {
   return DATE_IDEAS.filter((idea) => idea.category === category);
 }
 
-/** Get ideas compatible with a specific mode */
+/** Get ideas compatible with a specific (active) mode */
 export function getIdeasByMode(mode: ModeKey): DateIdea[] {
-  return DATE_IDEAS.filter((idea) => idea.modes.includes(mode));
+  return DATE_IDEAS.filter((idea) => activeModes(idea.modes).includes(mode));
 }
 
 /** Get ideas within a price range */
@@ -716,7 +728,7 @@ export function getRandomIdea(
     pool = pool.filter((i) => order.indexOf(i.priceRange) <= maxIdx);
   }
   if (filters?.mode) {
-    pool = pool.filter((i) => i.modes.includes(filters.mode!));
+    pool = pool.filter((i) => activeModes(i.modes).includes(filters.mode!));
   }
 
   if (pool.length === 0) pool = [...DATE_IDEAS];
