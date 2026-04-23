@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { m, AnimatePresence, type Variants } from "motion/react";
@@ -36,6 +36,14 @@ function formatTime(iso: string): string {
 }
 
 export default function PlansPage() {
+  return (
+    <Suspense fallback={null}>
+      <PlansPageInner />
+    </Suspense>
+  );
+}
+
+function PlansPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const typeParam = searchParams?.get("type") as PlanType | null;
