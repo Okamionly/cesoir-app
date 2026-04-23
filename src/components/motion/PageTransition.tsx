@@ -8,15 +8,20 @@
  * `src/components/ui/PageTransition.tsx` re-exports this one to avoid
  * breaking the app layout import.
  *
- * Respects `useReducedMotion()` — renders children with no wrapper
- * when users prefer reduced motion.
- *
- * Uses the `easings.out` curve from the design system instead of the
- * string "easeOut" so the signature stays consistent with the rest of
- * `motion-design.ts` and is tweakable from one place.
+ * SSR/CSR hydration safety (2026-04-24):
+ * Both server and client render a plain `<div>` until `mounted` flips
+ * true after first useEffect tick. Then we upgrade to the animated
+ * `<m.div>` (or keep plain if the user prefers reduced motion).
+ * This pattern avoids:
+ *   - hydration mismatch (useReducedMotion returns null on SSR vs
+ *     true/false on CSR → different DOM shape → "server HTML didn't
+ *     match client" error near nearest visible text like "Carte hors-ligne")
+ *   - Maximum update depth caused by motion/react treating each render
+ *     as a new initial pass when the `initial` prop identity changes
  */
 
 import { m, useReducedMotion } from "motion/react";
+import { useEffect, useState } from "react";
 import { easings } from "@/lib/motion-design";
 
 export interface PageTransitionProps {
@@ -27,23 +32,24 @@ export interface PageTransitionProps {
 
 export function PageTransition({ children, disabled = false }: PageTransitionProps) {
   const reduced = useReducedMotion();
-  // Fix (2026-04-24): keep DOM shape identical SSR/CSR. Previously we
-  // conditionally returned <>{children}</> vs <m.div> based on
-  // useReducedMotion(), which returns null on the server and can return
-  // true on the client's first hydration. Different wrapper = hydration
-  // mismatch ("server rendered HTML didn't match the client", typically
-  // reported near the nearest text node like "Carte hors-ligne").
-  //
-  // Now we ALWAYS render the m.div wrapper — only the animation
-  // properties degrade when reduced motion is requested. motion/react
-  // handles `initial={false}` by skipping the enter animation entirely.
-  const animate = !reduced && !disabled;
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Pre-hydration and reduced-motion paths: plain <div> wrapper.
+  // Identical DOM shape across SSR + first-pass CSR = no mismatch.
+  if (!mounted || reduced || disabled) {
+    return <div>{children}</div>;
+  }
+
   return (
     <m.div
-      initial={animate ? { opacity: 0, y: 12 } : false}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={animate ? { opacity: 0, y: -8 } : { opacity: 1, y: 0 }}
-      transition={{ duration: animate ? 0.3 : 0, ease: easings.out }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.3, ease: easings.out }}
     >
       {children}
     </m.div>
