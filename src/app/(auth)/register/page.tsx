@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { m, AnimatePresence } from "motion/react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
@@ -47,7 +47,17 @@ const stepVariants = {
   },
 };
 
+// Wave 15.1 : wrap useSearchParams in Suspense to allow static prerender
+// (Next.js 16 requires Suspense around search-params readers for SSG).
 export default function RegisterPage() {
+  return (
+    <Suspense fallback={null}>
+      <RegisterPageInner />
+    </Suspense>
+  );
+}
+
+function RegisterPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { signUp, loading: authLoading, error: authError } = useAuth();
