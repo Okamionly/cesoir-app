@@ -37,7 +37,14 @@ const CSP = [
 
 const nextConfig: NextConfig = {
   images: {
+    // Remote hosts whitelisted for next/image optimization.
+    // Must match CSP `img-src` above. Every hostname referenced by seed
+    // avatars (migrations 013/014/015) or event flyers (migration 020)
+    // must be listed here or next/image throws an ErrorBoundary at
+    // render time (see 2026-04-24 bug report on /profile).
     remotePatterns: [
+      { protocol: "https", hostname: "images.unsplash.com" },
+      { protocol: "https", hostname: "ui-avatars.com" },
       { protocol: "https", hostname: "api.dicebear.com" },
       { protocol: "https", hostname: "ycyxmvzilzkusecpgvbi.supabase.co" },
       { protocol: "https", hostname: "randomuser.me" },
