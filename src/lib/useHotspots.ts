@@ -4,7 +4,7 @@ import { useCallback, useState } from "react";
 import { useAsyncResource } from "@/lib/hooks/useAsyncResource";
 import { supabase } from "@/lib/supabase";
 import {
-  PARIS_HOTSPOTS,
+  HOTSPOTS,
   countToLevel,
   type Hotspot,
   type HotspotLevel,
@@ -62,12 +62,12 @@ interface OnlineProfileLoc {
 }
 
 /**
- * `useHotspots` — returns real-time profile clusters around each Paris hotspot.
+ * `useHotspots` — returns real-time profile clusters around each active-city hotspot.
  *
  * Strategy:
  *   1. Query all online profiles with a (latitude, longitude) from Supabase.
- *   2. For each static PARIS_HOTSPOTS centroid, count how many profiles fall
- *      within `hotspot.radius` meters (haversine).
+ *   2. For each static HOTSPOTS centroid (active city), count how many
+ *      profiles fall within `hotspot.radius` meters (haversine).
  *   3. Derive a live `level` from the count; return 0 if no real data.
  *
  * Zero mock data. If the query fails or no profiles are online, every hotspot
@@ -100,7 +100,7 @@ export function useHotspots() {
         // Fall through — we'll return count=0 for every hotspot below.
       }
 
-      const live: LiveHotspot[] = PARIS_HOTSPOTS.map((h: Hotspot) => {
+      const live: LiveHotspot[] = HOTSPOTS.map((h: Hotspot) => {
         // Count profiles within this hotspot's radius.
         let count = 0;
         for (const p of onlineProfiles) {

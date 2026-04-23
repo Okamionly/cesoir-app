@@ -1,3 +1,10 @@
+/**
+ * Neighborhoods — compact vibe summary for map sidebar.
+ *
+ * Wave 14 pivot (2026-04-23): Montpellier. 8 quartiers with vibe scores
+ * and top modes, used by the map sidebar and compatibility surfaces.
+ */
+
 export interface Neighborhood {
   id: string;
   name: string;
@@ -9,85 +16,95 @@ export interface Neighborhood {
   safetyScore: number; // 1-5
 }
 
-export const PARIS_NEIGHBORHOODS: Neighborhood[] = [
+export const MONTPELLIER_NEIGHBORHOODS: Neighborhood[] = [
   {
     id: "1",
-    name: "Le Marais",
-    vibe: "Branche & Eclectique",
+    name: "Écusson",
+    vibe: "Historique & Animé",
     vibeScore: 92,
     topModes: ["Night Owl", "Culture Club"],
-    description: "Le coeur battant de Paris la nuit",
+    description: "Le centre historique pavé qui ne dort pas",
     bestTime: "20h-2h",
     safetyScore: 4,
   },
   {
     id: "2",
-    name: "Bastille",
-    vibe: "Festif & Populaire",
+    name: "Comédie",
+    vibe: "Central & Café",
     vibeScore: 85,
-    topModes: ["Solo Diner", "Night Owl"],
-    description: "Restos et bars pour tous les gouts",
-    bestTime: "19h-1h",
-    safetyScore: 4,
-  },
-  {
-    id: "3",
-    name: "Montmartre",
-    vibe: "Romantique & Artistique",
-    vibeScore: 88,
-    topModes: ["Tourist Tonight", "Culture Club"],
-    description: "Vue imprenable et artistes de rue",
-    bestTime: "18h-23h",
-    safetyScore: 3,
-  },
-  {
-    id: "4",
-    name: "Oberkampf",
-    vibe: "Underground & Tendance",
-    vibeScore: 90,
-    topModes: ["Night Owl", "Gamer Night"],
-    description: "La scene alternative parisienne",
-    bestTime: "21h-3h",
-    safetyScore: 3,
-  },
-  {
-    id: "5",
-    name: "Saint-Germain",
-    vibe: "Chic & Intellectuel",
-    vibeScore: 78,
-    topModes: ["Sober Tonight", "Solo Diner"],
-    description: "Cafes litteraires et jazz clubs",
+    topModes: ["Plus-One", "Solo Diner"],
+    description: "La place centrale, rendez-vous de toute la ville",
     bestTime: "18h-23h",
     safetyScore: 5,
   },
   {
+    id: "3",
+    name: "Antigone",
+    vibe: "Architectural & Moderne",
+    vibeScore: 76,
+    topModes: ["Culture Club", "Sober Tonight"],
+    description: "Le quartier néo-classique de Bofill",
+    bestTime: "17h-22h",
+    safetyScore: 5,
+  },
+  {
+    id: "4",
+    name: "Port Marianne",
+    vibe: "Rooftops & Jeune",
+    vibeScore: 88,
+    topModes: ["Night Owl", "Plus-One"],
+    description: "Rooftops, bassins et vie nocturne moderne",
+    bestTime: "19h-1h",
+    safetyScore: 5,
+  },
+  {
+    id: "5",
+    name: "Beaux-Arts",
+    vibe: "Arty & Tendance",
+    vibeScore: 87,
+    topModes: ["Culture Club", "Langue Exchange"],
+    description: "Galeries, ateliers, soirées vernissage",
+    bestTime: "19h-23h",
+    safetyScore: 4,
+  },
+  {
     id: "6",
-    name: "Belleville",
-    vibe: "Multiculturel & Foodie",
-    vibeScore: 82,
-    topModes: ["Foodie Quest", "Langue Exchange"],
-    description: "Street food du monde entier",
-    bestTime: "19h-0h",
+    name: "Figuerolles",
+    vibe: "Bohème & Street Art",
+    vibeScore: 89,
+    topModes: ["Night Owl", "Foodie Quest"],
+    description: "Fresques murales, bars alternatifs tardifs",
+    bestTime: "21h-3h",
     safetyScore: 3,
   },
   {
     id: "7",
-    name: "Canal Saint-Martin",
-    vibe: "Decontracte & Nature",
-    vibeScore: 80,
-    topModes: ["Dog Date", "Fit Date"],
-    description: "Pique-niques et balades au fil de l'eau",
-    bestTime: "17h-22h",
-    safetyScore: 4,
+    name: "Arceaux",
+    vibe: "Marché & Familial",
+    vibeScore: 78,
+    topModes: ["Foodie Quest", "Dog Date"],
+    description: "Marché bio, aqueduc, terrasses ensoleillées",
+    bestTime: "10h-20h",
+    safetyScore: 5,
   },
   {
     id: "8",
-    name: "Pigalle",
-    vibe: "Rock & Ludique",
+    name: "Boutonnet",
+    vibe: "Étudiant & Rock",
     vibeScore: 86,
     topModes: ["Gamer Night", "Night Owl"],
-    description: "Bars a jeux et salles de concert",
-    bestTime: "20h-2h",
-    safetyScore: 3,
+    description: "Bars étudiants, Rockstore, sorties jeudi soir",
+    bestTime: "21h-3h",
+    safetyScore: 4,
   },
 ];
+
+/**
+ * Back-compat alias — `PARIS_NEIGHBORHOODS` was the old canonical export
+ * until the Wave 14 Montpellier pivot. Callers should migrate to
+ * `MONTPELLIER_NEIGHBORHOODS` or the generic `NEIGHBORHOODS` below.
+ */
+export const PARIS_NEIGHBORHOODS = MONTPELLIER_NEIGHBORHOODS;
+
+/** Canonical export — the active city's neighborhoods. */
+export const NEIGHBORHOODS = MONTPELLIER_NEIGHBORHOODS;

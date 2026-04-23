@@ -67,7 +67,7 @@ export default function TrendingPage() {
           id: `live-${i}-${row.venue_name}`,
           name: row.venue_name,
           type: "Lieu",
-          neighborhood: "Paris",
+          neighborhood: "Montpellier",
           distance: 1, // No geo on view; placeholder so existing UI keeps working.
           people: row.unique_visitors,
           modes: cleanModes.length > 0 ? cleanModes : ["solo-diner"],

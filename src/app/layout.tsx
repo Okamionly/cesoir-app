@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     template: "%s | CeSoir",
   },
   description: "L'app qui connecte les gens seuls ce soir. 14 modes, matching en temps reel, gratuit.",
-  keywords: "rencontre, sortie, ce soir, dating, plan, soiree, Paris",
+  keywords: "rencontre, sortie, ce soir, dating, plan, soiree, Montpellier",
   metadataBase: new URL("https://cesoir-app.vercel.app"),
   alternates: { canonical: "/" },
   // images is intentionally omitted here — Next.js auto-wires

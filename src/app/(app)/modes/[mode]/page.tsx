@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useState, useCallback } from "react";
+import { use, useMemo, useState, useCallback, useSyncExternalStore } from "react";
 import { m } from "motion/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -8,13 +8,31 @@ import Image from "next/image";
 import { MODES, type ModeKey } from "@/lib/modes";
 import { VENUES } from "@/lib/venues";
 import { useProfiles } from "@/lib/useProfiles";
+import { useEvents } from "@/lib/useEvents";
+import { filterEventsByMode } from "@/lib/eventModeMapping";
+import { EVENT_CATEGORY_LABELS } from "@/lib/events-types";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { springs, ambient } from "@/lib/motion-design";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { Magnetic } from "@/components/motion/Magnetic";
 import { RackFocus } from "@/components/motion/RackFocus";
-import { ArrowLeft, ChevronRight as LucideChevronRight, Star } from "@/components/ui/lucide";
+import { ArrowLeft, Calendar, ChevronRight as LucideChevronRight, Star, Zap } from "@/components/ui/lucide";
+
+// ─────────────────────────────────────────
+// External store — wall-clock ticker (react-hooks/purity-safe)
+// ─────────────────────────────────────────
+
+function subscribeNowTick(callback: () => void): () => void {
+  const id = window.setInterval(callback, 5 * 60_000);
+  return () => window.clearInterval(id);
+}
+function getNowMs(): number {
+  return Date.now();
+}
+function getServerNowMs(): number {
+  return 0;
+}
 
 // ─────────────────────────────────────────
 // Sub-components
@@ -49,26 +67,11 @@ export default function ModeDetailPage({
   const [activating, setActivating] = useState(false);
   const [activated, setActivated] = useState(false);
 
-  // Resolve mode data
+  // Resolve mode data (key may be invalid — we still call all hooks below
+  // first so the hook order stays stable across renders, then short-circuit
+  // at render time if the mode doesn't resolve).
   const modeKey = modeSlug as ModeKey;
   const modeData = MODES[modeKey];
-
-  // If mode doesn't exist, show 404-like state
-  if (!modeData) {
-    return (
-      <div className="min-h-screen bg-bg flex flex-col items-center justify-center px-6">
-        <span className="text-5xl mb-4">🤷</span>
-        <h1 className="text-xl font-bold mb-2">Mode introuvable</h1>
-        <p className="text-sm text-text-muted mb-6">Ce mode n&apos;existe pas encore.</p>
-        <Link href="/modes" className="text-sm text-accent font-semibold">
-          Retour aux modes
-        </Link>
-      </div>
-    );
-  }
-
-  // Filter venues compatible with this mode
-  const modeVenues = VENUES.filter((v) => v.compatible_modes.includes(modeKey)).slice(0, 3);
 
   // Real profiles for this mode — powers the count and avatar preview.
   const { latitude, longitude } = useGeolocation();
@@ -77,10 +80,24 @@ export default function ModeDetailPage({
     longitude ?? undefined,
     modeKey,
   );
-  const activeCount = modeProfiles.length;
 
-  // Avatar previews (first 3 profiles from this mode)
-  const avatarPreviews = modeProfiles.slice(0, 3);
+  // Mode-compatible Montpellier events (U4 — Wave 14)
+  // Use category filtering via `filterEventsByMode` so each mode surfaces
+  // the right vibe (techno for night-owl, live for culture-club, etc.).
+  // Wall-clock via useSyncExternalStore keeps render pure and ticks every 5m.
+  const { events: allEvents } = useEvents({ when: "all", category: null });
+  const nowMs = useSyncExternalStore(subscribeNowTick, getNowMs, getServerNowMs);
+  const compatibleEvents = useMemo(() => {
+    if (!modeData || nowMs === 0) return [];
+    const byMode = filterEventsByMode(allEvents, modeKey);
+    // Show only events <48h away so "compatibles ce soir" isn't stale.
+    return byMode
+      .filter((ev) => {
+        const t = new Date(ev.startAt).getTime();
+        return !Number.isNaN(t) && t >= nowMs && t <= nowMs + 48 * 60 * 60 * 1000;
+      })
+      .slice(0, 5);
+  }, [allEvents, modeKey, modeData, nowMs]);
 
   // Activate mode handler
   const handleActivate = useCallback(async () => {
@@ -102,6 +119,25 @@ export default function ModeDetailPage({
       router.push(`/browse?mode=${modeKey}`);
     }
   }, [user, modeKey, router]);
+
+  // If mode doesn't exist, show 404-like state (all hooks above have run).
+  if (!modeData) {
+    return (
+      <div className="min-h-screen bg-bg flex flex-col items-center justify-center px-6">
+        <span className="text-5xl mb-4">🤷</span>
+        <h1 className="text-xl font-bold mb-2">Mode introuvable</h1>
+        <p className="text-sm text-text-muted mb-6">Ce mode n&apos;existe pas encore.</p>
+        <Link href="/modes" className="text-sm text-accent font-semibold">
+          Retour aux modes
+        </Link>
+      </div>
+    );
+  }
+
+  // Filter venues compatible with this mode (post-guard, modeKey is valid).
+  const modeVenues = VENUES.filter((v) => v.compatible_modes.includes(modeKey)).slice(0, 3);
+  const activeCount = modeProfiles.length;
+  const avatarPreviews = modeProfiles.slice(0, 3);
 
   // Steps data
   const steps = [
@@ -273,58 +309,104 @@ export default function ModeDetailPage({
         </m.div>
       </section>
 
-      {/* ─── GOING TONIGHT ─── */}
-      <section className="px-5 py-2" aria-labelledby="going-tonight-heading">
-        <m.h2
-          id="going-tonight-heading"
-          className="text-[15px] font-bold mb-3"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.45 }}
-        >
-          Going Tonight
-        </m.h2>
-
-        <div className="space-y-2">
-          {[
-            { title: `${modeData.name} Meetup`, time: "20h30", venue: "Le Comptoir", attendees: Math.max(4, activeCount % 12) },
-            { title: `Soiree ${modeData.tags[0] ?? modeData.name}`, time: "21h00", venue: "Cafe de Flore", attendees: Math.max(3, (activeCount % 8) + 2) },
-          ].map((event, i) => (
-            <m.div
-              key={i}
-              className="flex items-center gap-3 bg-bg-card border border-border rounded-2xl p-3.5"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 + i * 0.1, ...springs.heavy }}
+      {/* ─── EVENTS COMPATIBLES CE SOIR (U4 Wave 14) ─── */}
+      {compatibleEvents.length > 0 && (
+        <section className="px-5 py-2" aria-labelledby="compatible-events-heading">
+          <div className="flex items-center justify-between mb-3">
+            <m.h2
+              id="compatible-events-heading"
+              className="text-[15px] font-bold inline-flex items-center gap-1.5"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.45 }}
             >
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-base"
-                style={{ background: `${modeData.color}12` }}
-              >
-                {modeData.icon}
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-[13px] font-bold truncate">{event.title}</h3>
-                <p className="text-[11px] text-text-muted">{event.venue} &middot; {event.time}</p>
-              </div>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <div className="flex -space-x-1.5">
-                  {Array.from({ length: Math.min(3, event.attendees) }).map((_, j) => (
+              <Zap size={14} strokeWidth={2} style={{ color: modeData.color }} aria-hidden="true" />
+              Events compatibles ce soir
+            </m.h2>
+            <Link
+              href="/events"
+              className="text-[11px] font-semibold text-accent tap-target"
+            >
+              Tout voir
+            </Link>
+          </div>
+
+          <div className="space-y-2">
+            {compatibleEvents.map((event, i) => {
+              const d = new Date(event.startAt);
+              const timeLabel = Number.isNaN(d.getTime())
+                ? ""
+                : d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+              return (
+                <m.div
+                  key={event.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 + i * 0.1, ...springs.heavy }}
+                >
+                  <Link
+                    href={`/events/${event.id}`}
+                    className="flex items-center gap-3 bg-bg-card border border-border rounded-2xl p-3.5 hover:border-accent/30 transition-colors tap-target"
+                    aria-label={`${event.title} — ${timeLabel} ${event.venue.name}`}
+                  >
                     <div
-                      key={j}
-                      className="w-5 h-5 rounded-full border border-bg"
-                      style={{ background: `${modeData.color}${25 + j * 15}` }}
+                      className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-base overflow-hidden relative"
+                      style={{ background: `${modeData.color}12` }}
+                    >
+                      {event.flyerUrl ? (
+                        <Image
+                          src={event.flyerUrl}
+                          alt=""
+                          fill
+                          sizes="40px"
+                          style={{ objectFit: "cover" }}
+                          unoptimized
+                        />
+                      ) : (
+                        <Calendar
+                          size={16}
+                          strokeWidth={2}
+                          style={{ color: modeData.color }}
+                          aria-hidden="true"
+                        />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-[13px] font-bold truncate">{event.title}</h3>
+                      <p className="text-[11px] text-text-muted">
+                        {event.venue.name}
+                        {timeLabel ? ` · ${timeLabel}` : ""}
+                      </p>
+                      {event.categories.length > 0 && (
+                        <div className="flex items-center gap-1 mt-1 flex-wrap">
+                          {event.categories.slice(0, 2).map((cat) => (
+                            <span
+                              key={cat}
+                              className="px-1.5 py-0.5 rounded-full text-[9px] font-semibold uppercase"
+                              style={{
+                                background: `${modeData.color}18`,
+                                color: modeData.color,
+                              }}
+                            >
+                              {EVENT_CATEGORY_LABELS[cat] ?? cat}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <LucideChevronRight
+                      size={14}
+                      strokeWidth={2}
+                      className="text-text-muted shrink-0"
+                      aria-hidden="true"
                     />
-                  ))}
-                </div>
-                <span className="text-[10px] font-semibold" style={{ color: modeData.color }}>
-                  {event.attendees}
-                </span>
-              </div>
-            </m.div>
-          ))}
-        </div>
-      </section>
+                  </Link>
+                </m.div>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* ─── COMMENT CA MARCHE ─── */}
       <section className="px-5 py-2" aria-labelledby="how-it-works-heading">

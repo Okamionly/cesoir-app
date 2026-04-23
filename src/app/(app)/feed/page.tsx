@@ -17,6 +17,7 @@ import { useAccessibility } from "@/components/ui/ReducedMotion";
 import { LiveTicker } from "@/components/feed/LiveTicker";
 import { NewItemsBanner } from "@/components/feed/NewItemsBanner";
 import { ReactionBar } from "@/components/feed/ReactionBar";
+import EventsWidget from "@/components/feed/EventsWidget";
 import {
   FilterBar,
   isFeedFilter,
@@ -199,6 +200,7 @@ export default function FeedPage() {
 
   const content = (
     <>
+      <EventsWidget />
       <LiveTicker onRefresh={handleRefresh} refreshing={refreshing} />
       <FilterBar value={filter} onChange={handleFilterChange} />
 

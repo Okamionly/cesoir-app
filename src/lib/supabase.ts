@@ -27,6 +27,12 @@ export type {
   DbUserSettings,
   DbAvailability,
   DbMatch,
+  DbEvent,
+  DbEventWithCounts,
+  DbEventRsvp,
+  EventCategory,
+  EventSource,
+  RsvpStatus,
 } from "./supabase-types";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

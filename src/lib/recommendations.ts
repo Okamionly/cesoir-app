@@ -413,16 +413,16 @@ function getRecommendedEvents(prefs: UserPreferences): RecommendedEvent[] {
 // --- Recommended Venues ---
 
 const VENUE_DATA: Omit<RecommendedVenue, "reason" | "reasonIcon">[] = [
-  { id: "v1", name: "Le Bouillon Chartier", neighborhood: "Le Marais", vibe: "Classique parisien", photo: "", rating: 4.5 },
-  { id: "v2", name: "Pink Mamma", neighborhood: "Oberkampf", vibe: "Italien branché", photo: "", rating: 4.3 },
-  { id: "v3", name: "Comptoir de la Gaite", neighborhood: "Montparnasse", vibe: "Bistrot cozy", photo: "", rating: 4.2 },
-  { id: "v4", name: "Le Perchoir", neighborhood: "Bastille", vibe: "Rooftop & cocktails", photo: "", rating: 4.6 },
-  { id: "v5", name: "Chez Janou", neighborhood: "Le Marais", vibe: "Provencal & mousse choco", photo: "", rating: 4.4 },
-  { id: "v6", name: "Au Passage", neighborhood: "Oberkampf", vibe: "Bar a vins naturels", photo: "", rating: 4.3 },
-  { id: "v7", name: "Le Petit Cler", neighborhood: "Saint-Germain", vibe: "Terrasse chic", photo: "", rating: 4.1 },
-  { id: "v8", name: "Holybelly", neighborhood: "Canal Saint-Martin", vibe: "Brunch & cafe", photo: "", rating: 4.5 },
-  { id: "v9", name: "La Bellevilloise", neighborhood: "Belleville", vibe: "Concerts & rooftop", photo: "", rating: 4.4 },
-  { id: "v10", name: "Le Mansart", neighborhood: "Pigalle", vibe: "Bar rock & jeux", photo: "", rating: 4.2 },
+  { id: "v1", name: "Le Pastis", neighborhood: "Écusson", vibe: "Méridional créatif", photo: "", rating: 4.4 },
+  { id: "v2", name: "Rooftop Belaroïa", neighborhood: "Port Marianne", vibe: "Rooftop & DJ", photo: "", rating: 4.6 },
+  { id: "v3", name: "La Pleine Lune", neighborhood: "Figuerolles", vibe: "Bar à concerts underground", photo: "", rating: 4.5 },
+  { id: "v4", name: "Le Rockstore", neighborhood: "Boutonnet", vibe: "Club rock mythique", photo: "", rating: 4.5 },
+  { id: "v5", name: "Tamarillos", neighborhood: "Comédie", vibe: "Gastronomie végétale", photo: "", rating: 4.6 },
+  { id: "v6", name: "Halle Tropisme", neighborhood: "Beaux-Arts", vibe: "Friche artistique", photo: "", rating: 4.6 },
+  { id: "v7", name: "Le Petit Jardin", neighborhood: "Beaux-Arts", vibe: "Terrasse arborée", photo: "", rating: 4.5 },
+  { id: "v8", name: "Café de l'Aqueduc", neighborhood: "Arceaux", vibe: "Terrasse face aux arches", photo: "", rating: 4.2 },
+  { id: "v9", name: "Insensé", neighborhood: "Antigone", vibe: "Bistronomie sous arcades", photo: "", rating: 4.5 },
+  { id: "v10", name: "Le Cherry Bomb", neighborhood: "Beaux-Arts", vibe: "Rock indé & bonne bière", photo: "", rating: 4.4 },
 ];
 
 function getRecommendedVenues(prefs: UserPreferences): RecommendedVenue[] {
@@ -563,7 +563,7 @@ export function getSmartNotifications(prefs: UserPreferences): SmartNotification
 
   // 5. Trending activity
   if (hour >= 20 && hour <= 23) {
-    const zone = prefs.zones[0] ?? "Paris";
+    const zone = prefs.zones[0] ?? "Montpellier";
     notifications.push({
       id: "notif-trending",
       type: "trending",

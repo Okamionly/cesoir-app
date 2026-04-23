@@ -36,7 +36,7 @@ export default function ShareProfilePage() {
   const [profileData, setProfileData] = useState<ShareCardData>({
     name: "Youssef",
     age: 28,
-    city: "Paris",
+    city: "Montpellier",
     avatarUrl: null,
     mode: "Solo Diner",
     stats: { meetups: 12, karma: 4.8, streak: 7 },

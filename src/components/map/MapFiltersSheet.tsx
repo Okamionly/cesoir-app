@@ -9,6 +9,8 @@ import { MODE_COLORS } from "@/lib/mode-colors";
 export interface MapFilters {
   modes: ModeKey[]; // empty = all
   showEvents: boolean;
+  /** Show profile pins on the map. (U4: events/profils dual-toggle Wave 14.) */
+  showProfiles: boolean;
   showFlash: boolean;
   showHeatmap: boolean;
   showOnlineOnly: boolean;
@@ -20,6 +22,7 @@ export interface MapFilters {
 export const DEFAULT_FILTERS: MapFilters = {
   modes: [],
   showEvents: true,
+  showProfiles: true,
   showFlash: true,
   showHeatmap: false,
   showOnlineOnly: false,
@@ -125,7 +128,8 @@ export default function MapFiltersSheet({ open, onClose, filters, onChange }: Ma
               {/* Toggles */}
               <p className="text-[10px] uppercase tracking-wider text-text-muted font-semibold mb-2">Affichage</p>
               <div className="space-y-2 mb-5">
-                <ToggleRow label="Events ce soir" checked={filters.showEvents} onChange={(v) => onChange({ ...filters, showEvents: v })} />
+                <ToggleRow label="Voir les soirees" checked={filters.showEvents} onChange={(v) => onChange({ ...filters, showEvents: v })} />
+                <ToggleRow label="Voir les profils" checked={filters.showProfiles} onChange={(v) => onChange({ ...filters, showProfiles: v })} />
                 <ToggleRow label="Flash plans" checked={filters.showFlash} onChange={(v) => onChange({ ...filters, showFlash: v })} />
                 <ToggleRow label="Zones chaudes (heatmap)" checked={filters.showHeatmap} onChange={(v) => onChange({ ...filters, showHeatmap: v })} />
                 <ToggleRow label="Profils en ligne uniquement" checked={filters.showOnlineOnly} onChange={(v) => onChange({ ...filters, showOnlineOnly: v })} />

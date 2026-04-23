@@ -41,7 +41,7 @@ export default function EditProfilePage() {
   const [bio, setBio] = useState("");
   const [gender, setGender] = useState("");
   const [lookingFor, setLookingFor] = useState("");
-  const [city, setCity] = useState("Paris");
+  const [city, setCity] = useState("Montpellier");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -56,7 +56,7 @@ export default function EditProfilePage() {
       setBio(profile.bio || "");
       setGender(profile.gender || "");
       setLookingFor(profile.looking_for || "");
-      setCity(profile.city || "Paris");
+      setCity(profile.city || "Montpellier");
     }
   }, [profile]);
 
@@ -204,7 +204,7 @@ export default function EditProfilePage() {
               type="text"
               value={city}
               onChange={(e) => setCity(e.target.value)}
-              placeholder="Paris"
+              placeholder="Montpellier"
             />
           </FormField>
         </m.div>

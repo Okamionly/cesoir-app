@@ -13,7 +13,7 @@ interface MapSearchBarProps {
 
 /**
  * Top-anchored glassmorphic search pill. Expands on focus with a suggestion
- * list powered by the `venues.ts` mock database (40 Paris venues).
+ * list powered by the `venues.ts` mock database (40 venues, active city).
  * Submitting a suggestion recenters the map via `onSelect`.
  */
 export default function MapSearchBar({ onSelect, onOpenFilters }: MapSearchBarProps) {

@@ -25,6 +25,7 @@ import { LocationShareButton, LocationCard } from "@/components/chat/LocationSha
 import { IceBreakerButton, GameCard, type GameData } from "@/components/chat/IceBreakerGame";
 import { PlaylistShareButton, SharedPlaylist, MusicCard, EMPTY_SHARED_PLAYLIST, type SongData } from "@/components/chat/PlaylistShare";
 import { PlusMenu } from "@/components/chat/PlusMenu";
+import EventInviteButton from "@/components/chat/EventInviteButton";
 import VibeCheck, { VibeCheckButton } from "@/components/chat/VibeCheck";
 import AIWingman from "@/components/chat/AIWingman";
 import QuickReact from "@/components/chat/QuickReact";
@@ -885,6 +886,24 @@ export default function ConversationPage({
             <LocationShareButton onShare={handleLocationShare} />
             <IceBreakerButton onStartGame={handleStartGame} />
             <PlaylistShareButton onAddSong={handleAddSong} />
+            <EventInviteButton
+              onInvite={(ev) => {
+                // Compose a concise invite message. Uses the French short
+                // weekday + HHhMM format so the recipient instantly sees
+                // when / where. Safe to send as plain text — no schema
+                // migration needed for this first iteration.
+                const d = new Date(ev.startAt);
+                const day = d
+                  .toLocaleDateString("fr-FR", { weekday: "short" })
+                  .replace(".", "");
+                const time = d.toLocaleTimeString("fr-FR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
+                const msg = `Je vais a [${ev.title} @ ${ev.venue.name}] ${day} ${time}. Tu viens ?`;
+                void sendMessage(msg);
+              }}
+            />
             {/* Shared playlist full view button */}
             <button
               type="button"

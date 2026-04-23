@@ -132,7 +132,7 @@ export const DATE_IDEAS: DateIdea[] = [
     priceRange: "€€",
     bestTime: "soiree",
     description:
-      "Plat du jour, vin naturel, ambiance parisienne. Le classique indémodable pour bien manger.",
+      "Plat du jour, vin naturel, ambiance méridionale. Le classique indémodable pour bien manger.",
   },
   {
     id: "d-07",
@@ -182,7 +182,7 @@ export const DATE_IDEAS: DateIdea[] = [
     priceRange: "€€€",
     bestTime: "aperitif",
     description:
-      "Vue sur les toits, sunset, musique chill. Le rooftop parisien pour une soiree en hauteur.",
+      "Vue sur les toits, sunset, musique chill. Le rooftop montpelliérain pour une soiree en hauteur.",
   },
   {
     id: "v-03",
@@ -464,11 +464,11 @@ export const DATE_IDEAS: DateIdea[] = [
     priceRange: "gratuit",
     bestTime: "aperitif",
     description:
-      "Ecluses, ponts metalliques, reflets dans l'eau. La balade la plus photogenique de Paris.",
+      "Berges du Lez, héron cendré, passerelle Juvénal. La balade la plus photogénique de Montpellier.",
   },
   {
     id: "b-02",
-    title: "Montmartre de nuit",
+    title: "Peyrou de nuit",
     category: "balade",
     emoji: "🌙",
     modes: ["night-owl", "tourist", "plus-one", "breakup"],
@@ -476,19 +476,19 @@ export const DATE_IDEAS: DateIdea[] = [
     priceRange: "gratuit",
     bestTime: "nuit",
     description:
-      "Sacre-Coeur illumine, ruelles vides, vue sur tout Paris. Le romantisme brut.",
+      "Arc de Triomphe illuminé, promenade du Peyrou déserte, vue sur l'aqueduc. Le romantisme brut.",
   },
   {
     id: "b-03",
-    title: "Berges de Seine",
+    title: "Berges du Lez",
     category: "balade",
-    emoji: "🗼",
+    emoji: "🌿",
     modes: ["dog-date", "fit-date", "tourist", "sober-tonight"],
     duration: "1h",
     priceRange: "gratuit",
     bestTime: "aperitif",
     description:
-      "De Notre-Dame a la Tour Eiffel en longeant la Seine. Bateaux-mouches et bouquinistes.",
+      "De Port Marianne au Lez en longeant les berges. Parcours piéton ombragé et terrasses.",
   },
   {
     id: "b-04",
@@ -500,7 +500,7 @@ export const DATE_IDEAS: DateIdea[] = [
     priceRange: "gratuit",
     bestTime: "apres-midi",
     description:
-      "Square des Batignolles, Jardin Anne Frank, Arenes de Lutece. Les coins que personne ne connait.",
+      "Jardin des Plantes (1593), jardin de la Reine, cloître Saint-Charles. Les coins que personne ne connait.",
   },
   {
     id: "b-05",
@@ -512,11 +512,11 @@ export const DATE_IDEAS: DateIdea[] = [
     priceRange: "gratuit",
     bestTime: "apres-midi",
     description:
-      "Belleville, 13e, Oberkampf. Les murs racontent des histoires. Prends ton appareil photo.",
+      "Figuerolles, Boutonnet, Beaux-Arts. Les murs racontent des histoires. Prends ton appareil photo.",
   },
   {
     id: "b-06",
-    title: "Paris by night",
+    title: "Montpellier by night",
     category: "balade",
     emoji: "✨",
     modes: ["night-owl", "tourist", "plus-one", "seasonal"],
@@ -524,7 +524,7 @@ export const DATE_IDEAS: DateIdea[] = [
     priceRange: "gratuit",
     bestTime: "nuit",
     description:
-      "Pont Alexandre III, Louvre illumine, ile Saint-Louis. Paris brille apres minuit.",
+      "Esplanade, Place Royale du Peyrou, Écusson pavé. Montpellier brille après minuit.",
   },
   {
     id: "b-07",

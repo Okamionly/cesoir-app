@@ -5,7 +5,28 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { m, AnimatePresence, type Transition } from "motion/react";
 import { IconSearch, IconMap, IconChat, IconMoon, IconUser } from "@/components/ui/Icons";
+import { Music } from "@/components/ui/lucide";
 import { springs } from "@/lib/motion-design";
+
+// Small wrapper so the lucide icon matches the `{ size, className }` API the
+// custom Icons barrel exposes. Thin strokeWidth to sit next to the other
+// custom SVGs harmoniously.
+function IconSoirees({
+  size = 24,
+  className = "",
+}: {
+  size?: number;
+  className?: string;
+}) {
+  return (
+    <Music
+      size={size}
+      strokeWidth={1.8}
+      className={className}
+      aria-hidden="true"
+    />
+  );
+}
 
 // ---------- Badge data hooks (safe imports) ----------
 
@@ -65,8 +86,11 @@ function useSafeBadgeData(): {
 
 // ---------- Tab configuration ----------
 
-type TabKey = "feed" | "map" | "chat" | "modes" | "profile";
+type TabKey = "feed" | "map" | "events" | "chat" | "modes" | "profile";
 
+// 2026-04-23 Wave14 — "events" slot injected between map & chat.
+// 6 tabs still fit in the 440px phone-frame; the BottomNav already uses
+// `justify-around` + `tap-target` utilities so each tab keeps >=44px touch.
 const tabs: {
   href: `/${TabKey}`;
   key: TabKey;
@@ -75,6 +99,7 @@ const tabs: {
 }[] = [
   { href: "/feed", key: "feed", Icon: IconSearch, label: "Explorer" },
   { href: "/map", key: "map", Icon: IconMap, label: "Carte" },
+  { href: "/events", key: "events", Icon: IconSoirees, label: "Soirees" },
   { href: "/chat", key: "chat", Icon: IconChat, label: "Chat" },
   { href: "/modes", key: "modes", Icon: IconMoon, label: "Modes" },
   { href: "/profile", key: "profile", Icon: IconUser, label: "Profil" },
@@ -139,6 +164,7 @@ export default function BottomNav({
   const badges: Record<TabKey, boolean> = {
     feed: matchCount > 0,
     map: false,
+    events: false,
     chat: chatCount > 0,
     modes: challengeAvailable,
     profile: false,

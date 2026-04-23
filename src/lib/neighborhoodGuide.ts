@@ -1,7 +1,19 @@
 /**
  * Neighborhood Guide — CeSoir
- * Rich data for 8 Paris neighborhoods, each with 16 spots across 4 categories.
+ *
+ * Wave 14 pivot (2026-04-23): Montpellier beachhead. 8 neighborhoods
+ * (Écusson, Comédie, Antigone, Port Marianne, Beaux-Arts, Figuerolles,
+ *  Arceaux, Boutonnet), each with 8 curated spots across 4 categories
+ * (restaurant, bar, activity, secret).
+ *
+ * Note: the field `arrondissement` is retained in the interface for
+ * backwards-compat with components that display it (VenuePicker,
+ * MapSearchBar, recommendations). In Montpellier it holds the "quartier"
+ * name (no numbered arrondissements here). City-agnostic framework —
+ * see `src/lib/cities.ts`.
  */
+
+import { getActiveCity } from "./cities";
 
 // ─────────────────────────────────────────
 // Types
@@ -33,6 +45,10 @@ export type ActivityLevel = 1 | 2 | 3 | 4 | 5;
 export interface GuideNeighborhood {
   id: string;
   name: string;
+  /**
+   * Historically "arrondissement" (Paris). Now reused to hold the
+   * quartier label (Montpellier) so downstream components keep working.
+   */
   arrondissement: string;
   emoji: string;
   vibeTags: string[];
@@ -79,279 +95,215 @@ export function getVibeLabel(tags: string[]): string {
 }
 
 // ─────────────────────────────────────────
-// Neighborhood Data — 8 quartiers, 16 spots each
+// Neighborhood Data — 8 quartiers Montpellier
 // ─────────────────────────────────────────
 
 export const GUIDE_NEIGHBORHOODS: GuideNeighborhood[] = [
-  // ── 1. MARAIS ──
+  // ── 1. ÉCUSSON ──
   {
-    id: "marais",
-    name: "Marais",
-    arrondissement: "3e-4e",
-    emoji: "\uD83C\uDFF3\uFE0F\u200D\uD83C\uDF08",
-    vibeTags: ["Branchee", "Eclectique", "LGBT friendly"],
+    id: "ecusson",
+    name: "Écusson",
+    arrondissement: "Centre historique",
+    emoji: "\uD83C\uDFF0",
+    vibeTags: ["Historique", "Animé", "Pavé"],
     activityLevel: 5,
-    bestFor: "Bars & Culture",
+    bestFor: "Bars & ruelles",
     localTips: [
-      "Le meilleur falafel est chez L'As du Fallafel, mais la file est longue — allez chez Mi-Va-Mi juste a cote.",
-      "La Place des Vosges est magique la nuit, entrez par le passage cote est.",
-      "Les galeries de la rue Debelleyme ferment tard le jeudi soir.",
+      "La rue de l'Aiguillerie concentre le meilleur de la vie nocturne — bars à tapas et caves.",
+      "La Place Saint-Roch en terrasse au coucher du soleil est un passage obligé.",
+      "Évite la Comédie trop touristique le samedi soir, prends la rue de l'Argenterie.",
     ],
     spots: [
-      { id: "m1", name: "Breizh Cafe", type: "restaurant", address: "109 Rue Vieille du Temple", rating: 4.5, priceRange: "$$", description: "Crepes gastronomiques au sarrasin bio", popular: true, distance: 0.2 },
-      { id: "m2", name: "Chez Janou", type: "restaurant", address: "2 Rue Roger Verlomme", rating: 4.3, priceRange: "$$", description: "Mousse au chocolat legendaire a volonte", popular: true, distance: 0.3 },
-      { id: "m3", name: "L'As du Fallafel", type: "restaurant", address: "34 Rue des Rosiers", rating: 4.6, priceRange: "$", description: "Le roi du falafel parisien depuis 1979", popular: false, distance: 0.1 },
-      { id: "m4", name: "Cafe des Musees", type: "restaurant", address: "49 Rue de Turenne", rating: 4.2, priceRange: "$$", description: "Bistrot authentique, plats du marche", popular: false, distance: 0.4 },
-      { id: "m5", name: "Le Mary Celeste", type: "bar", address: "1 Rue Commines", rating: 4.4, priceRange: "$$", description: "Cocktails d'auteur et huitres au comptoir", popular: true, distance: 0.2 },
-      { id: "m6", name: "Candelaria", type: "bar", address: "52 Rue de Saintonge", rating: 4.5, priceRange: "$$", description: "Bar cache derriere une taqueria — mezcal expert", popular: true, distance: 0.3 },
-      { id: "m7", name: "Le Perchoir Marais", type: "bar", address: "33 Rue de la Verrerie", rating: 4.1, priceRange: "$$$", description: "Rooftop avec vue sur les toits de Paris", popular: false, distance: 0.5 },
-      { id: "m8", name: "Boot Cafe", type: "bar", address: "19 Rue du Pont aux Choux", rating: 4.0, priceRange: "$", description: "Micro-cafe de specialite, 6 places assises", popular: false, distance: 0.3 },
-      { id: "m9", name: "Musee Picasso", type: "activity", address: "5 Rue de Thorigny", rating: 4.7, priceRange: "$$", description: "Collection permanente dans un hotel particulier", popular: true, distance: 0.4 },
-      { id: "m10", name: "Maison Europeenne de la Photo", type: "activity", address: "5/7 Rue de Fourcy", rating: 4.3, priceRange: "$", description: "Expo photo contemporaine, nocturne mercredi", popular: false, distance: 0.2 },
-      { id: "m11", name: "Balade Place des Vosges", type: "activity", address: "Place des Vosges", rating: 4.8, priceRange: "$", description: "La plus ancienne place de Paris, sublime la nuit", popular: false, distance: 0.3 },
-      { id: "m12", name: "Centre Pompidou", type: "activity", address: "Place Georges Pompidou", rating: 4.6, priceRange: "$$", description: "Art moderne + vue panoramique au 6e etage", popular: true, distance: 0.5 },
-      { id: "m13", name: "Le Tresor", type: "secret", address: "5 Rue du Tresor", rating: 4.2, priceRange: "$$", description: "Terrasse cachee dans une impasse — zero touriste", popular: false, secretTip: "Demandez la table du fond dans la cour", distance: 0.1 },
-      { id: "m14", name: "Passage de l'Ancre", type: "secret", address: "223 Rue Saint-Martin", rating: 4.0, priceRange: "$", description: "Passage secret du XVIIe, derniere reparatrice de parapluies", popular: false, secretTip: "Poussez la porte en bois a droite", distance: 0.4 },
-      { id: "m15", name: "Jardin Anne Frank", type: "secret", address: "14 Impasse Berthaud", rating: 4.4, priceRange: "$", description: "Jardin cache derriere le Centre Pompidou", popular: false, secretTip: "Entree discrete par l'impasse, ouvert jusqu'a 20h30", distance: 0.3 },
-      { id: "m16", name: "Cour de Venise", type: "secret", address: "57 Rue de Turbigo", rating: 3.9, priceRange: "$", description: "Cour interieure avec street art et atelier d'artistes", popular: false, secretTip: "Tapez le code 1234B ou attendez un resident", distance: 0.5 },
+      { id: "e1", name: "Le Pastis", type: "restaurant", address: "3 Rue Terral", rating: 4.4, priceRange: "$$", description: "Cuisine méridionale créative, produits du marché", popular: true, distance: 0.2 },
+      { id: "e2", name: "La Réserve Rimbaud", type: "restaurant", address: "820 Av de Saint-Maur", rating: 4.7, priceRange: "$$$$", description: "Étoilé Michelin, menu dégustation au bord du Lez", popular: true, distance: 1.2 },
+      { id: "e3", name: "Le Pitchoun", type: "bar", address: "18 Rue du Plan d'Agde", rating: 4.3, priceRange: "$", description: "Institution étudiante, planches et pichet de rosé", popular: true, distance: 0.3 },
+      { id: "e4", name: "Le Mazerand", type: "bar", address: "5 Rue du Faubourg du Courreau", rating: 4.2, priceRange: "$$", description: "Cocktails d'auteur dans un ancien atelier", popular: false, distance: 0.4 },
+      { id: "e5", name: "Place de la Canourgue", type: "activity", address: "Place de la Canourgue", rating: 4.5, priceRange: "$", description: "La plus jolie place du vieux Montpellier, arbres centenaires", popular: false, distance: 0.2 },
+      { id: "e6", name: "Musée Fabre", type: "activity", address: "39 Bd Bonne Nouvelle", rating: 4.6, priceRange: "$$", description: "Collection de peinture du XVIIe au XXe — chef-d'œuvre Courbet", popular: true, distance: 0.5 },
+      { id: "e7", name: "Mikvé médiéval", type: "secret", address: "1 Rue de la Barralerie", rating: 4.4, priceRange: "$", description: "Bain rituel juif du XIIe siècle caché sous une maison", popular: false, secretTip: "Visite guidée sur demande à l'Office du Tourisme", distance: 0.3 },
+      { id: "e8", name: "Passage Lonjon", type: "secret", address: "Rue de la Loge", rating: 4.0, priceRange: "$", description: "Passage couvert 1895 avec verrière Art Nouveau", popular: false, secretTip: "Le marchand de disques du fond est une caverne d'Ali Baba", distance: 0.2 },
     ],
   },
 
-  // ── 2. OBERKAMPF ──
+  // ── 2. COMÉDIE ──
   {
-    id: "oberkampf",
-    name: "Oberkampf",
-    arrondissement: "11e",
-    emoji: "\uD83C\uDFB8",
-    vibeTags: ["Underground", "Festive", "Nocturne"],
-    activityLevel: 5,
-    bestFor: "Live Music & Nightlife",
+    id: "comedie",
+    name: "Comédie",
+    arrondissement: "Centre",
+    emoji: "\uD83C\uDFAD",
+    vibeTags: ["Central", "Touristique", "Café"],
+    activityLevel: 4,
+    bestFor: "Cafés & rencontres",
     localTips: [
-      "La rue Jean-Pierre Timbaud est le vrai spot — evitez la rue Oberkampf trop touristique.",
-      "Les concerts au Nouveau Casino commencent toujours en retard, arrivez vers 21h30.",
-      "Le kebab de chez Urfa Durum a 3h du mat' est un rite de passage.",
+      "Le matin, prends ton café au Grand Café Riche — c'est l'ancêtre de la ville.",
+      "La fontaine des Trois Grâces est LE point de rendez-vous — même les locaux disent 'rdv à la Comédie'.",
+      "Évite les brasseries de la place le soir, prix touristiques — va une rue plus loin.",
     ],
     spots: [
-      { id: "o1", name: "Le Chateaubriand", type: "restaurant", address: "129 Av Parmentier", rating: 4.6, priceRange: "$$$", description: "Neo-bistrot etoile, menu surprise uniquement", popular: true, distance: 0.3 },
-      { id: "o2", name: "Le Servan", type: "restaurant", address: "32 Rue Saint-Maur", rating: 4.4, priceRange: "$$", description: "Cuisine franco-asiatique inventive", popular: false, distance: 0.2 },
-      { id: "o3", name: "Urfa Durum", type: "restaurant", address: "58 Rue du Faubourg Saint-Denis", rating: 4.3, priceRange: "$", description: "Kebab lahmacun legendaire, ouvert tres tard", popular: true, distance: 0.4 },
-      { id: "o4", name: "Yard", type: "restaurant", address: "6 Rue de Mont-Louis", rating: 4.2, priceRange: "$$", description: "Brunch inventif dans un loft industriel", popular: false, distance: 0.5 },
-      { id: "o5", name: "Moonshiner", type: "bar", address: "5 Rue Sedaine", rating: 4.5, priceRange: "$$", description: "Speakeasy cache derriere une pizzeria", popular: true, distance: 0.3 },
-      { id: "o6", name: "Cafe Charbon", type: "bar", address: "109 Rue Oberkampf", rating: 4.1, priceRange: "$", description: "Institution du quartier depuis les 90s", popular: true, distance: 0.1 },
-      { id: "o7", name: "La Fine Mousse", type: "bar", address: "6 Av Jean Aicard", rating: 4.3, priceRange: "$$", description: "20 bieres craft au fuit, carte tournante", popular: false, distance: 0.2 },
-      { id: "o8", name: "Le Comptoir General", type: "bar", address: "80 Quai de Jemmapes", rating: 4.4, priceRange: "$$", description: "Bar-musee africain dans un entrepot", popular: false, distance: 0.6 },
-      { id: "o9", name: "Nouveau Casino", type: "activity", address: "109 Rue Oberkampf", rating: 4.3, priceRange: "$$", description: "Salle mythique: electro, rock, hip-hop", popular: true, distance: 0.1 },
-      { id: "o10", name: "La Bellevilloise", type: "activity", address: "19-21 Rue Boyer", rating: 4.2, priceRange: "$$", description: "Concerts, expos et brunch le dimanche", popular: true, distance: 0.5 },
-      { id: "o11", name: "Point Ephemere", type: "activity", address: "200 Quai de Valmy", rating: 4.1, priceRange: "$", description: "Art contemporain + DJ sets au bord du canal", popular: false, distance: 0.7 },
-      { id: "o12", name: "Atelier des Lumieres", type: "activity", address: "38 Rue Saint-Maur", rating: 4.7, priceRange: "$$", description: "Expositions immersives dans une fonderie", popular: false, distance: 0.3 },
-      { id: "o13", name: "La Gare", type: "secret", address: "1 Rue Pierre Semard", rating: 4.0, priceRange: "$", description: "Ancienne gare reconvertie en bar ephemere l'ete", popular: false, secretTip: "Ouvre seulement de mai a septembre", distance: 0.4 },
-      { id: "o14", name: "Passage Lisa", type: "secret", address: "Rue de la Folie-Mericourt", rating: 3.8, priceRange: "$", description: "Micro-ruelle avec fresques cachees", popular: false, secretTip: "Cherchez la porte bleue entre le 42 et le 44", distance: 0.2 },
-      { id: "o15", name: "Le 1999", type: "secret", address: "14 Rue Jean-Pierre Timbaud", rating: 4.2, priceRange: "$$", description: "Bar retro annees 90, jeux N64 et cocktails", popular: false, secretTip: "Le mot de passe change chaque semaine sur Instagram", distance: 0.1 },
-      { id: "o16", name: "Jardin Truillot", type: "secret", address: "Rue du Chemin Vert", rating: 3.9, priceRange: "$", description: "Jardin partage invisible depuis la rue", popular: false, secretTip: "Entree par la grille du 103 rue Amelot", distance: 0.3 },
+      { id: "c1", name: "La Diligence", type: "restaurant", address: "2 Place Pétrarque", rating: 4.3, priceRange: "$$$", description: "Cuisine languedocienne dans une cave voûtée du XIIIe", popular: true, distance: 0.3 },
+      { id: "c2", name: "Tamarillos", type: "restaurant", address: "2 Place du Marché aux Fleurs", rating: 4.6, priceRange: "$$$", description: "Gastronomie végétale inventive, menu autour des fleurs", popular: false, distance: 0.2 },
+      { id: "c3", name: "Le Grand Café Riche", type: "bar", address: "8 Place de la Comédie", rating: 4.1, priceRange: "$$", description: "Institution 1880, terrasse face à l'Opéra", popular: true, distance: 0 },
+      { id: "c4", name: "Le Corum Café", type: "bar", address: "1 Esplanade Charles de Gaulle", rating: 4.0, priceRange: "$", description: "Terrasse panoramique, happy hour 18h-20h", popular: false, distance: 0.3 },
+      { id: "c5", name: "Opéra Comédie", type: "activity", address: "11 Boulevard Victor Hugo", rating: 4.7, priceRange: "$$$", description: "Opéra à l'italienne classé, programme riche", popular: true, distance: 0 },
+      { id: "c6", name: "L'Esplanade Charles de Gaulle", type: "activity", address: "Esplanade Charles de Gaulle", rating: 4.3, priceRange: "$", description: "Longue promenade plantée, marché des livres le weekend", popular: false, distance: 0.2 },
+      { id: "c7", name: "Toits du Polygone", type: "secret", address: "Centre commercial Le Polygone", rating: 3.9, priceRange: "$", description: "Terrasse gratuite au dernier étage, vue sur les toits", popular: false, secretTip: "Accessible par les ascenseurs du parking, personne ne sait", distance: 0.3 },
+      { id: "c8", name: "Cour de l'Hôtel Saint-Côme", type: "secret", address: "32 Grand Rue Jean Moulin", rating: 4.2, priceRange: "$", description: "Cour d'honneur XVIIIe, escalier monumental", popular: false, secretTip: "Entrée libre en semaine, pousse simplement la porte", distance: 0.2 },
     ],
   },
 
-  // ── 3. MONTMARTRE ──
+  // ── 3. ANTIGONE ──
   {
-    id: "montmartre",
-    name: "Montmartre",
-    arrondissement: "18e",
+    id: "antigone",
+    name: "Antigone",
+    arrondissement: "Quartier moderne",
+    emoji: "\uD83C\uDFDB\uFE0F",
+    vibeTags: ["Architecture", "Néo-classique", "Moderne"],
+    activityLevel: 3,
+    bestFor: "Architecture & balade",
+    localTips: [
+      "Le quartier entier est signé Ricardo Bofill — monumental, photogénique à tout moment.",
+      "La Place du Nombre d'Or est parfaitement symétrique — spot photo incontournable.",
+      "Viens au coucher du soleil, la lumière rase sur les colonnes est dingue.",
+    ],
+    spots: [
+      { id: "a1", name: "L'Écailler", type: "restaurant", address: "4 Rue du Plan d'Agde", rating: 4.4, priceRange: "$$$", description: "Fruits de mer et huîtres de Bouzigues toute l'année", popular: true, distance: 0.4 },
+      { id: "a2", name: "Insensé", type: "restaurant", address: "Place de Thessalie", rating: 4.5, priceRange: "$$$", description: "Bistronomie creative sous les arcades de Bofill", popular: false, distance: 0.1 },
+      { id: "a3", name: "Le Pub Saint-Martin", type: "bar", address: "1 Rue du Clos René", rating: 4.0, priceRange: "$", description: "Pub irlandais, soirées trivia et foot", popular: true, distance: 0.3 },
+      { id: "a4", name: "Les Berges du Lez", type: "bar", address: "Quai des Tanneurs", rating: 4.2, priceRange: "$", description: "Guinguette éphémère l'été au bord de l'eau", popular: false, distance: 0.5 },
+      { id: "a5", name: "Place du Nombre d'Or", type: "activity", address: "Place du Nombre d'Or", rating: 4.6, priceRange: "$", description: "Place circulaire néo-classique, proportions dorées", popular: true, distance: 0 },
+      { id: "a6", name: "Médiathèque Émile Zola", type: "activity", address: "218 Boulevard de l'Aéroport", rating: 4.3, priceRange: "$", description: "Bibliothèque moderne spectaculaire, expositions gratuites", popular: false, distance: 0.4 },
+      { id: "a7", name: "Jardin des Plantes", type: "secret", address: "Boulevard Henri IV", rating: 4.5, priceRange: "$", description: "Plus vieux jardin botanique de France (1593), peu connu", popular: false, secretTip: "La roseraie ouvre à 8h — avant les visiteurs", distance: 0.7 },
+      { id: "a8", name: "Cours de l'Echiquier", type: "secret", address: "Rue de l'Echiquier", rating: 3.8, priceRange: "$", description: "Impasse entre deux immeubles Bofill avec fontaine intérieure", popular: false, secretTip: "Perspective parfaite au téléobjectif", distance: 0.2 },
+    ],
+  },
+
+  // ── 4. PORT MARIANNE ──
+  {
+    id: "port-marianne",
+    name: "Port Marianne",
+    arrondissement: "Nouveau quartier",
+    emoji: "\uD83C\uDF06",
+    vibeTags: ["Moderne", "Rooftops", "Jeune"],
+    activityLevel: 4,
+    bestFor: "Rooftops & startups",
+    localTips: [
+      "Le quartier d'affaires le soir, mais les bassins attirent les apéros en terrasse.",
+      "Le Rooftop Belaroïa a la meilleure vue sur le bassin Jacques Coeur.",
+      "Location de vélo électrique pour explorer — c'est étendu.",
+    ],
+    spots: [
+      { id: "pm1", name: "Mia", type: "restaurant", address: "285 Rue de l'Acropole", rating: 4.5, priceRange: "$$$", description: "Cuisine méditerranéenne contemporaine, terrasse sur bassin", popular: true, distance: 0.2 },
+      { id: "pm2", name: "Terminal #1", type: "restaurant", address: "Rue Buffon", rating: 4.1, priceRange: "$$", description: "Cantine street food avec 10 comptoirs du monde", popular: true, distance: 0.4 },
+      { id: "pm3", name: "Rooftop Belaroïa", type: "bar", address: "30 Rue Jules Ferry", rating: 4.6, priceRange: "$$$", description: "Terrasse 14e étage, DJ le weekend, vue à 360°", popular: true, distance: 0.3 },
+      { id: "pm4", name: "Le Grand Café de la Mer", type: "bar", address: "Place Georges Frêche", rating: 4.2, priceRange: "$$", description: "Grande terrasse face à l'Hôtel de Ville futuriste", popular: false, distance: 0.1 },
+      { id: "pm5", name: "Bassin Jacques Cœur", type: "activity", address: "Bassin Jacques Cœur", rating: 4.4, priceRange: "$", description: "Plan d'eau avec location de kayak et paddle", popular: false, distance: 0.2 },
+      { id: "pm6", name: "Pierresvives", type: "activity", address: "907 Av du Professeur Blayac", rating: 4.3, priceRange: "$", description: "Médiathèque/archives signée Zaha Hadid, incontournable", popular: false, distance: 1.5 },
+      { id: "pm7", name: "Rives du Lez (nord)", type: "secret", address: "Berges nord du Lez", rating: 4.1, priceRange: "$", description: "Chemin piéton peu fréquenté, hérons et martins-pêcheurs", popular: false, secretTip: "Parfait pour courir ou pique-niquer au lever du soleil", distance: 0.4 },
+      { id: "pm8", name: "Cité Créative", type: "secret", address: "130 Rue Henri Becquerel", rating: 3.9, priceRange: "$", description: "Ancienne EAI reconvertie, fresques géantes et cantines", popular: false, secretTip: "Open house le premier jeudi de chaque mois", distance: 0.8 },
+    ],
+  },
+
+  // ── 5. BEAUX-ARTS ──
+  {
+    id: "beaux-arts",
+    name: "Beaux-Arts",
+    arrondissement: "Quartier arty",
     emoji: "\uD83C\uDFA8",
-    vibeTags: ["Romantique", "Panoramique", "Artistique"],
-    activityLevel: 3,
-    bestFor: "Rendez-vous romantiques",
-    localTips: [
-      "Evitez la place du Tertre (piege a touristes) — allez plutot rue Lepic.",
-      "Le coucher de soleil depuis le parvis du Sacre-Coeur est le meilleur de Paris gratuit.",
-      "Les vignes de Montmartre sont ouvertes pendant la Fete des Vendanges en octobre.",
-    ],
-    spots: [
-      { id: "mt1", name: "Le Coq Rico", type: "restaurant", address: "98 Rue Lepic", rating: 4.5, priceRange: "$$$", description: "Rotisserie gastronomique, volailles d'exception", popular: true, distance: 0.2 },
-      { id: "mt2", name: "Le Relais Gascon", type: "restaurant", address: "6 Rue des Abbesses", rating: 4.1, priceRange: "$", description: "Salades geantes a partager", popular: false, distance: 0.3 },
-      { id: "mt3", name: "Pink Mamma Montmartre", type: "restaurant", address: "Rue des Martyrs", rating: 4.3, priceRange: "$$", description: "Italien XXL sur 4 etages avec terrasse", popular: true, distance: 0.4 },
-      { id: "mt4", name: "Soul Kitchen", type: "restaurant", address: "33 Rue Lamarck", rating: 4.2, priceRange: "$$", description: "Veggie creative avec vue sur Paris", popular: false, distance: 0.5 },
-      { id: "mt5", name: "Le Tres Particulier", type: "bar", address: "23 Av Junot", rating: 4.6, priceRange: "$$$", description: "Bar cache d'hotel particulier avec jardin secret", popular: true, distance: 0.4 },
-      { id: "mt6", name: "Hardware Societe", type: "bar", address: "10 Rue Lamarck", rating: 4.2, priceRange: "$$", description: "Cafe de specialite australien, brunch culte", popular: false, distance: 0.3 },
-      { id: "mt7", name: "La Fourmi", type: "bar", address: "74 Rue des Martyrs", rating: 4.0, priceRange: "$", description: "Ambiance artistes et etudiants, happy hour genereux", popular: true, distance: 0.2 },
-      { id: "mt8", name: "Lulu White", type: "bar", address: "12 Rue Frochot", rating: 4.4, priceRange: "$$", description: "Speakeasy jazz Nouvelle-Orleans, absinthe maison", popular: false, distance: 0.5 },
-      { id: "mt9", name: "Musee de Montmartre", type: "activity", address: "12 Rue Cortot", rating: 4.5, priceRange: "$$", description: "Ancien atelier de Renoir avec jardins", popular: false, distance: 0.3 },
-      { id: "mt10", name: "Sacre-Coeur au coucher du soleil", type: "activity", address: "Parvis du Sacre-Coeur", rating: 4.9, priceRange: "$", description: "Vue 360 sur Paris, street performers", popular: true, distance: 0.1 },
-      { id: "mt11", name: "Le Moulin Rouge (exterieur)", type: "activity", address: "82 Bd de Clichy", rating: 4.0, priceRange: "$", description: "Selfie iconique devant les ailes rouges", popular: true, distance: 0.6 },
-      { id: "mt12", name: "Espace Dali", type: "activity", address: "11 Rue Poulbot", rating: 4.2, priceRange: "$$", description: "Sculptures surrealistes dans une cave voutee", popular: false, distance: 0.2 },
-      { id: "mt13", name: "Clos Montmartre", type: "secret", address: "Rue des Saules", rating: 4.3, priceRange: "$", description: "Le dernier vignoble de Paris — 2000 pieds de vigne", popular: false, secretTip: "Visible depuis la rue, mais l'interieur ouvre en octobre", distance: 0.2 },
-      { id: "mt14", name: "Passage de la Sorciere", type: "secret", address: "Rue Andre del Sarte", rating: 3.8, priceRange: "$", description: "Escalier etroit et courbe avec murs fleuris", popular: false, secretTip: "Le meilleur spot photo secret de la butte", distance: 0.3 },
-      { id: "mt15", name: "Le Passe-Muraille", type: "secret", address: "Place Marcel Ayme", rating: 4.1, priceRange: "$", description: "Statue d'un homme qui traverse un mur — insolite", popular: false, secretTip: "Inspiree de la nouvelle de Marcel Ayme", distance: 0.4 },
-      { id: "mt16", name: "Square Suzanne Buisson", type: "secret", address: "Rue Girardon", rating: 4.4, priceRange: "$", description: "Petit parc cache avec fontaine et bancs romantiques", popular: false, secretTip: "Apportez du vin et un plaid le soir", distance: 0.3 },
-    ],
-  },
-
-  // ── 4. BASTILLE ──
-  {
-    id: "bastille",
-    name: "Bastille",
-    arrondissement: "11e-12e",
-    emoji: "\uD83C\uDFB7",
-    vibeTags: ["Eclectique", "Gastronomique", "Jazz"],
+    vibeTags: ["Arty", "Jeune", "Galeries"],
     activityLevel: 4,
-    bestFor: "Diner & Jazz",
+    bestFor: "Art & dates cool",
     localTips: [
-      "La rue de Lappe est bruyante mais le Balajo (bal musette) vaut le detour le jeudi.",
-      "Le Marche d'Aligre le matin, puis brunch rue Paul Bert — enchainement parfait.",
-      "Les caves jazz du Sunset ouvrent tard, le set de minuit est le meilleur.",
+      "Le quartier des étudiants en art — ateliers ouverts le jeudi soir.",
+      "La rue de l'Université concentre les meilleures galeries indépendantes.",
+      "Les mercredis aux Halles Laissac — marché bio + concerts au coucher du soleil.",
     ],
     spots: [
-      { id: "b1", name: "Septime", type: "restaurant", address: "80 Rue de Charonne", rating: 4.8, priceRange: "$$$$", description: "Une etoile Michelin, reserve 3 semaines avant", popular: true, distance: 0.3 },
-      { id: "b2", name: "Le Baron Rouge", type: "restaurant", address: "1 Rue Theophile Roussel", rating: 4.4, priceRange: "$", description: "Bar a vin brut, huitres sur le zinc", popular: true, distance: 0.4 },
-      { id: "b3", name: "Paul Bert", type: "restaurant", address: "18 Rue Paul Bert", rating: 4.3, priceRange: "$$", description: "Le steak-frites reference du quartier", popular: false, distance: 0.5 },
-      { id: "b4", name: "Mokonuts", type: "restaurant", address: "5 Rue Saint-Bernard", rating: 4.5, priceRange: "$$", description: "Cafe-bakery italo-libanais, cookies mythiques", popular: false, distance: 0.3 },
-      { id: "b5", name: "Bluebird", type: "bar", address: "12 Rue Saint-Bernard", rating: 4.2, priceRange: "$$", description: "Cocktails tiki dans un decor tropical", popular: true, distance: 0.3 },
-      { id: "b6", name: "Le Balajo", type: "bar", address: "9 Rue de Lappe", rating: 4.0, priceRange: "$$", description: "Bal musette historique — salsa le jeudi", popular: true, distance: 0.2 },
-      { id: "b7", name: "Pause Cafe", type: "bar", address: "41 Rue de Charonne", rating: 3.9, priceRange: "$", description: "Terrasse mythique vue dans les films", popular: false, distance: 0.2 },
-      { id: "b8", name: "Concrete", type: "bar", address: "Port de la Rapee", rating: 4.3, priceRange: "$$", description: "Club techno sur une peniche, after le dimanche", popular: false, distance: 0.7 },
-      { id: "b9", name: "Opera Bastille", type: "activity", address: "Place de la Bastille", rating: 4.5, priceRange: "$$$", description: "Operas et ballets dans un ecrin moderne", popular: true, distance: 0.1 },
-      { id: "b10", name: "Promenade Plantee", type: "activity", address: "Av Daumesnil", rating: 4.6, priceRange: "$", description: "La premiere coulee verte de Paris — inspirateur de la High Line", popular: false, distance: 0.4 },
-      { id: "b11", name: "Sunset Sunside", type: "activity", address: "60 Rue des Lombards", rating: 4.4, priceRange: "$$", description: "Double salle jazz — acoustique et electrique", popular: true, distance: 0.8 },
-      { id: "b12", name: "Marche d'Aligre", type: "activity", address: "Place d'Aligre", rating: 4.3, priceRange: "$", description: "Marche populaire + halle couverte, ambiance village", popular: false, distance: 0.5 },
-      { id: "b13", name: "Rue Cremieux", type: "secret", address: "Rue Cremieux", rating: 4.1, priceRange: "$", description: "Rue coloree facade pastel — le Notting Hill parisien", popular: false, secretTip: "Venez tot le matin pour eviter les influenceurs", distance: 0.4 },
-      { id: "b14", name: "Cour Damoye", type: "secret", address: "12 Place de la Bastille", rating: 4.0, priceRange: "$", description: "Passage pave cache entre les immeubles", popular: false, secretTip: "Acces par le porche a cote du Cafe de l'Industrie", distance: 0.1 },
-      { id: "b15", name: "Viaduc des Arts", type: "secret", address: "1-129 Av Daumesnil", rating: 4.2, priceRange: "$$", description: "Ateliers artisans sous les arches du viaduc", popular: false, secretTip: "Le luthier au n.59 accepte les visiteurs", distance: 0.5 },
-      { id: "b16", name: "Port de l'Arsenal", type: "secret", address: "Bd de la Bastille", rating: 4.3, priceRange: "$", description: "Marina cachee avec bancs face aux bateaux", popular: false, secretTip: "Parfait pour un pique-nique nocturne discrete", distance: 0.2 },
+      { id: "ba1", name: "Le Petit Jardin", type: "restaurant", address: "20 Rue Jean-Jacques Rousseau", rating: 4.5, priceRange: "$$", description: "Terrasse arborée cachée, cuisine saisonnière", popular: true, distance: 0.2 },
+      { id: "ba2", name: "Chez Boris", type: "restaurant", address: "7 Rue de l'Université", rating: 4.3, priceRange: "$", description: "Bistrot russo-français, bortsch et pelmeni faits maison", popular: false, distance: 0.1 },
+      { id: "ba3", name: "Le Cherry Bomb", type: "bar", address: "3 Rue de la Carbonnerie", rating: 4.4, priceRange: "$$", description: "Bar rock indé, concerts le weekend, bonne bière", popular: true, distance: 0.2 },
+      { id: "ba4", name: "Le Bar à Vin", type: "bar", address: "Rue Clos René", rating: 4.2, priceRange: "$$", description: "Sélection pointue de vins nature du Languedoc", popular: false, distance: 0.3 },
+      { id: "ba5", name: "Halle Tropisme", type: "activity", address: "121 Rue Fontcouverte", rating: 4.6, priceRange: "$", description: "Friche artistique 4000m² — concerts, expos, cantine", popular: true, distance: 1.0 },
+      { id: "ba6", name: "Galerie AL/MA", type: "activity", address: "4 Rue Marcel de Serres", rating: 4.3, priceRange: "$", description: "Galerie contemporaine pointue, vernissages jeudi soir", popular: false, distance: 0.2 },
+      { id: "ba7", name: "Square des Arceaux", type: "secret", address: "Place des Arceaux", rating: 4.0, priceRange: "$", description: "Ancienne chapelle reconvertie, jardin caché derrière", popular: false, secretTip: "Ouvert le matin, presque personne n'y va", distance: 0.4 },
+      { id: "ba8", name: "Ateliers ouverts Passage Bruyas", type: "secret", address: "Passage Bruyas", rating: 4.1, priceRange: "$", description: "12 ateliers d'artistes dans un passage XIXe", popular: false, secretTip: "Portes ouvertes tous les 1er jeudis du mois", distance: 0.3 },
     ],
   },
 
-  // ── 5. SAINT-GERMAIN ──
+  // ── 6. FIGUEROLLES ──
   {
-    id: "saint-germain",
-    name: "Saint-Germain",
-    arrondissement: "6e",
-    emoji: "\uD83D\uDCDA",
-    vibeTags: ["Chic", "Litteraire", "Raffine"],
-    activityLevel: 3,
-    bestFor: "Cafes & Restaurants chic",
-    localTips: [
-      "Les Deux Magots et le Cafe de Flore sont chers — Le Pre aux Clercs est mieux et moins cher.",
-      "La librairie Shakespeare & Co ferme a 22h mais l'ambiance nocturne devant est unique.",
-      "Les jardins du Luxembourg ferment au coucher du soleil — verifiez l'heure exacte.",
-    ],
-    spots: [
-      { id: "sg1", name: "Le Comptoir du Pantheon", type: "restaurant", address: "5 Rue Soufflot", rating: 4.3, priceRange: "$$", description: "Vue sur le Pantheon, cuisine bourgeoise", popular: true, distance: 0.5 },
-      { id: "sg2", name: "Polene", type: "restaurant", address: "35 Rue Debelleyme", rating: 4.5, priceRange: "$$", description: "Boulangerie neo-classique, feuillete matinal", popular: false, distance: 0.3 },
-      { id: "sg3", name: "Le Procope", type: "restaurant", address: "13 Rue de l'Ancienne Comedie", rating: 4.2, priceRange: "$$$", description: "Le plus vieux cafe de Paris (1686) — coq au vin", popular: true, distance: 0.2 },
-      { id: "sg4", name: "Bouillon Racine", type: "restaurant", address: "3 Rue Racine", rating: 4.4, priceRange: "$$", description: "Art nouveau somptueux, prix doux", popular: false, distance: 0.3 },
-      { id: "sg5", name: "Prescription Cocktail Club", type: "bar", address: "23 Rue Mazarine", rating: 4.4, priceRange: "$$$", description: "Speakeasy elegant, cocktails pharmaco-chic", popular: true, distance: 0.2 },
-      { id: "sg6", name: "Cafe de Flore", type: "bar", address: "172 Bd Saint-Germain", rating: 4.0, priceRange: "$$$", description: "Institution litteraire — Sartre et Beauvoir y vivaient", popular: true, distance: 0.1 },
-      { id: "sg7", name: "Le Bar du Marche", type: "bar", address: "75 Rue de Seine", rating: 3.9, priceRange: "$$", description: "Terrasse animee, serveurs en mariniere", popular: false, distance: 0.2 },
-      { id: "sg8", name: "Tiger Bar", type: "bar", address: "13 Rue Princesse", rating: 4.2, priceRange: "$$", description: "Cocktails asiatiques dans un ecrin sombre", popular: false, distance: 0.3 },
-      { id: "sg9", name: "Musee d'Orsay", type: "activity", address: "1 Rue de la Legion d'Honneur", rating: 4.8, priceRange: "$$", description: "Impressionnistes dans une gare — nocturne jeudi", popular: true, distance: 0.6 },
-      { id: "sg10", name: "Shakespeare & Company", type: "activity", address: "37 Rue de la Bucherie", rating: 4.7, priceRange: "$", description: "Librairie mythique depuis 1951, lectures publiques", popular: true, distance: 0.4 },
-      { id: "sg11", name: "Jardin du Luxembourg", type: "activity", address: "Rue de Medicis", rating: 4.9, priceRange: "$", description: "Le plus beau jardin de Paris, fontaine Medicis", popular: false, distance: 0.3 },
-      { id: "sg12", name: "Eglise Saint-Sulpice", type: "activity", address: "2 Rue Palatine", rating: 4.3, priceRange: "$", description: "Orgue monumental et gnomon astronomique (Da Vinci Code)", popular: false, distance: 0.2 },
-      { id: "sg13", name: "Cour de Rohan", type: "secret", address: "Cour du Commerce Saint-Andre", rating: 4.1, priceRange: "$", description: "Trois cours medievales reliees — XVe siecle", popular: false, secretTip: "Entrez par le passage du Commerce Saint-Andre", distance: 0.2 },
-      { id: "sg14", name: "Pont des Arts (cote gauche)", type: "secret", address: "Pont des Arts", rating: 4.5, priceRange: "$", description: "Vue sur l'Ile de la Cite, moins de monde cote gauche", popular: false, secretTip: "Apportez une bouteille — mieux que le Pont Neuf", distance: 0.5 },
-      { id: "sg15", name: "Relais Odeon", type: "secret", address: "132 Bd Saint-Germain", rating: 3.9, priceRange: "$$", description: "Terrasse chauffee discrete, bons prix pour le quartier", popular: false, secretTip: "La salle du fond est calme meme le samedi", distance: 0.1 },
-      { id: "sg16", name: "Librairie Taschen", type: "secret", address: "2 Rue de Buci", rating: 4.0, priceRange: "$", description: "Librairie-galerie d'art, livres geants et expo rotative", popular: false, secretTip: "Entrez juste pour regarder — personne ne vous jugera", distance: 0.2 },
-    ],
-  },
-
-  // ── 6. CANAL SAINT-MARTIN ──
-  {
-    id: "canal-saint-martin",
-    name: "Canal Saint-Martin",
-    arrondissement: "10e",
-    emoji: "\uD83D\uDEB6",
-    vibeTags: ["Hipster", "Brunch", "Balade"],
-    activityLevel: 3,
-    bestFor: "Brunch & Balades",
-    localTips: [
-      "Le meilleur moment au canal c'est le dimanche matin quand les quais sont fermes aux voitures.",
-      "Apportez une couverture et du vin pour les berges — c'est le pique-nique parfait.",
-      "L'ecluse du Temple est le point le plus photogenique du canal.",
-    ],
-    spots: [
-      { id: "csm1", name: "Hotel du Nord", type: "restaurant", address: "102 Quai de Jemmapes", rating: 4.1, priceRange: "$$", description: "Brasserie iconique du film d'Arletty", popular: true, distance: 0.1 },
-      { id: "csm2", name: "Chez Prune", type: "restaurant", address: "36 Rue Beaurepaire", rating: 4.0, priceRange: "$", description: "Brunch culte avec terrasse sur le canal", popular: true, distance: 0.2 },
-      { id: "csm3", name: "Holybelly", type: "restaurant", address: "19 Rue Lucien Sampaix", rating: 4.5, priceRange: "$$", description: "Pancakes australiens et cafe de specialite", popular: false, distance: 0.3 },
-      { id: "csm4", name: "Hai Kai", type: "restaurant", address: "108 Quai de Jemmapes", rating: 4.3, priceRange: "$$", description: "Fusion franco-asiatique face au canal", popular: false, distance: 0.2 },
-      { id: "csm5", name: "Chez Prune (bar)", type: "bar", address: "36 Rue Beaurepaire", rating: 4.0, priceRange: "$", description: "Demi en terrasse face au canal — essentiel", popular: true, distance: 0.2 },
-      { id: "csm6", name: "Le Comptoir General", type: "bar", address: "80 Quai de Jemmapes", rating: 4.4, priceRange: "$$", description: "Entrepot colonial reconverti, cocktails tropicaux", popular: true, distance: 0.3 },
-      { id: "csm7", name: "Gravity Bar", type: "bar", address: "44 Rue des Vinaigriers", rating: 4.2, priceRange: "$$", description: "Craft beer et burgers dans un loft", popular: false, distance: 0.2 },
-      { id: "csm8", name: "Chez Jeannette", type: "bar", address: "47 Rue du Fbg Saint-Denis", rating: 3.9, priceRange: "$", description: "Deco retro, DJ le weekend, terrasse animee", popular: false, distance: 0.4 },
-      { id: "csm9", name: "Ecluses du canal (balade)", type: "activity", address: "Quai de Jemmapes", rating: 4.6, priceRange: "$", description: "Promenade le long des ecluses illuminees", popular: true, distance: 0.1 },
-      { id: "csm10", name: "Marche couvert Saint-Martin", type: "activity", address: "31 Rue du Chateau d'Eau", rating: 4.0, priceRange: "$", description: "Halle couverte avec producteurs locaux", popular: false, distance: 0.4 },
-      { id: "csm11", name: "Cine MK2 Quai de Seine", type: "activity", address: "14 Quai de la Seine", rating: 4.2, priceRange: "$$", description: "Cinema indie face au bassin, terrasse l'ete", popular: false, distance: 0.6 },
-      { id: "csm12", name: "Artazart", type: "activity", address: "83 Quai de Valmy", rating: 4.1, priceRange: "$", description: "Librairie-galerie design au bord du canal", popular: false, distance: 0.3 },
-      { id: "csm13", name: "Jardin Villemin", type: "secret", address: "Rue des Recollets", rating: 4.2, priceRange: "$", description: "Parc cache entre le canal et la gare de l'Est", popular: false, secretTip: "Le spot de yoga gratuit le samedi matin", distance: 0.3 },
-      { id: "csm14", name: "Passage Brady", type: "secret", address: "46 Rue du Faubourg Saint-Denis", rating: 3.8, priceRange: "$", description: "Le 'Little India' de Paris — curry a 8 euros", popular: false, secretTip: "Le restaurant du fond a gauche est le meilleur", distance: 0.5 },
-      { id: "csm15", name: "Le Point Ephemere (terrasse)", type: "secret", address: "200 Quai de Valmy", rating: 4.0, priceRange: "$", description: "Terrasse face au canal, gratuit sans consommation", popular: false, secretTip: "Arrivez avant 18h pour avoir une table", distance: 0.5 },
-      { id: "csm16", name: "Square Frederic Lemaitre", type: "secret", address: "Bd Saint-Martin", rating: 3.7, priceRange: "$", description: "Micro-square avec fontaine, personne ne le connait", popular: false, secretTip: "Parfait pour une pause entre deux bars", distance: 0.2 },
-    ],
-  },
-
-  // ── 7. CHATELET ──
-  {
-    id: "chatelet",
-    name: "Chatelet",
-    arrondissement: "1er",
-    emoji: "\uD83D\uDECD\uFE0F",
-    vibeTags: ["Central", "Anime", "Late-night"],
+    id: "figuerolles",
+    name: "Figuerolles",
+    arrondissement: "Bohème",
+    emoji: "\uD83C\uDFB2",
+    vibeTags: ["Bohème", "Street art", "Nocturne"],
     activityLevel: 4,
-    bestFor: "Shopping & Late-night",
+    bestFor: "Street art & nuits",
     localTips: [
-      "La rue des Lombards est LA rue du jazz a Paris — 3 clubs en 100 metres.",
-      "Le Forum des Halles est moche mais la Canopee au 1er etage a une bonne vue.",
-      "Pour manger bien et pas cher apres minuit: la rue Montorgueil.",
+      "Le quartier le plus alternatif — fresques murales tous les 20 mètres.",
+      "Le Marché des Arceaux le samedi matin débouche naturellement sur un brunch à Figuerolles.",
+      "La Rue du Faubourg du Courreau ne ferme jamais — bars ouverts jusqu'à 3h.",
     ],
     spots: [
-      { id: "ch1", name: "Au Pied de Cochon", type: "restaurant", address: "6 Rue Coquilliere", rating: 4.1, priceRange: "$$$", description: "Ouvert 24h/24 depuis 1946, soupe a l'oignon mythique", popular: true, distance: 0.2 },
-      { id: "ch2", name: "Champeaux", type: "restaurant", address: "Forum des Halles", rating: 4.0, priceRange: "$$", description: "Brasserie Ducasse sous la Canopee", popular: false, distance: 0.1 },
-      { id: "ch3", name: "Stohrer", type: "restaurant", address: "51 Rue Montorgueil", rating: 4.4, priceRange: "$$", description: "La plus ancienne patisserie de Paris (1730)", popular: true, distance: 0.3 },
-      { id: "ch4", name: "Frenchie To Go", type: "restaurant", address: "9 Rue du Nil", rating: 4.3, priceRange: "$", description: "Lobster roll et pulled pork version parisienne", popular: false, distance: 0.3 },
-      { id: "ch5", name: "Le Sous Bock", type: "bar", address: "49 Rue Saint-Honore", rating: 4.0, priceRange: "$", description: "Bar a bieres legendaire, 400 references", popular: true, distance: 0.3 },
-      { id: "ch6", name: "Le Barav", type: "bar", address: "6 Rue Charles-Francois Dupuis", rating: 4.2, priceRange: "$$", description: "Bar a vin nature, planches genereuses", popular: false, distance: 0.4 },
-      { id: "ch7", name: "Le Dernier Bar", type: "bar", address: "15 Rue Quincampoix", rating: 4.3, priceRange: "$$", description: "Bar geek Star Wars / comics, cocktails thematiques", popular: true, distance: 0.2 },
-      { id: "ch8", name: "Experimental Cocktail Club", type: "bar", address: "37 Rue Saint-Sauveur", rating: 4.5, priceRange: "$$$", description: "Pionnier du cocktail parisien, cave voutee", popular: false, distance: 0.4 },
-      { id: "ch9", name: "Theatre du Chatelet", type: "activity", address: "Place du Chatelet", rating: 4.6, priceRange: "$$$", description: "Comedies musicales et operas dans un ecrin imperial", popular: true, distance: 0.1 },
-      { id: "ch10", name: "Fontaine des Innocents", type: "activity", address: "Place Joachim du Bellay", rating: 4.0, priceRange: "$", description: "Fontaine Renaissance, point de rencontre nocturne", popular: false, distance: 0.1 },
-      { id: "ch11", name: "Tour Saint-Jacques", type: "activity", address: "Square de la Tour Saint-Jacques", rating: 4.2, priceRange: "$$", description: "Montee au sommet de la tour gothique (saison)", popular: false, distance: 0.2 },
-      { id: "ch12", name: "La Samaritaine", type: "activity", address: "9 Rue de la Monnaie", rating: 4.4, priceRange: "$", description: "Grand magasin Art Deco restaure, rooftop gratuit", popular: true, distance: 0.3 },
-      { id: "ch13", name: "Passage du Grand Cerf", type: "secret", address: "145 Rue Saint-Denis", rating: 4.3, priceRange: "$", description: "Le plus haut passage couvert de Paris, verriere Art Deco", popular: false, secretTip: "Les boutiques ferment tot mais le passage reste ouvert", distance: 0.3 },
-      { id: "ch14", name: "Rue du Nil", type: "secret", address: "Rue du Nil", rating: 4.1, priceRange: "$$", description: "Micro-rue 100% gastronomie — boucher, fromager, caviste", popular: false, secretTip: "Tout est tenu par le chef de Frenchie", distance: 0.3 },
-      { id: "ch15", name: "Couloir du Louvre medieval", type: "secret", address: "Sous le Carrousel du Louvre", rating: 4.0, priceRange: "$", description: "Ruines medievales sous le Louvre, acces gratuit", popular: false, secretTip: "Entree par le Carrousel sans billet musee", distance: 0.5 },
-      { id: "ch16", name: "Eglise Saint-Eustache (orgue)", type: "secret", address: "2 Impasse Saint-Eustache", rating: 4.4, priceRange: "$", description: "Concert d'orgue gratuit le dimanche a 17h30", popular: false, secretTip: "Le plus grand orgue de France — 8000 tuyaux", distance: 0.2 },
+      { id: "f1", name: "Le Bouchon Saint-Roch", type: "restaurant", address: "14 Rue du Plan d'Agde", rating: 4.4, priceRange: "$$", description: "Bouchon lyonnais au Sud — tablier de sapeur et quenelles", popular: true, distance: 0.2 },
+      { id: "f2", name: "La Panacée Cantine", type: "restaurant", address: "14 Rue de l'Ecole de Pharmacie", rating: 4.2, priceRange: "$", description: "Cantine du centre d'art contemporain, bio et pas cher", popular: false, distance: 0.3 },
+      { id: "f3", name: "La Pleine Lune", type: "bar", address: "26 Rue du Plan d'Agde", rating: 4.5, priceRange: "$", description: "Bar à concerts underground, programmation pointue", popular: true, distance: 0.2 },
+      { id: "f4", name: "Black Sheep", type: "bar", address: "36 Avenue du Pont Juvénal", rating: 4.1, priceRange: "$$", description: "Craft beer pub, 16 robinets, burgers en cuisine ouverte", popular: false, distance: 0.3 },
+      { id: "f5", name: "Street Art Tour Figuerolles", type: "activity", address: "Place de la Chapelle Neuve", rating: 4.5, priceRange: "$", description: "Parcours autoguidé de 30 fresques murales", popular: true, distance: 0.1 },
+      { id: "f6", name: "La Panacée", type: "activity", address: "14 Rue de l'Ecole de Pharmacie", rating: 4.3, priceRange: "$", description: "Centre d'art contemporain gratuit, expositions audacieuses", popular: false, distance: 0.3 },
+      { id: "f7", name: "Jardin de la Reine", type: "secret", address: "Rue Bonnard", rating: 4.2, priceRange: "$", description: "Mini-jardin à la française caché derrière une grille", popular: false, secretTip: "Ouvre seulement de mai à septembre, 14h-18h", distance: 0.2 },
+      { id: "f8", name: "Escalier Figuerolles", type: "secret", address: "Montée des Carmes", rating: 4.0, priceRange: "$", description: "Escalier couvert de mosaïques collaboratives", popular: false, secretTip: "Prends-le au coucher du soleil, direction Peyrou", distance: 0.1 },
     ],
   },
 
-  // ── 8. BELLEVILLE ──
+  // ── 7. ARCEAUX ──
   {
-    id: "belleville",
-    name: "Belleville",
-    arrondissement: "20e",
-    emoji: "\uD83C\uDFA4",
-    vibeTags: ["Street art", "Multiculturel", "Authentique"],
+    id: "arceaux",
+    name: "Arceaux",
+    arrondissement: "Familial",
+    emoji: "\uD83C\uDFDB\uFE0F",
+    vibeTags: ["Marché", "Familial", "Terrasses"],
     activityLevel: 3,
-    bestFor: "World Food & Street Art",
+    bestFor: "Marchés & brunchs",
     localTips: [
-      "Le Parc de Belleville offre la meilleure vue gratuite sur Paris — mieux que Montmartre.",
-      "La rue Denoyez change de fresques toutes les semaines — chaque visite est differente.",
-      "Le meilleur pho de Paris est au Pho 14 bis, rue de Belleville.",
+      "Le marché des Arceaux (mardi et samedi matin) est le rendez-vous des Montpelliérains.",
+      "L'aqueduc Saint-Clément au-dessus attire les coureurs et pique-niqueurs.",
+      "Prends ton verre au Café de l'Aqueduc, vue directe sur les arches.",
     ],
     spots: [
-      { id: "bv1", name: "Le Baratin", type: "restaurant", address: "3 Rue Jouye-Rouve", rating: 4.4, priceRange: "$$", description: "Cave-bistrot legendaire, vin nature et plats canailles", popular: true, distance: 0.2 },
-      { id: "bv2", name: "Pho 14", type: "restaurant", address: "129 Av de Choisy", rating: 4.3, priceRange: "$", description: "Le pho reference depuis 30 ans", popular: true, distance: 0.5 },
-      { id: "bv3", name: "Dong Huong", type: "restaurant", address: "14 Rue Louis Bonnet", rating: 4.2, priceRange: "$", description: "Cuisine vietnamienne authentique, bo bun genereux", popular: false, distance: 0.3 },
-      { id: "bv4", name: "Aux Deux Amis", type: "restaurant", address: "45 Rue Oberkampf", rating: 4.5, priceRange: "$$", description: "Tapas francaises et vins nature, ambiance festive", popular: false, distance: 0.4 },
-      { id: "bv5", name: "La Commune", type: "bar", address: "80 Bd de Belleville", rating: 4.1, priceRange: "$", description: "Bar associatif, concerts punk et expos", popular: true, distance: 0.2 },
-      { id: "bv6", name: "Le Barbouquin", type: "bar", address: "4 Rue Jouye-Rouve", rating: 4.0, priceRange: "$", description: "Bar-librairie, bouquinez en buvant", popular: false, distance: 0.2 },
-      { id: "bv7", name: "La Marquise", type: "bar", address: "34 Rue de Menilmontant", rating: 4.2, priceRange: "$$", description: "Cocktails sur rooftop avec vue panoramique", popular: true, distance: 0.3 },
-      { id: "bv8", name: "Le Zorba", type: "bar", address: "137 Rue du Faubourg du Temple", rating: 3.8, priceRange: "$", description: "Cafe-bar populaire, DJ le weekend, prix mini", popular: false, distance: 0.4 },
-      { id: "bv9", name: "Rue Denoyez (street art)", type: "activity", address: "Rue Denoyez", rating: 4.6, priceRange: "$", description: "Galerie a ciel ouvert, fresques murales geantes", popular: true, distance: 0.1 },
-      { id: "bv10", name: "Parc de Belleville", type: "activity", address: "47 Rue des Couronnes", rating: 4.7, priceRange: "$", description: "Le plus haut parc de Paris — vue 180 degres", popular: true, distance: 0.2 },
-      { id: "bv11", name: "La Maroquinerie", type: "activity", address: "23 Rue Boyer", rating: 4.2, priceRange: "$$", description: "Salle de concerts indie et rock, ambiance intimiste", popular: false, distance: 0.4 },
-      { id: "bv12", name: "Galerie Jour et Nuit", type: "activity", address: "Rue Denoyez", rating: 3.9, priceRange: "$", description: "Galerie underground, vernissages le jeudi", popular: false, distance: 0.1 },
-      { id: "bv13", name: "Villa de l'Ermitage", type: "secret", address: "Villa de l'Ermitage", rating: 4.5, priceRange: "$", description: "Ruelle pavee avec maisons de campagne en plein Paris", popular: false, secretTip: "Ressemble a un village provencal — surreal", distance: 0.3 },
-      { id: "bv14", name: "Regard Saint-Martin", type: "secret", address: "42 Rue des Cascades", rating: 3.8, priceRange: "$", description: "Vestige medieval du reseau hydraulique de Paris", popular: false, secretTip: "Un des 4 regards encore visibles dans Paris", distance: 0.4 },
-      { id: "bv15", name: "Escalier rue du Transvaal", type: "secret", address: "Rue du Transvaal", rating: 4.0, priceRange: "$", description: "Escalier street art avec vue sur le Sacre-Coeur", popular: false, secretTip: "Montez les 100 marches au coucher du soleil", distance: 0.5 },
-      { id: "bv16", name: "Passage Plantin", type: "secret", address: "Passage Plantin", rating: 3.9, priceRange: "$", description: "Impasse pavee avec ateliers d'artistes et vigne vierge", popular: false, secretTip: "Sonnez au 3 pour visiter l'atelier de ceramique", distance: 0.2 },
+      { id: "ar1", name: "La Table de Loïc", type: "restaurant", address: "49 Rue du Faubourg Boutonnet", rating: 4.6, priceRange: "$$$", description: "Bistronomie locavore, menu qui change chaque semaine", popular: true, distance: 0.3 },
+      { id: "ar2", name: "Le Marché des Arceaux", type: "restaurant", address: "Boulevard des Arceaux", rating: 4.5, priceRange: "$", description: "Marché de producteurs — brunch improvisé avec les stands", popular: true, distance: 0 },
+      { id: "ar3", name: "Café de l'Aqueduc", type: "bar", address: "24 Boulevard des Arceaux", rating: 4.2, priceRange: "$$", description: "Terrasse face aux arches de l'aqueduc Saint-Clément", popular: true, distance: 0 },
+      { id: "ar4", name: "La Bière du Pape", type: "bar", address: "11 Rue Four des Flammes", rating: 4.3, priceRange: "$$", description: "Cave à bières locales, planches de charcuterie corse", popular: false, distance: 0.2 },
+      { id: "ar5", name: "Aqueduc Saint-Clément", type: "activity", address: "Boulevard des Arceaux", rating: 4.7, priceRange: "$", description: "Aqueduc du XVIIIe, 800m long, point de vue spectaculaire", popular: true, distance: 0 },
+      { id: "ar6", name: "Promenade du Peyrou", type: "activity", address: "Place Royale du Peyrou", rating: 4.8, priceRange: "$", description: "Terrasse monumentale surplombant la ville — coucher de soleil", popular: true, distance: 0.3 },
+      { id: "ar7", name: "Vieux cimetière protestant", type: "secret", address: "Rue du Pioch de Boutonnet", rating: 4.1, priceRange: "$", description: "Cimetière XIXe romantique, tombes sculpteurs", popular: false, secretTip: "Ouvert le matin uniquement, très calme", distance: 0.4 },
+      { id: "ar8", name: "Château d'eau du Peyrou", type: "secret", address: "Place Royale du Peyrou", rating: 4.0, priceRange: "$", description: "Pavillon octogonal 1768 qui domine la ville", popular: false, secretTip: "Visite intérieur sur demande Journées du Patrimoine", distance: 0.3 },
+    ],
+  },
+
+  // ── 8. BOUTONNET ──
+  {
+    id: "boutonnet",
+    name: "Boutonnet",
+    arrondissement: "Étudiant",
+    emoji: "\uD83C\uDF93",
+    vibeTags: ["Étudiant", "Pas cher", "Animé"],
+    activityLevel: 4,
+    bestFor: "Sorties étudiantes",
+    localTips: [
+      "Les jeudis soir, c'est LE quartier qui bouge — 70K étudiants à Montpellier.",
+      "La rue du Faubourg Boutonnet aligne bars et kebabs tard le soir.",
+      "Le Parc de la Chaussée du Pont Juvénal pour se détendre après les exams.",
+    ],
+    spots: [
+      { id: "bo1", name: "Chez Moumoune", type: "restaurant", address: "54 Rue du Faubourg Boutonnet", rating: 4.3, priceRange: "$", description: "Kebab turc légendaire — ouvert jusqu'à 3h du mat'", popular: true, distance: 0.1 },
+      { id: "bo2", name: "Le Petit Pois", type: "restaurant", address: "15 Rue du Faubourg Boutonnet", rating: 4.4, priceRange: "$", description: "Cantine végé à prix mini, menu du jour 10€", popular: false, distance: 0.1 },
+      { id: "bo3", name: "Le Rockstore", type: "bar", address: "20 Rue de Verdun", rating: 4.5, priceRange: "$", description: "Club rock mythique de Montpellier depuis 1986", popular: true, distance: 0.3 },
+      { id: "bo4", name: "Charlie's Bar", type: "bar", address: "32 Rue de l'Université", rating: 4.1, priceRange: "$", description: "Bar étudiant, happy hour 18h-21h, billard gratuit", popular: true, distance: 0.2 },
+      { id: "bo5", name: "Jardin botanique de Boutonnet", type: "activity", address: "163 Rue Auguste Broussonnet", rating: 4.4, priceRange: "$", description: "Faculté de pharmacie, jardin conservatoire d'essences rares", popular: false, distance: 0.3 },
+      { id: "bo6", name: "Place Albert 1er", type: "activity", address: "Place Albert 1er", rating: 4.2, priceRange: "$", description: "Point de ralliement étudiant — concerts improvisés l'été", popular: true, distance: 0.2 },
+      { id: "bo7", name: "Cour Saint-Charles", type: "secret", address: "Ancien hôpital Saint-Charles", rating: 4.3, priceRange: "$", description: "Cloître médiéval reconverti en campus — accès libre", popular: false, secretTip: "Parfait spot pour réviser ou lire au calme", distance: 0.4 },
+      { id: "bo8", name: "Sentier des Moulins", type: "secret", address: "Rue des Moulins", rating: 3.9, priceRange: "$", description: "Micro-sentier entre vieux moulins à vent restaurés", popular: false, secretTip: "Se termine à un belvédère que personne ne connaît", distance: 0.5 },
     ],
   },
 ];
@@ -369,5 +321,6 @@ export function getPopularSpots(neighborhood: GuideNeighborhood): Spot[] {
 }
 
 export function getGoogleMapsUrl(address: string): string {
-  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address + ", Paris")}`;
+  const city = getActiveCity().name;
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address + ", " + city)}`;
 }

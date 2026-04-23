@@ -45,6 +45,9 @@ export const app = {
   textSoft: "#666666",
   violet: "#8B5CF6",
   vert: "#00FF88",
+  /** Dark-green ink used for "tu y es" / success text pairs on light chips.
+   *  Meets WCAG AA contrast vs `vert` tints. */
+  vertDark: "#0A9459",
   // Super-like pink accent (used for super-like halos, match toasts, shop tints).
   rose: "#EC4899",
   // Secondary violet/purple tint (shop mixed gradients).

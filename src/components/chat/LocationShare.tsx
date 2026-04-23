@@ -9,6 +9,7 @@ import {
   LOCATION_MAP_PIN_COLOR,
 } from "@/lib/chat-content-colors";
 import { MapPin, LinkIcon } from "@/components/ui/lucide";
+import { getActiveCityCenter } from "@/lib/cities";
 
 // ---------- LocationShareButton ----------
 
@@ -20,9 +21,10 @@ export function LocationShareButton({ onShare }: LocationShareButtonProps) {
   const [loading, setLoading] = useState(false);
 
   const handleShare = useCallback(() => {
+    const fallback = getActiveCityCenter();
     if (!navigator.geolocation) {
-      // Fallback: mock Paris coords
-      onShare(48.8566, 2.3522);
+      // Fallback: active-city centre (Wave 14 = Montpellier).
+      onShare(fallback.lat, fallback.lng);
       return;
     }
     setLoading(true);
@@ -32,8 +34,8 @@ export function LocationShareButton({ onShare }: LocationShareButtonProps) {
         setLoading(false);
       },
       () => {
-        // On error, use mock coords
-        onShare(48.8566, 2.3522);
+        // On error, fall back to the active city centre.
+        onShare(fallback.lat, fallback.lng);
         setLoading(false);
       },
       { timeout: 5000 },

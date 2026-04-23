@@ -245,7 +245,7 @@ function generateSuggestions(
       time: "20h00",
       tags: [mood, venue.type, venue.arrondissement],
       conversationStarters: [
-        `Demande a ${profile.name} quel est son endroit prefere a Paris`,
+        `Demande a ${profile.name} quel est son endroit prefere a Montpellier`,
         `Parle de ce qui t'a attire dans le mode ${mood}`,
         `Raconte ta meilleure soiree improvisee`,
       ],
@@ -330,7 +330,7 @@ function generatePlanning(suggestion: AssistantSuggestion): PlanningDetails {
     meetingPoint: `Devant ${suggestion.location.split(",")[0]}`,
     suggestedTime: suggestion.time || "20h00",
     conversationStarters: suggestion.conversationStarters || [
-      "Parle de ton quartier prefere a Paris",
+      "Parle de ton quartier prefere a Montpellier",
       "Raconte ta derniere decouverte culinaire",
       "Quel est ton plan de soiree ideal ?",
     ],

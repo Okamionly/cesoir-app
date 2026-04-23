@@ -45,6 +45,21 @@ export type FeedActivityType = "availability" | "looking" | "area" | "trending";
 export type CheckinStatus = "active" | "safe" | "alert";
 
 // ----------------------------------------
+// Events (Wave 14 — Soirées rubric, migration 019)
+// ----------------------------------------
+
+export type EventCategory =
+  | "techno" | "house" | "hip_hop" | "jazz" | "electro" | "rock" | "reggae"
+  | "pop" | "afro" | "indie" | "dj_set" | "live_music"
+  | "rooftop" | "bar" | "club" | "festival" | "open_air"
+  | "gratuit" | "apero" | "afterwork" | "brunch"
+  | "culture" | "expo" | "cinema" | "theatre";
+
+export type RsvpStatus = "interested" | "going" | "maybe" | "cancelled";
+
+export type EventSource = "manual_curated" | "partner" | "api";
+
+// ----------------------------------------
 // Existing Tables
 // ----------------------------------------
 
@@ -267,6 +282,49 @@ export interface DbAvailability {
 }
 
 // ----------------------------------------
+// Events (Wave 14 — Soirées rubric)
+// ----------------------------------------
+
+export interface DbEvent {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  flyer_url: string | null;
+  venue_name: string;
+  venue_address: string | null;
+  /** PostGIS geography(point, 4326) — serialised as GeoJSON / WKB string by PostgREST. */
+  venue_location: unknown;
+  city_slug: string;
+  starts_at: string;
+  ends_at: string | null;
+  door_price_eur: number | null;
+  ticket_url: string | null;
+  categories: EventCategory[];
+  lineup: string[];
+  featured: boolean;
+  is_cancelled: boolean;
+  source: EventSource;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DbEventWithCounts extends DbEvent {
+  rsvp_count: number;
+  going_count: number;
+}
+
+export interface DbEventRsvp {
+  event_id: string;
+  user_id: string;
+  status: RsvpStatus;
+  plus_ones: number;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// ----------------------------------------
 // Matches View
 // ----------------------------------------
 
@@ -389,10 +447,24 @@ export interface Database {
         Insert: Partial<DbAvailability> & Pick<DbAvailability, "user_id" | "day_of_week">;
         Update: Partial<DbAvailability>;
       };
+      events: {
+        Row: DbEvent;
+        Insert: Partial<DbEvent> &
+          Pick<DbEvent, "slug" | "title" | "venue_name" | "venue_location" | "starts_at">;
+        Update: Partial<DbEvent>;
+      };
+      event_rsvps: {
+        Row: DbEventRsvp;
+        Insert: Partial<DbEventRsvp> & Pick<DbEventRsvp, "event_id" | "user_id">;
+        Update: Partial<DbEventRsvp>;
+      };
     };
     Views: {
       matches: {
         Row: DbMatch;
+      };
+      events_with_counts: {
+        Row: DbEventWithCounts;
       };
     };
     Functions: {

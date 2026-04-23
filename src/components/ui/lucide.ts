@@ -108,6 +108,11 @@ export {
   Flame,
   Filter,
   LogOut,
+
+  // Events / nightlife
+  Music,
+  Ticket,
+  PartyPopper,
 } from "lucide-react";
 
 export type { LucideIcon } from "lucide-react";

@@ -6,8 +6,8 @@ const base: CompatProfile = {
   modes: ["solo-diner", "foodie-quest"],
   langs: ["fr", "en"],
   age: 28,
-  lat: 48.8566,
-  lng: 2.3522, // Paris
+  lat: 43.6082,
+  lng: 3.8794, // Montpellier, Place de la Comédie
 };
 
 describe("calculateCompatibility", () => {
@@ -28,7 +28,7 @@ describe("calculateCompatibility", () => {
       langs: ["jp"],
       age: 70,
       lat: 35.6762,
-      lng: 139.6503, // Tokyo — far from Paris
+      lng: 139.6503, // Tokyo — far from Montpellier
     };
     const score = calculateCompatibility(base, opposite);
     expect(score).toBeLessThan(20);

@@ -53,9 +53,10 @@ const MATCH_PLACEHOLDER = {
   mode: "plus-one" as const,
 };
 
-// Default user location (central Paris — Chatelet)
-const USER_LAT = 48.8606;
-const USER_LNG = 2.3476;
+// Default user location (centre ville — Place de la Comédie, Montpellier).
+// Uses the active-city centre so expansion only changes src/lib/cities.ts.
+import { getActiveCityCenter as _getCenter } from "@/lib/cities";
+const { lat: USER_LAT, lng: USER_LNG } = _getCenter();
 
 // ─────────────────────────────────────────
 // Step animation variants

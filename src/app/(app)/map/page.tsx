@@ -17,25 +17,21 @@ import { HeatmapFallback } from "@/components/map/HeatmapOverlay";
 import LiveActivityPanel from "@/components/map/LiveActivityPanel";
 import CrossLinkCard from "@/components/app/CrossLinkCard";
 import PageHeader from "@/components/ui/PageHeader";
-import { ChevronRight } from "@/components/ui/lucide";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import Supercluster from "supercluster";
+import { getActiveCityCenter } from "@/lib/cities";
 import MapSearchBar from "@/components/map/MapSearchBar";
 import MapFiltersSheet, { DEFAULT_FILTERS, type MapFilters } from "@/components/map/MapFiltersSheet";
 import MapFloatingActions from "@/components/map/MapFloatingActions";
 import MapCarousel, { type MapCarouselItem } from "@/components/map/MapCarousel";
 import ProfileFlyInCard from "@/components/map/ProfileFlyInCard";
 import { createProfilePin, ensurePinStyles, type ProfilePinHandle } from "@/components/map/ProfilePin";
-
-interface OpenEvent {
-  id: string;
-  title: string;
-  time: string;
-  spots: string;
-  lat: number;
-  lng: number;
-}
+import { createEventPin, type EventPinHandle } from "@/components/map/EventPin";
+import EventFlyInCard from "@/components/map/EventFlyInCard";
+import { useEvents } from "@/lib/useEvents";
+import { supabase } from "@/lib/supabase";
+import type { CesoirEvent, RsvpStatus } from "@/lib/events-types";
 
 interface ProfileWithPos extends Profile {
   pos: { lat: number; lng: number };
@@ -59,13 +55,18 @@ function isPointerFineMedia(): boolean {
  *  avoid spinning up dozens of DOM marker nodes. */
 const DOM_PIN_ZOOM_THRESHOLD = 12;
 
+/** Event pins are a separate layer (no clustering). Below this zoom we
+ *  avoid rendering them to keep the canvas clean. */
+const EVENT_PIN_ZOOM_THRESHOLD = 11;
+
 export default function MapPage() {
   // useAuth consumed for future gating (e.g. only show crush pin for signed-in users).
   useAuth();
   const { latitude, longitude, error, loading } = useGeolocation();
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [selectedEvent, setSelectedEvent] = useState<OpenEvent | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<CesoirEvent | null>(null);
   const [flyInAnchor, setFlyInAnchor] = useState<{ x: number; y: number } | null>(null);
+  const [eventAnchor, setEventAnchor] = useState<{ x: number; y: number } | null>(null);
   const [mounted, setMounted] = useState(false);
   const [filters, setFilters] = useState<MapFilters>(DEFAULT_FILTERS);
   const [showFilters, setShowFilters] = useState(false);
@@ -81,11 +82,18 @@ export default function MapPage() {
   const mapRef = useRef<maplibregl.Map | null>(null);
   const pinHandlesRef = useRef<Map<string, { handle: ProfilePinHandle; marker: maplibregl.Marker }>>(new Map());
   const clusterMarkersRef = useRef<maplibregl.Marker[]>([]);
-  const eventMarkersRef = useRef<{ handle: ProfilePinHandle; marker: maplibregl.Marker }[]>([]);
-  const center = latitude && longitude ? { lat: latitude, lng: longitude } : { lat: 48.8566, lng: 2.3522 };
+  const eventMarkersRef = useRef<Map<string, { handle: EventPinHandle; marker: maplibregl.Marker }>>(new Map());
+  const center = latitude && longitude ? { lat: latitude, lng: longitude } : getActiveCityCenter();
   const currentModeFilter: ModeKey | undefined = filters.modes.length === 1 ? filters.modes[0] : undefined;
   const { profiles: realProfiles } = useProfiles(latitude ?? undefined, longitude ?? undefined, currentModeFilter);
   const { hotspots: liveHotspots } = useHotspots();
+
+  // Montpellier events (U2 hook) — shown on /map via a dedicated layer
+  // distinct from profile pins. Toggle via `filters.showEvents` (sheet).
+  const { events: montpellierEvents, refetch: refetchEvents } = useEvents({
+    when: "all",
+    category: null,
+  });
 
   // Real profiles with positions derived from geolocation
   const profilesWithPos = useMemo<ProfileWithPos[]>(() => {
@@ -96,8 +104,11 @@ export default function MapPage() {
     }));
   }, [realProfiles, center.lat, center.lng]);
 
-  // Apply filters (modes + age + distance + online)
+  // Apply filters (modes + age + distance + online + profiles-layer toggle)
   const filtered = useMemo<ProfileWithPos[]>(() => {
+    // U4: the "Voir les profils" toggle short-circuits the profile layer
+    // entirely, which also hides profile pins + clusters in one move.
+    if (!filters.showProfiles) return [];
     return profilesWithPos.filter(p => {
       if (filters.modes.length > 0 && !filters.modes.includes(p.mode)) return false;
       if (p.age < filters.ageMin || p.age > filters.ageMax) return false;
@@ -107,8 +118,20 @@ export default function MapPage() {
     });
   }, [profilesWithPos, filters]);
 
-  // Open events come from backend (not yet wired) — empty until hook exists.
-  const openEvents = useMemo<OpenEvent[]>(() => [], []);
+  // Events derived from Montpellier feed — only those with real geo, visible
+  // in current bounds. Filtered by `filters.showEvents` toggle.
+  const geoEvents = useMemo<CesoirEvent[]>(() => {
+    if (!filters.showEvents) return [];
+    return montpellierEvents.filter(
+      (e) => e.venue.lat != null && e.venue.lng != null,
+    );
+  }, [montpellierEvents, filters.showEvents]);
+
+  const eventById = useMemo(() => {
+    const m = new Map<string, CesoirEvent>();
+    geoEvents.forEach((e) => m.set(e.id, e));
+    return m;
+  }, [geoEvents]);
 
   // --- Build supercluster index for profile points --------------------------
   const clusterIndex = useMemo(() => {
@@ -438,48 +461,89 @@ export default function MapPage() {
     pinHandlesRef.current.forEach(({ handle }, id) => {
       handle.update({
         focused: id === selectedId,
-        dimmed: Boolean(selectedId) && id !== selectedId,
+        dimmed: Boolean(selectedId || selectedEvent) && id !== selectedId,
       });
     });
-    eventMarkersRef.current.forEach(({ handle }) => {
+    eventMarkersRef.current.forEach(({ handle }, id) => {
       handle.update({
-        dimmed: Boolean(selectedId || selectedEvent),
+        focused: selectedEvent?.id === id,
+        dimmed: Boolean(selectedId || selectedEvent) && selectedEvent?.id !== id,
       });
     });
   }, [selectedId, selectedEvent]);
 
-  // --- Render event markers using ProfilePin variant="event" ---------------
+  // --- Render event markers in a dedicated layer (no clustering) -----------
+  // Pool-friendly: reuse existing pin handles via `setLngLat`, only destroy
+  // pins that drop out of the new event set.
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) return;
-
-    eventMarkersRef.current.forEach(({ handle, marker }) => {
-      handle.destroy();
-      marker.remove();
-    });
-    eventMarkersRef.current = [];
+    if (!map || !bounds) return;
 
     const reduced = prefersReducedMotion();
     const pointerFine = isPointerFineMedia();
+    const show = filters.showEvents && zoom >= EVENT_PIN_ZOOM_THRESHOLD;
 
-    openEvents.forEach((ev, idx) => {
-      const handle = createProfilePin({
-        color: appTokens.amberStar,
+    if (!show) {
+      // Destroy everything — we're below threshold or toggled off.
+      eventMarkersRef.current.forEach(({ handle, marker }) => {
+        handle.destroy();
+        marker.remove();
+      });
+      eventMarkersRef.current.clear();
+      return;
+    }
+
+    const [w, s, e, n] = bounds;
+    const visible = geoEvents.filter((ev) => {
+      const lat = ev.venue.lat!;
+      const lng = ev.venue.lng!;
+      return lng >= w && lng <= e && lat >= s && lat <= n;
+    });
+
+    const nextIds = new Set<string>();
+    visible.forEach((ev, idx) => {
+      nextIds.add(ev.id);
+      const lat = ev.venue.lat!;
+      const lng = ev.venue.lng!;
+
+      const existing = eventMarkersRef.current.get(ev.id);
+      if (existing) {
+        existing.marker.setLngLat([lng, lat]);
+        return;
+      }
+
+      const handle = createEventPin({
+        title: ev.title,
+        startsAt: ev.startAt,
+        // Featured flag not yet in CesoirEvent; hoist it when U2 adds it.
+        featured: false,
         reduced,
         pointerFine,
-        variant: "event",
-        emoji: "⚡",
-        animationDelay: Math.min(idx * 0.03, 0.2),
+        animationDelay: Math.min(idx * 0.03, 0.25),
         onClick: () => {
+          const screenPt = map.project([lng, lat]);
+          const rect = map.getContainer().getBoundingClientRect();
+          setEventAnchor({ x: rect.left + screenPt.x, y: rect.top + screenPt.y });
           setSelectedEvent(ev);
           setSelectedId(null);
           setFlyInAnchor(null);
         },
       });
-      const marker = new maplibregl.Marker({ element: handle.element }).setLngLat([ev.lng, ev.lat]).addTo(map);
-      eventMarkersRef.current.push({ handle, marker });
+      const marker = new maplibregl.Marker({ element: handle.element })
+        .setLngLat([lng, lat])
+        .addTo(map);
+      eventMarkersRef.current.set(ev.id, { handle, marker });
     });
-  }, [openEvents]);
+
+    // Destroy pins no longer in the visible set.
+    Array.from(eventMarkersRef.current.entries()).forEach(([id, { handle, marker }]) => {
+      if (!nextIds.has(id)) {
+        handle.destroy();
+        marker.remove();
+        eventMarkersRef.current.delete(id);
+      }
+    });
+  }, [geoEvents, bounds, zoom, filters.showEvents]);
 
   // --- Cleanup all markers on unmount --------------------------------------
   useEffect(() => {
@@ -496,6 +560,7 @@ export default function MapPage() {
         handle.destroy();
         marker.remove();
       });
+      eventMarkers.clear();
       clusterMarkers.forEach(m => m.remove());
     };
   }, []);
@@ -519,22 +584,28 @@ export default function MapPage() {
           });
         }
       });
-      openEvents.forEach(ev => {
-        if (ev.lng >= w && ev.lng <= e && ev.lat >= s && ev.lat <= n) {
+      geoEvents.forEach((ev) => {
+        const lat = ev.venue.lat!;
+        const lng = ev.venue.lng!;
+        if (lng >= w && lng <= e && lat >= s && lat <= n) {
+          const d = new Date(ev.startAt);
+          const time = Number.isNaN(d.getTime())
+            ? ev.venue.name
+            : d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
           items.push({
             type: "event",
             id: ev.id,
             title: ev.title,
-            subtitle: `${ev.time} · ${ev.spots}`,
-            lat: ev.lat,
-            lng: ev.lng,
-            emoji: "⚡",
+            subtitle: `${time} · ${ev.venue.name}`,
+            lat,
+            lng,
+            emoji: "\u26A1",
           });
         }
       });
     }
     return items.slice(0, 20);
-  }, [bounds, filtered, openEvents]);
+  }, [bounds, filtered, geoEvents]);
 
   // --- Handlers -------------------------------------------------------------
   const handleRecenter = useCallback(() => {
@@ -575,15 +646,71 @@ export default function MapPage() {
         setSelectedEvent(null);
       }
     } else if (item.type === "event") {
-      const ev = openEvents.find(e => e.id === item.id);
-      if (ev) { setSelectedEvent(ev); setSelectedId(null); setFlyInAnchor(null); }
+      const ev = eventById.get(item.id);
+      if (ev) {
+        const screenPt = map.project([item.lng, item.lat]);
+        const container = map.getContainer().getBoundingClientRect();
+        setEventAnchor({ x: container.left + screenPt.x, y: container.top + screenPt.y });
+        setSelectedEvent(ev);
+        setSelectedId(null);
+        setFlyInAnchor(null);
+      }
     }
-  }, [profileById, openEvents]);
+  }, [profileById, eventById]);
 
   const handleCloseFlyIn = useCallback(() => {
     setSelectedId(null);
     setFlyInAnchor(null);
   }, []);
+
+  const handleCloseEvent = useCallback(() => {
+    setSelectedEvent(null);
+    setEventAnchor(null);
+  }, []);
+
+  /**
+   * Optimistic quick-RSVP handler. Patches `selectedEvent` right away,
+   * writes to `event_rsvps`, then refetches so counts stay fresh elsewhere.
+   */
+  const handleEventRsvp = useCallback(
+    async (ev: CesoirEvent, next: RsvpStatus | null) => {
+      setSelectedEvent((prev) =>
+        prev && prev.id === ev.id
+          ? {
+              ...prev,
+              myRsvp: next,
+              counts: {
+                going:
+                  prev.counts.going +
+                  (next === "going" ? 1 : 0) -
+                  (prev.myRsvp === "going" ? 1 : 0),
+                maybe: prev.counts.maybe,
+              },
+            }
+          : prev,
+      );
+
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        if (next === null) {
+          await supabase
+            .from("event_rsvps")
+            .delete()
+            .match({ event_id: ev.id, user_id: user.id });
+        } else {
+          await supabase.from("event_rsvps").upsert(
+            { event_id: ev.id, user_id: user.id, status: next },
+            { onConflict: "event_id,user_id" },
+          );
+        }
+        void refetchEvents();
+      } catch {
+        // Silently swallow — optimistic UI already updated. Next fetch reconciles.
+      }
+    },
+    [refetchEvents],
+  );
 
   // Keep fly-in anchor tracking the pin on map move (so card slides with pin).
   useEffect(() => {
@@ -602,9 +729,29 @@ export default function MapPage() {
     };
   }, [selected]);
 
+  // Keep event fly-in anchor tracking its pin on map move.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !selectedEvent || selectedEvent.venue.lat == null || selectedEvent.venue.lng == null) return;
+    const lat = selectedEvent.venue.lat;
+    const lng = selectedEvent.venue.lng;
+    const update = () => {
+      const pt = map.project([lng, lat]);
+      const rect = map.getContainer().getBoundingClientRect();
+      setEventAnchor({ x: rect.left + pt.x, y: rect.top + pt.y });
+    };
+    map.on("move", update);
+    map.on("zoom", update);
+    return () => {
+      map.off("move", update);
+      map.off("zoom", update);
+    };
+  }, [selectedEvent]);
+
   const activeFilterCount =
     filters.modes.length +
     (filters.showEvents ? 0 : 1) +
+    (filters.showProfiles ? 0 : 1) +
     (filters.showFlash ? 0 : 1) +
     (filters.showHeatmap ? 1 : 0) +
     (filters.showOnlineOnly ? 1 : 0) +
@@ -759,7 +906,7 @@ export default function MapPage() {
             style={{ bottom: "calc(260px + env(safe-area-inset-bottom))" }}
           >
             <m.div className="flex-1" initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ ...springs.heavy, delay: 0.4 }}>
-              <CrossLinkCard emoji="🔥" title="Plans ce soir" subtitle={`${openEvents.length} plans`} href="/plans" />
+              <CrossLinkCard emoji="🔥" title="Soirees ce soir" subtitle={`${geoEvents.length} events`} href="/events" />
             </m.div>
           </div>
         )}
@@ -776,74 +923,16 @@ export default function MapPage() {
           )}
         </AnimatePresence>
 
-        {/* Selected event sheet */}
+        {/* Cinematic fly-in card for selected event (U4 Wave 14) */}
         <AnimatePresence>
           {selectedEvent && (
-            <m.div
-              className="absolute bottom-24 left-3 right-3 z-[1000]"
-              initial={{ y: "100%", opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: "100%", opacity: 0 }}
-              transition={springs.heavy}
-            >
-              <div className="bg-bg border border-accent/20 rounded-2xl p-4 shadow-glow">
-                <m.button
-                  onClick={() => setSelectedEvent(null)}
-                  className="absolute top-3 right-3 w-7 h-7 rounded-full bg-bg-card border border-border flex items-center justify-center text-xs text-text-muted tap-target"
-                  aria-label="Fermer"
-                  whileHover={{ scale: 1.1, rotate: 15 }}
-                  whileTap={{ scale: 0.9 }}
-                  transition={springs.micro}
-                >✕</m.button>
-
-                <div className="flex items-center gap-3 mb-3">
-                  <m.div
-                    className="w-12 h-12 rounded-full gradient-bg flex items-center justify-center text-[22px] shadow-glow"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ ...springs.elastic, delay: 0.1 }}
-                  >⚡</m.div>
-                  <div>
-                    <h3 className="text-[15px] font-bold text-text">{selectedEvent.title}</h3>
-                    <p className="text-[11px] text-text-muted">{selectedEvent.time} · {selectedEvent.spots}</p>
-                  </div>
-                </div>
-
-                <p className="text-[12px] text-text-muted mb-3">Soiree ouverte pres de toi</p>
-
-                <m.button
-                  className="w-full gradient-bg text-white py-2.5 rounded-full text-[12px] font-semibold shadow-glow tap-target"
-                  whileTap={micro.tapScale}
-                >
-                  Demander a rejoindre
-                </m.button>
-
-                {openEvents.filter(ev => ev.id !== selectedEvent.id).length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-border/50">
-                    <p className="text-[10px] text-text-muted font-semibold uppercase tracking-wider mb-2">
-                      Aussi a proximite
-                    </p>
-                    <div className="space-y-1.5">
-                      {openEvents.filter(ev => ev.id !== selectedEvent.id).slice(0, 2).map(ev => (
-                        <m.button
-                          key={ev.id}
-                          className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg bg-bg-card border border-border/30 text-left"
-                          whileTap={{ scale: 0.97 }}
-                          onClick={() => { setSelectedEvent(ev); }}
-                        >
-                          <span className="text-sm">⚡</span>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-[11px] font-semibold text-text truncate">{ev.title}</p>
-                            <p className="text-[9px] text-text-muted">{ev.time} · {ev.spots}</p>
-                          </div>
-                          <ChevronRight size={10} strokeWidth={2} className="text-text-muted shrink-0" aria-hidden="true" />
-                        </m.button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </m.div>
+            <EventFlyInCard
+              key={selectedEvent.id}
+              event={selectedEvent}
+              anchor={eventAnchor}
+              onClose={handleCloseEvent}
+              onRsvp={handleEventRsvp}
+            />
           )}
         </AnimatePresence>
 
