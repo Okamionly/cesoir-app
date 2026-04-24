@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import type { Route } from "next";
 import { m, AnimatePresence } from "motion/react";
 import { X } from "@/components/ui/lucide";
 import { useIsMobile } from "@/lib/hooks/useIsMobile";
@@ -182,7 +183,7 @@ export default function KeyboardShortcuts() {
         if (dest) {
           e.preventDefault();
           gChordAt.current = null;
-          router.push(dest);
+          router.push(dest as Route);
           return;
         }
       }

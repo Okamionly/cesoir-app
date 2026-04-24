@@ -16,6 +16,7 @@ export const dynamic = "force-dynamic";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import RunwayCalculator from "@/components/admin/RunwayCalculator";
 import { useAuth } from "@/context/AuthContext";
@@ -116,7 +117,7 @@ function FullScreenMsg({
         {body ? <p className="text-sm text-neutral-600">{body}</p> : null}
         {cta ? (
           <Link
-            href={cta.href}
+            href={cta.href as Route}
             className="inline-block rounded-full bg-[#8B5CF6] px-4 py-2 text-sm font-semibold text-white"
           >
             {cta.label}

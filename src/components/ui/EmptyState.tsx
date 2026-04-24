@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { Route } from "next";
 import { m } from "motion/react";
 import { springs, ambient } from "@/lib/motion-design";
 import { app } from "@/lib/design-tokens";
@@ -64,7 +65,7 @@ export default function EmptyState({
           className="mt-5"
         >
           <Link
-            href={actionHref}
+            href={actionHref as Route}
             className="inline-flex items-center px-5 py-2.5 rounded-full text-[13px] font-semibold text-white transition-all active:scale-95"
             style={{
               background: app.gradient,

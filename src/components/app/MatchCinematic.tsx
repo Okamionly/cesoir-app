@@ -16,6 +16,7 @@
 
 import { useEffect, useMemo } from "react";
 import Link from "next/link";
+import type { Route } from "next";
 import Image from "next/image";
 import { m, AnimatePresence } from "motion/react";
 import { springs, easings, moodMatchVariants } from "@/lib/motion-design";
@@ -275,7 +276,7 @@ export default function MatchCinematic({
               transition={{ ...springs.elastic, delay: 1.05 }}
             >
               <Link
-                href={chatHref}
+                href={chatHref as Route}
                 onClick={onDismiss}
                 className="w-full inline-block gradient-bg text-white px-8 py-4 rounded-full text-[15px] font-bold shadow-glow tap-target"
               >

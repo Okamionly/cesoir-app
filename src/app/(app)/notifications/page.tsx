@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import type { Route } from "next";
 import {
   motion,
   AnimatePresence,
@@ -366,7 +367,7 @@ export default function NotificationsPage() {
 
   const handleTap = useCallback(
     (notif: NotificationItem) => {
-      router.push(getNotifRoute(notif));
+      router.push(getNotifRoute(notif) as Route);
     },
     [router],
   );

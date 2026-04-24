@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { m, useReducedMotion } from "motion/react";
@@ -306,7 +307,7 @@ export default function ProfilePage() {
           ].map((item, i, arr) => (
             <Link
               key={item.href}
-              href={item.href}
+              href={item.href as Route}
               className={`flex items-center gap-4 px-5 py-4 hover:bg-bg transition-colors tap-target focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset focus-visible:outline-none ${
                 i < arr.length - 1 ? "border-b border-border" : ""
               }`}
@@ -338,7 +339,7 @@ export default function ProfilePage() {
           ].map((item, i, arr) => (
             <Link
               key={item.href}
-              href={item.href}
+              href={item.href as Route}
               className={`flex items-center justify-between px-5 py-3.5 hover:bg-bg transition-colors tap-target focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset focus-visible:outline-none ${
                 i < arr.length - 1 ? "border-b border-border" : ""
               }`}

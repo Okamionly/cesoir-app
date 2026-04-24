@@ -13,6 +13,7 @@
  */
 
 import Link from "next/link";
+import type { Route } from "next";
 import { m, type Transition } from "motion/react";
 import { useCallback } from "react";
 import { Check, UserPlus, X } from "@/components/ui/lucide";
@@ -77,7 +78,7 @@ export default function EventRsvpBar({
                 <span className="truncate">Tu y es !</span>
               </m.div>
               <Link
-                href={inviteHref}
+                href={inviteHref as Route}
                 className="inline-flex items-center gap-1.5 rounded-full bg-card border border-border px-3.5 py-2.5 text-[12px] font-semibold text-text hover:border-accent/40 transition-colors"
                 aria-label="Inviter des amis a cet event"
               >
