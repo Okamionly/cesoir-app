@@ -78,27 +78,24 @@ export function useHotspots() {
 
   const { data, loading, refetch } = useAsyncResource<LiveHotspot[]>(
     async (signal) => {
-      // Fetch all online profiles with a known location.
-      // NOTE: RLS on `profiles` should allow reading (id, latitude, longitude,
-      // is_online) for authenticated users. If the schema uses a single
-      // `location` geography column instead, adapt the select here.
-      let onlineProfiles: OnlineProfileLoc[] = [];
-
-      try {
-        const { data: profiles, error } = await supabase
-          .from("profiles")
-          .select("id, latitude, longitude")
-          .eq("is_online", true)
-          .not("latitude", "is", null)
-          .not("longitude", "is", null)
-          .abortSignal(signal);
-
-        if (!error && profiles) {
-          onlineProfiles = profiles as OnlineProfileLoc[];
-        }
-      } catch {
-        // Fall through — we'll return count=0 for every hotspot below.
-      }
+      // 2026-04-24 (patrol #11): the original query selected
+      // `latitude, longitude` from `profiles`, but the schema uses a
+      // PostGIS `location GEOGRAPHY(POINT, 4326)` single column.
+      // The query always returned HTTP 400 — the try/catch below hid
+      // the crash but produced a 400 on every 60s poll, polluting logs.
+      //
+      // Short-term: short-circuit the fetch. Hotspots render with
+      // count=0 which is honest (we don't know live activity here).
+      //
+      // Medium-term: add an SQL RPC `online_hotspot_profiles(radius_m)`
+      // that returns ST_X/ST_Y of online profile locations **rounded
+      // to 100m grid** (so we stay privacy-safe — ties into SEC-001).
+      //
+      // Tracked as part of the GPS privacy cluster (issues #5, #11).
+      // Using `signal` here would be unused; marking it so eslint stops
+      // complaining after the short-circuit:
+      void signal;
+      const onlineProfiles: OnlineProfileLoc[] = [];
 
       const live: LiveHotspot[] = HOTSPOTS.map((h: Hotspot) => {
         // Count profiles within this hotspot's radius.
