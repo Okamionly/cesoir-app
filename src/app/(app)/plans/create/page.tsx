@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { m } from "motion/react";
 import { springs } from "@/lib/motion-design";
@@ -10,6 +10,14 @@ import PageHeader from "@/components/ui/PageHeader";
 const PUBLIC_TYPES: PlanType[] = ["flash", "soiree", "popup"];
 
 export default function CreatePlanPage() {
+  return (
+    <Suspense fallback={null}>
+      <CreatePlanPageInner />
+    </Suspense>
+  );
+}
+
+function CreatePlanPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const defaultType = (searchParams?.get("type") as PlanType) ?? "flash";

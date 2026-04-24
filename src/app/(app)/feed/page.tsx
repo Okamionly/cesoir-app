@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { m, AnimatePresence } from "motion/react";
@@ -104,6 +104,14 @@ const containerVariants = feedVariants.container;
 const itemVariants = feedVariants.card;
 
 export default function FeedPage() {
+  return (
+    <Suspense fallback={null}>
+      <FeedPageInner />
+    </Suspense>
+  );
+}
+
+function FeedPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { reducedMotion } = useAccessibility();

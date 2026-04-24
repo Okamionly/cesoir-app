@@ -15,6 +15,7 @@
  */
 
 import { m, useReducedMotion } from "motion/react";
+import { useEffect, useState } from "react";
 import { ambient } from "@/lib/motion-design";
 
 export interface GradientShiftProps {
@@ -34,8 +35,10 @@ export function GradientShift({
   as = "div",
 }: GradientShiftProps) {
   const reduced = useReducedMotion();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
   const Tag = as === "span" ? m.span : m.div;
-  if (reduced) {
+  if (!mounted || reduced) {
     if (as === "span") return <span className={className}>{children}</span>;
     return <div className={className}>{children}</div>;
   }

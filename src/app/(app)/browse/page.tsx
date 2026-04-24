@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
@@ -50,6 +50,14 @@ function candidateToProfile(c: MatchCandidate): Profile {
 }
 
 export default function BrowsePage() {
+  return (
+    <Suspense fallback={null}>
+      <BrowsePageInner />
+    </Suspense>
+  );
+}
+
+function BrowsePageInner() {
   const { user } = useAuth();
   const { latitude, longitude } = useGeolocation();
   const searchParams = useSearchParams();
