@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { supabase } from "@/lib/supabase";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -15,14 +14,28 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     setError("");
 
-    const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
-
-    if (err) {
-      setError(err.message);
-    } else {
-      setSent(true);
+    // 2026-04-24 patrol #7 (SEC-006): route through the server wrapper
+    // instead of calling supabase.auth directly. The wrapper rate-limits
+    // to 3 / 15min / (IP + email) — prevents email-bomb + enumeration.
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          redirectTo: `${window.location.origin}/reset-password`,
+        }),
+      });
+      if (res.status === 429) {
+        setError("Trop de tentatives. Réessaie dans quelques minutes.");
+      } else if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string };
+        setError(data.error ?? "Impossible d'envoyer l'email");
+      } else {
+        setSent(true);
+      }
+    } catch {
+      setError("Impossible d'envoyer l'email. Vérifie ta connexion.");
     }
     setLoading(false);
   }

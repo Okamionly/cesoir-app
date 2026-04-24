@@ -86,20 +86,56 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signUp = useCallback(async (email: string, password: string, metadata: { name: string; age: number; gender: string; looking_for: string }) => {
     setLoading(true);
     setError(null);
-    const { data, error: err } = await supabase.auth.signUp({ email, password, options: { data: metadata } });
 
-    if (err) {
-      setError(err.message);
+    // 2026-04-24 patrol #7 (SEC-007): route through the server wrapper
+    // instead of calling supabase.auth.signUp directly. The wrapper rate-limits
+    // to 3 / hour / IP via the prebuilt `signup` limiter — deters bot flooding
+    // with leaked invite codes.
+    let res: Response;
+    try {
+      res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, metadata }),
+      });
+    } catch {
+      setError("Problème de connexion. Réessaie.");
       setLoading(false);
       return null;
+    }
+
+    if (res.status === 429) {
+      setError("Trop de tentatives. Réessaie dans une heure.");
+      setLoading(false);
+      return null;
+    }
+
+    const payload = (await res.json().catch(() => ({}))) as {
+      user?: User | null;
+      session?: { access_token: string; refresh_token: string } | null;
+      error?: string;
+    };
+
+    if (!res.ok) {
+      setError(payload.error ?? "Inscription refusée");
+      setLoading(false);
+      return null;
+    }
+
+    // If email confirmation is disabled, set the session locally so the user
+    // is authenticated in this tab without a second round-trip. If it's
+    // required, `session` is null and the UI shows the "verify your email"
+    // state via the caller page.
+    if (payload.session) {
+      await supabase.auth.setSession(payload.session);
     }
 
     // Profile is auto-created by DB trigger on auth.users INSERT
     // (handle_new_user function with SECURITY DEFINER)
 
-    setUser(data.user);
+    setUser(payload.user ?? null);
     setLoading(false);
-    return data.user;
+    return payload.user ?? null;
   }, []);
 
   const signIn = useCallback(async (email: string, password: string) => {
