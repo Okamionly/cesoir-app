@@ -20,6 +20,18 @@ import { withSentryConfig } from "@sentry/nextjs";
  * directives with semicolons as-is and extra whitespace can confuse
  * some CDN / WAF parsers.
  */
+// 2026-04-24 (dev-mode regression fix): React in development mode uses
+// `eval()` to reconstruct stack traces from sourcemaps (see the React
+// dev error: "React requires eval() in development mode for various
+// debugging features"). The production bundle never calls eval, so we
+// keep the hardened prod CSP but re-enable 'unsafe-eval' during
+// `next dev` only. This preserves the SEC-005 hardening for real users
+// while unblocking local development.
+const IS_DEV = process.env.NODE_ENV !== "production";
+const SCRIPT_SRC = IS_DEV
+  ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+  : "script-src 'self' 'unsafe-inline'";
+
 const CSP = [
   "default-src 'self'",
   // cartocdn.com is MapLibre's default basemap host (used in /map).
@@ -28,12 +40,13 @@ const CSP = [
   // because the glowup CSP tightening dropped it silently.
   "connect-src 'self' https://*.supabase.co https://*.upstash.io https://*.ingest.sentry.io https://images.unsplash.com https://ui-avatars.com https://api.dicebear.com https://*.cartocdn.com https://*.basemaps.cartocdn.com wss://*.supabase.co",
   "img-src 'self' data: blob: https://images.unsplash.com https://ui-avatars.com https://api.dicebear.com https://*.supabase.co https://randomuser.me https://i.pravatar.cc https://*.cartocdn.com https://*.basemaps.cartocdn.com",
-  // 2026-04-24 (SEC-005): dropped 'unsafe-eval'. Not required by Next 16
-  // production builds — the React runtime no longer uses eval(). Kept
+  // 2026-04-24 (SEC-005): dropped 'unsafe-eval' in production. Not required
+  // by Next 16 prod builds — the React runtime no longer uses eval(). Kept
   // 'unsafe-inline' because Next still ships an inline script for initial
-  // state hydration (`__NEXT_DATA__` bootstrap). Nonce-based CSP is a
-  // follow-up (requires switching to a proxy.ts that generates the nonce).
-  "script-src 'self' 'unsafe-inline'",
+  // state hydration (`__NEXT_DATA__` bootstrap). In dev mode we re-allow
+  // 'unsafe-eval' because React needs it for source-map stack reconstruction
+  // (see IS_DEV branch above).
+  SCRIPT_SRC,
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
   "frame-ancestors 'none'",
