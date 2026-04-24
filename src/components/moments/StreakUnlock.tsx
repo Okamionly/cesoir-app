@@ -11,6 +11,7 @@
  */
 
 import { m, useReducedMotion } from "motion/react";
+import { useEffect, useState } from "react";
 import { springs } from "@/lib/motion-design";
 
 export interface StreakUnlockProps {
@@ -28,8 +29,10 @@ export function StreakUnlock({
   emoji = "🏆",
 }: StreakUnlockProps) {
   const reduced = useReducedMotion();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
   if (!active) return null;
-  if (reduced) {
+  if (!mounted || reduced) {
     return (
       <div className="flex flex-col items-center gap-2">
         <span className="text-5xl" aria-hidden>
