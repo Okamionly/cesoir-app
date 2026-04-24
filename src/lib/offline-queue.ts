@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { logger } from "@/lib/logger";
 
 /** Action queued while offline */
 export interface QueuedAction {
@@ -37,7 +38,7 @@ function saveQueue(queue: QueuedAction[]): void {
 
 async function processAction(action: QueuedAction): Promise<boolean> {
   await new Promise((resolve) => setTimeout(resolve, 200));
-  console.log(`[OfflineQueue] Synced action: ${action.type}`, action.payload);
+  logger.info("[OfflineQueue] Synced action", { type: action.type, payload: action.payload });
   return true;
 }
 

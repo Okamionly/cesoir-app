@@ -11,6 +11,7 @@
  */
 
 import { m, useReducedMotion } from "motion/react";
+import { useEffect, useState } from "react";
 
 export interface FloatEmojiProps {
   /** The emoji character (or any inline text). */
@@ -30,7 +31,10 @@ export function FloatEmoji({
   ariaHidden = true,
 }: FloatEmojiProps) {
   const reduced = useReducedMotion();
-  if (reduced) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted || reduced) {
     return (
       <span className={className} aria-hidden={ariaHidden}>
         {children}

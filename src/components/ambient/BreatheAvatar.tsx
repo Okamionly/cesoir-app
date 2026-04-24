@@ -14,6 +14,7 @@
  */
 
 import { m, useReducedMotion } from "motion/react";
+import { useEffect, useState } from "react";
 import { ambient } from "@/lib/motion-design";
 
 export interface BreatheAvatarProps {
@@ -30,7 +31,10 @@ export function BreatheAvatar({
   className,
 }: BreatheAvatarProps) {
   const reduced = useReducedMotion();
-  if (reduced) return <div className={className}>{children}</div>;
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+
+  if (!mounted || reduced) return <div className={className}>{children}</div>;
   return (
     <m.div className={className} animate={ambient.breathe(duration)}>
       {children}
