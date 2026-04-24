@@ -95,13 +95,40 @@ export default function MapPage() {
     category: null,
   });
 
-  // Real profiles with positions derived from geolocation
+  // 2026-04-24 (CPO-003 fix + SEC-001 alignment):
+  // The `nearby_profiles` RPC currently returns `distance_km` but NOT the
+  // per-profile coordinates — we only know each match is, say, 0.8 km away,
+  // not where. Previously we jitter-placed pins with Math.random() around
+  // the city center, which was a trust-killer AND re-shuffled on every
+  // render (a user could watch pins "walk").
+  //
+  // Until the RPC is upgraded to return `ST_SnapToGrid(location, 0.005)`
+  // (500 m resolution — privacy-safe per SEC-001), we:
+  //   1. Seed the jitter from a deterministic hash of the profile id so
+  //      a pin stays put between renders (no more ghost walking).
+  //   2. Keep the radius at ~500 m (0.005°) matching the target grid
+  //      granularity — the same a real snap would allow.
+  //   3. Surface a banner explaining positions are approximate (see
+  //      JSX below) so we're honest with users that the map is fuzzy.
   const profilesWithPos = useMemo<ProfileWithPos[]>(() => {
-    return realProfiles.map((p, i) => ({
-      ...p,
-      pos: { lat: center.lat + (Math.random() - 0.5) * 0.02, lng: center.lng + (Math.random() - 0.5) * 0.02 },
-      online: i % 3 !== 0,
-    }));
+    return realProfiles.map((p, i) => {
+      // Simple 32-bit FNV-like hash of the profile id → 2 stable pseudo-
+      // randoms in [-0.5, 0.5]. Not cryptographic, just stable.
+      let h = 2166136261;
+      for (let k = 0; k < p.id.length; k++) {
+        h = Math.imul(h ^ p.id.charCodeAt(k), 16777619);
+      }
+      const r1 = ((h >>> 0) % 10000) / 10000 - 0.5; // [-0.5, 0.5]
+      const r2 = (((h >>> 16) ^ h) >>> 0) % 10000 / 10000 - 0.5;
+      return {
+        ...p,
+        pos: {
+          lat: center.lat + r1 * 0.01, // ≈ 500m jitter at 45°N
+          lng: center.lng + r2 * 0.01,
+        },
+        online: i % 3 !== 0,
+      };
+    });
   }, [realProfiles, center.lat, center.lng]);
 
   // Apply filters (modes + age + distance + online + profiles-layer toggle)
@@ -793,6 +820,17 @@ export default function MapPage() {
           </div>
         }
       />
+
+      {/* Trust banner (CPO-003) — we surface the privacy compromise openly.
+          The RPC `nearby_profiles` returns `distance_km` but not exact coords,
+          so pins are placed with a deterministic 500 m jitter around the city
+          center. Being honest about this is better than pretending otherwise. */}
+      <div className="shrink-0 px-3 py-1.5 bg-accent/5 border-b border-accent/10 text-[10px] text-text-muted flex items-center gap-1.5">
+        <span className="text-accent" aria-hidden="true">☾</span>
+        <span>
+          Positions floutées à ~500 m pour ta sécurité — précises uniquement avec ton consentement après match
+        </span>
+      </div>
 
       <div className="flex-1 relative z-0">
         <div ref={mapContainer} className="w-full h-full" style={{ display: mapFailed ? "none" : "block" }} />

@@ -77,10 +77,14 @@ const slides: Slide[] = [
     ),
   },
   {
-    title: "14 modes de rencontre",
+    title: "4 modes de rencontre",
     subtitle: "Chaque envie a son mode. Choisis le tien.",
+    // 2026-04-24 (CPO audit): title was "14 modes" but Wave 15 cut the
+    // catalog down to 4 core modes (see src/lib/modes.ts header). The
+    // welcome slide was promising a library we no longer ship — credibility
+    // hit flagged as P0 "quick win".
     content: (
-      <div className="grid grid-cols-4 gap-3 mx-auto max-w-xs">
+      <div className="grid grid-cols-2 gap-3 mx-auto max-w-xs">
         {modeKeys.map((key) => (
           <div
             key={key}
