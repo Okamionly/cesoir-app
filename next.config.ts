@@ -24,7 +24,12 @@ const CSP = [
   "default-src 'self'",
   "connect-src 'self' https://*.supabase.co https://*.upstash.io https://*.ingest.sentry.io https://images.unsplash.com https://ui-avatars.com https://api.dicebear.com wss://*.supabase.co",
   "img-src 'self' data: blob: https://images.unsplash.com https://ui-avatars.com https://api.dicebear.com https://*.supabase.co https://randomuser.me https://i.pravatar.cc",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+  // 2026-04-24 (SEC-005): dropped 'unsafe-eval'. Not required by Next 16
+  // production builds — the React runtime no longer uses eval(). Kept
+  // 'unsafe-inline' because Next still ships an inline script for initial
+  // state hydration (`__NEXT_DATA__` bootstrap). Nonce-based CSP is a
+  // follow-up (requires switching to a proxy.ts that generates the nonce).
+  "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
   "frame-ancestors 'none'",
@@ -96,7 +101,16 @@ const nextConfig: NextConfig = {
         { key: "X-Frame-Options", value: "DENY" },
         { key: "X-Content-Type-Options", value: "nosniff" },
         { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-        { key: "Permissions-Policy", value: "geolocation=(self), camera=(self)" },
+        // Broad deny list per OWASP 2026 recommendation (SEC-016). Only the
+        // 2 permissions we actually use — geolocation (map, proximity) and
+        // camera (selfie verification) — are granted to the origin itself.
+        // Everything else is shut off so a compromised page script can't ask
+        // for microphone / payment / USB / bluetooth / etc.
+        {
+          key: "Permissions-Policy",
+          value:
+            "geolocation=(self), camera=(self), microphone=(), payment=(), usb=(), bluetooth=(), magnetometer=(), gyroscope=(), accelerometer=(), midi=(), fullscreen=(self), display-capture=(), publickey-credentials-get=()",
+        },
       ],
     }];
   },

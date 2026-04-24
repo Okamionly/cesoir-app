@@ -7,6 +7,9 @@
  * truth in that case.
  *
  * Budget: OpenAI Moderation API is FREE for production use (per openai.com).
+ * Note: Glowup 2026-04-24 — even though the upstream is free, we still require
+ * auth + rate-limit to defend against DoS and to prevent anonymous traffic
+ * from triggering OpenAI abuse flags against our account. Flagged by SEC-008.
  *
  * Response body:
  *   { flagged: boolean, categories: string[], scores: Record<string, number> }
@@ -14,6 +17,12 @@
 
 import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
+import { AuthError, requireUser } from "@/lib/api/auth";
+import {
+  checkRateLimitByAction,
+  getClientIp,
+  rateLimitResponse,
+} from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -42,6 +51,34 @@ function flaggedCategoryNames(res: OpenAIModerationResult): string[] {
 }
 
 export async function POST(req: Request) {
+  // Auth gate — SEC-008. Endpoint had no auth before 2026-04-24 and was
+  // reachable by anyone. Now rejects anonymous traffic before touching
+  // OpenAI to avoid burning quota / triggering abuse flags.
+  let userId: string;
+  try {
+    const ctx = await requireUser(req);
+    userId = ctx.user.id;
+  } catch (err) {
+    if (err instanceof AuthError) {
+      return NextResponse.json(
+        { error: err.code, message: err.message },
+        { status: err.status },
+      );
+    }
+    throw err;
+  }
+
+  // Rate limit — 60 calls / min / user. Shares the "api" budget with
+  // other mutating endpoints. IP is kept in the key so a compromised
+  // token can't be amplified across hosts.
+  const rate = await checkRateLimitByAction(
+    `moderate-msg:${userId}:${getClientIp(req)}`,
+    "api",
+  );
+  if (!rate.ok) {
+    return rateLimitResponse(rate);
+  }
+
   let text: string;
   try {
     const body = (await req.json()) as { text?: unknown };

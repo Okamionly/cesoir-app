@@ -8,10 +8,21 @@
  *
  * Budget: Sightengine free tier = 2000 ops/mo. Use only for flagged/ambiguous
  * photos, not every upload, to stay within budget.
+ *
+ * Glowup 2026-04-24 (SEC-008): added auth + rate-limit. Endpoint was reachable
+ * anonymously, which meant any script on the internet could burn through our
+ * 2000/mo Sightengine quota in minutes. Rate limit is strict (5/h/user) on
+ * top of the existing per-user check because images are 100-300kb each.
  */
 
 import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
+import { AuthError, requireUser } from "@/lib/api/auth";
+import {
+  checkRateLimitByAction,
+  getClientIp,
+  rateLimitResponse,
+} from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,9 +38,37 @@ interface SightengineResponse {
 }
 
 export async function POST(req: Request) {
-  const user = process.env.SIGHTENGINE_USER;
+  // Auth gate — SEC-008.
+  let userId: string;
+  try {
+    const ctx = await requireUser(req);
+    userId = ctx.user.id;
+  } catch (err) {
+    if (err instanceof AuthError) {
+      return NextResponse.json(
+        { error: err.code, message: err.message },
+        { status: err.status },
+      );
+    }
+    throw err;
+  }
+
+  // Rate limit — "strict" = 1/h, here reused for 5/h photo moderations.
+  // Upstash keys are namespaced by user + IP so token rotation is traceable.
+  // NOTE: ACTION_DEFAULTS.strict is 1/h — we bump via a custom key to allow
+  // legitimate re-tries. If we outgrow this we add a "moderate_photo"
+  // limiter kind to rate-limit.ts.
+  const rate = await checkRateLimitByAction(
+    `moderate-photo:${userId}:${getClientIp(req)}`,
+    "strict",
+  );
+  if (!rate.ok) {
+    return rateLimitResponse(rate);
+  }
+
+  const sightengineUser = process.env.SIGHTENGINE_USER;
   const secret = process.env.SIGHTENGINE_SECRET;
-  if (!user || !secret) {
+  if (!sightengineUser || !secret) {
     return NextResponse.json(
       { safe: true, categories: [], scores: {}, fallbackUsed: true },
       { status: 200 },
@@ -46,7 +85,7 @@ export async function POST(req: Request) {
     const seForm = new FormData();
     seForm.append("media", file);
     seForm.append("models", "nudity-2.0,offensive");
-    seForm.append("api_user", user);
+    seForm.append("api_user", sightengineUser);
     seForm.append("api_secret", secret);
 
     const res = await fetch("https://api.sightengine.com/1.0/check.json", {
