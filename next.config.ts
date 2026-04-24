@@ -36,7 +36,40 @@ const CSP = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  // typedRoutes: true,
+  //   ↑ Deferred. Next 16's <Link> type is already narrow via RouteImpl<>
+  //   (see .next/types/routes.d.ts when present), so enabling typedRoutes
+  //   here would generate the same file during `next build` and surface 13
+  //   existing dynamic-href sites (`/profile/${id}`, component `href` props
+  //   typed as `string`, etc.). Each needs either `satisfies Route` on the
+  //   source, `as Route` at the call site, or threading `Route` through
+  //   component props. This PR already killed the one real dead-route
+  //   (/mood-match → /modes in `src/lib/fab-actions.ts`). Migration PR
+  //   will land separately with all call sites fixed.
+
+  experimental: {
+    // Persist Turbopack's dep graph + transform cache to `.next/cache/turbo`
+    // between `next dev` sessions. Shaves 2-5× off cold starts on our
+    // 378-file TS codebase. Stable for dev in Next 16; build variant is
+    // still marked experimental (we don't enable it for CI).
+    turbopackFileSystemCacheForDev: true,
+  },
+
   images: {
+    // Next 16 REQUIRES an explicit qualities allowlist — unrestricted access
+    // would let attackers request arbitrary qualities and blow up our
+    // on-demand optimization budget. Default is 75 so it must be in the list.
+    // 50 = feed thumbnails, 75 = avatars/defaults, 85 = full-size profile.
+    qualities: [50, 75, 85],
+
+    // AVIF first (~30% smaller than WebP on photo feeds), WebP fallback
+    // for Safari < 16 / Firefox older. Browser picks via Accept header.
+    formats: ["image/avif", "image/webp"],
+
+    // 1 year — our avatars are content-addressed (user uploads get a new
+    // Supabase Storage path) so the optimized cache can live forever.
+    minimumCacheTTL: 31536000,
+
     // Remote hosts whitelisted for next/image optimization.
     // Must match CSP `img-src` above. Every hostname referenced by seed
     // avatars (migrations 013/014/015) or event flyers (migration 020)
