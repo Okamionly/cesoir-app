@@ -83,6 +83,54 @@ function getClient(): SupabaseClient<ClientDB> {
   if (typeof window !== "undefined") {
     // Browser — cookie-aware client so session syncs with SSR/middleware.
     _client = createBrowserClient<ClientDB>(url, key);
+
+    // 2026-04-24 fix (#14 hydration + #17 Realtime 401 loop):
+    // `createBrowserClient` correctly reads the auth cookie for REST calls,
+    // but it does NOT proactively call `realtime.setAuth()` during client
+    // construction. AuthContext wires `onAuthStateChange` + a startup
+    // `getSession().then(setAuth)` — both async. Any hook that subscribes
+    // to a Realtime channel on mount (useLiveTicker, useChat, useFeed, …)
+    // fires in the SAME render as AuthContext's first useEffect, so the
+    // WebSocket opens with the anon key BEFORE setAuth runs. Supabase
+    // rejects `postgres_changes` with "HTTP Authentication failed", the
+    // client retries with 30s backoff forever, and the mismatched
+    // logged-in-SSR vs logged-out-first-render tree triggers React #418.
+    //
+    // Fix: parse the session cookie synchronously right here and seed
+    // realtime auth before the first React render mounts. AuthContext's
+    // useEffect chain then keeps it refreshed (belt and suspenders).
+    try {
+      const match = document.cookie.match(/sb-[^=]+-auth-token=([^;]+)/);
+      if (match?.[1]) {
+        let raw = decodeURIComponent(match[1]);
+        // Supabase 2024+ wraps the session JSON with a "base64-" prefix
+        // for URL-safety; unwrap before parsing.
+        if (raw.startsWith("base64-")) {
+          raw = atob(raw.slice(7));
+        }
+        const parsed: unknown = JSON.parse(raw);
+        let token: string | null = null;
+        if (Array.isArray(parsed)) {
+          // Some cookie shapes are [session, optional_refresh] tuples.
+          const first = parsed[0] as { access_token?: string } | undefined;
+          token = first?.access_token ?? null;
+        } else if (parsed && typeof parsed === "object") {
+          const obj = parsed as {
+            access_token?: string;
+            currentSession?: { access_token?: string };
+          };
+          token = obj.access_token ?? obj.currentSession?.access_token ?? null;
+        }
+        if (token) {
+          _client.realtime.setAuth(token);
+        }
+      }
+    } catch {
+      // Cookie missing / malformed / Supabase upgraded the shape — fall
+      // through. AuthContext's async setAuth will still catch up within a
+      // few ms, at worst the first Realtime subscribe fails once and the
+      // hook's retry loop hits the correct token on attempt 2.
+    }
   } else {
     // Server — unauthenticated anon client. Server code that needs a
     // session should use `@/lib/supabase/server` instead.
