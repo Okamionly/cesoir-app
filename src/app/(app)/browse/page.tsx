@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
@@ -49,7 +49,7 @@ function candidateToProfile(c: MatchCandidate): Profile {
   };
 }
 
-export default function BrowsePage() {
+function BrowsePageInner() {
   const { user } = useAuth();
   // 2026-04-24 (CPO-002): we now pull `error` + `loading` from the geo hook
   // so we can show a specific "enable location" state instead of silently
@@ -592,3 +592,13 @@ function EmptyState({ onReset }: { onReset: () => void }) {
 
 // Wave 15 · CPO — MatchToast replaced by full-screen MatchCinematic.
 // See src/components/app/MatchCinematic.tsx.
+
+// 2026-04-24: Wrap in Suspense for useSearchParams bail-out (Next 16 requirement).
+// Same pattern as feed/plans/plans-create after /glowup/suspense-boundaries PR.
+export default function BrowsePage() {
+  return (
+    <Suspense fallback={null}>
+      <BrowsePageInner />
+    </Suspense>
+  );
+}
