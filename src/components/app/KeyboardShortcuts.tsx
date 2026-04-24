@@ -90,18 +90,27 @@ export default function KeyboardShortcuts() {
   const pathname = usePathname();
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
-  // Hint visibility is initialised lazily (render-time) so the localStorage
-  // read happens once per mount without a cascading effect->setState cycle.
-  // SSR-safe: localStorage is only touched on the client (initialiser runs
-  // during the first client render because this is a "use client" file).
-  const [hintVisible, setHintVisible] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
+
+  // 2026-04-24 (hydration fix): the previous "useState initialiser that
+  // reads localStorage on the client, returns false on the server" pattern
+  // was NOT SSR-safe despite the comment — the initialiser DOES run during
+  // the initial client render of a "use client" component (hydration pass),
+  // and if localStorage is empty (first visit) it returns true on the
+  // client while SSR produced false. That introduces a stray
+  // AnimatePresence child in the tree on CSR that wasn't there on SSR, and
+  // React flags it as a hydration mismatch ("server HTML didn't match the
+  // client") that shifts the position of the next sibling (the Toast
+  // container). Fix: use the mounted-gate pattern — always start false
+  // (matches SSR), flip to the real localStorage value in a useEffect
+  // AFTER hydration so the first render is deterministic across runtimes.
+  const [hintVisible, setHintVisible] = useState<boolean>(false);
+  useEffect(() => {
     try {
-      return !localStorage.getItem(HINT_DISMISSED_KEY);
+      setHintVisible(!localStorage.getItem(HINT_DISMISSED_KEY));
     } catch {
-      return false;
+      // Private browsing / quota — leave hint hidden.
     }
-  });
+  }, []);
 
   // g-chord buffer — stores the last "g" press with a timestamp; resets
   // after 800ms of inactivity or when the chord completes.

@@ -27,13 +27,28 @@ import { useAccessibility } from "@/components/ui/ReducedMotion";
  * Subscribe to a 5-minute wall-clock tick. `useSyncExternalStore` is the
  * React-blessed way to read an external value (Date.now()) without tripping
  * the `react-hooks/purity` or `set-state-in-effect` lints.
+ *
+ * 2026-04-24 (dev-mode infinite-loop fix): the snapshot function MUST return
+ * a stable reference between tick notifications, otherwise `useSyncExternalStore`
+ * re-renders the component every millisecond (Date.now() is fresh on each
+ * call). React dev mode detects the loop as "Maximum update depth exceeded".
+ * Cache the value in a module-level variable that only changes inside
+ * `subscribeTick`.
  */
+let cachedNowMs = typeof window === "undefined" ? 0 : Date.now();
+
 function subscribeTick(callback: () => void): () => void {
-  const id = window.setInterval(callback, 5 * 60_000);
+  // Refresh the cache on (re)subscribe so components mounting later see a
+  // fresh value rather than whatever was cached at module load.
+  cachedNowMs = Date.now();
+  const id = window.setInterval(() => {
+    cachedNowMs = Date.now();
+    callback();
+  }, 5 * 60_000);
   return () => window.clearInterval(id);
 }
 function getNowMs(): number {
-  return Date.now();
+  return cachedNowMs;
 }
 function getServerNowMs(): number {
   // SSR fallback — 0 means "skip client-only filters" on the server.
