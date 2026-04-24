@@ -60,7 +60,10 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
       { scope: "/" }
     );
 
-    console.log("[SW] Enregistre avec succes :", registration.scope, "version", BUILD_VERSION);
+    if (process.env.NODE_ENV !== "production") {
+      // eslint-disable-next-line no-console
+      console.debug("[SW] Enregistre avec succes :", registration.scope, "version", BUILD_VERSION);
+    }
 
     // Tell the worker which version to namespace its cache under.
     announceVersion(registration);
@@ -82,7 +85,10 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
 
           if (navigator.serviceWorker.controller) {
             // New version available — auto-activate
-            console.log("[SW] Nouvelle version disponible.");
+            if (process.env.NODE_ENV !== "production") {
+              // eslint-disable-next-line no-console
+              console.debug("[SW] Nouvelle version disponible.");
+            }
             newWorker.postMessage({ type: "SKIP_WAITING" });
           }
         }
