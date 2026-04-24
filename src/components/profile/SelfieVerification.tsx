@@ -1,7 +1,10 @@
 "use client";
 
 /**
- * SelfieVerification — V5 Wave 15 real selfie verification via face-api.js
+ * SelfieVerification — V5 Wave 15 real selfie verification via @vladmandic/face-api
+ * (formerly face-api.js; swapped 2026-04-24 patrol #8 to drop the
+ * node-fetch@<2.6.7 CVE (GHSA-r683-j2x4-v87g, CVSS 8.8 high). The maintained
+ * fork ships the same browser API with no node-fetch dep.)
  *
  * Flow:
  *   1. Capture 3 random poses (look left, smile, nod up) — liveness proxy
@@ -72,7 +75,7 @@ export default function SelfieVerification({ userId, avatarUrl, onComplete }: Pr
   const loadFaceApi = useCallback(async () => {
     if (faceApiRef.current) return faceApiRef.current;
     try {
-      const faceapi = await import("face-api.js").catch(() => null);
+      const faceapi = await import("@vladmandic/face-api").catch(() => null);
       if (!faceapi) {
         logger.warn("face_api_missing");
         return null;
