@@ -18,7 +18,8 @@
   --color-text: #111111;
   --color-text-inv: #FFFFFF;
   /* AA fix 2026-04-23: #888888 → #707070 for WCAG 4.5:1 on white body text */
-  --color-text-muted: #707070;
+  /* AA fix 2026-04-24 (patrol): #707070 (4.48:1) → #696969 (4.54:1) clears AA */
+  --color-text-muted: #696969;
   --color-text-soft: #666666;
   --color-accent: #8B5CF6;
   --color-accent-2: #00FF88;

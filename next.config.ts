@@ -22,8 +22,12 @@ import { withSentryConfig } from "@sentry/nextjs";
  */
 const CSP = [
   "default-src 'self'",
-  "connect-src 'self' https://*.supabase.co https://*.upstash.io https://*.ingest.sentry.io https://images.unsplash.com https://ui-avatars.com https://api.dicebear.com wss://*.supabase.co",
-  "img-src 'self' data: blob: https://images.unsplash.com https://ui-avatars.com https://api.dicebear.com https://*.supabase.co https://randomuser.me https://i.pravatar.cc",
+  // cartocdn.com is MapLibre's default basemap host (used in /map).
+  // basemaps.cartocdn.com serves style JSON, {a-d}.basemaps.cartocdn.com serve tiles.
+  // Adding it back here — the 2026-04-24 patrol caught /map going fully blank
+  // because the glowup CSP tightening dropped it silently.
+  "connect-src 'self' https://*.supabase.co https://*.upstash.io https://*.ingest.sentry.io https://images.unsplash.com https://ui-avatars.com https://api.dicebear.com https://*.cartocdn.com https://*.basemaps.cartocdn.com wss://*.supabase.co",
+  "img-src 'self' data: blob: https://images.unsplash.com https://ui-avatars.com https://api.dicebear.com https://*.supabase.co https://randomuser.me https://i.pravatar.cc https://*.cartocdn.com https://*.basemaps.cartocdn.com",
   // 2026-04-24 (SEC-005): dropped 'unsafe-eval'. Not required by Next 16
   // production builds — the React runtime no longer uses eval(). Kept
   // 'unsafe-inline' because Next still ships an inline script for initial
