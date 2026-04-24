@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import type { Route } from "next";
 import { m, AnimatePresence } from "motion/react";
 import { haptics } from "@/lib/haptics";
 import { Clock } from "@/components/ui/lucide";
@@ -109,7 +110,7 @@ export function FABMenu() {
   const handleAction = useCallback((href: string) => {
     haptics.light();
     setIsOpen(false);
-    router.push(href);
+    router.push(href as Route);
   }, [router]);
 
   if (hidden) return null;

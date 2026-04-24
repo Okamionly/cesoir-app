@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { Route } from "next";
 import { m, useReducedMotion, type Transition, type TargetAndTransition } from "motion/react";
 import { springs, easings } from "@/lib/motion-design";
 import { RackFocus } from "@/components/motion/RackFocus";
@@ -234,7 +235,7 @@ function BackButton({
   if (href) {
     node = (
       <m.div whileTap={{ scale: 0.9 }} transition={springs.micro}>
-        <Link href={href} className={cls} aria-label={label}>
+        <Link href={href as Route} className={cls} aria-label={label}>
           {iconNode}
         </Link>
       </m.div>

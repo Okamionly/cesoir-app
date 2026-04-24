@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { Route } from "next";
 import { m } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import { ChevronRight } from "@/components/ui/lucide";
@@ -21,7 +22,7 @@ export default function CrossLinkCard({
   gradient,
 }: CrossLinkCardProps) {
   return (
-    <Link href={href} className="block">
+    <Link href={href as Route} className="block">
       <m.div
         className="flex items-center gap-3 px-3.5 py-3 rounded-xl border border-border/50 bg-card transition-colors"
         style={

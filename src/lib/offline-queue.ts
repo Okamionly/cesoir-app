@@ -37,7 +37,11 @@ function saveQueue(queue: QueuedAction[]): void {
 
 async function processAction(action: QueuedAction): Promise<boolean> {
   await new Promise((resolve) => setTimeout(resolve, 200));
-  console.log(`[OfflineQueue] Synced action: ${action.type}`, action.payload);
+  // logger import adds unnecessary weight on the hot path — dev-only trace.
+  if (process.env.NODE_ENV !== "production") {
+    // eslint-disable-next-line no-console
+    console.debug(`[OfflineQueue] Synced action: ${action.type}`, action.payload);
+  }
   return true;
 }
 

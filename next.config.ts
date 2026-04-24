@@ -24,7 +24,12 @@ const CSP = [
   "default-src 'self'",
   "connect-src 'self' https://*.supabase.co https://*.upstash.io https://*.ingest.sentry.io https://images.unsplash.com https://ui-avatars.com https://api.dicebear.com wss://*.supabase.co",
   "img-src 'self' data: blob: https://images.unsplash.com https://ui-avatars.com https://api.dicebear.com https://*.supabase.co https://randomuser.me https://i.pravatar.cc",
-  "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+  // 2026-04-24 (SEC-005): dropped 'unsafe-eval'. Not required by Next 16
+  // production builds — the React runtime no longer uses eval(). Kept
+  // 'unsafe-inline' because Next still ships an inline script for initial
+  // state hydration (`__NEXT_DATA__` bootstrap). Nonce-based CSP is a
+  // follow-up (requires switching to a proxy.ts that generates the nonce).
+  "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
   "frame-ancestors 'none'",
@@ -36,7 +41,40 @@ const CSP = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  // typedRoutes: true,
+  //   ↑ Deferred. Next 16's <Link> type is already narrow via RouteImpl<>
+  //   (see .next/types/routes.d.ts when present), so enabling typedRoutes
+  //   here would generate the same file during `next build` and surface 13
+  //   existing dynamic-href sites (`/profile/${id}`, component `href` props
+  //   typed as `string`, etc.). Each needs either `satisfies Route` on the
+  //   source, `as Route` at the call site, or threading `Route` through
+  //   component props. This PR already killed the one real dead-route
+  //   (/mood-match → /modes in `src/lib/fab-actions.ts`). Migration PR
+  //   will land separately with all call sites fixed.
+
+  experimental: {
+    // Persist Turbopack's dep graph + transform cache to `.next/cache/turbo`
+    // between `next dev` sessions. Shaves 2-5× off cold starts on our
+    // 378-file TS codebase. Stable for dev in Next 16; build variant is
+    // still marked experimental (we don't enable it for CI).
+    turbopackFileSystemCacheForDev: true,
+  },
+
   images: {
+    // Next 16 REQUIRES an explicit qualities allowlist — unrestricted access
+    // would let attackers request arbitrary qualities and blow up our
+    // on-demand optimization budget. Default is 75 so it must be in the list.
+    // 50 = feed thumbnails, 75 = avatars/defaults, 85 = full-size profile.
+    qualities: [50, 75, 85],
+
+    // AVIF first (~30% smaller than WebP on photo feeds), WebP fallback
+    // for Safari < 16 / Firefox older. Browser picks via Accept header.
+    formats: ["image/avif", "image/webp"],
+
+    // 1 year — our avatars are content-addressed (user uploads get a new
+    // Supabase Storage path) so the optimized cache can live forever.
+    minimumCacheTTL: 31536000,
+
     // Remote hosts whitelisted for next/image optimization.
     // Must match CSP `img-src` above. Every hostname referenced by seed
     // avatars (migrations 013/014/015) or event flyers (migration 020)
@@ -63,7 +101,16 @@ const nextConfig: NextConfig = {
         { key: "X-Frame-Options", value: "DENY" },
         { key: "X-Content-Type-Options", value: "nosniff" },
         { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-        { key: "Permissions-Policy", value: "geolocation=(self), camera=(self)" },
+        // Broad deny list per OWASP 2026 recommendation (SEC-016). Only the
+        // 2 permissions we actually use — geolocation (map, proximity) and
+        // camera (selfie verification) — are granted to the origin itself.
+        // Everything else is shut off so a compromised page script can't ask
+        // for microphone / payment / USB / bluetooth / etc.
+        {
+          key: "Permissions-Policy",
+          value:
+            "geolocation=(self), camera=(self), microphone=(), payment=(), usb=(), bluetooth=(), magnetometer=(), gyroscope=(), accelerometer=(), midi=(), fullscreen=(self), display-capture=(), publickey-credentials-get=()",
+        },
       ],
     }];
   },

@@ -19,6 +19,7 @@
 import { use, useCallback, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import type { Route } from "next";
 import { m, useReducedMotion, type Transition } from "motion/react";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
@@ -427,7 +428,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
                   </p>
                 </div>
                 <Link
-                  href={`/profile/${a.userId}`}
+                  href={`/profile/${a.userId}` as Route}
                   className="inline-flex items-center rounded-full border border-border bg-bg px-3 py-1.5 text-[11px] font-semibold text-text-muted hover:text-accent hover:border-accent/30 transition-colors"
                 >
                   Voir

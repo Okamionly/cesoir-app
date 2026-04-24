@@ -300,35 +300,53 @@ export function useSafety(): UseSafetyResult {
               logger.error("use_safety_checkin_alert_failed", { err: String(err) });
             });
 
-            // Trigger SOS-like notification for missed check-in
-            getCurrentPosition().then((pos) => {
-              const lat = pos?.lat ?? 0;
-              const lng = pos?.lng ?? 0;
-              const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+            // Trigger SOS-like notification for missed check-in.
+            // 2026-04-24 (CR-005, safety-critical): added explicit .catch.
+            // Without it, mobile Safari geoloc rejections (denied/timeout)
+            // bubble up as unhandled promise rejections and the alert
+            // dispatch loop below never runs — silently breaking SOS for
+            // users who muted location for the session. Now we fall back
+            // to lat/lng = 0 (= "position unknown" map link) so the SMS
+            // still goes out and contacts get notified, just without
+            // precise coords. Better partial alert than no alert.
+            getCurrentPosition()
+              .catch((err) => {
+                logger.warn("use_safety_checkin_geoloc_failed", {
+                  err: String(err),
+                });
+                return null;
+              })
+              .then((pos) => {
+                const lat = pos?.lat ?? 0;
+                const lng = pos?.lng ?? 0;
+                const mapsUrl =
+                  lat || lng
+                    ? `https://www.google.com/maps?q=${lat},${lng}`
+                    : "(position non disponible)";
 
-              for (const contact of trustedContacts) {
-                if (contact.alert_no_checkin && contact.phone) {
-                  void Promise.resolve(
-                    supabase.functions.invoke("send-sms", {
-                      body: {
-                        to: contact.phone,
-                        message: [
-                          "ALERTE CeSoir - Check-in manque",
-                          "Votre ami(e) n'a pas confirme sa securite.",
-                          `Derniere position connue: ${mapsUrl}`,
-                          "Verifiez qu'il/elle va bien.",
-                        ].join("\n"),
-                      },
-                    }),
-                  ).catch((err) => {
-                    logger.error("use_safety_checkin_alert_sms_failed", {
-                      contact: contact.name,
-                      err: String(err),
+                for (const contact of trustedContacts) {
+                  if (contact.alert_no_checkin && contact.phone) {
+                    void Promise.resolve(
+                      supabase.functions.invoke("send-sms", {
+                        body: {
+                          to: contact.phone,
+                          message: [
+                            "ALERTE CeSoir - Check-in manque",
+                            "Votre ami(e) n'a pas confirme sa securite.",
+                            `Derniere position connue: ${mapsUrl}`,
+                            "Verifiez qu'il/elle va bien.",
+                          ].join("\n"),
+                        },
+                      }),
+                    ).catch((err) => {
+                      logger.error("use_safety_checkin_alert_sms_failed", {
+                        contact: contact.name,
+                        err: String(err),
+                      });
                     });
-                  });
+                  }
                 }
-              }
-            });
+              });
           }
         }
       }, 1000);

@@ -51,7 +51,16 @@ function candidateToProfile(c: MatchCandidate): Profile {
 
 export default function BrowsePage() {
   const { user } = useAuth();
-  const { latitude, longitude } = useGeolocation();
+  // 2026-04-24 (CPO-002): we now pull `error` + `loading` from the geo hook
+  // so we can show a specific "enable location" state instead of silently
+  // rendering EmptyState ("C'est tout pour ce soir") which was the main
+  // reason users bounced on first iOS launch.
+  const {
+    latitude,
+    longitude,
+    loading: geoLoading,
+    error: geoError,
+  } = useGeolocation();
   const searchParams = useSearchParams();
   const modeFromUrl = searchParams.get("mode") as ModeKey | null;
   const [filter, setFilter] = useState<ModeKey | "all">(
@@ -253,8 +262,38 @@ export default function BrowsePage() {
 
       {/* Card area — 3D Perspective deck */}
       <main ref={mainRef} className="flex-1 relative px-4 pb-1 overflow-hidden" style={{ perspective: 800 }} role="list" aria-label="Profils a decouvrir">
+        {/* Geolocation denied / unavailable — show a dedicated CTA state
+            (CPO-002). Previously we fell through to "C'est tout pour ce soir"
+            EmptyState which told the user nothing useful. */}
+        {!geoLoading && geoError && (!latitude || !longitude) && (
+          <div className="w-full h-full flex flex-col items-center justify-center text-center px-8">
+            <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mb-5">
+              <span className="text-[28px]" aria-hidden="true">📍</span>
+            </div>
+            <p className="text-[17px] font-bold mb-1 text-text">
+              Active la géolocalisation
+            </p>
+            <p className="text-[13px] text-text-muted mb-6 max-w-xs">
+              {geoError} — CeSoir matche les gens proches de toi ce soir, sans
+              ta position on ne peut rien te proposer.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="gradient-bg text-white px-8 py-3 rounded-full text-[14px] font-semibold"
+            >
+              Réessayer
+            </button>
+            <Link
+              href="/help"
+              className="text-[12px] text-accent mt-4"
+            >
+              Comment l&apos;activer sur iPhone / Android ?
+            </Link>
+          </div>
+        )}
+
         {/* Loading skeleton — 3 placeholder cards with pulse animation */}
-        {loading && matches.length === 0 && (
+        {!geoError && loading && matches.length === 0 && (
           <div className="w-full h-full flex flex-col items-center justify-center gap-3">
             {[0, 1, 2].map((i) => (
               <motion.div
@@ -287,8 +326,9 @@ export default function BrowsePage() {
           </div>
         )}
 
-        {/* Card stack */}
-        {!loading && (
+        {/* Card stack (suppressed when geoloc missing so user sees the
+            dedicated geo-denied state instead of a misleading empty state). */}
+        {!loading && !geoError && (
           <AnimatePresence mode="popLayout">
             {card ? (
               <motion.div
