@@ -78,24 +78,31 @@ export function useHotspots() {
 
   const { data, loading, refetch } = useAsyncResource<LiveHotspot[]>(
     async (signal) => {
-      // 2026-04-24 (patrol #11): the original query selected
-      // `latitude, longitude` from `profiles`, but the schema uses a
-      // PostGIS `location GEOGRAPHY(POINT, 4326)` single column.
-      // The query always returned HTTP 400 — the try/catch below hid
-      // the crash but produced a 400 on every 60s poll, polluting logs.
-      //
-      // Short-term: short-circuit the fetch. Hotspots render with
-      // count=0 which is honest (we don't know live activity here).
-      //
-      // Medium-term: add an SQL RPC `online_hotspot_profiles(radius_m)`
-      // that returns ST_X/ST_Y of online profile locations **rounded
-      // to 100m grid** (so we stay privacy-safe — ties into SEC-001).
-      //
-      // Tracked as part of the GPS privacy cluster (issues #5, #11).
-      // Using `signal` here would be unused; marking it so eslint stops
-      // complaining after the short-circuit:
-      void signal;
-      const onlineProfiles: OnlineProfileLoc[] = [];
+      // 2026-04-24 (mig 024 / patrol #11 follow-up): previously this block
+      // SELECTed `id, latitude, longitude` from profiles — but the schema
+      // stores location as PostGIS GEOGRAPHY(POINT, 4326), so every poll
+      // returned HTTP 400 (PR #15 17b34ad short-circuited it). Migration
+      // 024 adds `online_hotspot_profiles()` which returns grid-snapped
+      // 500m coordinates that respect user_blocks bidirectionally.
+      let onlineProfiles: OnlineProfileLoc[] = [];
+      try {
+        const { data, error } = await supabase
+          .rpc("online_hotspot_profiles")
+          .abortSignal(signal);
+
+        if (!error && Array.isArray(data)) {
+          onlineProfiles = data.map((row) => ({
+            id: row.id as string,
+            // RPC returns lat_rough / lng_rough (500m grid). The OnlineProfileLoc
+            // type is still {latitude, longitude} for downstream compatibility
+            // with HOTSPOTS haversine math below.
+            latitude: row.lat_rough as number,
+            longitude: row.lng_rough as number,
+          }));
+        }
+      } catch {
+        // Keep empty — hotspots will render with count=0 (honest default).
+      }
 
       const live: LiveHotspot[] = HOTSPOTS.map((h: Hotspot) => {
         // Count profiles within this hotspot's radius.

@@ -45,8 +45,9 @@ function makeCandidate(overrides: Partial<NearbyRow> = {}): NearbyRow {
     mode: "solo-diner",
     available_time: null,
     mode_details: null,
-    lat: 48.85,
-    lng: 2.35,
+    // 2026-04-24 (mig 024): RPC now returns *_rough (500m grid-snapped).
+    lat_rough: 48.85,
+    lng_rough: 2.35,
     ...overrides,
   };
 }
@@ -277,8 +278,8 @@ describe("findMatches", () => {
           mode: null,
           available_time: null,
           mode_details: null,
-          lat: 0,
-          lng: 0,
+          lat_rough: 0,
+          lng_rough: 0,
         },
       ],
       error: null,

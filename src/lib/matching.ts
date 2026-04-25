@@ -71,7 +71,14 @@ export interface MatchOptions {
   genderFilter?: string | null;
 }
 
-/** Raw row returned by the nearby_profiles RPC function. */
+/**
+ * Raw row returned by the `nearby_profiles` RPC function.
+ *
+ * 2026-04-24 (migration 024 / #5 SEC-001): `lat/lng` are now
+ * **grid-snapped to ~500m (0.005°)** server-side. The values below are
+ * coarse on purpose — never treat them as precise. See the migration's
+ * `COMMENT ON FUNCTION` for the full rationale.
+ */
 interface NearbyProfileRow {
   id: string;
   name: string;
@@ -84,8 +91,8 @@ interface NearbyProfileRow {
   mode: string | null;
   available_time: string | null;
   mode_details: Record<string, unknown> | null;
-  lat: number;
-  lng: number;
+  lat_rough: number;
+  lng_rough: number;
 }
 
 // ----------------------------------------
@@ -341,8 +348,12 @@ export async function findMatches(
       sharedModes,
       activeModes: cModes,
       availableTime: candidate.available_time,
-      lat: candidate.lat,
-      lng: candidate.lng,
+      // 2026-04-24 (mig 024 / #5 SEC-001): RPC returns 500m grid-snapped
+      // coords. Name them as such on the public API too so consumers know
+      // they are NOT precise. Pin placement on /map already expects the
+      // rough value (see the "Positions floutées à ~500m" trust banner).
+      lat: candidate.lat_rough,
+      lng: candidate.lng_rough,
     };
   });
 
