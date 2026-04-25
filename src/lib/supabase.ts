@@ -72,11 +72,36 @@ let _client: SupabaseClient<ClientDB> | null = null;
 function getClient(): SupabaseClient<ClientDB> {
   if (_client) return _client;
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  // 2026-04-25 (#17 root cause): the Vercel env var
+  // NEXT_PUBLIC_SUPABASE_ANON_KEY had a trailing newline (classic copy-paste
+  // from the Supabase dashboard). The Realtime client encoded that into the
+  // WebSocket URL as `%0A`, the JWT signature stopped matching, Supabase
+  // returned `HTTP Authentication failed`, and we got an infinite WS retry
+  // loop.
+  //
+  // Trim defensively here — nothing in a Supabase URL or JWT is allowed to
+  // be whitespace, so this is always safe. Also strips any wrapping quotes
+  // a user might paste in by accident. Belt-and-suspenders pending the user
+  // cleaning up the Vercel env var directly.
+  const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const rawKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const url = rawUrl?.trim().replace(/^['"]|['"]$/g, "");
+  const key = rawKey?.trim().replace(/^['"]|['"]$/g, "");
   if (!url || !key) {
     throw new Error(
       "Missing Supabase env vars: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be set",
+    );
+  }
+  if (
+    typeof window !== "undefined" &&
+    (rawUrl !== url || rawKey !== key)
+  ) {
+    // One-time runtime breadcrumb so the bug is easy to spot in Sentry if it
+    // surfaces again on a different env. Logs only on the client to avoid
+    // SSR log noise on every request.
+    // eslint-disable-next-line no-console
+    console.warn(
+      "[supabase] env var contained whitespace or wrapping quotes — trimmed in code. Fix the source value in Vercel/Local env to remove this workaround.",
     );
   }
 
