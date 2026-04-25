@@ -86,9 +86,15 @@ CREATE POLICY "Authenticated can view non-blocked profiles"
 -- 2. nearby_profiles — grid-snap + block filter (#5 SEC-001)
 -- -----------------------------------------------------------------------
 
--- Drop the existing 6-arg overload so we can change the return type cleanly.
+-- Drop both possible legacy overloads (6-arg from earlier proto, 8-arg
+-- with age_min/age_max from prod) so we can change the return type.
+-- 2026-04-25 update: prod was running the 8-arg version with age filters;
+-- the 6-arg form below was a draft that didn't reflect reality.
 DROP FUNCTION IF EXISTS public.nearby_profiles(
   FLOAT, FLOAT, FLOAT, TEXT, TEXT, INTEGER
+);
+DROP FUNCTION IF EXISTS public.nearby_profiles(
+  FLOAT, FLOAT, FLOAT, TEXT, TEXT, INTEGER, INTEGER, INTEGER
 );
 
 CREATE OR REPLACE FUNCTION public.nearby_profiles(
@@ -97,6 +103,8 @@ CREATE OR REPLACE FUNCTION public.nearby_profiles(
   radius_km       FLOAT   DEFAULT 10,
   mode_filter     TEXT    DEFAULT NULL,
   gender_filter   TEXT    DEFAULT NULL,
+  age_min         INTEGER DEFAULT 18,
+  age_max         INTEGER DEFAULT 99,
   limit_count     INTEGER DEFAULT 50
 )
 RETURNS TABLE (
@@ -152,6 +160,8 @@ BEGIN
     AND ST_DWithin(p.location, user_point, radius_km * 1000)
     AND (mode_filter IS NULL OR ma.mode = mode_filter)
     AND (gender_filter IS NULL OR p.gender = gender_filter)
+    -- Age filter (kept from prod 8-arg version for client compat).
+    AND p.age BETWEEN age_min AND age_max
     -- Bidirectional block filter (#6 SEC-004).
     AND NOT EXISTS (
       SELECT 1 FROM public.user_blocks b
@@ -164,15 +174,15 @@ END;
 $$;
 
 ALTER FUNCTION public.nearby_profiles(
-  FLOAT, FLOAT, FLOAT, TEXT, TEXT, INTEGER
+  FLOAT, FLOAT, FLOAT, TEXT, TEXT, INTEGER, INTEGER, INTEGER
 ) OWNER TO postgres;
 
 GRANT EXECUTE ON FUNCTION public.nearby_profiles(
-  FLOAT, FLOAT, FLOAT, TEXT, TEXT, INTEGER
+  FLOAT, FLOAT, FLOAT, TEXT, TEXT, INTEGER, INTEGER, INTEGER
 ) TO authenticated;
 
 REVOKE EXECUTE ON FUNCTION public.nearby_profiles(
-  FLOAT, FLOAT, FLOAT, TEXT, TEXT, INTEGER
+  FLOAT, FLOAT, FLOAT, TEXT, TEXT, INTEGER, INTEGER, INTEGER
 ) FROM anon, public;
 
 -- -----------------------------------------------------------------------
@@ -219,7 +229,7 @@ COMMENT ON POLICY "Authenticated can view non-blocked profiles" ON public.profil
   'The bidirectional NOT EXISTS makes the block symmetric.';
 
 COMMENT ON FUNCTION public.nearby_profiles(
-  FLOAT, FLOAT, FLOAT, TEXT, TEXT, INTEGER
+  FLOAT, FLOAT, FLOAT, TEXT, TEXT, INTEGER, INTEGER, INTEGER
 ) IS
   'Wave post-glowup 2026-04-24 (#5 SEC-001). Grid-snaps returned '
   'coordinates to 0.005° (~500m) so a database breach OR a compromised '
