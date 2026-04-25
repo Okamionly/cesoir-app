@@ -157,7 +157,7 @@ export default function ManifestoPage() {
         </p>
         <div className="flex flex-col sm:flex-row gap-3 items-center justify-center">
           <Link
-            href="/register"
+            href="/signup-quick"
             className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-display text-[15px] font-black text-white"
             style={{
               background: "linear-gradient(135deg, #8B5CF6, #EC4899, #00FF88)",

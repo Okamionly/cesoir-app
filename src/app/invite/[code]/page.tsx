@@ -118,7 +118,10 @@ export default function InvitePage() {
 
   function handleJoin() {
     if (!invite) return;
-    router.push(`/register?invite=${invite.code}`);
+    // 2026-04-25 (CPO-001): point at /signup-quick (3-step flow), not the
+    // legacy 4-step /register. The invite-aware UX is the same — both
+    // flows pre-fill from ?invite=XXX.
+    router.push(`/signup-quick?invite=${invite.code}`);
   }
 
   return (

@@ -662,7 +662,7 @@ function MagneticCTA() {
   }, [reducedMotion, x, y]);
 
   return (
-    <Link href="/register" ref={ref} className="inline-block">
+    <Link href="/signup-quick" ref={ref} className="inline-block">
       <motion.span
         className="inline-flex items-center gap-3 px-10 sm:px-12 py-4 sm:py-5 rounded-2xl font-display text-[18px] sm:text-[22px] font-black text-white cursor-pointer tracking-tight"
         style={{

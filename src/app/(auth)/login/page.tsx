@@ -167,7 +167,7 @@ export default function LoginPage() {
         <p className="text-sm text-white/60 text-center mt-8">
           Pas encore inscrit ?{" "}
           <Link
-            href="/register"
+            href="/signup-quick"
             className="font-semibold transition-opacity hover:opacity-80"
             style={{ color: landing.vert }}
           >

@@ -22,6 +22,7 @@ const publicRoutes = [
   "/",
   "/login",
   "/register",
+  "/signup-quick",
   "/forgot-password",
   "/reset-password",
   "/about",
@@ -48,7 +49,7 @@ const publicRoutes = [
 /** Path prefixes that are public (e.g. /p/<id> public profile, /invite/<code>). */
 const publicPrefixes = ["/p/", "/invite/", "/api/", "/_next/", "/icons/"];
 
-const authRoutes = ["/login", "/register"];
+const authRoutes = ["/login", "/register", "/signup-quick"];
 
 /**
  * B2B venue dashboard — Wave 15 (2026-04-23).
