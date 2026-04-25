@@ -32,7 +32,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { supabase } from "@/lib/supabase";
 import { MODES, type ModeKey } from "@/lib/modes";
-import { easings } from "@/lib/motion-design";
+import { easings, springs } from "@/lib/motion-design";
 
 const PUBLIC_MODES: ModeKey[] = [
   "solo-diner",
@@ -62,6 +62,14 @@ function SignupQuickInner() {
   const [selectedMode, setSelectedMode] = useState<ModeKey | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // 2026-04-25 (mig 025): when the user signs up via ?invite=XXX, the
+  // claim_invite_code RPC returns roses_granted + badge_granted. We
+  // capture it here so step 3 can render a celebration toast.
+  const [claimReward, setClaimReward] = useState<{
+    roses: number;
+    badge: string | null;
+  } | null>(null);
 
   // Auto-extract invite code from URL (?invite=XXX)
   useEffect(() => {
@@ -121,20 +129,44 @@ function SignupQuickInner() {
       return;
     }
 
-    // Background — claim invite, never block UX on it.
+    // Claim invite (await so we can surface the reward in step 3). Never
+    // block account creation on a claim failure — the user is already
+    // signed up.
     if (inviteCode) {
-      void supabase.auth.getSession().then(({ data }) => {
-        const token = data.session?.access_token;
-        if (!token) return;
-        void fetch("/api/invites/claim", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ code: inviteCode }),
-        });
-      });
+      try {
+        const sessionRes = await supabase.auth.getSession();
+        const token = sessionRes.data.session?.access_token;
+        if (token) {
+          const claimRes = await fetch("/api/invites/claim", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ code: inviteCode }),
+          });
+          if (claimRes.ok) {
+            const claimData = (await claimRes.json()) as {
+              claimed?: boolean;
+              data?: Array<{ roses_granted?: number; badge_granted?: string }>;
+            };
+            const row = Array.isArray(claimData.data)
+              ? claimData.data[0]
+              : undefined;
+            if (row?.roses_granted) {
+              setClaimReward({
+                roses: row.roses_granted,
+                badge: row.badge_granted ?? null,
+              });
+            }
+          }
+          // Non-200 → silently swallow. Common reasons: code already
+          // claimed (race), expired between verify and claim, or
+          // network blip. The user keeps their account.
+        }
+      } catch {
+        // Network failure → no reward toast, but signup completes fine.
+      }
     }
 
     setLoading(false);
@@ -431,6 +463,34 @@ function SignupQuickInner() {
                 {selectedMode && MODES[selectedMode].name} activé. Les profils près de toi sont prêts.
               </p>
             </header>
+
+            {/* Reward celebration — shown only when ?invite=XXX was claimed */}
+            {claimReward && (
+              <m.div
+                initial={{ opacity: 0, scale: 0.94, y: 8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ ...springs.snap, delay: 0.4 }}
+                className="rounded-2xl border-2 border-accent/40 bg-accent/5 p-4 space-y-2"
+                role="status"
+                aria-label="Récompense d'invitation débloquée"
+              >
+                <div className="text-xs font-bold uppercase tracking-wider text-accent">
+                  Code invitation accepté
+                </div>
+                <div className="flex items-center justify-center gap-4 text-sm font-semibold text-text">
+                  <span>+{claimReward.roses} 🌹</span>
+                  {claimReward.badge === "founder" && (
+                    <>
+                      <span aria-hidden="true">·</span>
+                      <span>Badge Founder ☾</span>
+                    </>
+                  )}
+                </div>
+                <div className="text-[11px] text-text-muted">
+                  Ton inviteur a aussi gagné +{claimReward.roses} 🌹.
+                </div>
+              </m.div>
+            )}
 
             <button
               type="button"
