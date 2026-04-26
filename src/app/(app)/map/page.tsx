@@ -365,6 +365,10 @@ export default function MapPage() {
         const size = Math.min(64, 36 + count * 2);
         const el = document.createElement("div");
         el.className = "cesoir-cluster-pin";
+        // 2026-04-26 fix: same pre-positioning incrustation bug as
+        // ProfilePin — start invisible until MapLibre applies the marker
+        // transform. cesoir-cluster-burst keyframes already start at
+        // opacity:0; reduced-motion users get opacity:1 explicitly.
         el.style.cssText = `
           width: ${size}px; height: ${size}px; border-radius: 50%;
           background: linear-gradient(135deg, var(--color-accent), var(--color-accent-2));
@@ -372,6 +376,7 @@ export default function MapPage() {
           display: flex; align-items: center; justify-content: center; cursor: pointer;
           box-shadow: 0 0 24px color-mix(in srgb, var(--color-accent) 40%, transparent);
           border: 2px solid white;
+          opacity: ${reduced ? "1" : "0"};
           ${reduced ? "" : `animation: cesoir-cluster-burst 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) ${Math.min(idx * 0.02, 0.4)}s both;`}
         `;
         el.textContent = `${count}`;
