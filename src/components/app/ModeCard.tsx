@@ -223,11 +223,27 @@ export function ModeCard({
           active ? "border-accent/50" : "border-border hover:border-accent/30"
         } ${isFocused ? "ring-2 ring-accent/60 outline-none" : ""}`}
       >
-        <div className="flex items-start justify-between mb-2">
+        {/* 2026-04-26: subtle top-left tint in the mode's color so each card
+            reads as visually distinct (Solo Diner = violet, Plus-One = pink,
+            Night Owl = indigo, Foodie Quest = red). Pre-fix every card looked
+            identically purple-monochrome and modes blurred together. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-12 -left-12 w-32 h-32 rounded-full"
+          style={{
+            background: `radial-gradient(circle, ${mode.color}30 0%, ${mode.color}10 40%, transparent 70%)`,
+            filter: "blur(8px)",
+          }}
+        />
+
+        <div className="relative flex items-start justify-between mb-2">
           <div className="flex items-center gap-3">
             <m.div
-              className="w-10 h-10 rounded-xl flex items-center justify-center"
-              style={{ background: `${mode.color}15` }}
+              className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm"
+              style={{
+                background: `linear-gradient(135deg, ${mode.color}30, ${mode.color}10)`,
+                border: `1px solid ${mode.color}55`,
+              }}
               animate={
                 reducedMotion
                   ? undefined
@@ -241,7 +257,11 @@ export function ModeCard({
                   : { duration: 4, repeat: Infinity, ease: "easeInOut" }
               }
             >
-              {Icon && <Icon size={20} className="text-accent" />}
+              {Icon && (
+                <span style={{ color: mode.color }} className="flex items-center justify-center">
+                  <Icon size={22} />
+                </span>
+              )}
             </m.div>
             <div>
               <h2 className="text-[15px] font-bold text-text">{mode.name}</h2>
