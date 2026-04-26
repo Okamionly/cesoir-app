@@ -97,7 +97,7 @@ export default function ProfilePage() {
       .select("mode")
       .eq("user_id", user.id)
       .eq("is_active", true)
-      .order("activated_at", { ascending: false })
+      .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle()
       .then(({ data }: { data: { mode?: string } | null }) => {

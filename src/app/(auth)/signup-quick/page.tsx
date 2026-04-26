@@ -190,11 +190,12 @@ function SignupQuickInner() {
     // (not real Promises) so we wrap them in async IIFEs to make
     // Promise.allSettled happy on TypeScript's strict types.
     const tasks: Promise<unknown>[] = [
+      // 2026-04-26 fix: column was `activated_at`, schema uses `created_at`
+      // (defaults to now()). Drop the field — Postgres default fills it.
       (async () => supabase.from("mode_activations").upsert({
         user_id: user.id,
         mode: selectedMode,
         is_active: true,
-        activated_at: new Date().toISOString(),
       }, { onConflict: "user_id,mode" }))(),
       (async () => supabase.from("profiles").update({
         is_online: true,

@@ -172,22 +172,18 @@ Note : nous utilisons ta geolocalisation en temps reel pour le matching, mais no
   },
   {
     slug: "modes-explained",
-    title: "Les 14 modes expliques",
+    title: "Les 4 modes expliques",
     category: "matching",
-    summary: "Date, Soiree, Amitie, Tourist, Night Owl, Breakup... quand les utiliser.",
-    keywords: ["modes", "date", "soiree", "amitie", "breakup"],
-    content: `CeSoir propose 14 modes qui correspondent a differentes intentions ou moments de vie.
+    summary: "Solo Diner, Plus-One, Night Owl, Foodie Quest — quand les utiliser.",
+    keywords: ["modes", "solo diner", "plus-one", "night owl", "foodie quest"],
+    content: `CeSoir propose 4 modes qui correspondent a differentes intentions de soiree.
 
-Quelques exemples :
+Les 4 modes :
 
 - Solo Diner : trouver quelqu'un pour diner ce soir.
-- Plus One : besoin d'un(e) partenaire pour un evenement precis.
-- Tourist : tu visites une nouvelle ville.
-- Night Owl : tu es dispo en soiree pour sortir.
-- Breakup : tu sors d'une rupture, tu veux du soutien.
-- New in Town : tu viens d'emmenager.
-- Langue : tu cherches a pratiquer une langue.
-- Dog Date : tu as un chien, trouver une sortie canine.
+- Plus-One : besoin d'un(e) partenaire pour un evenement precis (concert, vernissage, cinema).
+- Night Owl : tu es dispo en soiree, apres 23h, pour sortir.
+- Foodie Quest : aventure culinaire a deux, decouvrir un restaurant ensemble.
 
 Active plusieurs modes a la fois pour maximiser tes matchs. Chaque mode a sa propre couleur et son ambiance.`,
   },

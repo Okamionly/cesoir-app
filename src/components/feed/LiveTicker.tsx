@@ -142,14 +142,18 @@ export function LiveTicker({ onRefresh, refreshing = false }: LiveTickerProps) {
           <span className="font-semibold text-text">
             <FlipNumber value={activeCount ?? 0} reducedMotion={reducedMotion} />
           </span>
-          <span>actifs maintenant</span>
+          {/* 2026-04-26: French grammar — singular for 0/1, plural >=2.
+              "0 actifs" sounded weird ("0 actif" too — but accept it).
+              Use "actif" when value <= 1 ("1 actif maintenant"),
+              "actifs" otherwise. */}
+          <span>{(activeCount ?? 0) <= 1 ? "actif maintenant" : "actifs maintenant"}</span>
         </span>
         <span className="text-text-muted/60" aria-hidden="true">·</span>
         <span className="inline-flex items-baseline gap-1">
           <span className="font-semibold text-text">
             <FlipNumber value={plansCount ?? 0} reducedMotion={reducedMotion} />
           </span>
-          <span>plans ce soir</span>
+          <span>{(plansCount ?? 0) <= 1 ? "plan ce soir" : "plans ce soir"}</span>
         </span>
       </div>
 

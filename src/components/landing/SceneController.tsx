@@ -731,7 +731,7 @@ function SceneConcept() {
         transition={{ duration: 0.7, delay: 0.6, ease: easings.out }}
       >
         CeSoir te connecte avec des gens près de toi, disponibles ce soir.{" "}
-        <span className="text-white font-semibold">14 modes de rencontre.</span>
+        <span className="text-white font-semibold">4 modes de rencontre.</span>
       </motion.p>
     </motion.div>
   );

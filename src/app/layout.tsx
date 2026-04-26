@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     default: "CeSoir — Trouve quelqu'un pour ce soir",
     template: "%s | CeSoir",
   },
-  description: "L'app qui connecte les gens seuls ce soir. 14 modes, matching en temps reel, gratuit.",
+  description: "L'app qui connecte les gens seuls ce soir. 4 modes, matching en temps reel, gratuit.",
   keywords: "rencontre, sortie, ce soir, dating, plan, soiree, Montpellier",
   metadataBase: new URL("https://cesoir-app.vercel.app"),
   alternates: { canonical: "/" },
@@ -23,7 +23,7 @@ export const metadata: Metadata = {
   // Hardcoding `/og-image.png` previously overrode that and 404'd.
   openGraph: {
     title: "CeSoir — Trouve quelqu'un pour ce soir",
-    description: "L'app qui connecte les gens seuls ce soir. 14 modes, matching en temps reel, gratuit.",
+    description: "L'app qui connecte les gens seuls ce soir. 4 modes, matching en temps reel, gratuit.",
     url: "https://cesoir-app.vercel.app",
     siteName: "CeSoir",
     locale: "fr_FR",
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "CeSoir — Trouve quelqu'un pour ce soir",
-    description: "L'app qui connecte les gens seuls ce soir. 14 modes, matching en temps reel, gratuit.",
+    description: "L'app qui connecte les gens seuls ce soir. 4 modes, matching en temps reel, gratuit.",
   },
   manifest: "/manifest.json",
   appleWebApp: {
@@ -70,7 +70,7 @@ export default function RootLayout({
               "@type": "WebApplication",
               "name": "CeSoir",
               "url": "https://cesoir-app.vercel.app",
-              "description": "14 modes de rencontre pour ne plus etre seul(e) ce soir. 100% gratuit.",
+              "description": "4 modes de rencontre pour ne plus etre seul(e) ce soir. 100% gratuit.",
               "applicationCategory": "SocialNetworkingApplication",
               "operatingSystem": "All",
               "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" },
