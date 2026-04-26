@@ -509,11 +509,11 @@ function ActionButtons({
           <motion.button
             onClick={onPass}
             aria-label="Passer"
-            className="w-[56px] h-[56px] rounded-full bg-bg border-2 border-border flex items-center justify-center text-text-muted"
+            className="w-[60px] h-[60px] rounded-full bg-bg-card border-[2px] border-border flex items-center justify-center text-text shadow-[0_4px_16px_-4px_rgba(0,0,0,0.18)]"
             whileTap={micro.tapScale}
-            whileHover={{ ...micro.hoverLift, borderColor: "color-mix(in srgb, var(--color-text) 40%, transparent)" }}
+            whileHover={{ ...micro.hoverLift, borderColor: "color-mix(in srgb, var(--color-text) 50%, transparent)" }}
           >
-            <IconX size={24} />
+            <IconX size={26} />
           </motion.button>
         </Magnetic>
 
@@ -560,15 +560,15 @@ function ActionButtons({
           <motion.button
             onClick={onLike}
             aria-label="Liker"
-            className="w-[56px] h-[56px] rounded-full gradient-bg flex items-center justify-center text-white shadow-glow"
+            className="w-[60px] h-[60px] rounded-full gradient-bg flex items-center justify-center text-white shadow-[0_8px_28px_-6px_color-mix(in_srgb,var(--color-accent-2)_60%,transparent)]"
             whileTap={micro.tapScale}
             whileHover={{
               y: -3,
-              boxShadow: "0 12px 40px color-mix(in srgb, var(--color-accent-2) 45%, transparent)",
+              boxShadow: "0 12px 40px color-mix(in srgb, var(--color-accent-2) 55%, transparent)",
               transition: springs.gentle,
             }}
           >
-            <IconHeart size={24} />
+            <IconHeart size={26} />
           </motion.button>
         </Magnetic>
       </div>

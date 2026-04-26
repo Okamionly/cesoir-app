@@ -52,8 +52,10 @@ export default function NotificationPreview() {
       aria-live="polite"
       aria-label="Notifications"
     >
-      {/* Desktop clamp: mirrors AppShell phone frame (max-w-[440px], centered). */}
-      <div className="mx-auto w-full md:max-w-[440px] px-4 pt-3">
+      {/* Desktop clamp: mirrors AppShell phone frame (max-w-[440px], centered).
+          pt-14 (56px) clears the page header so the notification banner stops
+          stepping on the brand mark on /browse, /feed, and other deep routes. */}
+      <div className="mx-auto w-full md:max-w-[440px] px-4 pt-14">
         <AnimatePresence mode="wait">
           {visible && (
             <m.div

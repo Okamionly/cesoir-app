@@ -188,9 +188,11 @@ export default function PhotoGallery({
           </motion.div>
         </AnimatePresence>
 
-        {/* Dot indicators at bottom */}
+        {/* Photo position bars (Instagram/Tinder pattern) — top of card,
+            always visible. Replaces dots-at-bottom which were hidden by
+            the info panel. Each bar fills as the photo slot is "active". */}
         {total > 1 && (
-          <div className="absolute bottom-4 left-0 right-0 z-20 flex justify-center gap-1.5">
+          <div className="absolute top-2.5 left-3 right-3 z-20 flex gap-1">
             {Array.from({ length: total }).map((_, i) => (
               <button
                 key={i}
@@ -198,28 +200,18 @@ export default function PhotoGallery({
                   e.stopPropagation();
                   goTo(i);
                 }}
-                className="relative w-2 h-2 rounded-full"
+                className="relative h-[3px] flex-1 rounded-full overflow-hidden bg-white/25"
                 aria-label={`Photo ${i + 1}`}
                 aria-current={i === currentIndex ? "true" : undefined}
               >
-                <div
-                  className="w-full h-full rounded-full transition-all duration-200"
-                  style={{
-                    backgroundColor:
-                      i === currentIndex
-                        ? "rgba(255,255,255,0.95)"
-                        : "rgba(255,255,255,0.35)",
-                    transform: i === currentIndex ? "scale(1.3)" : "scale(1)",
+                <motion.div
+                  className="absolute inset-y-0 left-0 rounded-full bg-white/95"
+                  initial={false}
+                  animate={{
+                    width: i === currentIndex ? "100%" : i < currentIndex ? "100%" : "0%",
                   }}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
                 />
-                {/* Smooth sliding indicator via layoutId */}
-                {i === currentIndex && (
-                  <motion.div
-                    layoutId="photo-dot-active"
-                    className="absolute inset-[-1px] rounded-full border border-white/60"
-                    transition={springs.snap}
-                  />
-                )}
               </button>
             ))}
           </div>
