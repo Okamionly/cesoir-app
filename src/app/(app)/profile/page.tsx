@@ -9,6 +9,8 @@ import { m, useReducedMotion } from "motion/react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { useUserSettings } from "@/lib/useUserSettings";
+import { useBadges } from "@/lib/useBadges";
+import { RARITY_CONFIG } from "@/lib/badges";
 import { Magnetic } from "@/components/motion/Magnetic";
 import { springs, profileVariants } from "@/lib/motion-design";
 import PageHeader from "@/components/ui/PageHeader";
@@ -43,6 +45,17 @@ export default function ProfilePage() {
 
   // Server settings + optimistic local mirror for instant UI.
   const { settings, updateTonightChips } = useUserSettings();
+
+  // Earned badges for the small strip below the status pill (legendary first
+  // so the Founder badge always grabs attention if present).
+  const { earned } = useBadges();
+  const badgeStrip = earned
+    .slice()
+    .sort((a, b) => {
+      const order = { legendary: 0, epic: 1, rare: 2, common: 3 };
+      return (order[a.badge.rarity] ?? 9) - (order[b.badge.rarity] ?? 9);
+    })
+    .slice(0, 4);
   const [selectedChips, setSelectedChips] = useState<string[]>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("cesoir-tonight-chips");
@@ -228,6 +241,46 @@ export default function ProfilePage() {
           <span className="block w-1.5 h-1.5 rounded-full" style={{ background: "var(--color-accent-2)" }} aria-hidden="true" />
           <span className="text-[12px] font-medium text-text">Disponible ce soir</span>
         </m.div>
+
+        {/* Earned badges strip — top 4, legendary first (Founder ☾ when present) */}
+        {badgeStrip.length > 0 && (
+          <m.div
+            className="mt-4 flex flex-wrap items-center justify-center gap-2"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ ...springs.gentle, delay: 0.55 }}
+            aria-label="Badges gagnés"
+          >
+            {badgeStrip.map(({ badge }) => {
+              const cfg = RARITY_CONFIG[badge.rarity];
+              return (
+                <Link
+                  key={badge.id}
+                  href="/progress"
+                  title={`${badge.name} — ${badge.description}`}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold tap-target focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none transition-transform hover:scale-105"
+                  style={{
+                    border: `1px solid ${cfg.borderColor}55`,
+                    background: `${cfg.borderColor}15`,
+                    color: "var(--color-text)",
+                    boxShadow: badge.rarity === "legendary" ? `0 0 12px ${cfg.glowColor}` : undefined,
+                  }}
+                >
+                  <span aria-hidden="true">{badge.emoji}</span>
+                  <span>{badge.name}</span>
+                </Link>
+              );
+            })}
+            {earned.length > badgeStrip.length && (
+              <Link
+                href="/progress"
+                className="text-[11px] text-text-muted font-medium hover:text-text transition-colors px-1 tap-target"
+              >
+                +{earned.length - badgeStrip.length}
+              </Link>
+            )}
+          </m.div>
+        )}
 
         {/* Edit profile — magnetic primary action */}
         <m.div
