@@ -86,6 +86,13 @@ export function ensurePinStyles(): void {
       width: 48px; height: 48px;
       cursor: pointer;
       will-change: transform, opacity, filter;
+      /* 2026-04-26 fix: start invisible. Without this, the pin paints once
+         at its initial DOM position (top-left of the map container) BEFORE
+         MapLibre applies the transform that moves it to the real lng/lat —
+         that's the "moon-shaped incrustation" QA caught at the search bar's
+         left edge on /map. The cesoir-pin-burst animation re-fades opacity
+         to 1 within 420ms; reduced-motion gets a hard opacity:1 below. */
+      opacity: 0;
       transition: transform 200ms cubic-bezier(0.2, 0.8, 0.2, 1),
                   opacity 200ms ease-out,
                   filter 200ms ease-out,
@@ -144,6 +151,9 @@ export function ensurePinStyles(): void {
         animation: none !important;
         transition-duration: 0ms !important;
       }
+      /* Without the burst animation, restore opacity so the pin is visible.
+         Pair with the opacity:0 default added above. */
+      .cesoir-pin-root { opacity: 1; }
       .cesoir-pin-ring.online,
       .cesoir-pin-ring.event { display: none; }
     }

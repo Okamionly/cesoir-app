@@ -487,7 +487,12 @@ function ActionButtons({
   canAffordRose: boolean;
 }) {
   return (
-    <div className="shrink-0 pt-2 pb-[76px]" role="group" aria-label="Actions">
+    // 2026-04-26 fix: pb-[76px] left only 16px clearance over the BottomNav
+    // (h-[60px] + safe-area-inset-bottom on iPhone). Action buttons (60px tall)
+    // got clipped — heart/super-like visible only top-half on devices with a
+    // home bar. Bumped to 96px + safe-area so circles always sit fully above
+    // the glass nav. Pair with pt-2 for symmetric spacing above.
+    <div className="shrink-0 pt-2 pb-[calc(96px+env(safe-area-inset-bottom))]" role="group" aria-label="Actions">
       {/* Small undo icon above main row */}
       <div className="flex justify-center mb-2">
         <motion.button
