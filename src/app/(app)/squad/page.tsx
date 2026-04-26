@@ -27,10 +27,13 @@ interface Squad {
 
 // --- Helpers ---
 
-// Initials avatar fallback (no real people, SVG generated from name + violet background).
+// Initials avatar fallback (no real people, PNG generated from name + violet background).
+// 2026-04-26 fix: format=svg returned 400 through next/image because
+// dangerouslyAllowSVG defaults to false. Use format=png — same visual,
+// works through the optimization pipeline.
 function avatarFor(name: string, _fallbackId: number): string {
   const safe = encodeURIComponent(name || "?");
-  return `https://ui-avatars.com/api/?name=${safe}&background=8B5CF6&color=fff&bold=true&size=256&format=svg`;
+  return `https://ui-avatars.com/api/?name=${safe}&background=8B5CF6&color=fff&bold=true&size=256&format=png`;
 }
 
 // --- Component ---

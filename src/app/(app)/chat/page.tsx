@@ -250,14 +250,22 @@ export default function ChatPage() {
             {withUnread.map((convo) => (
               <MatchBubble key={convo.id} convo={convo} />
             ))}
-            {/* Empty slots */}
-            {withUnread.length < 4 &&
-              Array.from({ length: Math.max(0, 3 - withUnread.length) }).map((_, i) => (
-                <div key={`empty-${i}`} className="shrink-0 flex flex-col items-center gap-1.5 opacity-30" aria-hidden="true">
-                  <div className="w-16 h-16 rounded-full border-2 border-dashed border-border flex items-center justify-center text-xl text-text-muted">?</div>
-                  <span className="text-[11px] font-semibold text-text-muted">...</span>
+            {/* 2026-04-26 fix: empty "?" placeholder slots looked like ghost
+                users (UX confusion — Youssef + 2× "?" + "..."). Replaced with
+                a single actionable "+" CTA that points the user to /browse to
+                find more matches. Only shows when fewer than 4 new matches. */}
+            {withUnread.length < 4 && (
+              <Link
+                href="/browse"
+                className="shrink-0 flex flex-col items-center gap-1.5 group"
+                aria-label="Trouve plus de matchs"
+              >
+                <div className="w-16 h-16 rounded-full border-2 border-dashed border-accent/30 group-hover:border-accent/60 group-hover:bg-accent/5 flex items-center justify-center text-2xl text-accent/60 group-hover:text-accent transition-all">
+                  +
                 </div>
-              ))}
+                <span className="text-[11px] font-semibold text-accent/70 group-hover:text-accent transition-colors">Trouve</span>
+              </Link>
+            )}
           </div>
         </div>
       )}

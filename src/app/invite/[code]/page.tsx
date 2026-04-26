@@ -264,7 +264,7 @@ export default function InvitePage() {
                 className="space-y-2.5 mb-6"
               >
                 {[
-                  { icon: "🌙", text: "14 modes de rencontre" },
+                  { icon: "🌙", text: "4 modes de rencontre" },
                   { icon: "📍", text: "Trouve des gens pres de toi, ce soir" },
                   { icon: "💯", text: "100% gratuit, zero paywall" },
                 ].map((item, i) => (

@@ -45,7 +45,10 @@ function candidateToProfile(c: MatchCandidate): Profile {
     distance: c.distance_km,
     time: c.availableTime ?? "Dispo maintenant",
     color: "var(--color-accent)",
-    photo: c.avatar_url ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name || "?")}&background=8B5CF6&color=fff&bold=true&size=256&format=svg`,
+    // 2026-04-26 fix: format=svg returned 400 through next/image because
+    // dangerouslyAllowSVG defaults to false. Use format=png — same visual,
+    // works through the optimization pipeline.
+    photo: c.avatar_url ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name || "?")}&background=8B5CF6&color=fff&bold=true&size=256&format=png`,
     is_founder: c.is_founder,
   };
 }

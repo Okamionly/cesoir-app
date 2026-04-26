@@ -288,8 +288,20 @@ export async function findMatches(
 
   const nearby = nearbyRaw as NearbyProfileRow[];
 
+  // 2026-04-26 fix: dedupe by id. The nearby_profiles RPC LEFT JOINs
+  // mode_activations, so a profile with N active modes appears N times
+  // in the result set. /browse swipe deck shows duplicate cards, /map
+  // throws React key collisions. Keep the FIRST occurrence — its `mode`
+  // column reflects the user's primary mode per the LEFT JOIN ordering.
+  const seenIds = new Set<string>();
+  const dedupedNearby = nearby.filter((p) => {
+    if (seenIds.has(p.id)) return false;
+    seenIds.add(p.id);
+    return true;
+  });
+
   // Exclude self
-  const candidates = nearby.filter((p) => p.id !== userId);
+  const candidates = dedupedNearby.filter((p) => p.id !== userId);
 
   if (candidates.length === 0) return [];
 

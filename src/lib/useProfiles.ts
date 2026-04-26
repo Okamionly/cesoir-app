@@ -60,21 +60,35 @@ export function useProfiles(
           .abortSignal(signal);
 
         if (!error && data && data.length > 0) {
-          const realProfiles: Profile[] = data.map(
-            (p: Record<string, unknown>) => ({
+          // 2026-04-26 fix: dedupe by id. The nearby_profiles RPC LEFT JOINs
+          // mode_activations, so a profile with N active modes appears N
+          // times in the result set. /map's React keys collide, /browse
+          // shows duplicates in the swipe deck. Keep the FIRST occurrence
+          // (which contains the user's primary mode per the LEFT JOIN
+          // ordering); drop the rest.
+          const seen = new Set<string>();
+          const realProfiles: Profile[] = (data as Array<Record<string, unknown>>)
+            .filter((p) => {
+              const id = p.id as string;
+              if (!id || seen.has(id)) return false;
+              seen.add(id);
+              return true;
+            })
+            .map((p) => ({
               id: p.id as string,
               name: p.name as string,
               age: p.age as number,
-              mode: (p.mode as string) || "solo-diner",
+              mode: ((p.mode as string) || "solo-diner") as Profile["mode"],
               bio: (p.bio as string) || "",
               distance: Math.round((p.distance_km as number) * 10) / 10,
               time: (p.available_time as string) || "Dispo maintenant",
               color: app.violet,
               photo:
                 (p.avatar_url as string) ||
-                `https://ui-avatars.com/api/?name=${encodeURIComponent((p.name as string) || "?")}&background=8B5CF6&color=fff&bold=true&size=256&format=svg`,
-            }),
-          );
+                // 2026-04-26 fix: format=svg returned 400 through next/image
+                // because dangerouslyAllowSVG defaults to false. Use format=png.
+                `https://ui-avatars.com/api/?name=${encodeURIComponent((p.name as string) || "?")}&background=8B5CF6&color=fff&bold=true&size=256&format=png`,
+            }));
           return { profiles: realProfiles, isReal: true };
         }
         return { profiles: [], isReal: false };

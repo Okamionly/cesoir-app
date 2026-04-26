@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "CeSoir - Trouve quelqu'un ce soir",
     short_name: "CeSoir",
-    description: "14 modes de rencontre pour ne plus etre seul(e) ce soir",
+    description: "4 modes de rencontre pour ne plus etre seul(e) ce soir",
     start_url: "/browse",
     display: "standalone",
     orientation: "portrait",

@@ -104,10 +104,14 @@ export default function ModeDetailPage({
     setActivating(true);
     try {
       if (user) {
+        // 2026-04-26 fix: column was `activated_at`, but the actual schema
+        // uses `created_at` (which defaults to now()). Drop the field — let
+        // Postgres default fill it. Add is_active=true so the row counts
+        // for nearby_profiles + matching pipelines.
         await supabase.from("mode_activations").insert({
           user_id: user.id,
           mode: modeKey,
-          activated_at: new Date().toISOString(),
+          is_active: true,
         });
       }
       setActivated(true);
