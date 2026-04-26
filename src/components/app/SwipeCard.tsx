@@ -153,10 +153,30 @@ export default function SwipeCard({
         </div>
       </div>
 
-      {/* Mode badge */}
-      <div className="absolute top-5 left-5 z-10 flex items-center gap-1.5 bg-black/40 backdrop-blur-md rounded-full px-3 py-1.5">
-        {ModeIcon && <ModeIcon size={14} className="text-white/80" />}
-        <span className="text-[10px] text-white/80 font-semibold">{MODES[p.mode].name}</span>
+      {/* Mode badge + optional Founder chip */}
+      <div className="absolute top-5 left-5 z-10 flex items-center gap-2">
+        <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-md rounded-full px-3 py-1.5">
+          {ModeIcon && <ModeIcon size={14} className="text-white/80" />}
+          <span className="text-[10px] text-white/80 font-semibold">{MODES[p.mode].name}</span>
+        </div>
+        {/* Founder ☾ — hybrid invite reward (mig 025). Visible to other
+            users so 'arrived via invitation' becomes a social proof
+            signal on the swipe deck. */}
+        {p.is_founder && (
+          <div
+            className="flex items-center gap-1 rounded-full px-2.5 py-1.5 backdrop-blur-md"
+            style={{
+              background: "rgba(245,158,11,0.25)",
+              boxShadow: "0 0 12px rgba(245,158,11,0.45)",
+              border: "1px solid rgba(245,158,11,0.55)",
+            }}
+            title="Founder — Inscrit via invitation"
+            aria-label="Founder — inscrit via invitation"
+          >
+            <span className="text-[12px] leading-none" aria-hidden="true">☾</span>
+            <span className="text-[9px] text-white font-bold uppercase tracking-wider">Founder</span>
+          </div>
+        )}
       </div>
 
       {/* Smart Queue Badges - below mode badge */}

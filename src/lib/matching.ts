@@ -46,6 +46,8 @@ export interface MatchCandidate {
   lat: number;
   /** Longitude */
   lng: number;
+  /** True if the candidate has the 'founder' achievement (signed up via invite code) */
+  is_founder?: boolean;
 }
 
 export interface ScoreBreakdown {
@@ -313,11 +315,13 @@ export async function findMatches(
   // ----- Step 5: Batch-fetch candidate data -----
   const candidateIds = ageFiltered.map((p) => p.id);
 
-  // Fetch all active modes for candidates, karma totals, and review averages in parallel
-  const [candidateModesMap, karmaMap, reviewMap] = await Promise.all([
+  // Fetch all active modes for candidates, karma totals, review averages,
+  // and founder-badge holders in parallel.
+  const [candidateModesMap, karmaMap, reviewMap, founderSet] = await Promise.all([
     getActiveModesForUsers(candidateIds),
     getKarmaForUsers(candidateIds),
     getReviewAvgForUsers(candidateIds),
+    getFounderUserIds(candidateIds),
   ]);
 
   // ----- Step 6: Score each candidate -----
@@ -354,6 +358,10 @@ export async function findMatches(
       // rough value (see the "Positions floutées à ~500m" trust banner).
       lat: candidate.lat_rough,
       lng: candidate.lng_rough,
+      // 2026-04-26: hybrid invite reward — surface founder badge so
+      // SwipeCard can render the chip without re-querying achievements
+      // per card.
+      is_founder: founderSet.has(candidate.id),
     };
   });
 
@@ -447,6 +455,29 @@ async function getKarmaForUsers(
 }
 
 /** Batch-fetch average review rating for multiple users. */
+/**
+ * Returns the subset of `userIds` who hold the 'founder' achievement
+ * badge (i.e. signed up via an invite code, mig 025 hybrid reward).
+ * Single SELECT, no joins — much cheaper than per-card queries.
+ */
+async function getFounderUserIds(userIds: string[]): Promise<Set<string>> {
+  const set = new Set<string>();
+  if (userIds.length === 0) return set;
+
+  const { data, error } = await supabase
+    .from("achievements")
+    .select("user_id")
+    .eq("achievement_key", "founder")
+    .in("user_id", userIds);
+
+  if (error || !data) return set;
+
+  for (const row of data as Array<{ user_id: string }>) {
+    set.add(row.user_id);
+  }
+  return set;
+}
+
 async function getReviewAvgForUsers(
   userIds: string[],
 ): Promise<Map<string, number>> {
