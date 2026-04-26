@@ -46,6 +46,7 @@ function candidateToProfile(c: MatchCandidate): Profile {
     time: c.availableTime ?? "Dispo maintenant",
     color: "var(--color-accent)",
     photo: c.avatar_url ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name || "?")}&background=8B5CF6&color=fff&bold=true&size=256&format=svg`,
+    is_founder: c.is_founder,
   };
 }
 

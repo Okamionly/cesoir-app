@@ -20,6 +20,9 @@ export interface Profile {
   color: string;
   photo: string;
   photos?: string[];
+  /** Hybrid invite reward badge — set on the SwipeCard if the user signed
+   *  up via an invitation code (mig 025 / achievement_key='founder'). */
+  is_founder?: boolean;
   // Mode-specific
   cuisine?: string;
   event?: string;
