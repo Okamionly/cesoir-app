@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { createBrowserClient } from "@supabase/ssr";
 import type { Database } from "./supabase-types";
+import { logger } from "./logger";
 
 // Re-export all types from the centralized types file
 export type { Database } from "./supabase-types";
@@ -99,9 +100,9 @@ function getClient(): SupabaseClient<ClientDB> {
     // One-time runtime breadcrumb so the bug is easy to spot in Sentry if it
     // surfaces again on a different env. Logs only on the client to avoid
     // SSR log noise on every request.
-    // eslint-disable-next-line no-console
-    console.warn(
-      "[supabase] env var contained whitespace or wrapping quotes — trimmed in code. Fix the source value in Vercel/Local env to remove this workaround.",
+    logger.warn(
+      "supabase_env_trimmed",
+      { hint: "Fix the source value in Vercel/Local env to remove this workaround." },
     );
   }
 
