@@ -333,10 +333,18 @@ export function useBadges(): UseBadgesReturn {
           .eq("id", userId)
           .abortSignal(signal)
           .single(),
+        // 2026-04-26: the schema never had `matches` / `referrals` tables
+        // (Wave 14 designs were drafted but the actual schema uses
+        // `conversations` for mutual matches and `invite_codes` for the
+        // referral graph). Pre-fix this hook fired 2× HTTP 404 on every
+        // auth-gated page load. Now we hit the real tables.
+        //
+        // - matches    → conversations (user_a / user_b columns)
+        // - referrals  → invite_codes WHERE created_by = me AND used_by IS NOT NULL
         supabase
-          .from("matches")
+          .from("conversations")
           .select("id, created_at, mode")
-          .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
+          .or(`user_a.eq.${userId},user_b.eq.${userId}`)
           .abortSignal(signal),
         supabase
           .from("messages")
@@ -344,10 +352,10 @@ export function useBadges(): UseBadgesReturn {
           .eq("sender_id", userId)
           .abortSignal(signal),
         supabase
-          .from("referrals")
-          .select("id")
-          .eq("referrer_id", userId)
-          .eq("status", "completed")
+          .from("invite_codes")
+          .select("code")
+          .eq("created_by", userId)
+          .not("used_by", "is", null)
           .abortSignal(signal),
       ]);
 
