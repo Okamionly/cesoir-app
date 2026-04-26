@@ -304,6 +304,7 @@ export default function ProfilePage() {
             { label: "Recommandations", desc: "Profils selectionnes pour toi", href: "/browse" },
             { label: "Plans ce soir", desc: "Organiser ou rejoindre", href: "/plans" },
             { label: "Progression", desc: "Badges, defis, confiance", href: "/progress" },
+            { label: "Mes invitations", desc: "+5 🌹 chaque ami qui s'inscrit", href: "/invites/mine" },
           ].map((item, i, arr) => (
             <Link
               key={item.href}
