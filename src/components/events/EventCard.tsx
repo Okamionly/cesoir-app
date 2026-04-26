@@ -164,6 +164,18 @@ export function EventCard({ event, variant = "default" }: EventCardProps) {
   const attendees = event.counts.going + event.attendeePreview.length;
   const isGoing = event.myRsvp === "going";
 
+  // 2026-04-26: highlight events happening tonight (the app's whole pitch).
+  // We compare the event start date against the user's local "today".
+  const isTonight = useMemo(() => {
+    const start = new Date(event.startAt);
+    const now = new Date();
+    return (
+      start.getFullYear() === now.getFullYear() &&
+      start.getMonth() === now.getMonth() &&
+      start.getDate() === now.getDate()
+    );
+  }, [event.startAt]);
+
   const handleTap = useCallback(() => {
     haptics.light();
   }, []);
@@ -223,12 +235,32 @@ export function EventCard({ event, variant = "default" }: EventCardProps) {
           onMouseLeave={() => setHovered(false)}
           onMouseMove={handleMouseMove}
           className={[
-            "relative block overflow-hidden rounded-2xl bg-card border transition-colors",
+            "relative block overflow-hidden rounded-2xl bg-card border-2 transition-colors",
             "focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
-            hovered ? "border-accent/40" : "border-border hover:border-accent/25",
+            // 2026-04-26: 'ce soir' events get the brand gradient border so
+            // the most-relevant cards on the app's whole pitch ('ce soir')
+            // are visually obvious in the feed.
+            isTonight
+              ? "border-accent shadow-[0_8px_28px_-8px_color-mix(in_srgb,var(--color-accent)_45%,transparent)]"
+              : hovered
+                ? "border-accent/40"
+                : "border-border hover:border-accent/25",
           ].join(" ")}
-          aria-label={`${event.title}, ${dateLabel}, au ${event.venue.name}`}
+          aria-label={`${event.title}, ${dateLabel}, au ${event.venue.name}${isTonight ? " — ce soir" : ""}`}
         >
+          {/* CE SOIR pill — pinned top-left over the flyer when applicable */}
+          {isTonight && (
+            <div
+              className="absolute top-2.5 left-2.5 z-10 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white"
+              style={{
+                background: "linear-gradient(135deg, #8B5CF6, #EC4899, #00FF88)",
+                boxShadow: "0 0 12px color-mix(in srgb, var(--color-accent) 50%, transparent)",
+              }}
+            >
+              <span aria-hidden="true">●</span>
+              Ce soir
+            </div>
+          )}
           {/* ─── Flyer ─────────────────────────────────── */}
           <div
             className={[
@@ -327,8 +359,8 @@ export function EventCard({ event, variant = "default" }: EventCardProps) {
                     {attendees === 1 ? "1 y va" : `${attendees} y vont`}
                   </span>
                 ) : (
-                  <span className="text-[11px] text-text-muted truncate">
-                    Sois le premier
+                  <span className="text-[11px] truncate" style={{ color: "var(--color-accent)" }}>
+                    ✨ Lance la soirée
                   </span>
                 )}
               </div>
