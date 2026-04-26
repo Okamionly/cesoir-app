@@ -42,6 +42,8 @@ export default function ProfilePage() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [profileName, setProfileName] = useState("Youssef");
   const [age, setAge] = useState<number>(28);
+  const [bio, setBio] = useState<string>("");
+  const [activeMode, setActiveMode] = useState<string | null>(null);
 
   // Server settings + optimistic local mirror for instant UI.
   const { settings, updateTonightChips } = useUserSettings();
@@ -79,13 +81,27 @@ export default function ProfilePage() {
     if (!user) return;
     supabase
       .from("profiles")
-      .select("avatar_url, name, age")
+      .select("avatar_url, name, age, bio")
       .eq("id", user.id)
       .single()
-      .then(({ data }: { data: { avatar_url?: string; name?: string; age?: number } | null }) => {
+      .then(({ data }: { data: { avatar_url?: string; name?: string; age?: number; bio?: string } | null }) => {
         if (data?.avatar_url) setAvatarUrl(data.avatar_url);
         if (data?.name) setProfileName(data.name);
         if (data?.age) setAge(data.age);
+        if (data?.bio) setBio(data.bio);
+      });
+
+    // Fetch the user's most recent active mode (max 1 row — the current vibe).
+    supabase
+      .from("mode_activations")
+      .select("mode")
+      .eq("user_id", user.id)
+      .eq("is_active", true)
+      .order("activated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+      .then(({ data }: { data: { mode?: string } | null }) => {
+        if (data?.mode) setActiveMode(data.mode);
       });
   }, [user]);
 
@@ -231,15 +247,47 @@ export default function ProfilePage() {
           Montpellier, France
         </m.p>
 
-        {/* Status pill */}
+        {/* Bio — shown only if filled, italic + 2-line clamp so the hero
+            stays compact even on long bios. Empty bio → no slot at all
+            (don't display 'no bio yet' which feels like a chore). */}
+        {bio && (
+          <m.p
+            className="text-[13px] text-text mt-3 italic max-w-[280px] line-clamp-2 leading-snug"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.42 }}
+          >
+            {bio}
+          </m.p>
+        )}
+
+        {/* Status pill cluster — disponibility + current mode (if any) */}
         <m.div
-          className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-bg-card border border-border"
+          className="mt-4 flex flex-wrap items-center justify-center gap-2"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ ...springs.elastic, delay: 0.5 }}
         >
-          <span className="block w-1.5 h-1.5 rounded-full" style={{ background: "var(--color-accent-2)" }} aria-hidden="true" />
-          <span className="text-[12px] font-medium text-text">Disponible ce soir</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-bg-card border border-border">
+            <span className="block w-1.5 h-1.5 rounded-full" style={{ background: "var(--color-accent-2)" }} aria-hidden="true" />
+            <span className="text-[12px] font-medium text-text">Disponible ce soir</span>
+          </div>
+          {activeMode && (
+            <Link
+              href="/modes"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border tap-target transition-transform hover:scale-105"
+              style={{
+                background: "var(--color-accent)15",
+                borderColor: "var(--color-accent)55",
+                color: "var(--color-accent)",
+              }}
+              title="Changer de mode"
+            >
+              <span className="text-[12px] font-semibold">
+                Mode : {activeMode.replace(/-/g, " ")}
+              </span>
+            </Link>
+          )}
         </m.div>
 
         {/* Earned badges strip — top 4, legendary first (Founder ☾ when present) */}
