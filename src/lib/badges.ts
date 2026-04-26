@@ -383,6 +383,21 @@ export const ALL_BADGES: Badge[] = [
     rarity: "epic",
     xp: 200,
   },
+  // 2026-04-26 — Hybrid invite reward badge (mig 025).
+  // Granted server-side by claim_invite_code RPC when a user signs up
+  // via /signup-quick?invite=XXX. The id MUST match the achievement_key
+  // string inserted in mig 025 ('founder') — useBadges resolves earned
+  // status by matching badge.id against achievements.achievement_key.
+  {
+    id: "founder",
+    name: "Founder",
+    emoji: "☾",
+    description: "Tu fais partie des premiers, arrive via une invitation",
+    category: "special",
+    requirement: "S'inscrire avec un code d'invitation valide",
+    rarity: "legendary",
+    xp: 100,
+  },
 ];
 
 // ─────────────────────────────────────────
