@@ -7,6 +7,7 @@ import { m } from "motion/react";
 import { useAuth } from "@/context/AuthContext";
 import { landing } from "@/lib/design-tokens";
 import { easings } from "@/lib/motion-design";
+import { Eye, EyeOff, Loader2 } from "@/components/ui/lucide";
 import {
   FormField,
   FormInput,
@@ -49,6 +50,7 @@ function LoginPageInner() {
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -167,16 +169,36 @@ function LoginPageInner() {
           </FormField>
 
           <FormField label="Mot de passe" variant="dark" required>
-            <FormInput
-              type="password"
-              placeholder="********"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-              variant="dark"
-              size="lg"
-              error={Boolean(error)}
-            />
+            <div className="relative">
+              <FormInput
+                type={showPassword ? "text" : "password"}
+                placeholder="********"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                variant="dark"
+                size="lg"
+                error={Boolean(error)}
+                className="pr-12"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={
+                  showPassword
+                    ? "Masquer le mot de passe"
+                    : "Afficher le mot de passe"
+                }
+                aria-pressed={showPassword}
+                className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center justify-center w-11 h-11 rounded-lg text-white/60 hover:text-white/90 transition-colors"
+              >
+                {showPassword ? (
+                  <EyeOff size={20} aria-hidden="true" />
+                ) : (
+                  <Eye size={20} aria-hidden="true" />
+                )}
+              </button>
+            </div>
           </FormField>
 
           <div className="text-right">
@@ -203,7 +225,7 @@ function LoginPageInner() {
           Pas encore inscrit ?{" "}
           <Link
             href="/signup-quick"
-            className="font-semibold transition-opacity hover:opacity-80"
+            className="font-semibold transition-opacity hover:opacity-80 tap-target inline-flex items-center justify-center"
             style={{ color: landing.vert }}
           >
             Créer un compte
@@ -214,9 +236,22 @@ function LoginPageInner() {
   );
 }
 
+function LoginFallback() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-bg">
+      <Loader2
+        size={28}
+        strokeWidth={1.8}
+        className="animate-spin text-accent"
+        aria-label="Chargement"
+      />
+    </main>
+  );
+}
+
 export default function LoginPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<LoginFallback />}>
       <LoginPageInner />
     </Suspense>
   );

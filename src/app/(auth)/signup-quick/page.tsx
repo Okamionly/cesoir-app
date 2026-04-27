@@ -33,6 +33,7 @@ import { useGeolocation } from "@/lib/useGeolocation";
 import { supabase } from "@/lib/supabase";
 import { MODES, type ModeKey } from "@/lib/modes";
 import { easings, springs } from "@/lib/motion-design";
+import { Eye, EyeOff, Loader2 } from "@/components/ui/lucide";
 
 const PUBLIC_MODES: ModeKey[] = [
   "solo-diner",
@@ -85,6 +86,7 @@ function SignupQuickInner() {
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [age, setAge] = useState("");
   const [inviteCode, setInviteCode] = useState("");
   const [selectedMode, setSelectedMode] = useState<ModeKey | null>(null);
@@ -318,19 +320,44 @@ function SignupQuickInner() {
               />
             </label>
 
-            <label className="block">
-              <span className="text-xs font-semibold text-text-muted">Mot de passe</span>
-              <input
-                type="password"
-                required
-                minLength={8}
-                autoComplete="new-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 w-full px-3 py-2.5 rounded-xl border border-border bg-card text-text focus:outline-none focus:ring-2 focus:ring-accent text-base"
-                placeholder="8 caractères minimum"
-              />
-            </label>
+            <div className="block">
+              <label
+                htmlFor="signup-quick-password"
+                className="text-xs font-semibold text-text-muted"
+              >
+                Mot de passe
+              </label>
+              <div className="relative mt-1">
+                <input
+                  id="signup-quick-password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-3 py-2.5 pr-12 rounded-xl border border-border bg-card text-text focus:outline-none focus:ring-2 focus:ring-accent text-base"
+                  placeholder="8 caractères minimum"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={
+                    showPassword
+                      ? "Masquer le mot de passe"
+                      : "Afficher le mot de passe"
+                  }
+                  aria-pressed={showPassword}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center justify-center w-11 h-11 rounded-lg text-text-muted hover:text-text transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff size={20} aria-hidden="true" />
+                  ) : (
+                    <Eye size={20} aria-hidden="true" />
+                  )}
+                </button>
+              </div>
+            </div>
 
             <label className="block">
               <span className="text-xs font-semibold text-text-muted">Âge</span>
@@ -546,9 +573,22 @@ function SignupQuickInner() {
   );
 }
 
+function SignupQuickFallback() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-bg">
+      <Loader2
+        size={28}
+        strokeWidth={1.8}
+        className="animate-spin text-accent"
+        aria-label="Chargement"
+      />
+    </main>
+  );
+}
+
 export default function SignupQuickPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<SignupQuickFallback />}>
       <SignupQuickInner />
     </Suspense>
   );

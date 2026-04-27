@@ -213,7 +213,13 @@ function PlansPageInner() {
 
 export default function PlansPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-bg p-4">
+          <SkeletonList count={4} itemHeight={96} />
+        </div>
+      }
+    >
       <PlansPageInner />
     </Suspense>
   );

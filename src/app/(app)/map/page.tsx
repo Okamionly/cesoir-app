@@ -819,8 +819,8 @@ export default function MapPage() {
                 <span className="text-[10px] text-accent font-semibold">Découvrir</span>
               </Link>
             </m.div>
-            <div className="text-[11px] text-text-muted">
-              {loading ? "Localisation..." : error ? <span className="text-danger">{error}</span> : <><span className="w-1.5 h-1.5 rounded-full bg-safe inline-block mr-1" /><m.span key={`count-${filtered.length}`} initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={springs.snap}>{filtered.length}</m.span></>}
+            <div className="text-[11px] text-text-muted min-w-0 max-w-[160px]">
+              {loading ? "Localisation..." : error ? <span className="text-danger block truncate" title={error}>{error}</span> : <><span className="w-1.5 h-1.5 rounded-full bg-safe inline-block mr-1" /><m.span key={`count-${filtered.length}`} initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={springs.snap}>{filtered.length}</m.span></>}
             </div>
           </div>
         }

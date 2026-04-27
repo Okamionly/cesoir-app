@@ -14,7 +14,7 @@
  * Motion lib = motion/react (not framer-motion) — see constraints.
  */
 
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { Route } from "next";
 import Image from "next/image";
@@ -34,7 +34,14 @@ export interface MatchCinematicProps {
   sharedMode?: string | null;
   conversationId?: string | null;
   onDismiss: () => void;
+  /**
+   * Auto-dismiss timer in ms. Defaults to 8000 (Tinder/Bumble pattern).
+   * Set to 0 / null to disable auto-dismiss entirely.
+   */
+  autoDismissMs?: number | null;
 }
+
+const DEFAULT_AUTO_DISMISS_MS = 8000;
 
 // Confetti ring — 16 colored dots radiating outward. Uses the same palette
 // as the onboarding celebration screen for consistency.
@@ -48,7 +55,34 @@ export default function MatchCinematic({
   sharedMode,
   conversationId,
   onDismiss,
+  autoDismissMs = DEFAULT_AUTO_DISMISS_MS,
 }: MatchCinematicProps) {
+  // Auto-dismiss timer with pause-on-hover/tap support.
+  // Tracks whether the user is currently engaging with the card so we don't
+  // cut them off mid-read. Pausing clears the existing timer; unpausing restarts.
+  const [isPaused, setIsPaused] = useState(false);
+  const [hasFiredOnce, setHasFiredOnce] = useState(false);
+  const dismissedRef = useRef(false);
+
+  // Reset internal state every time the overlay reopens for a new match.
+  useEffect(() => {
+    if (open) {
+      setIsPaused(false);
+      setHasFiredOnce(false);
+      dismissedRef.current = false;
+    }
+  }, [open]);
+
+  // Wrap onDismiss so we can guard against double-fire (CTA click + timer race).
+  const safeDismiss = useCallback(() => {
+    if (dismissedRef.current) return;
+    dismissedRef.current = true;
+    onDismiss();
+  }, [onDismiss]);
+
+  // Pause/resume helpers wired to pointer + focus events on the card.
+  const pause = useCallback(() => setIsPaused(true), []);
+  const resume = useCallback(() => setIsPaused(false), []);
   // Resolve mode data — fallback gracefully if mode is legacy / null.
   const mode = useMemo(() => {
     if (sharedMode && isActiveMode(sharedMode)) return MODES[sharedMode as ModeKey];
@@ -86,11 +120,30 @@ export default function MatchCinematic({
   useEffect(() => {
     if (!open) return;
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onDismiss();
+      if (e.key === "Escape") safeDismiss();
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, onDismiss]);
+  }, [open, safeDismiss]);
+
+  // Auto-dismiss timer — pausable. Re-creates the timer whenever isPaused flips
+  // back to false. Disabled when autoDismissMs is null/0. Only fires once per
+  // open cycle (hasFiredOnce gate) so we don't re-fire if the user briefly
+  // hovers then unhovers near the deadline.
+  useEffect(() => {
+    if (!open) return;
+    if (!autoDismissMs || autoDismissMs <= 0) return;
+    if (isPaused) return;
+    if (hasFiredOnce) return;
+    const t = window.setTimeout(() => {
+      setHasFiredOnce(true);
+      safeDismiss();
+    }, autoDismissMs);
+    return () => window.clearTimeout(t);
+  }, [open, autoDismissMs, isPaused, hasFiredOnce, safeDismiss]);
+
+  const showCountdown = Boolean(autoDismissMs && autoDismissMs > 0);
+  const countdownSeconds = autoDismissMs ? Math.round(autoDismissMs / 1000) : 0;
 
   const chatHref = conversationId
     ? `/chat/${conversationId}?starter=${encodeURIComponent(starter)}`
@@ -109,7 +162,7 @@ export default function MatchCinematic({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25 }}
         >
-          {/* Backdrop — dark, blurred */}
+          {/* Backdrop — dark, blurred. Tapping outside the card dismisses. */}
           <m.div
             className="absolute inset-0"
             style={{
@@ -121,7 +174,7 @@ export default function MatchCinematic({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onDismiss}
+            onClick={safeDismiss}
           />
 
           {/* Ambient radial halo */}
@@ -172,10 +225,10 @@ export default function MatchCinematic({
             );
           })}
 
-          {/* Dismiss button */}
+          {/* Dismiss button (X top-right) */}
           <m.button
             type="button"
-            onClick={onDismiss}
+            onClick={safeDismiss}
             className="absolute top-5 right-5 z-10 w-9 h-9 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white tap-target"
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.85 }}
@@ -186,8 +239,16 @@ export default function MatchCinematic({
             <X size={18} strokeWidth={2} aria-hidden="true" />
           </m.button>
 
-          {/* Content */}
-          <div className="relative z-[2] flex flex-col items-center text-center px-6 max-w-md">
+          {/* Content — hovering/tapping pauses the auto-dismiss timer so users
+              reading carefully don't get cut off mid-thought. */}
+          <div
+            className="relative z-[2] flex flex-col items-center text-center px-6 max-w-md"
+            onPointerEnter={pause}
+            onPointerLeave={resume}
+            onPointerDown={pause}
+            onFocus={pause}
+            onBlur={resume}
+          >
             {/* Top label */}
             <m.p
               className="text-[11px] font-bold uppercase tracking-[0.3em] mb-3"
@@ -277,13 +338,51 @@ export default function MatchCinematic({
             >
               <Link
                 href={chatHref as Route}
-                onClick={onDismiss}
+                onClick={() => {
+                  // Mark the cycle as fired so the auto-timer effect won't
+                  // re-fire onDismiss after navigation, then dismiss cleanly.
+                  setHasFiredOnce(true);
+                  safeDismiss();
+                }}
                 className="w-full inline-block gradient-bg text-white px-8 py-4 rounded-full text-[15px] font-bold shadow-glow tap-target"
               >
                 Dis bonjour
               </Link>
             </m.div>
           </div>
+
+          {/* Countdown indicator — bottom progress bar that drains over the
+              auto-dismiss window. Pauses (CSS animation-play-state) when the
+              user is hovering/tapping. Hidden if auto-dismiss is disabled. */}
+          {showCountdown && (
+            <div
+              className="absolute bottom-0 left-0 right-0 z-10 flex flex-col items-center gap-2 px-6 pb-4 pointer-events-none"
+              aria-hidden="true"
+            >
+              <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.25em] text-white/40">
+                {isPaused
+                  ? "En pause"
+                  : `Fermeture auto dans ${countdownSeconds}s`}
+              </div>
+              <div className="w-32 h-[2px] rounded-full bg-white/10 overflow-hidden">
+                <m.div
+                  key={`countdown-${open}-${isPaused}-${hasFiredOnce}`}
+                  className="h-full bg-white/50"
+                  initial={{ width: "100%" }}
+                  animate={{
+                    width: isPaused || hasFiredOnce ? "100%" : "0%",
+                  }}
+                  transition={{
+                    duration:
+                      isPaused || hasFiredOnce
+                        ? 0
+                        : (autoDismissMs ?? DEFAULT_AUTO_DISMISS_MS) / 1000,
+                    ease: "linear",
+                  }}
+                />
+              </div>
+            </div>
+          )}
         </m.div>
       )}
     </AnimatePresence>

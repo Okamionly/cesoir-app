@@ -171,7 +171,7 @@ INSERT INTO public.events (
   'grosse-radio-afterwork-2026-04-30',
   'Afterwork Electro-Jazz — La Grosse Radio',
   'Sortie bureau 19h-minuit. Cocktails signature, fusion jazz/electro, food truck ceviche à l''extérieur.',
-  'https://images.unsplash.com/photo-1546074177-ffdda98d214f?w=1200&q=80&auto=format',
+  'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1200&q=80&auto=format',
   'La Grosse Radio', '8 rue du Plan d''Agde, 34000 Montpellier',
   ST_SetSRID(ST_MakePoint(3.8790, 43.6078), 4326)::geography,
   'montpellier',

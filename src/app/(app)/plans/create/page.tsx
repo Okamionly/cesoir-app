@@ -7,6 +7,7 @@ import { springs } from "@/lib/motion-design";
 import { usePlans, PLAN_TYPE_META, type PlanType } from "@/lib/usePlans";
 import PageHeader from "@/components/ui/PageHeader";
 import { useToast } from "@/components/ui/Toast";
+import PageLoader from "@/components/app/PageLoader";
 
 const PUBLIC_TYPES: PlanType[] = ["flash", "soiree", "popup"];
 
@@ -204,7 +205,7 @@ function CreatePlanPageInner() {
 
 export default function CreatePlanPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageLoader />}>
       <CreatePlanPageInner />
     </Suspense>
   );

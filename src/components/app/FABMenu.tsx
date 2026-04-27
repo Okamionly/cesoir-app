@@ -90,6 +90,10 @@ const positions = [
  *  - /safety, /safety/*  — FAB recouvrait le bouton/texte "Cercle de confiance"
  *                          (BUG-07, audit 2026-04-26). Page sensible (trust &
  *                          safety) — pas de quick-action utile ici.
+ *  - /events, /events/*  — FAB chevauchait le badge "Gratuit" sur les cartes
+ *                          d'evenements en bas du viewport (BUG-08 P1, audit
+ *                          2026-04-27). La page Soirees a deja ses propres CTAs
+ *                          (filtres + RSVP) — pas de quick-action utile ici.
  */
 function shouldHideFAB(pathname: string | null): boolean {
   if (!pathname) return false;
@@ -99,6 +103,7 @@ function shouldHideFAB(pathname: string | null): boolean {
   if (/^\/rooms\/[^/]+/.test(pathname)) return true;
   if (pathname.startsWith("/onboarding")) return true;
   if (pathname === "/safety" || pathname.startsWith("/safety/")) return true;
+  if (pathname === "/events" || pathname.startsWith("/events/")) return true;
   return false;
 }
 
@@ -203,7 +208,12 @@ export function FABMenu() {
                     <button
                       onClick={() => handleAction(action.href)}
                       role="menuitem"
-                      className="tap-target flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg transition-transform active:scale-90"
+                      // tap-target-expand keeps the 40px visual but renders a
+                      // 44px invisible hit area via ::before (WCAG 2.5.5 sweep
+                      // 2026-04-27). Previous `tap-target` forced the button to
+                      // visually grow to 44px which pushed the orbit layout off
+                      // the 440px desktop frame on narrow viewports.
+                      className="tap-target-expand flex h-10 w-10 items-center justify-center rounded-full text-white shadow-lg transition-transform active:scale-90"
                       style={{ backgroundColor: action.color }}
                       aria-label={action.label}
                     >
