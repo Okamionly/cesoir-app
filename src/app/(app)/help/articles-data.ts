@@ -62,7 +62,7 @@ Les fonctionnalités de base (swiper, matcher, messagerie, soirées gratuites) s
 
 Nous finançons l'app via CeSoir Premium (optionnel, 4,99€/mois) qui donne accès à des fonctionnalités bonus : likes illimités, boost, messages avant match, et la suppression des pubs (il n'y en a pas aujourd'hui).
 
-Nous ne vendons JAMAIS vos données. Notre engagement : aucune publicité ciblée, aucun partage avec des tiers commerciaux.`,
+Nous ne vendons JAMAIS tes données. Notre engagement : aucune publicité ciblée, aucun partage avec des tiers commerciaux.`,
   },
   {
     slug: "how-matching-works",

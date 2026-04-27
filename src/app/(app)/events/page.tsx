@@ -14,13 +14,15 @@
  * enhancement (kept client-local for now — no deep-link requirement yet).
  */
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { m, type Variants } from "motion/react";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
 import EventCard from "@/components/events/EventCard";
 import EventFilters from "@/components/events/EventFilters";
+import ClosingSoonBar from "@/components/events/ClosingSoonBar";
 import { useEvents } from "@/lib/useEvents";
+import { announceToSR } from "@/components/ui/LiveRegion";
 import {
   DEFAULT_EVENT_FILTERS,
   countActiveFilters,
@@ -61,6 +63,30 @@ export default function EventsPage() {
     setFilters(DEFAULT_EVENT_FILTERS);
   }, []);
 
+  // a11y round 2 (2026-04-27): announce result count whenever a filter
+  // change settles. Skips initial mount so users land on the page in silence
+  // and only hear updates after they actively change something. Skips while
+  // the events query is still loading so we don't announce stale counts.
+  const lastAnnouncedRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (loading) return;
+    const count = events.length;
+    if (lastAnnouncedRef.current === null) {
+      // First settled load — record but don't announce.
+      lastAnnouncedRef.current = count;
+      return;
+    }
+    if (lastAnnouncedRef.current === count) return;
+    lastAnnouncedRef.current = count;
+    if (count === 0) {
+      announceToSR("Aucune soirée correspondante", "polite");
+    } else if (count === 1) {
+      announceToSR("1 soirée trouvée", "polite");
+    } else {
+      announceToSR(`${count} soirées trouvées`, "polite");
+    }
+  }, [events.length, loading]);
+
   return (
     <div className="min-h-screen bg-bg">
       <PageHeader
@@ -70,6 +96,10 @@ export default function EventsPage() {
         iconAnimation="float"
         hairlineVariant="vert-violet"
       />
+
+      {/* Urgency strip — only renders when at least one event qualifies and
+          the user hasn't dismissed it for the current tab session. */}
+      <ClosingSoonBar />
 
       {/* Hero */}
       <header className="px-4 pt-5 pb-2">

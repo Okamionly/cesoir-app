@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Image from "next/image";
 import { m, useScroll, useTransform, AnimatePresence } from "motion/react";
 import { springs, easings } from "@/lib/motion-design";
 import { MODES } from "@/lib/modes";
@@ -78,12 +79,18 @@ export default function PresentationClient({ profile }: PresentationClientProps)
           style={{ y: heroY, scale: heroScale, opacity: heroOpacity }}
         >
           {profile.avatarUrl ? (
-            <img
+            // 2026-04-27 (round-3 perf polish): hero photo on the public
+            // /p/[id] share page is the LCP candidate. next/image gives us
+            // AVIF + responsive sizing + auto-priority (vs raw <img loading=
+            // eager>). `sizes` is `100vw` because the hero spans full width.
+            <Image
               src={profile.avatarUrl}
               alt=""
-              loading="eager"
-              decoding="async"
-              className="absolute inset-0 w-full h-full object-cover"
+              fill
+              sizes="100vw"
+              quality={75}
+              priority
+              className="object-cover"
               aria-hidden="true"
             />
           ) : (
@@ -128,9 +135,15 @@ export default function PresentationClient({ profile }: PresentationClientProps)
           className="w-32 h-32 rounded-2xl gradient-bg p-[3px] shadow-glow mx-auto"
         >
           {profile.avatarUrl ? (
-            <img
+            // Same photo, smaller (avatar overlay). Next/image dedupes the
+            // network request — both <Image> calls hit the same optimized
+            // AVIF / WebP variant under the hood.
+            <Image
               src={profile.avatarUrl}
               alt={profile.name}
+              width={128}
+              height={128}
+              sizes="128px"
               className="w-full h-full rounded-md object-cover"
             />
           ) : (

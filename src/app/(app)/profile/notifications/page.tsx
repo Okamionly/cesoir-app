@@ -6,7 +6,16 @@ import { useUserSettings, type NotificationPrefs } from "@/lib/useUserSettings";
 // localStorage fallback for offline/first-paint — server is source of truth.
 const NOTIF_KEY = "cesoir_notification_prefs";
 
-type NotifKey = "matches" | "likes" | "messages" | "events" | "feed" | "challenges" | "reminder17h" | "newsletter";
+type NotifKey =
+  | "matches"
+  | "likes"
+  | "messages"
+  | "events"
+  | "feed"
+  | "challenges"
+  | "reminder17h"
+  | "newsletter"
+  | "lastCall";
 
 interface NotifPrefsShape extends Record<NotifKey, boolean> {
   matches: boolean;
@@ -17,6 +26,7 @@ interface NotifPrefsShape extends Record<NotifKey, boolean> {
   challenges: boolean;
   reminder17h: boolean;
   newsletter: boolean;
+  lastCall: boolean;
 }
 
 const defaults: NotifPrefsShape = {
@@ -28,6 +38,9 @@ const defaults: NotifPrefsShape = {
   challenges: true,
   reminder17h: true,
   newsletter: false,
+  // Last Call is OPT-IN — default false. Respect the user's evening
+  // headspace; they have to actively want a 19h45 ping each night.
+  lastCall: false,
 };
 
 function mergeDefaults(partial: NotificationPrefs): NotifPrefsShape {
@@ -40,6 +53,7 @@ function mergeDefaults(partial: NotificationPrefs): NotifPrefsShape {
     challenges: partial.challenges ?? defaults.challenges,
     reminder17h: partial.reminder17h ?? defaults.reminder17h,
     newsletter: partial.newsletter ?? defaults.newsletter,
+    lastCall: partial.lastCall ?? defaults.lastCall,
   };
 }
 
@@ -70,6 +84,11 @@ const toggles: { key: NotifKey; label: string; description: string }[] = [
   { key: "feed", label: "Feed", description: "Activités de tes matchs et du quartier" },
   { key: "challenges", label: "Défis", description: "Défis du jour et progression" },
   { key: "reminder17h", label: "Rappel 17h", description: "\"Ce soir, tu fais quoi ?\" tous les jours" },
+  {
+    key: "lastCall",
+    label: "Last Call quotidien",
+    description: "Top 3 soirées près de toi à 19h45, chaque soir",
+  },
   { key: "newsletter", label: "Newsletter", description: "Actus CeSoir et nouveaux modes" },
 ];
 

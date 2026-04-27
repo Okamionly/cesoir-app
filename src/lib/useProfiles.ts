@@ -89,6 +89,9 @@ export function useProfiles(
                 // 2026-04-26 fix: format=svg returned 400 through next/image
                 // because dangerouslyAllowSVG defaults to false. Use format=png.
                 `https://ui-avatars.com/api/?name=${encodeURIComponent((p.name as string) || "?")}&background=8B5CF6&color=fff&bold=true&size=256&format=png`,
+              // 2026-04-27 (mig 030): forward the SQL-computed broadcast
+              // flag so SwipeCard / map pins can render the green pulse.
+              broadcast_active: p.broadcast_active === true,
             }));
           return { profiles: realProfiles, isReal: true };
         }

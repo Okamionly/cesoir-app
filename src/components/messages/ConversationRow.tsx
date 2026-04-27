@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { m, AnimatePresence, useReducedMotion } from "motion/react";
 import { springs } from "@/lib/motion-design";
+import { useFocusTrap } from "@/lib/hooks/useFocusTrap";
 import { usePointerFine } from "@/lib/hooks/usePointerFine";
 import { MODES } from "@/lib/modes";
 import type { ModeKey } from "@/lib/modes";
@@ -99,7 +100,13 @@ export function ConversationRow({
   const touchStartXRef = useRef(0);
   const kebabMenuRef = useRef<HTMLDivElement | null>(null);
   const kebabButtonRef = useRef<HTMLButtonElement | null>(null);
+  const contextMenuRef = useRef<HTMLDivElement | null>(null);
   const swipeThreshold = 80;
+
+  // a11y round 2 (2026-04-27): trap focus inside the long-press context menu
+  // and the kebab menu when either is open. Escape was already wired in the
+  // kebab effect above; useFocusTrap also wires Escape for the context menu.
+  useFocusTrap(contextMenuRef, contextMenu, { onEscape: () => setContextMenu(false) });
 
   // Close kebab menu on Escape, outside click, and refocus the trigger button
   useEffect(() => {
@@ -276,8 +283,12 @@ export function ConversationRow({
               exit={{ opacity: 0 }}
               className="fixed inset-0 z-40"
               onClick={() => setContextMenu(false)}
+              aria-hidden="true"
             />
             <m.div
+              ref={contextMenuRef}
+              role="menu"
+              aria-label="Actions de conversation"
               initial={{ opacity: 0, scale: 0.9, y: -4 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: -4 }}
@@ -452,13 +463,21 @@ export function ConversationRow({
         {/* Avatar + online pulse ring */}
         <div className="relative shrink-0">
           {convo.peer.avatar_url ? (
+            // 2026-04-27 (round-3 perf polish): drop `unoptimized` so the
+            // optimizer serves a 56px AVIF/WebP — saves ~70% bytes per row
+            // vs the raw Supabase Storage upload. `sizes` matches the fixed
+            // 56px container so the optimizer can request the smallest tier
+            // (qualities=[50,75,85] in next.config.ts; default 75 stays).
+            // `loading=lazy` is the next/image default for non-priority
+            // images, so rows below the fold defer.
             <Image
               src={convo.peer.avatar_url}
               alt={convo.peer.name}
               width={56}
               height={56}
+              sizes="56px"
+              quality={75}
               className="w-14 h-14 rounded-full object-cover"
-              unoptimized
             />
           ) : (
             <div

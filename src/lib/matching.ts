@@ -48,6 +48,12 @@ export interface MatchCandidate {
   lng: number;
   /** True if the candidate has the 'founder' achievement (signed up via invite code) */
   is_founder?: boolean;
+  /**
+   * 2026-04-27 (mig 030): true while the candidate's "Je suis dispo
+   * ce soir" broadcast is active. Drives the green pulse ring and
+   * "Dispo maintenant" pill on swipe cards / map pins.
+   */
+  broadcast_active?: boolean;
 }
 
 export interface ScoreBreakdown {
@@ -95,6 +101,12 @@ interface NearbyProfileRow {
   mode_details: Record<string, unknown> | null;
   lat_rough: number;
   lng_rough: number;
+  /**
+   * 2026-04-27 (mig 030): true when the profile has tapped
+   * "Je suis dispo ce soir" and `broadcast_until > now()`.
+   * Computed in SQL — clients cannot spoof it.
+   */
+  broadcast_active?: boolean;
 }
 
 // ----------------------------------------
@@ -152,6 +164,7 @@ export function calculateMatchScore(
     candidate.is_verified,
     candidateKarma,
     candidateReviewAvg,
+    candidate.broadcast_active === true,
   );
 
   const breakdown: ScoreBreakdown = {
@@ -211,15 +224,23 @@ function getTimingScore(availableTime: string | null): number {
 }
 
 /**
- * Social proof scoring:
- *   Verified badge:         +5 pts
- *   Karma (0-100 scale):    0-5 pts
- *   Review average (1-5):   0-5 pts
+ * Social proof scoring (15 pts max):
+ *   Verified badge:                    +5 pts
+ *   Karma (0-100 scale):               0-5 pts
+ *   Review average (1-5):              0-5 pts
+ *   Active "dispo ce soir" broadcast:  +5 pts (mig 030)
+ *
+ * The broadcast bonus deliberately sits in the social bucket: it's a
+ * declared intent signal ("I'm actually available right now") and feeds
+ * the same urgency the timing score already chases. Capped at 15 like
+ * the rest of the social block, so the boost never lets a stranger
+ * outscore a high-karma + reviewed match — it just nudges the tie.
  */
 function getSocialScore(
   isVerified: boolean,
   karma: number,
   reviewAvg: number,
+  broadcastActive: boolean = false,
 ): number {
   let score = 0;
 
@@ -234,6 +255,11 @@ function getSocialScore(
   if (reviewAvg > 0) {
     score += Math.round(((reviewAvg - 1) / 4) * 5);
   }
+
+  // Live availability broadcast (mig 030): the user explicitly
+  // tapped "Je suis dispo ce soir" — boost the social score so they
+  // surface to the top of the swipe deck while the flag is live.
+  if (broadcastActive) score += 5;
 
   return Math.min(15, score);
 }
@@ -374,6 +400,8 @@ export async function findMatches(
       // SwipeCard can render the chip without re-querying achievements
       // per card.
       is_founder: founderSet.has(candidate.id),
+      // 2026-04-27 (mig 030): forward the live broadcast flag.
+      broadcast_active: candidate.broadcast_active === true,
     };
   });
 

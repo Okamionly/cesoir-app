@@ -20,6 +20,7 @@ import { logger } from "@/lib/logger";
 import { useAuth } from "@/context/AuthContext";
 import { Magnetic } from "@/components/motion/Magnetic";
 import { RackFocus } from "@/components/motion/RackFocus";
+import EmptyState from "@/components/ui/EmptyState";
 import { ArrowLeft, Calendar, ChevronRight as LucideChevronRight, Star, Zap } from "@/components/ui/lucide";
 
 // ─────────────────────────────────────────
@@ -193,21 +194,19 @@ export default function ModeDetailPage({
   if (!modeData) {
     const killed = isKilledMode(modeSlug);
     return (
-      <div className="min-h-screen bg-bg flex flex-col items-center justify-center px-6 text-center">
-        <span className="text-5xl mb-4" aria-hidden="true">
-          {killed ? "🌱" : "🤷"}
-        </span>
-        <h1 className="text-xl font-bold mb-2">
-          {killed ? "Bientot disponible" : "Mode introuvable"}
-        </h1>
-        <p className="text-sm text-text-muted mb-6 max-w-xs">
-          {killed
-            ? "On re-ouvre ce mode des qu'il a sa PMF. En attendant, essaye nos 4 modes actifs."
-            : "Ce mode n'existe pas encore."}
-        </p>
-        <Link href="/modes" className="text-sm text-accent font-semibold">
-          Retour aux modes
-        </Link>
+      <div className="min-h-screen bg-bg flex flex-col items-center justify-center">
+        <EmptyState
+          emoji={killed ? "🌱" : "🤷"}
+          title={killed ? "Bientôt disponible" : "Mode introuvable"}
+          subtitle={
+            killed
+              ? "On re-ouvre ce mode dès qu'il a sa PMF. En attendant, essaye nos 4 modes actifs."
+              : "Ce mode n'existe pas encore."
+          }
+          actionLabel="Retour aux modes"
+          actionHref="/modes"
+          ariaLive="polite"
+        />
       </div>
     );
   }
@@ -221,7 +220,7 @@ export default function ModeDetailPage({
   const steps = [
     { icon: "⚡", title: "Active le mode", description: `Active "${modeData.name}" et montre ta disponibilité.` },
     { icon: "👀", title: "Découvre les profils", description: "Parcours les personnes disponibles ce soir près de toi." },
-    { icon: "🎯", title: "Propose un plan", description: "Envoie une invitation et organisez votre soirée." },
+    { icon: "🎯", title: "Propose un plan", description: "Envoie une invitation et organisez la soirée ensemble." },
   ];
 
   // Price range formatting

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence, useMotionValue, PanInfo } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import { X, Lock } from "@/components/ui/lucide";
@@ -172,13 +173,19 @@ export default function PhotoGallery({
         />
       );
     }
+    // 2026-04-27 (round-3 perf polish): swap raw <img> for next/image so the
+    // gallery participates in AVIF/WebP negotiation + size-hinted responsive
+    // delivery. Hero (index 0) gets `priority` so it's a real LCP candidate
+    // on /profile, the rest stay lazy. `sizes` is `100vw` because the gallery
+    // fills the card width on every breakpoint.
     return (
-      <img
+      <Image
         src={photos[index]}
         alt={`Photo ${index + 1} de ${name}`}
-        className={`absolute inset-0 w-full h-full object-cover ${className || ""}`}
-        loading={index === 0 ? "eager" : "lazy"}
-        decoding="async"
+        fill
+        sizes="(max-width: 640px) 100vw, 600px"
+        className={`object-cover ${className || ""}`}
+        priority={index === 0}
       />
     );
   };

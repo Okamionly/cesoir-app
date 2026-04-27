@@ -19,6 +19,7 @@ import { LiveTicker } from "@/components/feed/LiveTicker";
 import { NewItemsBanner } from "@/components/feed/NewItemsBanner";
 import { ReactionBar } from "@/components/feed/ReactionBar";
 import EventsWidget from "@/components/feed/EventsWidget";
+import ActivityFeed from "@/components/feed/ActivityFeed";
 import {
   FilterBar,
   isFeedFilter,
@@ -202,8 +203,21 @@ function FeedPageInner() {
 
   const content = (
     <>
-      <EventsWidget />
-      <LiveTicker onRefresh={handleRefresh} refreshing={refreshing} />
+      {/*
+        2026-04-27 (round-3 perf polish): wrap heavy widgets in their own
+        Suspense so the rest of the feed (FilterBar + list) doesn't block on
+        ActivityFeed/EventsWidget/LiveTicker data fetches. Each gets a slim
+        skeleton fallback (sized to the eventual layout to avoid CLS).
+      */}
+      <Suspense fallback={<div className="h-16" aria-hidden="true" />}>
+        <ActivityFeed />
+      </Suspense>
+      <Suspense fallback={<div className="h-32 px-4 py-3" aria-hidden="true" />}>
+        <EventsWidget />
+      </Suspense>
+      <Suspense fallback={<div className="h-12 px-4" aria-hidden="true" />}>
+        <LiveTicker onRefresh={handleRefresh} refreshing={refreshing} />
+      </Suspense>
       <FilterBar value={filter} onChange={handleFilterChange} />
 
       <NewItemsBanner

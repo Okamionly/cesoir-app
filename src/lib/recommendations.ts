@@ -502,7 +502,7 @@ export function getSmartNotifications(prefs: UserPreferences): SmartNotification
       title: `${topMatch.profile.name} (${topMatch.compatibility}% compatible) est active`,
       body: topMatch.profile.neighborhood
         ? `Vient d'arriver dans ${topMatch.profile.neighborhood}`
-        : `Dispo ce soir — vous avez des modes en commun`,
+        : `Dispo ce soir — modes en commun`,
       icon: "\u2728",
       priority: 9,
       actionLabel: "Voir le profil",

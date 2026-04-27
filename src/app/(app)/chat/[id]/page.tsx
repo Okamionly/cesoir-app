@@ -19,7 +19,9 @@ import { TypingIndicator as PeerTypingIndicator } from "@/components/messages/Ty
 
 // Chat feature components
 import SparkTimer from "@/components/chat/SparkTimer";
-import { VoiceRecordButton, VoiceNoteBubble } from "@/components/chat/VoiceNote";
+import { VoiceNoteBubble } from "@/components/chat/VoiceNote";
+import VoiceMessageRecorder from "@/components/chat/VoiceMessageRecorder";
+import VoiceMessagePlayer from "@/components/chat/VoiceMessagePlayer";
 import { ReactionWrapper, type Reaction } from "@/components/chat/EmojiReaction";
 import { PlanProposalButton, PlanCard, type PlanData } from "@/components/chat/PlanProposal";
 import { LocationShareButton, LocationCard } from "@/components/chat/LocationShare";
@@ -31,11 +33,13 @@ import VibeCheck, { VibeCheckButton } from "@/components/chat/VibeCheck";
 import AIWingman from "@/components/chat/AIWingman";
 import QuickReact from "@/components/chat/QuickReact";
 import WeMetFeedback from "@/components/app/WeMetFeedback";
+import IRLConfirm from "@/components/match/IRLConfirm";
 import { screenMessage } from "@/lib/messageScreening";
 import type { ScreeningResult } from "@/lib/messageScreening";
 import { ChevronRight, ArrowLeft, Send } from "@/components/ui/lucide";
 import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
+import { SkeletonChatMessages } from "@/components/ui/skeletons";
 
 // ---------- Types for special messages ----------
 
@@ -653,7 +657,7 @@ export default function ConversationPage({
           >
             <span className="text-lg" aria-hidden="true">🤝</span>
             <div className="flex-1 text-left">
-              <p className="text-[13px] font-bold text-text">Vous vous etes vus ?</p>
+              <p className="text-[13px] font-bold text-text">Vous vous êtes vus ?</p>
               <p className="text-[11px] text-text-muted">Dites-nous comment ca s&apos;est passe</p>
             </div>
             <ChevronRight size={16} strokeWidth={2} className="text-accent" />
@@ -670,11 +674,7 @@ export default function ConversationPage({
         aria-live="polite"
         aria-relevant="additions text"
       >
-        {loading && (
-          <div className="flex justify-center items-center py-12">
-            <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
-          </div>
-        )}
+        {loading && <SkeletonChatMessages count={6} />}
 
         {!loading && timeline.length === 0 && (
           <EmptyState
@@ -716,6 +716,45 @@ export default function ConversationPage({
                 : undefined;
               const showTail = prevIsOwn === undefined || prevIsOwn !== msg.isOwn;
               const msgReactions = reactions[msg.id] ?? [];
+
+              // Voice message branch — `voice_url` set in the DB row.
+              // We still wrap with QuickReact + ReactionWrapper so reactions
+              // work the same way as on text bubbles. The player itself
+              // takes care of signed URL fetching, playback, and seek.
+              if (msg.voiceUrl && msg.voiceDurationMs) {
+                return (
+                  <QuickReact
+                    key={msg.id}
+                    isOwn={msg.isOwn}
+                    reaction={quickReactions[msg.id] ?? null}
+                    onReact={(emoji) => handleQuickReact(msg.id, emoji)}
+                  >
+                    <ReactionWrapper
+                      isOwn={msg.isOwn}
+                      reactions={msgReactions}
+                      onReact={(emoji) => handleReact(msg.id, emoji)}
+                    >
+                      <VoiceMessagePlayer
+                        voicePath={msg.voiceUrl}
+                        durationMs={msg.voiceDurationMs}
+                        isOwn={msg.isOwn}
+                        time={formatTime(msg.createdAt)}
+                        messageId={msg.id}
+                        onPlaybackComplete={(id) => {
+                          // Best-effort mark-as-read for voice received from
+                          // peer. Own messages: no-op (we don't read our own).
+                          if (msg.isOwn) return;
+                          void supabase
+                            .from("messages")
+                            .update({ read_at: new Date().toISOString() })
+                            .eq("id", id)
+                            .is("read_at", null);
+                        }}
+                      />
+                    </ReactionWrapper>
+                  </QuickReact>
+                );
+              }
 
               return (
                 <QuickReact
@@ -959,8 +998,18 @@ export default function ConversationPage({
           {/* Top-level action #3 — Propose plan */}
           <PlanProposalButton onSubmit={handlePlanSubmit} />
 
-          {/* Top-level action #4 — Voice note */}
-          <VoiceRecordButton onRecordComplete={handleVoiceRecord} />
+          {/* Top-level action #4 — Voice note (real upload to Supabase) */}
+          <VoiceMessageRecorder
+            conversationId={conversationId}
+            userId={user?.id}
+            onSent={() => {
+              // The realtime subscription on `messages` will deliver the
+              // new row and re-render the timeline; this hook fires only
+              // for analytics / haptics / future "sent" toast.
+              haptics.success();
+              trackFirstTime("first_chat_message", { conversation_id: conversationId });
+            }}
+          />
 
           {/* Send button — scales + glows when input has text */}
           <m.button
@@ -1099,6 +1148,16 @@ export default function ConversationPage({
         isOpen={showWeMetFeedback}
         onClose={() => setShowWeMetFeedback(false)}
       />
+
+      {/* IRLConfirm — "Vu ce soir ?" prompt for planned dates whose
+          plan_time is in the past by ≥2h. Auto-mounts once peer profile
+          is resolved. Component self-gates on plan existence + window. */}
+      {peer?.name && (
+        <IRLConfirm
+          conversationId={conversationId}
+          peerName={peer.name}
+        />
+      )}
     </div>
   );
 }

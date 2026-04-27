@@ -1,12 +1,34 @@
 /**
  * Stripe plans & products catalog.
  *
- * Les price IDs sont des placeholders — il faut :
- *   1) Créer les produits dans Stripe Dashboard (Test mode)
- *   2) Remplacer les `priceId` ici par les vrais `price_xxx`
- *   3) Voir STRIPE_SETUP.md
+ * Single source of truth — never hardcode a price ID in a page.
  *
- * Single source of truth : on ne hardcode jamais un price ID dans une page.
+ * ─── Price ID source ──────────────────────────────────────────────────────
+ * `priceId` is resolved from env vars at module load time. The convention is:
+ *
+ *     STRIPE_PRICE_<UPPERCASE_INTERNAL_ID>
+ *
+ * e.g. internal id `premium_monthly` → env `STRIPE_PRICE_PREMIUM_MONTHLY`.
+ *
+ * Provision the products + prices in Stripe and obtain real `price_xxx`
+ * IDs by running:
+ *
+ *     STRIPE_SECRET_KEY=sk_test_xxx npx tsx scripts/setup-stripe-products.ts
+ *
+ * The script prints an env-var block ready to paste into Vercel. See
+ * `scripts/README.md` for the full walkthrough.
+ *
+ * ─── Why env-driven, not hardcoded? ───────────────────────────────────────
+ * Price IDs differ per Stripe environment (test vs live, dev vs prod), and
+ * regenerating products gives new ids. Reading from env avoids committing
+ * environment-specific values into source. Security against `price_<rogue>`
+ * is preserved by the whitelist functions (`getPlanByPriceId`,
+ * `getShopProductByPriceId`) — they only return a known plan/product if the
+ * resolved id matches one we know about.
+ *
+ * Missing/empty env vars resolve to `""`, which means the corresponding
+ * plan/product is effectively disabled (`getPlanByPriceId("")` → undefined,
+ * checkout returns 400).
  */
 
 export type PlanInterval = "month" | "year";
@@ -16,7 +38,7 @@ export interface SubscriptionPlan {
   id: string;
   /** Display name (FR) */
   name: string;
-  /** Stripe price ID (price_xxx) — replace when Stripe products are created */
+  /** Stripe price ID (price_xxx) — resolved from STRIPE_PRICE_<ID_UPPER> env */
   priceId: string;
   /** Price per billing cycle, in cents */
   amountCents: number;
@@ -36,6 +58,17 @@ export interface SubscriptionPlan {
   features: string[];
   /** True if this is the recommended plan */
   recommended?: boolean;
+}
+
+/**
+ * Resolve a Stripe price ID from the env using the convention
+ * `STRIPE_PRICE_<UPPERCASE_INTERNAL_ID>`. Returns "" if missing — the
+ * checkout whitelist will then refuse it with a 400 instead of forwarding
+ * a placeholder to Stripe.
+ */
+function resolvePriceId(internalId: string): string {
+  const key = `STRIPE_PRICE_${internalId.toUpperCase()}`;
+  return process.env[key] ?? "";
 }
 
 export const SUBSCRIPTION_PLANS: readonly SubscriptionPlan[] = [
@@ -59,7 +92,7 @@ export const SUBSCRIPTION_PLANS: readonly SubscriptionPlan[] = [
   {
     id: "premium_monthly",
     name: "Premium Mensuel",
-    priceId: "price_REPLACE_ME_monthly",
+    priceId: resolvePriceId("premium_monthly"),
     amountCents: 999,
     currency: "eur",
     interval: "month",
@@ -79,7 +112,7 @@ export const SUBSCRIPTION_PLANS: readonly SubscriptionPlan[] = [
   {
     id: "premium_annual",
     name: "Premium Annuel",
-    priceId: "price_REPLACE_ME_annual",
+    priceId: resolvePriceId("premium_annual"),
     amountCents: 5999,
     currency: "eur",
     interval: "year",
@@ -120,7 +153,7 @@ export const SHOP_PRODUCTS: readonly ShopProduct[] = [
   {
     id: "roses_5",
     name: "Bouquet",
-    priceId: "price_REPLACE_ME_roses_5",
+    priceId: resolvePriceId("roses_5"),
     amountCents: 299,
     currency: "eur",
     productType: "roses",
@@ -130,7 +163,7 @@ export const SHOP_PRODUCTS: readonly ShopProduct[] = [
   {
     id: "roses_15",
     name: "Jardin",
-    priceId: "price_REPLACE_ME_roses_15",
+    priceId: resolvePriceId("roses_15"),
     amountCents: 699,
     currency: "eur",
     productType: "roses",
@@ -141,7 +174,7 @@ export const SHOP_PRODUCTS: readonly ShopProduct[] = [
   {
     id: "roses_30",
     name: "Roseraie",
-    priceId: "price_REPLACE_ME_roses_30",
+    priceId: resolvePriceId("roses_30"),
     amountCents: 999,
     currency: "eur",
     productType: "roses",
@@ -153,7 +186,7 @@ export const SHOP_PRODUCTS: readonly ShopProduct[] = [
   {
     id: "boosts_3",
     name: "Pack Starter",
-    priceId: "price_REPLACE_ME_boosts_3",
+    priceId: resolvePriceId("boosts_3"),
     amountCents: 399,
     currency: "eur",
     productType: "boosts",
@@ -163,7 +196,7 @@ export const SHOP_PRODUCTS: readonly ShopProduct[] = [
   {
     id: "boosts_10",
     name: "Pack Pro",
-    priceId: "price_REPLACE_ME_boosts_10",
+    priceId: resolvePriceId("boosts_10"),
     amountCents: 999,
     currency: "eur",
     productType: "boosts",
@@ -182,8 +215,15 @@ export function getPlanById(id: string): SubscriptionPlan | undefined {
   return SUBSCRIPTION_PLANS.find((p) => p.id === id);
 }
 
-/** Return a plan from its Stripe price id. */
+/**
+ * Return a plan from its Stripe price id.
+ *
+ * Acts as a whitelist: an empty `priceId` (when env var is missing) won't
+ * accidentally match an empty input — we explicitly refuse the empty case
+ * so an unconfigured plan can never be checked-out.
+ */
 export function getPlanByPriceId(priceId: string): SubscriptionPlan | undefined {
+  if (!priceId) return undefined;
   return SUBSCRIPTION_PLANS.find((p) => p.priceId === priceId);
 }
 
@@ -192,8 +232,12 @@ export function getShopProductById(id: string): ShopProduct | undefined {
   return SHOP_PRODUCTS.find((p) => p.id === id);
 }
 
-/** Return a one-time product by Stripe price id. */
+/**
+ * Return a one-time product by Stripe price id. Empty input refused —
+ * see `getPlanByPriceId` for rationale.
+ */
 export function getShopProductByPriceId(priceId: string): ShopProduct | undefined {
+  if (!priceId) return undefined;
   return SHOP_PRODUCTS.find((p) => p.priceId === priceId);
 }
 

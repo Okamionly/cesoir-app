@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -14,7 +15,21 @@ import { RARITY_CONFIG } from "@/lib/badges";
 import { Magnetic } from "@/components/motion/Magnetic";
 import { springs, profileVariants } from "@/lib/motion-design";
 import PageHeader from "@/components/ui/PageHeader";
+import AvailabilityBroadcast from "@/components/profile/AvailabilityBroadcast";
 import { ChevronRight as LucideChevronRight, Settings as LucideSettings } from "@/components/ui/lucide";
+import { VoiceIntroPlayer } from "@/components/profile/VoiceIntroPlayer";
+
+// VoiceIntroRecorder — round-3 perf polish (audit P1). Pulls in MediaRecorder
+// glue + waveform + countdown ring. Defer until the user actually taps
+// "Ajouter une intro vocale" so the initial /profile bundle stays slim.
+// Hidden behind `showRecorder` state, so ssr:false is fine.
+const VoiceIntroRecorder = dynamic(
+  () =>
+    import("@/components/profile/VoiceIntroRecorder").then((mod) => ({
+      default: mod.VoiceIntroRecorder,
+    })),
+  { ssr: false },
+);
 
 const TONIGHT_CHIPS = ["Dîner", "Boire un verre", "Cinéma", "Balade", "Concert", "Sport"];
 
@@ -44,6 +59,9 @@ export default function ProfilePage() {
   const [age, setAge] = useState<number>(28);
   const [bio, setBio] = useState<string>("");
   const [activeMode, setActiveMode] = useState<string | null>(null);
+  // Voice intro — null = no intro recorded yet
+  const [voiceIntroUrl, setVoiceIntroUrl] = useState<string | null>(null);
+  const [showRecorder, setShowRecorder] = useState(false);
 
   // Server settings + optimistic local mirror for instant UI.
   const { settings, updateTonightChips } = useUserSettings();
@@ -81,14 +99,15 @@ export default function ProfilePage() {
     if (!user) return;
     supabase
       .from("profiles")
-      .select("avatar_url, name, age, bio")
+      .select("avatar_url, name, age, bio, voice_intro_url")
       .eq("id", user.id)
       .single()
-      .then(({ data }: { data: { avatar_url?: string; name?: string; age?: number; bio?: string } | null }) => {
+      .then(({ data }: { data: { avatar_url?: string; name?: string; age?: number; bio?: string; voice_intro_url?: string } | null }) => {
         if (data?.avatar_url) setAvatarUrl(data.avatar_url);
         if (data?.name) setProfileName(data.name);
         if (data?.age) setAge(data.age);
         if (data?.bio) setBio(data.bio);
+        if (data?.voice_intro_url) setVoiceIntroUrl(data.voice_intro_url);
       });
 
     // Fetch the user's most recent active mode (max 1 row — the current vibe).
@@ -278,6 +297,19 @@ export default function ProfilePage() {
           )}
         </m.div>
 
+        {/* "Je suis dispo ce soir" — one-tap availability broadcast (mig 030).
+            Sits right under the status cluster so the primary live action is
+            visible without scrolling. The component owns its own realtime
+            subscription + countdown, so we just mount it and forget. */}
+        <m.div
+          className="mt-5 w-full flex justify-center"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...springs.gentle, delay: 0.52 }}
+        >
+          <AvailabilityBroadcast defaultHours={3} />
+        </m.div>
+
         {/* Earned badges strip — top 4, legendary first (Founder ☾ when present) */}
         {badgeStrip.length > 0 && (
           <m.div
@@ -317,6 +349,87 @@ export default function ProfilePage() {
             )}
           </m.div>
         )}
+
+        {/* ── VOICE INTRO — slot 4 below badge strip ── */}
+        <m.div
+          className="mt-6 w-full px-0"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ ...springs.gentle, delay: 0.58 }}
+          aria-label="Intro vocale"
+        >
+          <p className="text-[11px] font-semibold text-text-muted uppercase tracking-[0.12em] mb-3 text-center">
+            Intro vocale
+          </p>
+
+          {voiceIntroUrl && !showRecorder ? (
+            <div className="flex flex-col items-center gap-3 w-full">
+              <VoiceIntroPlayer audioUrl={voiceIntroUrl} durationSeconds={10} />
+              <button
+                type="button"
+                onClick={() => setShowRecorder(true)}
+                className="text-[12px] text-text-muted hover:text-text transition-colors tap-target-expand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md"
+              >
+                Remplacer
+              </button>
+            </div>
+          ) : showRecorder ? (
+            <div className="w-full">
+              <VoiceIntroRecorder
+                onSave={(blob) => {
+                  // TODO: upload blob to Supabase Storage + set voice_intro_url
+                  // For now, create a local object URL so the player renders immediately
+                  const localUrl = URL.createObjectURL(blob);
+                  setVoiceIntroUrl(localUrl);
+                  setShowRecorder(false);
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowRecorder(false)}
+                className="mt-2 w-full text-center text-[12px] text-text-muted hover:text-text transition-colors tap-target-expand focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md"
+              >
+                Annuler
+              </button>
+            </div>
+          ) : (
+            /* Empty state — CTA to record */
+            <button
+              type="button"
+              onClick={() => setShowRecorder(true)}
+              className="w-full flex flex-col items-center gap-2 py-5 rounded-2xl border border-dashed border-border hover:border-accent/40 bg-bg-card hover:bg-accent/5 transition-all tap-target focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              aria-label="Ajouter une intro vocale"
+            >
+              <span
+                className="w-10 h-10 rounded-full flex items-center justify-center"
+                style={{ background: "var(--color-accent)15" }}
+                aria-hidden="true"
+              >
+                <svg
+                  width={20}
+                  height={20}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="var(--color-accent)"
+                  strokeWidth={1.6}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z" />
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                  <line x1="12" y1="19" x2="12" y2="22" />
+                </svg>
+              </span>
+              <span className="text-[13px] font-medium text-text">
+                Ajoute ta voix
+              </span>
+              <span className="text-[11px] text-text-muted">
+                10s · +41% de profils consultés
+              </span>
+            </button>
+          )}
+        </m.div>
 
         {/* Edit profile — magnetic primary action */}
         <m.div

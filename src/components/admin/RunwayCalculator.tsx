@@ -167,21 +167,25 @@ export default function RunwayCalculator() {
     setInputs(DEFAULTS);
   }
 
+  // 2026-04-27: dark-mode parity — replaced hardcoded text-[#111],
+  // text-neutral-*, bg-neutral-*, bg-white, border-neutral-* with design
+  // tokens (bg-bg, bg-bg-card, text-text, text-text-muted, border-border)
+  // so the admin runway calc respects /settings → Apparence dark theme.
   return (
-    <section className="mx-auto max-w-3xl space-y-6 p-6 text-[#111]">
+    <section className="mx-auto max-w-3xl space-y-6 p-6 text-text">
       <header className="space-y-1">
         <h1 className="font-display text-2xl font-bold">
           Runway calculator · CeSoir
         </h1>
-        <p className="text-sm text-neutral-600">
+        <p className="text-sm text-text-muted">
           Modèle scénario paramétrable. Sauvegarde locale automatique.
           Source de vérité côté docs :{" "}
-          <code className="rounded bg-neutral-100 px-1">docs/finance/COST_PROJECTION.md</code>.
+          <code className="rounded bg-bg-card px-1">docs/finance/COST_PROJECTION.md</code>.
         </p>
       </header>
 
       {/* Inputs */}
-      <div className="grid gap-4 rounded-lg border border-neutral-200 bg-white p-5 sm:grid-cols-2">
+      <div className="grid gap-4 rounded-lg border border-border bg-bg-card p-5 sm:grid-cols-2">
         <NumberInput
           label="Cash de départ (€)"
           value={inputs.startingCashEur}
@@ -253,9 +257,10 @@ export default function RunwayCalculator() {
       </div>
 
       {/* Monthly table */}
-      <div className="overflow-x-auto rounded-lg border border-neutral-200 bg-white">
+      {/* 2026-04-27: dark-mode parity — bg-white → bg-bg-card, neutrals → border. */}
+      <div className="overflow-x-auto rounded-lg border border-border bg-bg-card">
         <table className="w-full text-sm">
-          <thead className="bg-neutral-50 text-left">
+          <thead className="bg-bg/50 text-left">
             <tr>
               <th className="p-2 font-medium">Mois</th>
               <th className="p-2 font-medium">Revenus</th>
@@ -270,9 +275,9 @@ export default function RunwayCalculator() {
                 key={r.month}
                 className={
                   r.cumulativeCash <= 0
-                    ? "bg-red-50 text-red-900"
+                    ? "bg-danger/10 text-danger"
                     : r.net >= 0
-                      ? "bg-green-50/40"
+                      ? "bg-safe/10"
                       : ""
                 }
               >
@@ -293,14 +298,14 @@ export default function RunwayCalculator() {
         <button
           type="button"
           onClick={handleExport}
-          className="rounded-full bg-[#8B5CF6] px-4 py-2 text-sm font-semibold text-white hover:bg-[#7C3AED]"
+          className="rounded-full bg-accent px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
         >
           Exporter JSON
         </button>
         <button
           type="button"
           onClick={handleReset}
-          className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-50"
+          className="rounded-full border border-border px-4 py-2 text-sm font-medium text-text-muted hover:bg-bg-card"
         >
           Réinitialiser
         </button>
@@ -322,9 +327,10 @@ function NumberInput({
   value: number;
   onChange: (v: number) => void;
 }) {
+  // 2026-04-27: dark-mode parity — neutrals → tokens, focus uses --color-accent.
   return (
     <label className="flex flex-col gap-1 text-sm">
-      <span className="text-neutral-600">{label}</span>
+      <span className="text-text-muted">{label}</span>
       <input
         type="number"
         value={value}
@@ -332,7 +338,7 @@ function NumberInput({
           const n = Number(e.target.value);
           if (Number.isFinite(n)) onChange(n);
         }}
-        className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-base outline-none focus:border-[#8B5CF6] focus:ring-2 focus:ring-[#8B5CF6]/30"
+        className="rounded-md border border-border bg-bg px-3 py-2 text-base text-text outline-none focus:border-accent focus:ring-2 focus:ring-accent/30"
       />
     </label>
   );
@@ -347,12 +353,13 @@ function KpiCard({
   value: string;
   tone: "ok" | "warn" | "danger";
 }) {
+  // 2026-04-27: dark-mode parity — semantic tone colors via --color-danger/warn/safe + alpha tints.
   const toneClass =
     tone === "danger"
-      ? "border-red-200 bg-red-50 text-red-900"
+      ? "border-danger/30 bg-danger/10 text-danger"
       : tone === "warn"
-        ? "border-amber-200 bg-amber-50 text-amber-900"
-        : "border-emerald-200 bg-emerald-50 text-emerald-900";
+        ? "border-warn/30 bg-warn/10 text-warn"
+        : "border-safe/30 bg-safe/10 text-safe";
   return (
     <div
       className={`rounded-lg border p-4 ${toneClass}`}

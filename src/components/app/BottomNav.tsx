@@ -91,18 +91,24 @@ type TabKey = "feed" | "map" | "events" | "chat" | "modes" | "profile";
 // 2026-04-23 Wave14 — "events" slot injected between map & chat.
 // 6 tabs still fit in the 440px phone-frame; the BottomNav already uses
 // `justify-around` + `tap-target` utilities so each tab keeps >=44px touch.
+//
+// `dataTour` opts the tab into the first-time onboarding spotlight tour
+// (see `src/components/onboarding/Tour.tsx`). Only the tabs that the
+// tour actually highlights need this — the selectors are stable strings
+// so the tour file owns the source of truth.
 const tabs: {
   href: `/${TabKey}`;
   key: TabKey;
   Icon: typeof IconSearch;
   label: string;
+  dataTour?: string;
 }[] = [
   { href: "/feed", key: "feed", Icon: IconSearch, label: "Explorer" },
   { href: "/map", key: "map", Icon: IconMap, label: "Carte" },
   { href: "/events", key: "events", Icon: IconSoirees, label: "Soirées" },
   { href: "/chat", key: "chat", Icon: IconChat, label: "Chat" },
-  { href: "/modes", key: "modes", Icon: IconMoon, label: "Modes" },
-  { href: "/profile", key: "profile", Icon: IconUser, label: "Profil" },
+  { href: "/modes", key: "modes", Icon: IconMoon, label: "Modes", dataTour: "modes-tab" },
+  { href: "/profile", key: "profile", Icon: IconUser, label: "Profil", dataTour: "profile-tab" },
 ];
 
 // ---------- Badge sub-component ----------
@@ -206,6 +212,7 @@ export default function BottomNav({
                 key={tab.href}
                 href={tab.href}
                 onClick={handleTap}
+                data-tour={tab.dataTour}
                 aria-current={active ? "page" : undefined}
                 className={`relative flex flex-col items-center gap-[2px] tap-target justify-center transition-colors ${
                   active ? "text-accent" : "text-text-muted hover:text-text-soft"

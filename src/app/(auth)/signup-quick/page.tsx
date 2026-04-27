@@ -154,7 +154,7 @@ function SignupQuickInner() {
     });
 
     if (!user) {
-      setError("Inscription refusée. Si l'email existe déjà, va sur /login.");
+      setError("Ce compte existe déjà · Connecte-toi sur /login.");
       setLoading(false);
       return;
     }

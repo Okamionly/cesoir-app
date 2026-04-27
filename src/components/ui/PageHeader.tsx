@@ -7,6 +7,8 @@ import { springs, easings } from "@/lib/motion-design";
 import { RackFocus } from "@/components/motion/RackFocus";
 import { Magnetic } from "@/components/motion/Magnetic";
 import { ChevronLeft, X } from "@/components/ui/lucide";
+import { XPBar } from "@/components/ui/XPBar";
+import { useAuth } from "@/context/AuthContext";
 
 // ─────────────────────────────────────────
 // Types
@@ -92,6 +94,12 @@ export interface PageHeaderProps {
    * Distinct from `slotBelowTitle` which renders ABOVE the hairline.
    */
   bottomSlot?: React.ReactNode;
+  /**
+   * Show XP progress bar below header chrome.
+   * Default: true. Set to false on settings, profile, and other back-nav pages.
+   * Not rendered when user is not logged in (guarded inside XPBar).
+   */
+  showXP?: boolean;
   /**
    * Replace the ENTIRE title area content (keeps icon + back visible).
    * Use when the title region needs multi-line custom layout (badge row,
@@ -312,8 +320,10 @@ function PageHeader({
   bottomSlot,
   titleSlot,
   onHeader,
+  showXP = true,
 }: PageHeaderProps) {
   const reducedMotion = useReducedMotion();
+  const { user } = useAuth();
 
   const stickyClass = sticky ? "sticky top-0 z-30" : "relative";
   const hairline = getHairlineGradient(hairlineVariant);
@@ -482,6 +492,13 @@ function PageHeader({
 
       {/* Secondary row below the hairline (still inside sticky area). */}
       {bottomSlot && <div className="px-4 pb-2">{bottomSlot}</div>}
+
+      {/* XP bar strip — rendered only when showXP + logged in */}
+      {showXP && user && (
+        <div className="px-4 pb-1">
+          <XPBar />
+        </div>
+      )}
     </header>
   );
 }

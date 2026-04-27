@@ -233,9 +233,13 @@ export function FABMenu() {
             className="tap-target relative z-[46] flex h-11 w-11 items-center justify-center rounded-full bg-accent shadow-md min-[400px]:h-12 min-[400px]:w-12"
             aria-label={isOpen ? "Fermer le menu" : "Ouvrir le menu"}
             aria-expanded={isOpen}
-            aria-haspopup="true"
+            // a11y round 2 (2026-04-27): "menu" preferred over "true" per
+            // ARIA spec — explicit popup type for SR users.
+            aria-haspopup="menu"
           >
-            <span className="text-lg font-bold text-white select-none">
+            {/* a11y round 2: hide moon glyph from SR — NVDA/VoiceOver
+                otherwise double-announce "croissant de lune" + aria-label. */}
+            <span className="text-lg font-bold text-white select-none" aria-hidden="true">
               {isOpen ? "+" : "\u263E"}
             </span>
           </m.button>

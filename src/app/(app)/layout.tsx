@@ -2,13 +2,16 @@ import { Suspense } from "react";
 import { MotionConfig } from "motion/react";
 import AppChrome from "@/components/app/AppChrome";
 import AppShell from "@/components/app/AppShell";
+import GamificationToasts from "@/components/app/GamificationToasts";
 import KeyboardShortcuts from "@/components/app/KeyboardShortcuts";
 import OfflineBanner from "@/components/app/OfflineBanner";
 import PageLoader from "@/components/app/PageLoader";
+import InstallPromptBanner from "@/components/pwa/InstallPromptBanner";
 import { DarkModeProvider } from "@/components/ui/DarkModeProvider";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import { LazyMotionMaxProvider } from "@/components/ui/LazyMotionProvider";
 import { ToastProvider } from "@/components/ui/Toast";
+import LiveRegion from "@/components/ui/LiveRegion";
 import { AccessibilityProvider } from "@/components/ui/ReducedMotion";
 import { AuthProvider } from "@/context/AuthContext";
 import PageTransition from "@/components/ui/PageTransition";
@@ -57,6 +60,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 */}
                 <AppShell>
                   <OfflineBanner />
+                  {/*
+                    InstallPromptBanner self-gates on pathname === "/browse"
+                    and engagement signals (>= 2 min + >= 3 swipes), so
+                    mounting it here is safe — it renders nothing on every
+                    other route. Sits above the OfflineBanner z-index when
+                    both happen to be visible (rare).
+                  */}
+                  <InstallPromptBanner />
                   <main id="main-content" className="pb-safe">
                     <ErrorBoundary>
                       <PageTransition>
@@ -74,6 +85,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                   and renders nothing otherwise.
                 */}
                 <KeyboardShortcuts />
+                {/*
+                  GamificationToasts is mounted ONCE here so level-up + badge
+                  unlock notifications surface globally regardless of which
+                  page the user is on. It owns its own FIFO queue and renders
+                  at z = toast + 1 so it sits above the standard ToastProvider
+                  but below cinematic-tier overlays (MatchCinematic = debug).
+                */}
+                <GamificationToasts />
+                {/*
+                  LiveRegion — global SR announcement singleton (a11y round 2,
+                  2026-04-27). Two visually-hidden aria-live regions (polite +
+                  assertive) that any component can target via
+                  `announceToSR("...")`. Replaces ad-hoc aria-live attributes
+                  scattered across the app.
+                */}
+                <LiveRegion />
               </ToastProvider>
             </LazyMotionMaxProvider>
           </MotionConfig>

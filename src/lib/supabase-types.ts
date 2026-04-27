@@ -122,6 +122,10 @@ export interface DbMessage {
   content: string;
   read_at: string | null;
   created_at: string;
+  /** Voice clip storage path (migration 031). Null for text-only messages. */
+  voice_url?: string | null;
+  /** Voice clip duration in milliseconds (migration 031). Null for text-only. */
+  voice_duration_ms?: number | null;
 }
 
 export interface DbReview {

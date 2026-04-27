@@ -32,6 +32,8 @@ import { logger } from "@/lib/logger";
 //   5. first_chat_message      — 1er message envoyé dans un chat
 //   6. first_plan_created      — 1er plan via "Proposer un plan"
 //   7. first_irl_confirmed     — "We met" feedback positif après IRL
+//   8. first_match_share       — 1er partage privacy-safe d'un match
+//                                (texte + URL générique, JAMAIS d'identité peer)
 // ---------------------------------------------------------------------------
 
 export type CoreEvent =
@@ -41,7 +43,8 @@ export type CoreEvent =
   | "first_match"
   | "first_chat_message"
   | "first_plan_created"
-  | "first_irl_confirmed";
+  | "first_irl_confirmed"
+  | "first_match_share";
 
 // ---------------------------------------------------------------------------
 // PostHog initialization — idempotent, no-op without env key.

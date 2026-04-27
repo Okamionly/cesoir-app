@@ -28,6 +28,12 @@ export interface ProfilePinOptions {
   photo?: string;
   color: string; // mode-specific hex or CSS var
   online?: boolean;
+  /**
+   * 2026-04-27 (mig 030): the user has tapped "Je suis dispo ce soir"
+   * and the broadcast is still live. Adds a thick green pulse ring on
+   * top of the regular online ring so they pop out on the map.
+   */
+  broadcastActive?: boolean;
   reduced: boolean;
   pointerFine: boolean;
   variant?: ProfilePinVariant;
@@ -36,6 +42,12 @@ export interface ProfilePinOptions {
   onEnter?: () => void;
   onLeave?: () => void;
   animationDelay?: number; // seconds, for radial-burst cascade
+  /**
+   * a11y round 2 (2026-04-27): used as the pin's `aria-label`. Keyboard
+   * users tab through pins, hear this label, and activate via Enter / Space.
+   * If omitted, falls back to "Profil sur la carte".
+   */
+  ariaLabel?: string;
 }
 
 export interface ProfilePinState {
@@ -132,6 +144,26 @@ export function ensurePinStyles(): void {
     }
     .cesoir-pin-ring.online { animation: cesoir-pin-online 2s ease-out infinite; }
     .cesoir-pin-ring.event  { animation: cesoir-pin-event 3s ease-out infinite; }
+    /* "Je suis dispo ce soir" — thicker green ring, faster pulse so it
+       reads as a stronger live signal than the regular online ring. */
+    .cesoir-pin-ring.broadcast {
+      inset: -8px;
+      border-width: 3px;
+      border-color: var(--color-accent-2, #00FF88);
+      animation: cesoir-pin-online 1.5s ease-out infinite;
+    }
+    /* Broadcast badge pip (small green dot anchored bottom-right) — works
+       even when the pulse ring is suppressed by reduced motion. */
+    .cesoir-pin-broadcast-pip {
+      position: absolute;
+      right: -2px; bottom: -2px;
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      background: var(--color-accent-2, #00FF88);
+      border: 2px solid white;
+      box-shadow: 0 0 8px rgba(0,255,136,0.6);
+      pointer-events: none;
+    }
     .cesoir-pin-root.focused {
       transform: scale(1.18);
       z-index: 10;
@@ -142,6 +174,15 @@ export function ensurePinStyles(): void {
       filter: drop-shadow(0 6px 18px rgba(139,92,246,0.4));
     }
     .cesoir-pin-root.dimmed { opacity: 0.3; filter: grayscale(0.2); }
+    /* a11y round 2 (2026-04-27): visible focus ring for keyboard pin nav.
+       Uses :focus-visible so mouse clicks don't show the ring. */
+    .cesoir-pin-root:focus { outline: none; }
+    .cesoir-pin-root:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 70%, transparent);
+      border-radius: 50%;
+      z-index: 11;
+    }
     @media (prefers-reduced-motion: reduce) {
       .cesoir-pin-root,
       .cesoir-pin-gradient,
@@ -167,6 +208,16 @@ export function createProfilePin(opts: ProfilePinOptions): ProfilePinHandle {
   const root = document.createElement("div");
   root.className = "cesoir-pin-root";
   root.style.setProperty("--pin-color", opts.color);
+
+  // a11y round 2 (2026-04-27): make pin focusable + reachable via Tab and
+  // activatable via Enter / Space. Without this, MapLibre markers were
+  // mouse-only and keyboard / SR users couldn't interact with the map.
+  root.setAttribute("role", "button");
+  root.setAttribute("tabindex", "0");
+  root.setAttribute(
+    "aria-label",
+    opts.ariaLabel ?? (opts.variant === "event" ? "Soirée sur la carte" : "Profil sur la carte"),
+  );
 
   if (!opts.reduced) {
     const delay = opts.animationDelay ?? 0;
@@ -204,11 +255,33 @@ export function createProfilePin(opts: ProfilePinOptions): ProfilePinHandle {
     root.appendChild(ring);
   }
 
+  // 2026-04-27 (mig 030): when the user is broadcasting "dispo ce soir",
+  // overlay an extra green ring + a small pip. The pip is always rendered
+  // (even with reduced motion) so the signal is never lost.
+  if (opts.variant === "profile" && opts.broadcastActive) {
+    const broadcastRing = document.createElement("div");
+    broadcastRing.className = "cesoir-pin-ring broadcast";
+    root.appendChild(broadcastRing);
+
+    const pip = document.createElement("div");
+    pip.className = "cesoir-pin-broadcast-pip";
+    pip.setAttribute("aria-hidden", "true");
+    root.appendChild(pip);
+  }
+
   // Event wiring — only bind hover on pointer-fine devices.
   if (opts.onClick) {
     root.addEventListener("click", (e) => {
       e.stopPropagation();
       opts.onClick!();
+    });
+    // a11y round 2: keyboard activation. Enter/Space match button semantics.
+    root.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        e.stopPropagation();
+        opts.onClick!();
+      }
     });
   }
   if (opts.pointerFine) {

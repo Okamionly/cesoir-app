@@ -23,6 +23,10 @@ export interface Profile {
   /** Hybrid invite reward badge — set on the SwipeCard if the user signed
    *  up via an invitation code (mig 025 / achievement_key='founder'). */
   is_founder?: boolean;
+  /** True while this profile has tapped "Je suis dispo ce soir" and the
+   *  broadcast is still live (mig 030). Drives the green pulse ring and
+   *  the "Dispo maintenant" pill on the swipe deck + map pins. */
+  broadcast_active?: boolean;
   // Mode-specific
   cuisine?: string;
   event?: string;

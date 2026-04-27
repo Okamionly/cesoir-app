@@ -129,6 +129,11 @@ export function LiveTicker({ onRefresh, refreshing = false }: LiveTickerProps) {
     <div
       className="flex items-center justify-between gap-3 px-4 py-2.5 text-[12px]"
       aria-label="Activité en direct — statistiques"
+      // a11y round 2 (2026-04-27): polite live region so SR users hear the
+      // count change without interrupting their current narration. The
+      // numbers flip silently for keyboard users otherwise.
+      aria-live="polite"
+      aria-atomic="false"
     >
       <div className="flex items-center gap-2 flex-wrap text-text-muted">
         {/* Pulse dot */}
