@@ -31,14 +31,14 @@ const TOGGLE_SETTINGS: ToggleSetting[] = [
   },
   {
     key: "profile_visible",
-    label: "Apparaitre dans les suggestions",
-    description: "Les autres utilisateurs peuvent te decouvrir via le feed et les recommandations.",
+    label: "Apparaître dans les suggestions",
+    description: "Les autres utilisateurs peuvent te découvrir via le feed et les recommandations.",
     icon: "✨",
     positive: true,
   },
   {
     key: "women_first",
-    label: "Les femmes ecrivent d'abord",
+    label: "Les femmes écrivent d'abord",
     description: "Comme Bumble — seules les femmes peuvent initier la conversation.",
     icon: "💬",
     positive: true,
@@ -46,9 +46,9 @@ const TOGGLE_SETTINGS: ToggleSetting[] = [
 ];
 
 const LOCATION_OPTIONS: { value: LocationBlur; label: string; description: string }[] = [
-  { value: "exact", label: "Exacte", description: "Distance au metre pres" },
-  { value: "km", label: "Arrondi", description: "Au kilometre pres" },
-  { value: "block", label: "Quartier", description: "Masque la distance precise" },
+  { value: "exact", label: "Exacte", description: "Distance au mètre près" },
+  { value: "km", label: "Arrondi", description: "Au kilomètre près" },
+  { value: "block", label: "Quartier", description: "Masque la distance précise" },
 ];
 
 // ── localStorage fallback (offline/first-paint) ──────────────────────────────
@@ -133,7 +133,7 @@ export default function PrivacySettingsPage() {
 
   return (
     <div className="min-h-screen bg-bg">
-      <PageHeader title="Confidentialite" backHref="/profile" />
+      <PageHeader title="Confidentialité" backHref="/profile" />
 
       {/* Toggles */}
       <div className="px-5 py-6 space-y-3">
@@ -187,13 +187,13 @@ export default function PrivacySettingsPage() {
               <span className="text-[18px]" aria-hidden="true">📍</span>
             </div>
             <div>
-              <p className="text-[14px] font-bold text-text">Precision de localisation</p>
+              <p className="text-[14px] font-bold text-text">Précision de localisation</p>
               <p className="text-[12px] text-text-muted mt-1 leading-relaxed">
-                Controle la precision avec laquelle les autres voient ta distance.
+                Contrôle la précision avec laquelle les autres voient ta distance.
               </p>
             </div>
           </div>
-          <div className="flex gap-2" role="radiogroup" aria-label="Precision de localisation">
+          <div className="flex gap-2" role="radiogroup" aria-label="Précision de localisation">
             {LOCATION_OPTIONS.map((opt) => {
               const active = state.location_blur === opt.value;
               return (
@@ -226,15 +226,15 @@ export default function PrivacySettingsPage() {
             </div>
             <div className="flex-1">
               <p className="text-[14px] font-bold text-text">
-                Utilisateurs bloques
+                Utilisateurs bloqués
               </p>
               {blockedUsers.length === 0 ? (
                 <p className="text-[12px] text-text-muted mt-1 leading-relaxed">
-                  Aucun utilisateur bloque. Utilise le menu depuis un profil pour bloquer quelqu&apos;un.
+                  Aucun utilisateur bloqué. Utilise le menu depuis un profil pour bloquer quelqu&apos;un.
                 </p>
               ) : (
                 <p className="text-[12px] text-text-muted mt-1 leading-relaxed">
-                  {blockedUsers.length} utilisateur{blockedUsers.length > 1 ? "s" : ""} bloque{blockedUsers.length > 1 ? "s" : ""}. Le deblocage sera bientot disponible.
+                  {blockedUsers.length} utilisateur{blockedUsers.length > 1 ? "s" : ""} bloqué{blockedUsers.length > 1 ? "s" : ""}. Le déblocage sera bientôt disponible.
                 </p>
               )}
             </div>
@@ -248,7 +248,7 @@ export default function PrivacySettingsPage() {
           <div className="flex items-start gap-3">
             <Info size={16} strokeWidth={2} className="text-accent shrink-0 mt-0.5" aria-hidden="true" />
             <p className="text-[12px] text-text-muted leading-relaxed">
-              Ces parametres sont appliques immediatement et synchronises entre tes appareils. En mode invisible, tu peux toujours parcourir les profils mais personne ne te verra. Tes conversations existantes restent accessibles.
+              Ces paramètres sont appliqués immédiatement et synchronisés entre tes appareils. En mode invisible, tu peux toujours parcourir les profils mais personne ne te verra. Tes conversations existantes restent accessibles.
             </p>
           </div>
         </div>

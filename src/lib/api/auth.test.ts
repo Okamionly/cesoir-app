@@ -160,3 +160,93 @@ describe("requireUser (default resolver)", () => {
     expect(supabaseJsCreateClient).not.toHaveBeenCalled();
   });
 });
+
+describe("requireUser (CSRF protection)", () => {
+  it("rejects cookie-authed POST without Origin/Referer (CSRF)", async () => {
+    const req = new Request("https://cesoir-app.vercel.app/api/swipe", {
+      method: "POST",
+      headers: { cookie: "sb-myproj-auth-token=eyJ.foo.bar" },
+    });
+    await expect(requireUser(req)).rejects.toMatchObject({
+      code: "csrf-rejected",
+      status: 403,
+    });
+    // Must short-circuit before touching Supabase.
+    expect(ssrCreateClient).not.toHaveBeenCalled();
+  });
+
+  it("rejects cookie-authed POST with foreign Origin (CSRF)", async () => {
+    const req = new Request("https://cesoir-app.vercel.app/api/account/delete", {
+      method: "POST",
+      headers: {
+        cookie: "sb-myproj-auth-token=eyJ.foo.bar",
+        origin: "https://evil.example.com",
+      },
+    });
+    await expect(requireUser(req)).rejects.toMatchObject({
+      code: "csrf-rejected",
+      status: 403,
+    });
+  });
+
+  it("accepts cookie-authed POST with allowed Origin", async () => {
+    ssrGetUser.mockResolvedValue({
+      data: { user: { id: "u-cookie" } },
+      error: null,
+    });
+    const req = new Request("https://cesoir-app.vercel.app/api/swipe", {
+      method: "POST",
+      headers: {
+        cookie: "sb-myproj-auth-token=eyJ.foo.bar",
+        origin: "https://cesoir-app.vercel.app",
+      },
+    });
+    const ctx = await requireUser(req);
+    expect(ctx.user.id).toBe("u-cookie");
+  });
+
+  it("accepts cookie-authed POST with allowed Referer (no Origin)", async () => {
+    ssrGetUser.mockResolvedValue({
+      data: { user: { id: "u-cookie" } },
+      error: null,
+    });
+    const req = new Request("https://cesoir-app.vercel.app/api/swipe", {
+      method: "POST",
+      headers: {
+        cookie: "sb-myproj-auth-token=eyJ.foo.bar",
+        referer: "https://cesoir-app.vercel.app/discover",
+      },
+    });
+    const ctx = await requireUser(req);
+    expect(ctx.user.id).toBe("u-cookie");
+  });
+
+  it("skips CSRF check for Bearer-authed POST (mobile/SDK clients)", async () => {
+    bearerGetUser.mockResolvedValue({
+      data: { user: { id: "u-mobile" } },
+      error: null,
+    });
+    const req = new Request("https://cesoir-app.vercel.app/api/swipe", {
+      method: "POST",
+      headers: { authorization: "Bearer mobile-token" },
+    });
+    const ctx = await requireUser(req);
+    expect(ctx.user.id).toBe("u-mobile");
+  });
+
+  it("skips CSRF check for safe methods (GET) even from foreign origin", async () => {
+    ssrGetUser.mockResolvedValue({
+      data: { user: { id: "u-cookie" } },
+      error: null,
+    });
+    const req = new Request("https://cesoir-app.vercel.app/api/me", {
+      method: "GET",
+      headers: {
+        cookie: "sb-myproj-auth-token=eyJ.foo.bar",
+        origin: "https://evil.example.com",
+      },
+    });
+    const ctx = await requireUser(req);
+    expect(ctx.user.id).toBe("u-cookie");
+  });
+});

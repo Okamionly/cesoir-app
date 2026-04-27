@@ -1,0 +1,612 @@
+[
+  {
+    "path": "/profile",
+    "depth": 0,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fprofile",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/browse",
+    "depth": 1,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fbrowse",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/chat",
+    "depth": 1,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fchat",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/discover",
+    "depth": 1,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fdiscover",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/feed",
+    "depth": 1,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Ffeed",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/matches",
+    "depth": 1,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fmatches",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/modes",
+    "depth": 1,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fmodes",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/notifications",
+    "depth": 1,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fnotifications",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/settings",
+    "depth": 1,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fsettings",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": null,
+    "isProtected": false,
+    "links": [
+      "/",
+      "/login",
+      "/signup-quick",
+      "/why-free",
+      "/about",
+      "/safety",
+      "/cgu",
+      "/privacy"
+    ]
+  },
+  {
+    "path": "/about",
+    "depth": 2,
+    "status": 200,
+    "title": "A propos de CeSoir | CeSoir",
+    "redirectedTo": null,
+    "isProtected": false,
+    "links": [
+      "/about",
+      "/profile",
+      "/manifesto"
+    ]
+  },
+  {
+    "path": "/admin/finance",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fadmin%2Ffinance",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/cgu",
+    "depth": 2,
+    "status": 200,
+    "title": "Conditions Generales d'Utilisation | CeSoir",
+    "redirectedTo": null,
+    "isProtected": false,
+    "links": [
+      "/cgu",
+      "/"
+    ]
+  },
+  {
+    "path": "/events",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fevents",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/forgot-password",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": null,
+    "isProtected": false,
+    "links": [
+      "/forgot-password",
+      "/login"
+    ]
+  },
+  {
+    "path": "/help",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fhelp",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/invites/mine",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Finvites%2Fmine",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/legal/dpia",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Flegal%2Fdpia",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/login",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": null,
+    "isProtected": false,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/manifesto",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fmanifesto",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/map",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fmap",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/offline",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Foffline",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/onboarding",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fonboarding",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/plans",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fplans",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/plans/create",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fplans%2Fcreate",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/premium",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fpremium",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/privacy",
+    "depth": 2,
+    "status": 200,
+    "title": "Politique de Confidentialite | CeSoir",
+    "redirectedTo": null,
+    "isProtected": false,
+    "links": [
+      "/privacy",
+      "/"
+    ]
+  },
+  {
+    "path": "/profile/delete",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fprofile%2Fdelete",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/profile/edit",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fprofile%2Fedit",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/profile/invites",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fprofile%2Finvites",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/profile/notifications",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fprofile%2Fnotifications",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/profile/privacy",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fprofile%2Fprivacy",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/profile/share",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fprofile%2Fshare",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/profile/verify",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fprofile%2Fverify",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/progress",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fprogress",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/register",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": null,
+    "isProtected": false,
+    "links": [
+      "/register",
+      "/",
+      "/login"
+    ]
+  },
+  {
+    "path": "/reset-password",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": null,
+    "isProtected": false,
+    "links": [
+      "/reset-password",
+      "/forgot-password"
+    ]
+  },
+  {
+    "path": "/rooms",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Frooms",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/safety",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fsafety",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/shop",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fshop",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/signup-quick",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": null,
+    "isProtected": false,
+    "links": [
+      "/signup-quick",
+      "/login"
+    ]
+  },
+  {
+    "path": "/speed-dating",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fspeed-dating",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/squad",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fsquad",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/trending",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Ftrending",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/venues/dashboard",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fvenues%2Fdashboard",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/welcome",
+    "depth": 2,
+    "status": 200,
+    "title": "CeSoir — Trouve quelqu'un pour ce soir",
+    "redirectedTo": "/login?redirectTo=%2Fwelcome",
+    "isProtected": true,
+    "links": [
+      "/login",
+      "/forgot-password",
+      "/signup-quick"
+    ]
+  },
+  {
+    "path": "/why-free",
+    "depth": 2,
+    "status": 200,
+    "title": "Pourquoi CeSoir est gratuit | CeSoir",
+    "redirectedTo": null,
+    "isProtected": false,
+    "links": [
+      "/why-free",
+      "/profile"
+    ]
+  }
+]

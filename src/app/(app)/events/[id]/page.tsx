@@ -81,7 +81,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
   if (loading && !event) {
     return (
       <div className="min-h-screen bg-bg">
-        <PageHeader backHref="/events" title="Soiree" />
+        <PageHeader backHref="/events" title="Soirée" />
         <div className="flex items-center justify-center py-24 text-text-muted">
           <Loader2 size={22} className="animate-spin" aria-label="Chargement" />
         </div>
@@ -92,12 +92,12 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
   if (error && !event) {
     return (
       <div className="min-h-screen bg-bg">
-        <PageHeader backHref="/events" title="Soiree" />
+        <PageHeader backHref="/events" title="Soirée" />
         <EmptyState
           emoji="⚠️"
           title="Event introuvable"
-          subtitle="Cet event a peut-etre ete annule ou supprime."
-          actionLabel="Retour aux soirees"
+          subtitle="Cet event a peut-être été annulé ou supprimé."
+          actionLabel="Retour aux soirées"
           actionHref="/events"
         />
       </div>
@@ -107,7 +107,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
   if (!event) {
     return (
       <div className="min-h-screen bg-bg">
-        <PageHeader backHref="/events" title="Soiree" />
+        <PageHeader backHref="/events" title="Soirée" />
         <EmptyState
           emoji="🌙"
           title="Event introuvable"
@@ -202,7 +202,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
         </div>
       </section>
 
-      <main className="px-4 py-5 space-y-6 pb-[160px]" aria-label="Details de l'event">
+      <main className="px-4 py-5 space-y-6 pb-[160px]" aria-label="Détails de l'event">
         {/* ─── About ──────────────────────────────── */}
         {event.description && (
           <section aria-labelledby="about-heading">

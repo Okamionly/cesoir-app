@@ -95,6 +95,38 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 400 });
   }
 
+  // SECURITY (P0 fix 2026-04-26): account-takeover via unverified signup.
+  // Supabase will hand back a live session even when the email is unconfirmed
+  // if the project setting "Confirm email" is on but "Allow unverified login"
+  // is also on (or for projects with confirmation disabled the field is set
+  // immediately, so the gate becomes a no-op — that's fine). Without this
+  // gate, an attacker who signs up with a typo of someone else's address
+  // (e.g. `victim@gmial.com`) is auto-authenticated and can claim invite
+  // codes / roses / Founder badge before the real owner ever notices.
+  //
+  // We strip the session whenever `email_confirmed_at` is null and force the
+  // user through the email confirmation flow.
+  //
+  // TODO(client UX): src/app/signup-quick/page.tsx still proceeds to step 2
+  // after signup. When the response now contains `requiresEmailConfirmation:
+  // true` and `session: null`, the page should render a "Vérifie ton email"
+  // banner with a resend button instead of trying to auto-log in. Backend
+  // hardening landed first; client follow-up tracked separately.
+  const emailConfirmed = data?.user?.email_confirmed_at;
+  if (data.session && !emailConfirmed) {
+    logger.warn("api_signup_session_stripped_unverified", {
+      userId: data.user?.id,
+    });
+    return NextResponse.json({
+      user: data.user
+        ? { id: data.user.id, email: data.user.email }
+        : null,
+      session: null,
+      requiresEmailConfirmation: true,
+      message: "Vérifie ton email pour activer ton compte.",
+    });
+  }
+
   // Return what the client needs to set its own session. If Supabase is
   // configured to require email confirmation, `session` will be null and the
   // client will show the confirmation-sent state.

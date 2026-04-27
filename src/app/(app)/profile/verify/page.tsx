@@ -15,19 +15,19 @@ type VideoStep = "instructions" | "smile" | "turn" | "verifying" | "success";
 // ─── Constants ───────────────────────────────────────
 const POSES = [
   { label: "Peace sign", emoji: "✌️", instruction: "Fais le signe de paix avec ta main" },
-  { label: "Pouce en l'air", emoji: "👍", instruction: "Leve ton pouce devant la camera" },
+  { label: "Pouce en l'air", emoji: "👍", instruction: "Lève ton pouce devant la caméra" },
 ];
 
 const METHODS: { key: VerifyMethod; icon: string; title: string; subtitle: string }[] = [
-  { key: "selfie", icon: "📸", title: "Selfie verification", subtitle: "Photo avec une pose specifique" },
-  { key: "phone", icon: "📱", title: "Verification telephone", subtitle: "Code SMS a 6 chiffres" },
-  { key: "video", icon: "🎥", title: "Video verification", subtitle: "Liveness check en video" },
-  { key: "social", icon: "🔗", title: "Reseaux sociaux", subtitle: "Connecte Instagram ou LinkedIn" },
+  { key: "selfie", icon: "📸", title: "Selfie verification", subtitle: "Photo avec une pose spécifique" },
+  { key: "phone", icon: "📱", title: "Vérification téléphone", subtitle: "Code SMS à 6 chiffres" },
+  { key: "video", icon: "🎥", title: "Vidéo verification", subtitle: "Liveness check en vidéo" },
+  { key: "social", icon: "🔗", title: "Réseaux sociaux", subtitle: "Connecte Instagram ou LinkedIn" },
 ];
 
 const VIDEO_PROMPTS = [
-  { step: "smile" as const, emoji: "😊", instruction: "Souris a la camera", duration: 2500 },
-  { step: "turn" as const, emoji: "👈", instruction: "Tourne la tete a gauche", duration: 2500 },
+  { step: "smile" as const, emoji: "😊", instruction: "Souris à la caméra", duration: 2500 },
+  { step: "turn" as const, emoji: "👈", instruction: "Tourne la tête à gauche", duration: 2500 },
 ];
 
 // ─── Variants ────────────────────────────────────────
@@ -283,7 +283,7 @@ function SelfieVerification({ onComplete }: { onComplete: () => void }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
-            Selfie verifie !
+            Selfie vérifié !
           </m.p>
           <m.p
             className="text-[13px] text-text-muted mb-6"
@@ -291,7 +291,7 @@ function SelfieVerification({ onComplete }: { onComplete: () => void }) {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
           >
-            Ta photo a ete validee avec succes
+            Ta photo a été validée avec succès
           </m.p>
           <m.button
             onClick={onComplete}
@@ -378,11 +378,11 @@ function PhoneVerification({ onComplete }: { onComplete: () => void }) {
           exit="exit"
         >
           <p className="text-[13px] text-text-muted leading-relaxed mb-5">
-            Un code SMS sera envoye a ton numero pour confirmer ton identite.
+            Un code SMS sera envoyé à ton numéro pour confirmer ton identité.
           </p>
 
           <label className="text-[10px] text-text-muted uppercase tracking-[0.2em] font-bold mb-2 block">
-            Numero de telephone
+            Numéro de téléphone
           </label>
           <div className="flex gap-2 mb-6">
             <div className="flex items-center gap-1.5 bg-bg-card border border-border rounded-xl px-3 py-3 shrink-0">
@@ -395,7 +395,7 @@ function PhoneVerification({ onComplete }: { onComplete: () => void }) {
               onChange={e => setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))}
               placeholder="6 12 34 56 78"
               className="flex-1 px-4 py-3 bg-bg-card border border-border rounded-xl text-[14px] text-text placeholder:text-text-muted outline-none focus:border-accent/50 transition-colors"
-              aria-label="Numero de telephone"
+              aria-label="Numéro de téléphone"
               inputMode="tel"
             />
           </div>
@@ -428,13 +428,13 @@ function PhoneVerification({ onComplete }: { onComplete: () => void }) {
           exit="exit"
         >
           <p className="text-[13px] text-text-muted leading-relaxed mb-2">
-            Code envoye au <span className="font-semibold text-text">+33 {phone}</span>
+            Code envoyé au <span className="font-semibold text-text">+33 {phone}</span>
           </p>
           <button
             onClick={() => { setStep("input"); setCode(["", "", "", "", "", ""]); }}
             className="text-[12px] text-accent font-semibold mb-5"
           >
-            Modifier le numero
+            Modifier le numéro
           </button>
 
           {/* 6-digit code input */}
@@ -533,7 +533,7 @@ function PhoneVerification({ onComplete }: { onComplete: () => void }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
-            Telephone verifie !
+            Téléphone vérifié !
           </m.p>
           <m.p
             className="text-[13px] text-text-muted mb-6"
@@ -541,7 +541,7 @@ function PhoneVerification({ onComplete }: { onComplete: () => void }) {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
           >
-            Ton numero a ete confirme
+            Ton numéro a été confirmé
           </m.p>
           <m.button
             onClick={onComplete}
@@ -594,7 +594,7 @@ function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
           exit="exit"
         >
           <p className="text-[13px] text-text-muted leading-relaxed mb-5">
-            Verification video en temps reel. Suis les instructions qui s&apos;affichent pour prouver que c&apos;est bien toi.
+            Vérification vidéo en temps réel. Suis les instructions qui s&apos;affichent pour prouver que c&apos;est bien toi.
           </p>
 
           <div className="space-y-3 mb-6">
@@ -604,7 +604,7 @@ function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
                   <span className="text-[18px]">{prompt.emoji}</span>
                 </div>
                 <div>
-                  <p className="text-[12px] font-semibold text-text">Etape {i + 1}</p>
+                  <p className="text-[12px] font-semibold text-text">Étape {i + 1}</p>
                   <p className="text-[11px] text-text-muted">{prompt.instruction}</p>
                 </div>
               </div>
@@ -614,7 +614,7 @@ function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
           <div className="flex items-center gap-2 bg-accent/5 border border-accent/10 rounded-xl p-3 mb-6">
             <span className="text-[16px]">🔵</span>
             <p className="text-[11px] text-text-muted leading-relaxed">
-              Recompense : badge <span className="font-bold text-accent">Video Verifie</span> avec coche bleue sur ton profil
+              Récompense : badge <span className="font-bold text-accent">Vidéo Vérifié</span> avec coche bleue sur ton profil
             </p>
           </div>
 
@@ -623,7 +623,7 @@ function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
             className="w-full gradient-bg text-white py-3.5 rounded-full text-[14px] font-semibold shadow-glow tap-target"
             whileTap={micro.tapScale}
           >
-            Lancer la verification video
+            Lancer la vérification vidéo
           </m.button>
         </m.div>
       )}
@@ -678,7 +678,7 @@ function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
                 <rect x="2" y="3" width="20" height="14" rx="2" />
                 <polygon points="22 8 22 13 17 10.5" />
               </svg>
-              <p className="text-white/30 text-[11px] mt-1">Camera preview</p>
+              <p className="text-white/30 text-[11px] mt-1">Caméra preview</p>
             </div>
 
             {/* Current instruction */}
@@ -722,7 +722,7 @@ function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
           </div>
 
           <p className="text-center text-[12px] text-text-muted">
-            Etape {promptIndex + 1} sur {VIDEO_PROMPTS.length}
+            Étape {promptIndex + 1} sur {VIDEO_PROMPTS.length}
           </p>
         </m.div>
       )}
@@ -742,7 +742,7 @@ function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
             transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
           />
           <p className="text-[15px] font-bold text-text mb-1">Analyse en cours...</p>
-          <p className="text-[12px] text-text-muted">Verification de la vivacite</p>
+          <p className="text-[12px] text-text-muted">Vérification de la vivacité</p>
         </m.div>
       )}
 
@@ -801,7 +801,7 @@ function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
-            <p className="text-[18px] font-black text-text">Video Verifie</p>
+            <p className="text-[18px] font-black text-text">Vidéo Vérifié</p>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <circle cx="12" cy="12" r="10" fill="#3B82F6" /* LinkedIn brand blue — intentional */ />
               <path d="M8 12l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -813,7 +813,7 @@ function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
           >
-            Badge coche bleue attribue a ton profil
+            Badge coche bleue attribué à ton profil
           </m.p>
           <m.button
             onClick={onComplete}
@@ -841,7 +841,7 @@ function SocialVerification() {
       exit="exit"
     >
       <p className="text-[13px] text-text-muted leading-relaxed mb-5">
-        Connecte un reseau social pour prouver que tu es une vraie personne. Nous ne publierons jamais rien.
+        Connecte un réseau social pour prouver que tu es une vraie personne. Nous ne publierons jamais rien.
       </p>
 
       <div className="space-y-3">
@@ -858,11 +858,11 @@ function SocialVerification() {
             </div>
             <div className="text-left">
               <p className="text-[13px] font-bold text-text">Instagram</p>
-              <p className="text-[10px] text-text-muted">Confirme ton identite visuelle</p>
+              <p className="text-[10px] text-text-muted">Confirme ton identité visuelle</p>
             </div>
           </div>
           <span className="text-[9px] font-bold text-accent bg-accent/10 px-2 py-1 rounded-full uppercase tracking-wider">
-            Bientot
+            Bientôt
           </span>
         </m.button>
 
@@ -880,17 +880,17 @@ function SocialVerification() {
             </div>
             <div className="text-left">
               <p className="text-[13px] font-bold text-text">LinkedIn</p>
-              <p className="text-[10px] text-text-muted">Verifie ton profil professionnel</p>
+              <p className="text-[10px] text-text-muted">Vérifie ton profil professionnel</p>
             </div>
           </div>
           <span className="text-[9px] font-bold text-accent bg-accent/10 px-2 py-1 rounded-full uppercase tracking-wider">
-            Bientot
+            Bientôt
           </span>
         </m.button>
       </div>
 
       <p className="text-[11px] text-text-muted text-center mt-5 leading-relaxed">
-        La verification sociale sera bientot disponible. En attendant, utilise le selfie ou le telephone.
+        La vérification sociale sera bientôt disponible. En attendant, utilise le selfie ou le téléphone.
       </p>
     </m.div>
   );
@@ -916,7 +916,7 @@ export default function VerifyPage() {
 
   return (
     <div className="min-h-screen bg-bg">
-      <PageHeader title="Verification" subtitle="Obtiens le badge Verifie" backHref="/profile" />
+      <PageHeader title="Vérification" subtitle="Obtiens le badge Vérifié" backHref="/profile" />
 
       <div className="px-5 pt-5 pb-24">
         {/* Progress bar */}
@@ -941,9 +941,9 @@ export default function VerifyPage() {
               >
                 <Check size={24} strokeWidth={2.5} className="text-safe" aria-hidden="true" />
               </m.div>
-              <p className="text-[16px] font-black text-text mb-1">Profil verifie !</p>
+              <p className="text-[16px] font-black text-text mb-1">Profil vérifié !</p>
               <p className="text-[12px] text-text-muted">
-                Ton badge Verifie est maintenant visible sur ton profil.
+                Ton badge Vérifié est maintenant visible sur ton profil.
               </p>
             </m.div>
           )}
@@ -965,7 +965,7 @@ export default function VerifyPage() {
                 className="flex items-center gap-2 text-[13px] text-accent font-semibold mb-4 tap-target"
               >
                 <ChevronLeft size={14} strokeWidth={2} className="text-accent" aria-hidden="true" />
-                Methodes de verification
+                Méthodes de vérification
               </button>
 
               {activeMethod === "selfie" && (
@@ -1034,12 +1034,12 @@ export default function VerifyPage() {
                       </p>
                       {isSocial && !isCompleted && (
                         <span className="text-[8px] font-bold text-accent bg-accent/10 px-1.5 py-0.5 rounded-full uppercase tracking-wider shrink-0">
-                          Bientot
+                          Bientôt
                         </span>
                       )}
                     </div>
                     <p className="text-[11px] text-text-muted mt-0.5">
-                      {isCompleted ? "Verification completee" : method.subtitle}
+                      {isCompleted ? "Vérification complétée" : method.subtitle}
                     </p>
                   </div>
 
@@ -1066,9 +1066,9 @@ export default function VerifyPage() {
                 <Info size={14} strokeWidth={2} className="text-accent" aria-hidden="true" />
               </div>
               <div>
-                <p className="text-[12px] font-bold text-text mb-1">Pourquoi se verifier ?</p>
+                <p className="text-[12px] font-bold text-text mb-1">Pourquoi se vérifier ?</p>
                 <p className="text-[11px] text-text-muted leading-relaxed">
-                  Les profils verifies recoivent 3x plus de matchs et inspirent confiance aux autres utilisateurs. Une seule methode suffit pour obtenir le badge.
+                  Les profils vérifiés reçoivent 3x plus de matchs et inspirent confiance aux autres utilisateurs. Une seule méthode suffit pour obtenir le badge.
                 </p>
               </div>
             </div>

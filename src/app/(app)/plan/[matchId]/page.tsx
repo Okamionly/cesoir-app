@@ -35,13 +35,13 @@ const TIME_SLOTS = [
 ];
 
 const ACTIVITIES = [
-  { key: "diner", label: "Diner", emoji: "\uD83C\uDF7D\uFE0F" },
+  { key: "diner", label: "Dîner", emoji: "\uD83C\uDF7D\uFE0F" },
   { key: "verre", label: "Verre", emoji: "\uD83C\uDF78" },
   { key: "concert", label: "Concert", emoji: "\uD83C\uDFB5" },
   { key: "balade", label: "Balade", emoji: "\uD83C\uDF3F" },
-  { key: "cinema", label: "Cinema", emoji: "\uD83C\uDFAC" },
-  { key: "cafe", label: "Cafe", emoji: "\u2615" },
-  { key: "musee", label: "Musee", emoji: "\uD83C\uDFDB\uFE0F" },
+  { key: "cinema", label: "Cinéma", emoji: "\uD83C\uDFAC" },
+  { key: "cafe", label: "Café", emoji: "\u2615" },
+  { key: "musee", label: "Musée", emoji: "\uD83C\uDFDB\uFE0F" },
   { key: "sport", label: "Sport", emoji: "\uD83C\uDFCB\uFE0F" },
 ];
 
@@ -154,7 +154,7 @@ function MatchHeader({ name, avatar }: { name: string; avatar: string | null }) 
         <h1 className="text-[18px] font-bold text-text">
           Planifier avec {name}
         </h1>
-        <p className="text-[11px] text-text-muted">Organisez votre soiree</p>
+        <p className="text-[11px] text-text-muted">Organisez votre soirée</p>
       </div>
     </div>
   );

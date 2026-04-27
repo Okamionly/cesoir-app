@@ -265,7 +265,7 @@ function BrowsePageInner() {
       <ModeSwitcher active={filter} onChange={(m) => { setFilter(m); setIdx(0); }} />
 
       {/* Card area — 3D Perspective deck */}
-      <main ref={mainRef} className="flex-1 relative px-4 pb-1 overflow-hidden" style={{ perspective: 800 }} role="list" aria-label="Profils a decouvrir">
+      <main ref={mainRef} className="flex-1 relative px-4 pb-1 overflow-hidden" style={{ perspective: 800 }} role="list" aria-label="Profils à découvrir">
         {/* Geolocation denied / unavailable — show a dedicated CTA state
             (CPO-002). Previously we fell through to "C'est tout pour ce soir"
             EmptyState which told the user nothing useful. */}

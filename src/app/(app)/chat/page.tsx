@@ -176,7 +176,7 @@ export default function ChatPage() {
               animate={{ scale: 1 }}
               transition={springs.elastic}
             >
-              <span className="w-2 h-2 rounded-full bg-accent animate-pulse" aria-hidden="true" />
+              <span className="w-2 h-2 rounded-full bg-accent" aria-hidden="true" />
               <span className="text-[11px] text-accent font-semibold">
                 {displayUnread} nouveau{displayUnread > 1 ? "x" : ""}
               </span>
@@ -270,7 +270,15 @@ export default function ChatPage() {
         </div>
       )}
 
-      {/* Icebreakers */}
+      {/* Icebreakers
+          BUG-09 fix (2026-04-26):
+           1. text was truncating mid-word ("Ton chien s'entend bien av...")
+              without an ellipsis class — added `line-clamp-2` so it caps at
+              two lines with proper "..." overflow.
+           2. buttons had no onClick handler. Wired a no-op stub that logs
+              the icebreaker text + a TODO marker until the chat composer
+              prefill flow is built. Keeps a11y/keyboard-accessibility intact
+              and gives QA something to grep for. */}
       <div className="px-4 py-4 border-b border-border">
         <p className="text-[10px] text-text-muted uppercase tracking-widest font-semibold mb-3">Brise-glaces suggeres</p>
         <div className="flex gap-2 overflow-x-auto no-scrollbar">
@@ -280,9 +288,17 @@ export default function ChatPage() {
             { text: "On se retrouve ou pour pratiquer ?", mode: "🌐" },
             { text: "C'est quoi ton plan pour ce soir ?", mode: "⭐" },
           ].map((ice, i) => (
-            <button key={i} className="shrink-0 bg-accent/5 border border-accent/15 rounded-xl px-3.5 py-2.5 text-left max-w-[200px] hover:border-accent/30 transition-colors tap-target">
+            <button
+              key={i}
+              type="button"
+              onClick={() => {
+                // TODO: open chat composer with prefilled icebreaker text
+                console.log("[icebreaker] selected (no composer wired yet):", ice.text);
+              }}
+              className="shrink-0 bg-accent/5 border border-accent/15 rounded-xl px-3.5 py-2.5 text-left max-w-[200px] hover:border-accent/30 transition-colors tap-target"
+            >
               <span className="text-[10px] text-accent font-semibold block mb-1">{ice.mode} Suggestion</span>
-              <span className="text-[12px] text-text-soft leading-snug">{ice.text}</span>
+              <span className="text-[12px] text-text-soft leading-snug line-clamp-2">{ice.text}</span>
             </button>
           ))}
         </div>
@@ -299,10 +315,10 @@ export default function ChatPage() {
               aria-live="polite"
             >
               {pinned.length > 0 && (
-                <div role="list" aria-label="Conversations epinglees">
+                <div role="list" aria-label="Conversations épinglées">
                   <p className="text-[10px] text-accent uppercase tracking-widest font-semibold px-4 pt-4 pb-2 flex items-center gap-1.5">
                     <span aria-hidden="true">{"\u{1F4CC}"}</span>
-                    Epinglees
+                    Épinglées
                   </p>
                   {pinned.map((convo, i) => (
                     <ConversationRow

@@ -374,7 +374,7 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-bg pb-24">
       <PageHeader
-        title="Reglages"
+        title="Réglages"
         onBack={() => router.back()}
         icon={<span className="inline-block w-1.5 h-1.5 rounded-full bg-accent" />}
         iconAnimation="pulse"
@@ -386,7 +386,7 @@ export default function SettingsPage() {
       <div className="pt-5">
         {/* ── 1. Compte ─────────────────────────────── */}
         <Section title="Compte" index={0}>
-          <InfoRow label="Email" value={user?.email ?? "Non connecte"} />
+          <InfoRow label="Email" value={user?.email ?? "Non connecté"} />
           <LinkRow label="Changer le mot de passe" href="/profile/edit" />
           <LinkRow label="Supprimer mon compte" href="/profile/delete" danger />
         </Section>
@@ -399,7 +399,7 @@ export default function SettingsPage() {
             onChange={(v) => updateNotif("messages", v)}
           />
           <ToggleRow
-            label="Likes recus"
+            label="Likes reçus"
             value={settings.notifications.likes}
             onChange={(v) => updateNotif("likes", v)}
           />
@@ -420,8 +420,8 @@ export default function SettingsPage() {
           />
         </Section>
 
-        {/* ── 3. Confidentialite ────────────────────── */}
-        <Section title="Confidentialite" index={2}>
+        {/* ── 3. Confidentialité ────────────────────── */}
+        <Section title="Confidentialité" index={2}>
           <ToggleRow
             label="Profil visible"
             value={settings.privacy.profilVisible}
@@ -433,14 +433,14 @@ export default function SettingsPage() {
             onChange={(v) => updatePrivacy("partagerPosition", v)}
           />
           <ToggleRow
-            label="Mode fantome"
+            label="Mode fantôme"
             value={settings.privacy.modeFantome}
             onChange={(v) => updatePrivacy("modeFantome", v)}
           />
           <div className="px-4 py-3.5">
             <div className="flex items-center justify-between">
               <span className="text-[13px] font-semibold text-text">
-                Les femmes ecrivent d&apos;abord
+                Les femmes écrivent d&apos;abord
               </span>
               <Toggle value={wfSettings.enabled} onChange={handleWomenFirstToggle} />
             </div>
@@ -453,7 +453,7 @@ export default function SettingsPage() {
         {/* ── 4. Apparence ──────────────────────────── */}
         <Section title="Apparence" index={3}>
           <div className="px-4 py-3.5">
-            <p className="text-[13px] font-semibold text-text mb-3">Theme</p>
+            <p className="text-[13px] font-semibold text-text mb-3">Thème</p>
             <PillSelector
               options={[
                 { value: "auto" as const, label: "Auto" },
@@ -466,13 +466,13 @@ export default function SettingsPage() {
           </div>
         </Section>
 
-        {/* ── 5. Accessibilite ──────────────────────── */}
-        <Section title="Accessibilite">
+        {/* ── 5. Accessibilité ──────────────────────── */}
+        <Section title="Accessibilité">
           <div className="px-4 py-3.5">
             <p className="text-[13px] font-semibold text-text mb-3">Langue</p>
             <PillSelector<Locale>
               options={[
-                { value: "fr", label: "Francais" },
+                { value: "fr", label: "Français" },
                 { value: "en", label: "English" },
               ]}
               value={locale}
@@ -485,25 +485,25 @@ export default function SettingsPage() {
               options={[
                 { value: "normal", label: "Normal" },
                 { value: "large", label: "Grand" },
-                { value: "xlarge", label: "Tres grand" },
+                { value: "xlarge", label: "Très grand" },
               ]}
               value={fontSize}
               onChange={handleFontSizeChange}
             />
           </div>
           <ToggleRow
-            label="Reduire les animations"
+            label="Réduire les animations"
             value={reducedMotionOverride !== null ? reducedMotionOverride : reducedMotion}
             onChange={(v) => handleReducedMotionChange(v)}
           />
         </Section>
 
-        {/* ── 6. A propos ───────────────────────────── */}
-        <Section title="A propos">
+        {/* ── 6. À propos ───────────────────────────── */}
+        <Section title="À propos">
           <InfoRow label="Version" value="1.0.0" />
-          <LinkRow label="Conditions generales" href="/cgu" />
-          <LinkRow label="Politique de confidentialite" href="/privacy" />
-          <LinkRow label="A propos de CeSoir" href="/about" />
+          <LinkRow label="Conditions générales" href="/cgu" />
+          <LinkRow label="Politique de confidentialité" href="/privacy" />
+          <LinkRow label="À propos de CeSoir" href="/about" />
         </Section>
       </div>
     </div>

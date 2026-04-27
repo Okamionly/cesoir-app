@@ -204,7 +204,7 @@ export default function PhotoUpload({
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={uploading}
-        aria-label="Selectionner une photo de profil"
+        aria-label="Sélectionner une photo de profil"
         className="relative w-32 h-32 rounded-full group tap-target focus-visible:outline-2 focus-visible:outline-accent"
       >
         {/* Gradient border */}

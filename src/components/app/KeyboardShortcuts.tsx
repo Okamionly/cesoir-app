@@ -249,7 +249,7 @@ export default function KeyboardShortcuts() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-[900] flex items-center justify-center bg-black/30 backdrop-blur-sm p-6"
+            className="fixed inset-0 z-[850] flex items-center justify-center bg-black/30 backdrop-blur-sm p-6"
             onClick={() => setOpen(false)}
             role="dialog"
             aria-modal="true"

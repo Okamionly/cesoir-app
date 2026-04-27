@@ -112,8 +112,8 @@ function PlansPageInner() {
         <EmptyState
           emoji={"\u263E"}
           title="Aucun plan pour le moment"
-          subtitle="Sois le premier a en creer un !"
-          actionLabel="Creer un plan"
+          subtitle="Sois le premier à en créer un !"
+          actionLabel="Créer un plan"
           actionHref={`/plans/create${activeType !== "all" ? `?type=${activeType}` : ""}`}
         />
       ) : (

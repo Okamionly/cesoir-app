@@ -135,7 +135,7 @@ export default function ModeSwitcher({ active, onChange }: ModeSwitcherProps) {
             transition={springs.snap}
             style={{ transformOrigin: "top center", maxHeight: 360, overflowY: "auto" }}
             role="listbox"
-            aria-label="Selectionner un mode"
+            aria-label="Sélectionner un mode"
           >
             {/* "Tous" option */}
             <ModeOption

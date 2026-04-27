@@ -16,7 +16,7 @@ import { springs, profileVariants } from "@/lib/motion-design";
 import PageHeader from "@/components/ui/PageHeader";
 import { ChevronRight as LucideChevronRight, Settings as LucideSettings } from "@/components/ui/lucide";
 
-const TONIGHT_CHIPS = ["Diner", "Boire un verre", "Cinema", "Balade", "Concert", "Sport"];
+const TONIGHT_CHIPS = ["Dîner", "Boire un verre", "Cinéma", "Balade", "Concert", "Sport"];
 
 const ease = [0.16, 1, 0.3, 1] as [number, number, number, number];
 const fade = (delay = 0) => ({
@@ -137,7 +137,7 @@ export default function ProfilePage() {
         actions={
           <Link
             href="/settings"
-            aria-label="Parametres"
+            aria-label="Paramètres"
             className="w-10 h-10 rounded-full flex items-center justify-center text-text-muted hover:text-text hover:bg-bg-card transition-colors tap-target focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
           >
             <SettingsIcon />
@@ -209,23 +209,11 @@ export default function ProfilePage() {
               )}
             </div>
           </m.div>
-          {/* Online indicator with soft pulse */}
-          <m.span
+          {/* Online indicator (static — avatar halo already animates, "Disponible" pill already conveys status) */}
+          <span
             className="absolute bottom-1.5 right-1.5 block w-4 h-4 rounded-full ring-[3px] ring-bg"
             style={{ background: "var(--color-accent-2)" }}
             aria-label="En ligne ce soir"
-            animate={
-              reducedMotion
-                ? undefined
-                : {
-                    boxShadow: [
-                      "0 0 0 0 color-mix(in srgb, var(--color-accent-2) 50%, transparent)",
-                      "0 0 0 8px color-mix(in srgb, var(--color-accent-2) 0%, transparent)",
-                      "0 0 0 0 color-mix(in srgb, var(--color-accent-2) 50%, transparent)",
-                    ],
-                  }
-            }
-            transition={{ duration: 2, repeat: Infinity }}
           />
         </m.div>
 
@@ -365,7 +353,7 @@ export default function ProfilePage() {
         >
           Mes envies ce soir
         </h3>
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Selection des envies de ce soir">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Sélection des envies de ce soir">
           {TONIGHT_CHIPS.map((chip, i) => {
             const on = selectedChips.includes(chip);
             return (
@@ -398,13 +386,13 @@ export default function ProfilePage() {
         aria-label="Navigation principale"
       >
         <h3 className="text-[11px] font-semibold text-text-muted uppercase tracking-[0.12em] mb-3.5">
-          Decouvrir
+          Découvrir
         </h3>
         <div className="bg-bg-card border border-border rounded-2xl overflow-hidden">
           {[
-            { label: "Recommandations", desc: "Profils selectionnes pour toi", href: "/browse" },
+            { label: "Recommandations", desc: "Profils sélectionnés pour toi", href: "/browse" },
             { label: "Plans ce soir", desc: "Organiser ou rejoindre", href: "/plans" },
-            { label: "Progression", desc: "Badges, defis, confiance", href: "/progress" },
+            { label: "Progression", desc: "Badges, défis, confiance", href: "/progress" },
             { label: "Mes invitations", desc: "+5 🌹 chaque ami qui s'inscrit", href: "/invites/mine" },
           ].map((item, i, arr) => (
             <Link
@@ -430,14 +418,14 @@ export default function ProfilePage() {
         {...fade(0.2)}
       >
         <h3 className="text-[11px] font-semibold text-text-muted uppercase tracking-[0.12em] mb-3.5">
-          Reglages
+          Réglages
         </h3>
         <div className="bg-bg-card border border-border rounded-2xl overflow-hidden">
           {[
             { label: "Notifications", href: "/profile/notifications" },
-            { label: "Confidentialite", href: "/profile/privacy" },
-            { label: "Verification du compte", href: "/profile/verify" },
-            { label: "A propos", href: "/about" },
+            { label: "Confidentialité", href: "/profile/privacy" },
+            { label: "Vérification du compte", href: "/profile/verify" },
+            { label: "À propos", href: "/about" },
           ].map((item, i, arr) => (
             <Link
               key={item.href}

@@ -60,7 +60,7 @@ export default class ErrorBoundary extends React.Component<
               animate={micro.shake}
               aria-hidden="true"
             >
-              !!
+              ⚠️
             </m.span>
           </m.div>
 

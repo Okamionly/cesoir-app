@@ -45,7 +45,7 @@ export default function MapSearchBar({ onSelect, onOpenFilters }: MapSearchBarPr
   }, [focused]);
 
   return (
-    <div ref={wrapRef} className="absolute top-3 left-3 right-3 z-[950]">
+    <div ref={wrapRef} className="absolute top-3 left-3 right-3 z-[870]">
       <div className="flex gap-2">
         <m.div
           className="flex-1 flex items-center gap-2 bg-bg/80 backdrop-blur-md border border-border rounded-full px-4 py-2.5 shadow-lg"

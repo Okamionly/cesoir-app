@@ -19,21 +19,21 @@ export const LEVELS: LevelDef[] = [
   { level: 3,  xpRequired: 150,   title: "Explorateur" },
   { level: 4,  xpRequired: 300,   title: "Sociable" },
   { level: 5,  xpRequired: 500,   title: "Social" },
-  { level: 6,  xpRequired: 800,   title: "Connecte" },
+  { level: 6,  xpRequired: 800,   title: "Connecté" },
   { level: 7,  xpRequired: 1200,  title: "Populaire" },
   { level: 8,  xpRequired: 1700,  title: "Influent" },
-  { level: 9,  xpRequired: 2300,  title: "Magnetique" },
+  { level: 9,  xpRequired: 2300,  title: "Magnétique" },
   { level: 10, xpRequired: 3000,  title: "Nocturne" },
-  { level: 11, xpRequired: 4000,  title: "Etoile" },
+  { level: 11, xpRequired: 4000,  title: "Étoile" },
   { level: 12, xpRequired: 5200,  title: "Rayonnant" },
   { level: 13, xpRequired: 6500,  title: "Charismatique" },
   { level: 14, xpRequired: 8000,  title: "Mythique" },
-  { level: 15, xpRequired: 10000, title: "Legendaire" },
-  { level: 16, xpRequired: 12500, title: "Phenomenal" },
+  { level: 15, xpRequired: 10000, title: "Légendaire" },
+  { level: 16, xpRequired: 12500, title: "Phénoménal" },
   { level: 17, xpRequired: 15000, title: "Transcendant" },
-  { level: 18, xpRequired: 17500, title: "Celeste" },
+  { level: 18, xpRequired: 17500, title: "Céleste" },
   { level: 19, xpRequired: 20000, title: "Divin" },
-  { level: 20, xpRequired: 25000, title: "Icone" },
+  { level: 20, xpRequired: 25000, title: "Icône" },
 ];
 
 // ─────────────────────────────────────────
@@ -62,7 +62,7 @@ export const XP_REWARDS: Record<XPAction, XPRewardDef> = {
     action: "complete_profile",
     amount: 50,
     label: "Profil complet",
-    description: "Complete ton profil a 100%",
+    description: "Complète ton profil à 100%",
   },
   first_match: {
     action: "first_match",
@@ -73,20 +73,20 @@ export const XP_REWARDS: Record<XPAction, XPRewardDef> = {
   first_soiree: {
     action: "first_soiree",
     amount: 40,
-    label: "Premiere soiree",
-    description: "Ta premiere rencontre IRL",
+    label: "Première soirée",
+    description: "Ta première rencontre IRL",
   },
   send_message: {
     action: "send_message",
     amount: 2,
-    label: "Message envoye",
+    label: "Message envoyé",
     description: "Envoie un message",
   },
   receive_good_review: {
     action: "receive_good_review",
     amount: 20,
     label: "Bonne review",
-    description: "Recois une review positive",
+    description: "Reçois une review positive",
   },
   daily_login: {
     action: "daily_login",
@@ -97,13 +97,13 @@ export const XP_REWARDS: Record<XPAction, XPRewardDef> = {
   complete_challenge: {
     action: "complete_challenge",
     amount: 0, // variable — set at call site
-    label: "Challenge complete",
+    label: "Challenge complété",
     description: "Termine un challenge quotidien",
   },
   invite_friend: {
     action: "invite_friend",
     amount: 100,
-    label: "Ami invite",
+    label: "Ami invité",
     description: "Invite un ami qui rejoint CeSoir",
   },
 };
@@ -210,38 +210,38 @@ const LEVEL_REWARDS: Record<number, LevelReward[]> = {
     { type: "badge", label: "Badge Curieux", description: "Ton premier badge !", icon: "\u{1F31F}" },
   ],
   3: [
-    { type: "feature", label: "Super Like", description: "Debloque les Super Likes", icon: "\u{2B50}" },
+    { type: "feature", label: "Super Like", description: "Débloque les Super Likes", icon: "\u{2B50}" },
   ],
   4: [
     { type: "cosmetic", label: "Cadre Violet", description: "Cadre de profil violet", icon: "\u{1F7E3}" },
   ],
   5: [
     { type: "badge", label: "Badge Social", description: "Reconnu comme social", icon: "\u{1F91D}" },
-    { type: "feature", label: "Mode Priorite", description: "Apparais en premier dans le feed", icon: "\u{1F680}" },
+    { type: "feature", label: "Mode Priorité", description: "Apparais en premier dans le feed", icon: "\u{1F680}" },
   ],
   7: [
     { type: "badge", label: "Badge Populaire", description: "Tu es populaire !", icon: "\u{1F525}" },
     { type: "boost", label: "Boost x2", description: "Double les points karma pendant 24h", icon: "\u{26A1}" },
   ],
   10: [
-    { type: "badge", label: "Badge Nocturne", description: "Maitre de la nuit", icon: "\u{1F319}" },
-    { type: "feature", label: "Profil Verifie+", description: "Badge de verification premium", icon: "\u{2705}" },
-    { type: "cosmetic", label: "Aura Neon", description: "Aura neon sur ton profil", icon: "\u{1F4A0}" },
+    { type: "badge", label: "Badge Nocturne", description: "Maître de la nuit", icon: "\u{1F319}" },
+    { type: "feature", label: "Profil Vérifié+", description: "Badge de vérification premium", icon: "\u{2705}" },
+    { type: "cosmetic", label: "Aura Néon", description: "Aura néon sur ton profil", icon: "\u{1F4A0}" },
   ],
   12: [
-    { type: "boost", label: "Boost Soiree", description: "Cree des soirees avec plus de places", icon: "\u{1F389}" },
+    { type: "boost", label: "Boost Soirée", description: "Crée des soirées avec plus de places", icon: "\u{1F389}" },
   ],
   15: [
-    { type: "badge", label: "Badge Legendaire", description: "Tu es une legende", icon: "\u{1F451}" },
-    { type: "feature", label: "Acces VIP", description: "Acces aux soirees exclusives", icon: "\u{1F48E}" },
-    { type: "cosmetic", label: "Cadre Dore", description: "Cadre de profil dore", icon: "\u{1F31F}" },
+    { type: "badge", label: "Badge Légendaire", description: "Tu es une légende", icon: "\u{1F451}" },
+    { type: "feature", label: "Accès VIP", description: "Accès aux soirées exclusives", icon: "\u{1F48E}" },
+    { type: "cosmetic", label: "Cadre Doré", description: "Cadre de profil doré", icon: "\u{1F31F}" },
   ],
   18: [
     { type: "boost", label: "XP x3", description: "Triple XP pendant 48h", icon: "\u{1F4AB}" },
   ],
   20: [
-    { type: "badge", label: "Badge Icone", description: "Tu es une icone de CeSoir", icon: "\u{1F3C6}" },
-    { type: "feature", label: "Createur de Modes", description: "Cree tes propres modes", icon: "\u{2728}" },
+    { type: "badge", label: "Badge Icône", description: "Tu es une icône de CeSoir", icon: "\u{1F3C6}" },
+    { type: "feature", label: "Créateur de Modes", description: "Crée tes propres modes", icon: "\u{2728}" },
     { type: "cosmetic", label: "Profil Holographique", description: "Effet holographique sur ton profil", icon: "\u{1F308}" },
   ],
 };

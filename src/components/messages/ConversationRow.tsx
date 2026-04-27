@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { m, AnimatePresence, useReducedMotion } from "motion/react";
@@ -94,9 +94,53 @@ export function ConversationRow({
   const [isFocused, setIsFocused] = useState(false);
   const [showActions, setShowActions] = useState(false);
   const [contextMenu, setContextMenu] = useState(false);
+  const [kebabOpen, setKebabOpen] = useState(false);
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchStartXRef = useRef(0);
+  const kebabMenuRef = useRef<HTMLDivElement | null>(null);
+  const kebabButtonRef = useRef<HTMLButtonElement | null>(null);
   const swipeThreshold = 80;
+
+  // Close kebab menu on Escape, outside click, and refocus the trigger button
+  useEffect(() => {
+    if (!kebabOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        setKebabOpen(false);
+        kebabButtonRef.current?.focus();
+      }
+    };
+    const onClick = (e: MouseEvent) => {
+      const target = e.target as Node | null;
+      if (
+        target &&
+        !kebabMenuRef.current?.contains(target) &&
+        !kebabButtonRef.current?.contains(target)
+      ) {
+        setKebabOpen(false);
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onClick);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onClick);
+    };
+  }, [kebabOpen]);
+
+  const handleDelete = useCallback(() => {
+    if (!onDelete) return;
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(
+        `Supprimer la conversation avec ${convo.peer.name} ? Cette action est irreversible.`,
+      )
+    ) {
+      return;
+    }
+    onDelete(convo.id);
+  }, [convo.id, convo.peer.name, onDelete]);
 
   const active = isHovered || isFocused;
   const applyFocusEffect = pointerFine && !reducedMotion;
@@ -286,6 +330,103 @@ export function ConversationRow({
           </>
         )}
       </AnimatePresence>
+
+      {/* Keyboard-accessible kebab menu — always visible so keyboard users can
+          reach archive/pin/delete (swipe gesture is touch-only). Sits outside
+          the Link to avoid nested interactive elements. */}
+      {(onArchive || onDelete || onPin) && (
+        <div className="absolute top-1/2 -translate-y-1/2 right-2 z-30">
+          <button
+            ref={kebabButtonRef}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setKebabOpen((v) => !v);
+            }}
+            className="w-8 h-8 rounded-full bg-bg-card/80 border border-border flex items-center justify-center text-text-muted opacity-60 hover:opacity-100 focus-visible:opacity-100 hover:text-text focus-visible:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 transition-opacity"
+            aria-label="Actions de conversation"
+            aria-haspopup="menu"
+            aria-expanded={kebabOpen}
+          >
+            <span className="text-lg leading-none" aria-hidden="true">
+              {"⋮"}
+            </span>
+          </button>
+          <AnimatePresence>
+            {kebabOpen && (
+              <m.div
+                ref={kebabMenuRef}
+                role="menu"
+                aria-label="Actions de conversation"
+                initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                transition={springs.micro}
+                className="absolute right-0 top-full mt-1 z-50 bg-bg-card border border-border rounded-xl shadow-xl overflow-hidden min-w-[160px]"
+              >
+                {onPin && (
+                  <>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        onPin(convo.id);
+                        setKebabOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-text hover:bg-bg active:bg-border/50 focus-visible:bg-bg focus-visible:outline-none transition-colors"
+                      aria-label="Epingler la conversation"
+                    >
+                      <span className="text-base" aria-hidden="true">
+                        {"\u{1F4CC}"}
+                      </span>
+                      <span>Epingler</span>
+                    </button>
+                    <div className="h-px bg-border" />
+                  </>
+                )}
+                {onArchive && (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      onArchive(convo.id);
+                      setKebabOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-text hover:bg-bg active:bg-border/50 focus-visible:bg-bg focus-visible:outline-none transition-colors"
+                    aria-label="Archiver la conversation"
+                  >
+                    <span className="text-base" aria-hidden="true">
+                      {"\u{1F4E6}"}
+                    </span>
+                    <span>Archiver</span>
+                  </button>
+                )}
+                {onDelete && (
+                  <>
+                    {onArchive && <div className="h-px bg-border" />}
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        handleDelete();
+                        setKebabOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-danger hover:bg-bg active:bg-border/50 focus-visible:bg-bg focus-visible:outline-none transition-colors"
+                      aria-label="Supprimer la conversation"
+                    >
+                      <span className="text-base" aria-hidden="true">
+                        {"\u{1F5D1}"}
+                      </span>
+                      <span>Supprimer</span>
+                    </button>
+                  </>
+                )}
+              </m.div>
+            )}
+          </AnimatePresence>
+        </div>
+      )}
 
       <Link
         href={`/chat/${convo.id}`}

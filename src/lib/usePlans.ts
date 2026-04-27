@@ -453,9 +453,9 @@ export const PLAN_TYPE_META: Record<
   { label: string; emoji: string; description: string }
 > = {
   flash: { label: "Flash", emoji: "\u26A1", description: "Plan urgent ce soir" },
-  soiree: { label: "Soiree", emoji: "\uD83C\uDF7B", description: "Soiree thematique" },
+  soiree: { label: "Soirée", emoji: "\uD83C\uDF7B", description: "Soirée thématique" },
   popup: { label: "Event", emoji: "\uD83C\uDF89", description: "Pop-up event public" },
-  match: { label: "Match", emoji: "\uD83D\uDC95", description: "Plan prive 1:1" },
+  match: { label: "Match", emoji: "\uD83D\uDC95", description: "Plan privé 1:1" },
 };
 
 export function usePlansByType(type: PlanType | undefined): UsePlansReturn {

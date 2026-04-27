@@ -7,9 +7,9 @@ import Link from "next/link";
  */
 
 export const metadata = {
-  title: "DPIA & protection des donnees - CeSoir",
+  title: "DPIA & protection des données - CeSoir",
   description:
-    "Analyse d'Impact Relative a la Protection des Donnees de CeSoir. Finalites, bases legales, securite, droits des utilisateurs.",
+    "Analyse d'Impact Relative à la Protection des Données de CeSoir. Finalités, bases légales, sécurité, droits des utilisateurs.",
 };
 
 export default function DpiaPage() {
@@ -17,39 +17,39 @@ export default function DpiaPage() {
     <div className="min-h-screen bg-bg px-5 py-10">
       <div className="max-w-2xl mx-auto">
         <Link href="/settings" className="text-accent text-[13px] font-semibold">
-          &larr; Parametres
+          &larr; Paramètres
         </Link>
 
         <h1 className="text-[28px] font-black text-text mt-4 mb-2">
-          Protection des donnees
+          Protection des données
         </h1>
         <p className="text-[14px] text-text-muted leading-relaxed mb-8">
-          Resume de notre Analyse d&apos;Impact Relative a la Protection des
-          Donnees (DPIA). La version complete est disponible en telechargement.
+          Résumé de notre Analyse d&apos;Impact Relative à la Protection des
+          Données (DPIA). La version complète est disponible en téléchargement.
         </p>
 
         <section className="mb-6">
           <h2 className="text-[17px] font-bold text-text mb-2">
-            1. A quoi servent tes donnees ?
+            1. À quoi servent tes données ?
           </h2>
           <ul className="text-[13px] text-text-muted leading-relaxed space-y-1 list-disc pl-5">
-            <li>Creer ton compte et te connecter</li>
-            <li>Te proposer des profils compatibles pres de toi</li>
+            <li>Créer ton compte et te connecter</li>
+            <li>Te proposer des profils compatibles près de toi</li>
             <li>Permettre les conversations</li>
-            <li>Proteger la communaute (moderation, signalements)</li>
-            <li>Ameliorer le produit (analytics anonymises)</li>
+            <li>Protéger la communauté (modération, signalements)</li>
+            <li>Améliorer le produit (analytics anonymisés)</li>
           </ul>
         </section>
 
         <section className="mb-6">
           <h2 className="text-[17px] font-bold text-text mb-2">
-            2. Sur quelle base legale ?
+            2. Sur quelle base légale ?
           </h2>
           <p className="text-[13px] text-text-muted leading-relaxed">
-            Nous utilisons <strong>ton consentement</strong> (geolocalisation,
+            Nous utilisons <strong>ton consentement</strong> (géolocalisation,
             photos), <strong>le contrat</strong> (ton compte et la messagerie)
-            et <strong>notre interet legitime</strong> (moderation). Tu peux
-            retirer ton consentement a tout moment dans les parametres.
+            et <strong>notre intérêt légitime</strong> (modération). Tu peux
+            retirer ton consentement à tout moment dans les paramètres.
           </p>
         </section>
 
@@ -58,10 +58,10 @@ export default function DpiaPage() {
             3. Combien de temps ?
           </h2>
           <p className="text-[13px] text-text-muted leading-relaxed">
-            Ton compte reste actif tant que tu l&apos;utilises. Apres{" "}
-            <strong>3 ans d&apos;inactivite</strong>, il est automatiquement
-            supprime. Tu peux supprimer ton compte instantanement depuis les
-            parametres (effacement sous 30 jours).
+            Ton compte reste actif tant que tu l&apos;utilises. Après{" "}
+            <strong>3 ans d&apos;inactivité</strong>, il est automatiquement
+            supprimé. Tu peux supprimer ton compte instantanément depuis les
+            paramètres (effacement sous 30 jours).
           </p>
         </section>
 
@@ -70,7 +70,7 @@ export default function DpiaPage() {
           <ul className="text-[13px] text-text-muted leading-relaxed space-y-1 list-disc pl-5">
             <li>
               <Link href="/profile/privacy" className="text-accent underline">
-                Acceder a tes donnees
+                Accéder à tes données
               </Link>{" "}
               (export)
             </li>
@@ -85,9 +85,9 @@ export default function DpiaPage() {
                 Supprimer ton compte
               </Link>
             </li>
-            <li>Portabilite (export JSON)</li>
+            <li>Portabilité (export JSON)</li>
             <li>
-              Opposition : ecris a{" "}
+              Opposition : écris à{" "}
               <a
                 href="mailto:privacy@cesoir.app"
                 className="text-accent underline"
@@ -100,12 +100,12 @@ export default function DpiaPage() {
 
         <section className="mb-6">
           <h2 className="text-[17px] font-bold text-text mb-2">
-            5. Securite technique
+            5. Sécurité technique
           </h2>
           <ul className="text-[13px] text-text-muted leading-relaxed space-y-1 list-disc pl-5">
             <li>Chiffrement TLS 1.3 en transit, AES-256 au repos</li>
             <li>Row-Level Security (RLS) Supabase sur toutes les tables</li>
-            <li>Mots de passe haches (Argon2 + bcrypt legacy)</li>
+            <li>Mots de passe hachés (Argon2 + bcrypt legacy)</li>
             <li>Rate limiting Upstash Redis sur les endpoints critiques</li>
             <li>Sentry PII-scrubbed pour les erreurs</li>
           </ul>
@@ -116,18 +116,18 @@ export default function DpiaPage() {
             6. Transferts hors UE
           </h2>
           <p className="text-[13px] text-text-muted leading-relaxed">
-            Nos serveurs (Supabase, Vercel) sont en UE. Seuls OpenAI (moderation)
-            et Resend (emails) sont aux USA, encadres par les{" "}
+            Nos serveurs (Supabase, Vercel) sont en UE. Seuls OpenAI (modération)
+            et Resend (emails) sont aux USA, encadrés par les{" "}
             <strong>Clauses Contractuelles Types</strong> (SCC) + DPA.
           </p>
         </section>
 
         <section className="mb-6">
           <h2 className="text-[17px] font-bold text-text mb-2">
-            7. Version complete
+            7. Version complète
           </h2>
           <p className="text-[13px] text-text-muted leading-relaxed">
-            Le document DPIA integral (10 sections, registre RAT, plan
+            Le document DPIA intégral (10 sections, registre RAT, plan
             d&apos;action) est disponible pour consultation sur demande.{" "}
             <a
               href="mailto:privacy@cesoir.app?subject=Demande%20DPIA%20complete"
@@ -140,7 +140,7 @@ export default function DpiaPage() {
 
         <section className="mt-8 pt-6 border-t border-border">
           <p className="text-[11px] text-text-muted">
-            Derniere mise a jour : 23 avril 2026.
+            Dernière mise à jour : 23 avril 2026.
             <br />
             Responsable du traitement : CeSoir SAS (immatriculation en cours).
           </p>

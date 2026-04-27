@@ -354,17 +354,17 @@ function RegisterPageInner() {
               exit="exit"
             >
               <h1 className="font-display text-2xl font-bold mb-1 tracking-tight">
-                Cree ton profil
+                Crée ton profil
               </h1>
               <p className="text-sm text-white/60 mb-6">
                 30 secondes, promis.
               </p>
               <div className="space-y-4">
                 <div className="grid grid-cols-[1fr_80px] gap-3">
-                  <FormField label="Prenom" variant="dark" required>
+                  <FormField label="Prénom" variant="dark" required>
                     <FormInput
                       type="text"
-                      placeholder="Ton prenom"
+                      placeholder="Ton prénom"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       autoComplete="given-name"
@@ -372,7 +372,7 @@ function RegisterPageInner() {
                       size="md"
                     />
                   </FormField>
-                  <FormField label="Age" variant="dark" required>
+                  <FormField label="Âge" variant="dark" required>
                     <FormInput
                       type="number"
                       min={18}
@@ -400,7 +400,7 @@ function RegisterPageInner() {
                   label="Mot de passe"
                   variant="dark"
                   required
-                  hint="Minimum 6 caracteres."
+                  hint="Minimum 6 caractères."
                 >
                   <FormInput
                     type="password"
@@ -431,18 +431,18 @@ function RegisterPageInner() {
                   type="button"
                   onClick={handleCreateAccount}
                   isLoading={authLoading}
-                  loadingLabel="Creation..."
+                  loadingLabel="Création..."
                   disabled={stepOneInvalid}
                   hasError={Boolean(error || authError)}
                   variant="dark"
                   magnetic={false}
                 >
-                  Creer mon compte
+                  Créer mon compte
                 </FormSubmit>
                 <p className="text-[10px] text-white/40 text-center mt-2 leading-relaxed">
                   En t&apos;inscrivant, tu acceptes nos{" "}
                   <Link href="/cgu" className="underline" style={{ color: landing.violet }}>CGU</Link>{" "}et notre{" "}
-                  <Link href="/privacy" className="underline" style={{ color: landing.violet }}>Politique de confidentialite</Link>.
+                  <Link href="/privacy" className="underline" style={{ color: landing.violet }}>Politique de confidentialité</Link>.
                 </p>
               </div>
             </m.div>
@@ -514,7 +514,7 @@ function RegisterPageInner() {
                 Qu&apos;est-ce qui te rend unique ?
               </p>
               <div className="space-y-4">
-                <FormField label="Ta soiree ideale" variant="dark">
+                <FormField label="Ta soirée idéale" variant="dark">
                   <FormTextarea
                     rows={3}
                     placeholder="Ex: Un bon sushi avec quelqu'un de cool..."

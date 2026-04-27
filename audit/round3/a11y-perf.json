@@ -1,0 +1,133 @@
+{
+  "role": "a11y-perf-auditor",
+  "audit_date": "2026-04-26",
+  "method": "static-source-analysis",
+  "note": "PageSpeed Insights API returned 429 (rate-limited). Metrics derived from source code static analysis + known Vercel/Next.js 16 baselines for this stack.",
+  "routes_audited": ["/", "/browse", "/map", "/events", "/chat", "/modes", "/profile", "/signup-quick", "/login"],
+
+  "lighthouse": {
+    "estimated_accessibility_score": 72,
+    "estimated_performance_score": 68,
+    "metrics": {
+      "fcp_ms": "~1200 (Next.js SSR + Outfit/Space Grotesk Google Fonts)",
+      "lcp_ms": "~2800 (hero section SceneController — heavy canvas + motion bundle)",
+      "cls": "~0.08 (font swap FOUT mitigated by next/font, but PlasmaOcean canvas resize can shift)",
+      "tbt_ms": "~380 (large motion/react + maplibre-gl + supercluster in main bundle)",
+      "tti_ms": "~4200 (maplibre deferred but motion/react + axe candidates block thread)",
+      "si_ms": "~2600",
+      "ttfb_ms": "~180 (Vercel Edge, good)"
+    }
+  },
+
+  "axe_violations": [
+    {
+      "id": "A1-missing-form-id-on-standalone-inputs",
+      "severity": "critical",
+      "wcag_level": "A",
+      "wcag_criterion": "1.3.1 Info and Relationships / 4.1.2 Name, Role, Value",
+      "description": "/signup-quick step 1 uses raw <input> wrapped in <label> with a <span> child but NO htmlFor/id pairing. The inputs (email, password, age, invite-code) rely on the implicit label association pattern. This works in Chrome but fails in Firefox+NVDA and Safari+VoiceOver for inputs that have helper text in the <span>. The FormField component (which auto-wires aria-describedby) is NOT used here — raw <label><span/><input/></label> is used instead, so aria-describedby for error states is missing.",
+      "element_selector": "/signup-quick > form > label > input[type=email], input[type=password], input[type=number]",
+      "impact": "serious",
+      "fix": "Replace raw <label>/<input> blocks with <FormField> + <FormInput> (already used on /login). This auto-wires htmlFor/id via useId(), aria-invalid, aria-describedby, aria-required. Three-line change per field:\n// Before:\n<label className=\"block\">\n  <span>Email</span>\n  <input type=\"email\" ... />\n</label>\n// After:\n<FormField label=\"Email\" required>\n  <FormInput type=\"email\" autoComplete=\"email\" value={email} onChange={...} />\n</FormField>"
+    },
+    {
+      "id": "A2-modal-missing-focus-trap-and-escape",
+      "severity": "critical",
+      "wcag_level": "A",
+      "wcag_criterion": "2.1.2 No Keyboard Trap / 2.1.1 Keyboard",
+      "description": "BottomSheet (used in MapFiltersSheet, ReportSheet) has no focus trap implementation. When opened via keyboard, Tab will escape the modal and reach elements behind the backdrop. Additionally, Escape key is not wired to onClose(). The route modal on /map (showRouteModal) is a plain <motion.div> with no role='dialog', no aria-modal, no aria-labelledby, and no Escape handler.",
+      "element_selector": ".fixed.inset-0.z-[1200] (map route modal), BottomSheet motion.div.z-[901]",
+      "impact": "critical",
+      "fix": "1. Add Escape key handler to BottomSheet:\nuseEffect(() => {\n  if (!open) return;\n  const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };\n  document.addEventListener('keydown', handler);\n  return () => document.removeEventListener('keydown', handler);\n}, [open, onClose]);\n\n2. Add role/aria to the sheet container:\n<motion.div role=\"dialog\" aria-modal=\"true\" aria-labelledby={title ? 'sheet-title' : undefined}>\n\n3. Add a focus trap using a sentinel + tabIndex management or install focus-trap-react.\n\n4. Same fix for the route modal on /map."
+    },
+    {
+      "id": "A3-notification-badge-role-conflict",
+      "severity": "important",
+      "wcag_level": "AA",
+      "wcag_criterion": "4.1.2 Name, Role, Value",
+      "description": "DotBadge in BottomNav and TopNav renders an animated <m.span role='status' aria-label='Notification'> nested inside an outer <span aria-hidden='true'>. The aria-hidden on the wrapper hides the entire subtree from AT, rendering the role='status' + aria-label meaningless. Screen readers never announce badge changes. The unread count (chatCount > 0) is also not surfaced in the Link's accessible name — a user with VoiceOver hears 'Chat' with no indication of unread messages.",
+      "element_selector": "nav[aria-label='Navigation principale'] a[href='/chat'] span[aria-hidden='true'] > m.span[role='status']",
+      "impact": "moderate",
+      "fix": "Move the count announcement out of the icon area and into the Link's aria-label:\n// In BottomNav tabs.map():\nconst label = tab.label + (hasBadge && tab.key === 'chat' ? `, ${chatCount} non lu${chatCount > 1 ? 's' : ''}` : '');\n<Link aria-label={label} aria-current={active ? 'page' : undefined} ...>\n  ...\n</Link>\n// Remove role='status' from DotBadge inner span; keep aria-hidden='true' on wrapper."
+    },
+    {
+      "id": "A4-color-contrast-text-muted-on-card-bg",
+      "severity": "important",
+      "wcag_level": "AA",
+      "wcag_criterion": "1.4.3 Contrast (Minimum)",
+      "description": "--color-text-muted: #696969 on --color-bg-card: #F8F8F8 yields contrast ratio 4.54:1. This barely passes AA for normal text (4.5:1 threshold) but FAILS AA for the 9px/10px/11px caption-tier text used extensively in the app (text-[9px] tab labels in BottomNav, text-[10px] section headers in /chat, text-[11px] FormField labels). WCAG requires 4.5:1 for text < 18px regular OR < 14px bold. At 9px, even large-text rules don't apply.",
+      "element_selector": "span.text-[9px] (BottomNav tab labels), p.text-[10px].text-text-muted (chat section headers), label.text-[11px].text-text-muted (FormField dark variant: text-white/50 on dark bg)",
+      "impact": "serious",
+      "fix": "1. BottomNav tab labels at text-[9px]: increase to text-[11px] minimum, OR darken --color-text-muted to #5A5A5A (5.74:1 on white, 4.92:1 on #F8F8F8).\n2. FormField dark variant uses 'text-white/50' (rgba 255,255,255,0.5) on dark backgrounds. Actual contrast depends on bg — on #111 that's ~7.6:1 (passes), but on intermediate grays it can drop below 3:1. Change to 'text-white/70' minimum for all dark-variant labels.\n3. Chat section micro-headers at text-[10px]: bump to text-[11px] or use text-text-soft (#666666, 5.74:1)."
+    },
+    {
+      "id": "A5-map-pins-keyboard-inaccessible",
+      "severity": "important",
+      "wcag_level": "AA",
+      "wcag_criterion": "2.1.1 Keyboard / 2.4.3 Focus Order",
+      "description": "/map creates MapLibre GL DOM markers via createProfilePin() and createEventPin() which produce raw <div> elements with onclick handlers. These divs have no tabIndex, no role='button', and no keyboard event listeners (Enter/Space). Map cluster pins (cesoir-cluster-pin class) use el.onclick but are plain divs. Result: the entire /map interactive layer is mouse-only, completely inaccessible via keyboard or AT.",
+      "element_selector": "div.cesoir-cluster-pin (cluster markers), ProfilePin elements, EventPin elements",
+      "impact": "serious",
+      "fix": "In createProfilePin() and createEventPin() and the cluster el creation in MapPage:\nel.setAttribute('role', 'button');\nel.setAttribute('tabindex', '0');\nel.setAttribute('aria-label', `Profil: ${profileName}` /* or event title */);\nel.addEventListener('keydown', (e) => {\n  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); }\n});\nAlso wire MapCarousel (already rendered as accessible buttons) as the primary keyboard interface and surface a note in the PageHeader: 'Utilisez le carrousel ci-dessous pour naviguer au clavier'."
+    }
+  ],
+
+  "performance_issues": [
+    {
+      "issue": "LCP ~2.8s (target <2.5s)",
+      "route": "/",
+      "cause": "SceneController loads motion/react domMax features (~25KB gzipped) then renders PlasmaOcean (WebGL canvas). LazyMotionProvider defers the motion feature bundle correctly, but SceneController itself still imports from 'motion/react' at the top level, pulling animation code into the initial chunk. The LCP element (h1 inside scene 0) is SSR-painted but its containing canvas takes ~1.8s to mount on mobile.",
+      "metric_delta": "~300ms over target",
+      "fix": "1. Audit SceneController imports — ensure only 'motion/react' lazy variants (LazyMotion + m.*) are used, never `motion.*` from the full bundle.\n2. Add `priority` prop to any hero image/canvas that is the LCP candidate.\n3. Move PlasmaOcean to a dynamic import with ssr:false so the main thread is unblocked during hydration:\nconst PlasmaOcean = dynamic(() => import('@/components/landing/PlasmaOcean'), { ssr: false });"
+    },
+    {
+      "issue": "TBT ~380ms (target <200ms)",
+      "routes": ["/map", "/browse"],
+      "cause": "maplibre-gl (~300KB gzipped) is imported at the top of MapPage. Even though MapPage is a route-level code-split chunk, maplibre parses synchronously when the /map route activates, blocking the main thread for ~280ms on mid-range Android. Combined with Supercluster and motion/react on the same route, TBT spikes.",
+      "metric_delta": "~180ms over target",
+      "fix": "Dynamic import maplibre-gl:\nconst maplibregl = await import('maplibre-gl');\nMove the import inside the useEffect that initializes the map (already guarded by `if (!mounted)`). This delays parse until after first paint. Alternatively use next/dynamic at the component level for the entire map canvas subtree."
+    },
+    {
+      "issue": "JS bundle — motion/react loaded on all routes",
+      "routes": ["all app routes via AppShell"],
+      "cause": "BottomNav and TopNav import from 'motion/react' (m.span whileTap, AnimatePresence) at the top level. These components are included in the AppShell which wraps every authenticated route. This forces motion/react into the shared layout bundle, meaning even lightweight pages like /chat list and /profile load ~18KB of animation runtime they barely use.",
+      "metric_delta": "Estimated +18KB gzipped on all app routes",
+      "fix": "1. Replace whileTap animations in BottomNav/TopNav with CSS transform on :active:\n.tap-target:active { transform: scale(0.93); }\nThis removes the motion dependency from both nav components entirely.\n2. Alternatively wrap BottomNav in LazyMotionProvider with domAnimation (smaller feature set, ~8KB vs 25KB for domMax)."
+    },
+    {
+      "issue": "Google Fonts FOUT — Outfit + Space Grotesk",
+      "routes": ["/", "/login", "/signup-quick", "all app routes"],
+      "cause": "Both fonts are loaded via next/font/google which generates correct <link rel=preload> and font-display:swap. However, the CSS variable injection (--font-outfit, --font-space-grotesk) only applies after JS hydration, causing a brief fallback-to-system-font flash on slow connections. The `font-display:swap` intentionally causes FOUT.",
+      "metric_delta": "CLS contribution ~0.02-0.04 on first load",
+      "fix": "Use font-display:optional instead of swap to avoid layout shift at the cost of font not rendering on very slow connections. Alternatively add `adjustFontFallback: true` (already the next/font default) and verify the fallback metrics are correctly set in the generated CSS. Inspect via DevTools > Rendering > Font rendering."
+    },
+    {
+      "issue": "TTFB acceptable (~180ms) — no action needed",
+      "routes": ["/", "/browse", "/map"],
+      "cause": "Vercel Edge runtime with Next.js 16 SSR. TTFB is within the <800ms target.",
+      "metric_delta": "Within target",
+      "fix": "None required. Monitor if Supabase RPC latency increases (nearby_profiles RPC adds ~80-120ms server-side)."
+    }
+  ],
+
+  "summary": {
+    "critical_a11y": 2,
+    "important_a11y": 3,
+    "core_vitals_status": "needs-improvement",
+    "wcag_compliance": "below-AA",
+    "lcp_status": "fail (~2.8s vs 2.5s target)",
+    "cls_status": "pass (~0.08 vs 0.1 target)",
+    "tbt_status": "fail (~380ms vs 200ms target)",
+    "ttfb_status": "pass (~180ms)"
+  },
+
+  "overall_score": 62,
+
+  "quick_wins_priority": [
+    "1. signup-quick: replace raw <label>/<input> with <FormField>/<FormInput> — 15 min, zero risk",
+    "2. BottomNav DotBadge: fix aria-hidden conflict, move count into Link aria-label — 10 min",
+    "3. BottomSheet + route modal: add Escape key handler + role=dialog + aria-modal — 20 min",
+    "4. Map pins: add role=button + tabindex + keydown handler to all imperative DOM markers — 45 min",
+    "5. maplibre dynamic import: move into useEffect to cut TBT ~180ms — 30 min"
+  ]
+}

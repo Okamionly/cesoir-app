@@ -17,7 +17,7 @@ export default function ShareProfile({ userId, userName }: ShareProfileProps) {
       try {
         await navigator.share({
           title: `${userName} sur CeSoir`,
-          text: `Decouvre le profil de ${userName} sur CeSoir !`,
+          text: `Découvre le profil de ${userName} sur CeSoir !`,
           url: profileUrl,
         });
         return;
@@ -59,7 +59,7 @@ export default function ShareProfile({ userId, userName }: ShareProfileProps) {
       ) : (
         <Share2 size={16} strokeWidth={2} aria-hidden="true" />
       )}
-      {copied ? "Lien copie !" : "Partager"}
+      {copied ? "Lien copié !" : "Partager"}
     </button>
   );
 }

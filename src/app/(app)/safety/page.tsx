@@ -15,12 +15,12 @@ import { Shield, AlertTriangle, FileText, ChevronRight, ChevronDown, Info } from
 // ------------------------------------------------------------------
 
 const safetyTips = [
-  "Retrouvez-vous toujours dans un lieu public et anime",
-  "Prevenez un(e) ami(e) de votre rendez-vous (lieu, heure, nom)",
-  "Utilisez le bouton SOS si vous vous sentez en danger",
-  "Ne partagez jamais vos informations financieres",
-  "Faites confiance a votre instinct -- si ca semble bizarre, partez",
-  "Signalez tout comportement suspect via l'app",
+  "Retrouve-toi toujours dans un lieu public et animé",
+  "Préviens un(e) ami(e) de ton rendez-vous (lieu, heure, nom)",
+  "Utilise le bouton SOS si tu te sens en danger",
+  "Ne partage jamais tes informations financières",
+  "Fais confiance à ton instinct -- si ça semble bizarre, pars",
+  "Signale tout comportement suspect via l'app",
 ];
 
 // ------------------------------------------------------------------
@@ -125,7 +125,7 @@ export default function SafetyPage() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--color-bg)" }}>
       <PageHeader
-        title="Securite"
+        title="Sécurité"
         tone="white"
         rackFocus
         hairlineVariant="green-violet"
@@ -150,12 +150,12 @@ export default function SafetyPage() {
               fontFamily: "var(--font-display, 'Space Grotesk', sans-serif)",
             }}
           >
-            Ta securite est notre
+            Ta sécurité est notre
             <br />
-            <span style={{ color: "var(--color-safe)" }}>priorite absolue.</span>
+            <span style={{ color: "var(--color-safe)" }}>priorité absolue.</span>
           </h1>
           <p className="text-[14px] leading-relaxed" style={{ color: "var(--color-text-soft)" }}>
-            Tous tes outils de securite au meme endroit. SOS, check-in,
+            Tous tes outils de sécurité au même endroit. SOS, check-in,
             contacts de confiance.
           </p>
         </m.div>
@@ -174,7 +174,7 @@ export default function SafetyPage() {
             className="w-full relative overflow-hidden rounded-2xl py-6 flex flex-col items-center gap-3 text-white font-bold shadow-lg disabled:opacity-70"
             style={{ backgroundColor: "var(--color-danger)" }}
             whileTap={{ scale: 0.97 }}
-            aria-label="Declencher l'alerte SOS"
+            aria-label="Déclencher l'alerte SOS"
           >
             {/* Breathing pulse behind the button */}
             <m.div
@@ -197,7 +197,7 @@ export default function SafetyPage() {
               className="text-xs relative z-10"
               style={{ color: "color-mix(in srgb, var(--color-bg) 70%, transparent)" }}
             >
-              Envoie ta position a tes contacts
+              Envoie ta position à tes contacts
             </span>
           </m.button>
         </m.div>
@@ -235,7 +235,7 @@ export default function SafetyPage() {
                   Confirmer l&apos;alerte SOS ?
                 </h3>
                 <p className="text-sm mb-6" style={{ color: "var(--color-text-soft)" }}>
-                  Ta position sera envoyee a tous tes contacts de confiance
+                  Ta position sera envoyée à tous tes contacts de confiance
                   ({trustedContacts.length} contact
                   {trustedContacts.length !== 1 ? "s" : ""}).
                 </p>
@@ -295,7 +295,7 @@ export default function SafetyPage() {
                   className="text-sm font-bold"
                   style={{ color: "var(--color-text)" }}
                 >
-                  Check-in de securite
+                  Check-in de sécurité
                 </h2>
                 <p
                   className="text-xs"
@@ -338,7 +338,7 @@ export default function SafetyPage() {
                   color: "var(--color-danger)",
                 }}
               >
-                Arreter
+                Arrêter
               </button>
             </div>
           ) : (
@@ -380,7 +380,7 @@ export default function SafetyPage() {
             className="text-[11px] uppercase tracking-[0.2em] font-bold mb-3"
             style={{ color: "var(--color-text-muted)" }}
           >
-            Historique de securite
+            Historique de sécurité
           </h2>
 
           <div
@@ -393,10 +393,10 @@ export default function SafetyPage() {
             {recentActions.length === 0 ? (
               <div className="p-6 text-center">
                 <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
-                  Aucune action recente.
+                  Aucune action récente.
                 </p>
                 <p className="text-xs mt-1" style={{ color: "var(--color-border)" }}>
-                  Tes alertes SOS et check-ins apparaitront ici.
+                  Tes alertes SOS et check-ins apparaîtront ici.
                 </p>
               </div>
             ) : (
@@ -458,7 +458,7 @@ export default function SafetyPage() {
                   Mes signalements
                 </p>
                 <p className="text-xs" style={{ color: "var(--color-text-soft)" }}>
-                  Voir l&apos;historique des profils signales
+                  Voir l&apos;historique des profils signalés
                 </p>
               </div>
             </div>
@@ -493,7 +493,7 @@ export default function SafetyPage() {
                 <Info size={18} color="var(--color-safe)" strokeWidth={2} aria-hidden="true" />
               </div>
               <span className="text-sm font-semibold" style={{ color: "var(--color-text)" }}>
-                Conseils de securite
+                Conseils de sécurité
               </span>
             </div>
             <m.div
@@ -577,7 +577,7 @@ export default function SafetyPage() {
             3919
           </a>
           <p className="text-[11px]" style={{ color: "var(--color-text-muted)" }}>
-            Violences conjugales -- appel gratuit et anonyme
+            Violences conjugales — appel gratuit et anonyme
           </p>
         </m.div>
 
@@ -587,7 +587,7 @@ export default function SafetyPage() {
           className="block text-center text-[13px] font-semibold mb-20 tap-target py-2"
           style={{ color: "var(--color-accent)" }}
         >
-          {"\u2190"} Retour a l&apos;exploration
+          {"\u2190"} Retour \u00e0 l&apos;exploration
         </Link>
       </main>
     </div>

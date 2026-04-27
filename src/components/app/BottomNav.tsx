@@ -99,7 +99,7 @@ const tabs: {
 }[] = [
   { href: "/feed", key: "feed", Icon: IconSearch, label: "Explorer" },
   { href: "/map", key: "map", Icon: IconMap, label: "Carte" },
-  { href: "/events", key: "events", Icon: IconSoirees, label: "Soirees" },
+  { href: "/events", key: "events", Icon: IconSoirees, label: "Soirées" },
   { href: "/chat", key: "chat", Icon: IconChat, label: "Chat" },
   { href: "/modes", key: "modes", Icon: IconMoon, label: "Modes" },
   { href: "/profile", key: "profile", Icon: IconUser, label: "Profil" },

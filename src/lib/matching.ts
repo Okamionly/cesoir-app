@@ -450,12 +450,29 @@ async function getKarmaForUsers(
   if (userIds.length === 0) return map;
 
   // Sum all karma transactions per user.
-  // Supabase JS doesn't support GROUP BY, so we fetch all and aggregate client-side.
-  // For large scale, this should be a DB view or RPC — fine for MVP.
+  // Supabase JS doesn't support GROUP BY, so we fetch and aggregate client-side.
+  //
+  // 2026-04-26 P1 fix: cap the scan to last 90 days + hard limit 5000 rows.
+  // The previous unbounded query scaled O(users × full_history) — at ~100
+  // candidates with active karma users, the response could exceed 5MB and
+  // saturate the Supabase JS client. 90 days covers the realistic decay
+  // window for "social proof recency" and stays well under PostgREST's
+  // default row caps.
+  //
+  // TODO(scaling): replace with SQL aggregate via RPC `get_karma_totals(
+  //   user_ids uuid[]) returns table(user_id uuid, total int)` OR materialise
+  //   a `karma_balance` table updated by trigger. Either eliminates the
+  //   client-side aggregation entirely.
+  const iso90daysAgo = new Date(
+    Date.now() - 90 * 24 * 60 * 60 * 1000,
+  ).toISOString();
+
   const { data, error } = await supabase
     .from("karma_transactions")
     .select("user_id, amount")
-    .in("user_id", userIds);
+    .in("user_id", userIds)
+    .gte("created_at", iso90daysAgo)
+    .limit(5000);
 
   if (error || !data) return map;
 

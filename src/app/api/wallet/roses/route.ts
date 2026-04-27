@@ -5,20 +5,31 @@ import { walletActionSchema } from "@/lib/validation";
 import { logger } from "@/lib/logger";
 import { isMonetizationEnabledServer } from "@/lib/featureFlags";
 import { requireUser, AuthError } from "@/lib/api/auth";
+import { apiError } from "@/lib/api/response";
 
 /**
  * POST /api/wallet/roses
- * Body: { action: 'spend' | 'earn', amount: number }
+ * Body: { action: 'spend', amount: number }
  * Auth: unified `requireUser` (Bearer or SSR cookie).
  *
- * Increments/decrements the user's Roses balance server-side. Before
- * audit 2026-04-19 the balance lived in localStorage — a user who
- * cleared it got unlimited spend. Now the DB is source of truth.
+ * Decrements the user's Roses balance server-side. Before audit 2026-04-19
+ * the balance lived in localStorage — a user who cleared it got unlimited
+ * spend. Now the DB is source of truth.
  *
  * Rate limit: 10/min per user (prevent rapid drain / flooding).
  *
  * On 'spend' we reject if balance < amount (returns 402 payment_required).
  * The row is upserted on first call (0 default via table constraint).
+ *
+ * Audit 2026-04-26 (P0 fraud fix): the `earn` action was removed. Any
+ * authenticated client could call `{ action: "earn", amount: 999999 }`
+ * and grant themselves unlimited roses via the service-role upsert below.
+ * Roses are now server-issued only:
+ *   - Stripe checkout webhook (paid purchase)
+ *   - `claim_invite_code` RPC (referral reward)
+ *   - achievement triggers (server-side game logic)
+ * Stale clients sending `action: "earn"` get HTTP 410 (Gone) with a clear
+ * `earn-action-removed` code so they can be detected in logs and updated.
  */
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
@@ -55,6 +66,25 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Corps JSON invalide" }, { status: 400 });
   }
 
+  // P0 fraud fix (2026-04-26): intercept the deprecated `earn` action BEFORE
+  // schema validation so legacy clients get a clear, dedicated error code
+  // (instead of a generic `validation_failed`) and we can track adoption in
+  // logs. Any code path that needs to credit roses must go through a
+  // server-trusted entry point (Stripe webhook / claim_invite_code RPC /
+  // achievement triggers) — never through this client-facing route.
+  if (
+    typeof rawBody === "object" &&
+    rawBody !== null &&
+    (rawBody as { action?: unknown }).action === "earn"
+  ) {
+    logger.warn("api_wallet_roses_earn_attempt_blocked", { userId: user.id });
+    return apiError(
+      "Roses are server-issued only. Use Stripe checkout, invite claim, or achievement triggers.",
+      410, // Gone
+      { code: "earn-action-removed" },
+    );
+  }
+
   const parsed = walletActionSchema.safeParse(rawBody);
   if (!parsed.success) {
     logger.warn("api_wallet_roses_validation_failed", { fields: parsed.error.flatten().fieldErrors });
@@ -84,17 +114,28 @@ export async function POST(request: Request) {
   const currentBalance = wallet?.roses_balance ?? 0;
 
   // --- Compute new balance ---
+  // Switch on action so the dispatch is exhaustive — adding a future
+  // server-side action (e.g. "refund") forces an explicit case here.
   let newBalance: number;
-  if (action === "spend") {
-    if (currentBalance < amount) {
-      return NextResponse.json(
-        { error: "insufficient_balance", balance: currentBalance },
-        { status: 402 },
-      );
+  switch (action) {
+    case "spend": {
+      if (currentBalance < amount) {
+        return NextResponse.json(
+          { error: "insufficient_balance", balance: currentBalance },
+          { status: 402 },
+        );
+      }
+      newBalance = currentBalance - amount;
+      break;
     }
-    newBalance = currentBalance - amount;
-  } else {
-    newBalance = currentBalance + amount;
+    // Defensive: schema rejects anything other than "spend" today. The
+    // `earn` case is intercepted above with a 410. If a new union member
+    // is added without a case here, TS won't catch it (z.enum widens to
+    // string), so we 400 explicitly rather than silently fall through.
+    default: {
+      logger.error("api_wallet_roses_unhandled_action", { action });
+      return apiError("Action non supportee", 400, { code: "unsupported_action" });
+    }
   }
 
   // --- Upsert ---

@@ -71,7 +71,7 @@ export default function EventInviteButton({ onInvite }: EventInviteButtonProps) 
             emoji="🎧"
             title="Tu n'as pas encore rejoint d'event"
             subtitle="Rejoins-en un pour pouvoir le partager ici."
-            actionLabel="Decouvrir les soirees"
+            actionLabel="Découvrir les soirées"
             actionHref="/events"
           />
         ) : (

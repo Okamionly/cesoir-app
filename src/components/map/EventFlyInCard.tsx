@@ -180,11 +180,11 @@ export default function EventFlyInCard({
       onMouseMove={handleMouseMove}
       role="dialog"
       aria-modal="true"
-      aria-label={`Soiree: ${event.title}`}
+      aria-label={`Soirée: ${event.title}`}
       className={
         floatingStyle
-          ? "absolute z-[1000] rounded-2xl"
-          : "absolute bottom-24 left-3 right-3 z-[1000] rounded-2xl"
+          ? "absolute z-[870] rounded-2xl"
+          : "absolute bottom-24 left-3 right-3 z-[870] rounded-2xl"
       }
       style={
         floatingStyle

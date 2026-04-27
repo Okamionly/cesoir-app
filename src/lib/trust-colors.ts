@@ -40,39 +40,39 @@ export interface TrustBreakdownItem {
 
 export const DEFAULT_TRUST_BREAKDOWN: TrustBreakdownItem[] = [
   {
-    label: "Verification",
+    label: "Vérification",
     points: 0,
     maxPoints: 25,
     color: TRUST_COLORS.category.verification,
-    tip: "Verifie ton profil par selfie, telephone et video",
+    tip: "Vérifie ton profil par selfie, téléphone et vidéo",
   },
   {
     label: "Avis",
     points: 0,
     maxPoints: 25,
     color: TRUST_COLORS.category.reviews,
-    tip: "Recois des avis positifs apres tes rencontres",
+    tip: "Reçois des avis positifs après tes rencontres",
   },
   {
-    label: "Activite",
+    label: "Activité",
     points: 0,
     maxPoints: 20,
     color: TRUST_COLORS.category.activity,
-    tip: "Sois actif regulierement sur l'app",
+    tip: "Sois actif régulièrement sur l'app",
   },
   {
     label: "Profil",
     points: 0,
     maxPoints: 15,
     color: TRUST_COLORS.category.profile,
-    tip: "Complete toutes les sections de ton profil",
+    tip: "Complète toutes les sections de ton profil",
   },
   {
-    label: "Communaute",
+    label: "Communauté",
     points: 0,
     maxPoints: 15,
     color: TRUST_COLORS.category.community,
-    tip: "Participe aux evenements et invite des garants",
+    tip: "Participe aux événements et invite des garants",
   },
 ];
 

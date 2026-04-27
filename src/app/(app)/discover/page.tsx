@@ -227,7 +227,7 @@ export default function DiscoverPage() {
   return (
     <div className="min-h-screen bg-bg max-w-lg mx-auto pb-24">
       <PageHeader
-        title="Decouvrir"
+        title="Découvrir"
         titleClassName="text-[20px] font-black tracking-tight"
         rackFocus
         icon={
@@ -480,7 +480,7 @@ export default function DiscoverPage() {
         <CrossLinkCard
           emoji="🔥"
           title="Plans ce soir"
-          subtitle="Flash, soirees, events — rejoins-en un"
+          subtitle="Flash, soirées, events — rejoins-en un"
           href="/plans"
         />
       </div>
