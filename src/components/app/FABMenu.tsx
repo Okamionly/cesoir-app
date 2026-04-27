@@ -63,11 +63,19 @@ const FAB_ACTIONS: FABAction[] = FAB_ACTIONS_META.map((meta) => ({
   icon: FAB_ICONS[meta.href] ?? null,
 }));
 
-// Arc positions for 3 buttons — tighter, closer to the FAB
+// Arc positions for 3 action buttons. Each entry is the (x,y) offset from
+// the FAB anchor (right-4 / right-aligned). All offsets are NEGATIVE x so
+// the buttons fan up-and-LEFT — historically position[2] was at x:+20 which
+// pushed the third button + its whitespace-nowrap label past the right edge
+// of both the 440px desktop phone-frame AND the mobile viewport. QA caught
+// "Mood Match" / "Speed Dating" / "Creer un plan" labels truncated and the
+// cluster bleeding into the BottomNav area on /profile (2026-04-27 user
+// report). Re-anchored the whole arc to the LEFT of the FAB; labels now
+// stay inside the frame at every breakpoint.
 const positions = [
-  { x: -55, y: -30 },
-  { x: -20, y: -65 },
-  { x: 20, y: -65 },
+  { x: -75, y: -10 },   // far left, slight rise
+  { x: -50, y: -60 },   // upper-mid-left
+  { x: -15, y: -75 },   // straight-up-ish (was +20)
 ];
 
 /**
