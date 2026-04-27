@@ -10,6 +10,7 @@ import { trackAcquisition, track, identifyUser, captureFirstVisit, trackFirstTim
 import PhotoUpload from "@/components/app/PhotoUpload";
 import { landing } from "@/lib/design-tokens";
 import { springs, easings } from "@/lib/motion-design";
+import { Eye, EyeOff, Loader2 } from "@/components/ui/lucide";
 import {
   FormField,
   FormInput,
@@ -47,11 +48,24 @@ const stepVariants = {
   },
 };
 
+function RegisterFallback() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-bg">
+      <Loader2
+        size={28}
+        strokeWidth={1.8}
+        className="animate-spin text-accent"
+        aria-label="Chargement"
+      />
+    </main>
+  );
+}
+
 // Wave 15.1 : wrap useSearchParams in Suspense to allow static prerender
 // (Next.js 16 requires Suspense around search-params readers for SSG).
 export default function RegisterPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<RegisterFallback />}>
       <RegisterPageInner />
     </Suspense>
   );
@@ -77,6 +91,7 @@ function RegisterPageInner() {
   const [age, setAge] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [gender, setGender] = useState("");
   const [lookingFor, setLookingFor] = useState("");
   const [bio, setBio] = useState("");
@@ -402,16 +417,36 @@ function RegisterPageInner() {
                   required
                   hint="Minimum 6 caractères."
                 >
-                  <FormInput
-                    type="password"
-                    minLength={6}
-                    placeholder="********"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    autoComplete="new-password"
-                    variant="dark"
-                    size="md"
-                  />
+                  <div className="relative">
+                    <FormInput
+                      type={showPassword ? "text" : "password"}
+                      minLength={6}
+                      placeholder="********"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      autoComplete="new-password"
+                      variant="dark"
+                      size="md"
+                      className="pr-12"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      aria-label={
+                        showPassword
+                          ? "Masquer le mot de passe"
+                          : "Afficher le mot de passe"
+                      }
+                      aria-pressed={showPassword}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 inline-flex items-center justify-center w-11 h-11 rounded-lg text-white/60 hover:text-white/90 transition-colors"
+                    >
+                      {showPassword ? (
+                        <EyeOff size={20} aria-hidden="true" />
+                      ) : (
+                        <Eye size={20} aria-hidden="true" />
+                      )}
+                    </button>
+                  </div>
                 </FormField>
                 <FormChoice
                   legend="Je suis"

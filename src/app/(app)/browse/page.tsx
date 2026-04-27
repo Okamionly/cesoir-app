@@ -23,6 +23,7 @@ import NotificationPreview from "@/components/app/NotificationPreview";
 import MidnightReset from "@/components/app/MidnightReset";
 import PageHeader from "@/components/ui/PageHeader";
 import { RotateCcw } from "@/components/ui/lucide";
+import PageLoader from "@/components/app/PageLoader";
 import { playSound } from "@/lib/sounds";
 import { haptics } from "@/lib/haptics";
 import { useSwipeUndo } from "@/lib/useSwipeUndo";
@@ -97,12 +98,8 @@ function BrowsePageInner() {
   // Find the original MatchCandidate for the current card (needed for mode info on like/superlike)
   const currentMatch = matches.find((m) => m.id === card?.id);
 
-  useEffect(() => {
-    if (match) {
-      const t = setTimeout(() => setMatch(null), 4000);
-      return () => clearTimeout(t);
-    }
-  }, [match]);
+  // Auto-dismiss is now self-managed inside MatchCinematic (8s default,
+  // pausable on hover/tap). See src/components/app/MatchCinematic.tsx.
 
   // Reset index when filter or matches change
   useEffect(() => {
@@ -410,14 +407,14 @@ function BrowsePageInner() {
             {MONETIZATION_ENABLED ? (
               <Link
                 href="/premium"
-                className="inline-block gradient-bg text-white px-8 py-3 rounded-full text-[14px] font-semibold"
+                className="inline-block gradient-bg text-white px-8 py-3 rounded-full text-[14px] font-semibold tap-target"
               >
                 Passer Premium
               </Link>
             ) : (
               <Link
                 href="/why-free"
-                className="inline-block gradient-bg text-white px-8 py-3 rounded-full text-[14px] font-semibold"
+                className="inline-block gradient-bg text-white px-8 py-3 rounded-full text-[14px] font-semibold tap-target"
               >
                 Pourquoi gratuit ?
               </Link>
@@ -493,13 +490,17 @@ function ActionButtons({
     // home bar. Bumped to 96px + safe-area so circles always sit fully above
     // the glass nav. Pair with pt-2 for symmetric spacing above.
     <div className="shrink-0 pt-2 pb-[calc(96px+env(safe-area-inset-bottom))]" role="group" aria-label="Actions">
-      {/* Small undo icon above main row */}
+      {/* Small undo icon above main row.
+          Visual stays 28px (compact above the 60px main row) but the
+          tap-target-expand utility renders a 44px invisible hit area
+          via ::before so we still meet WCAG 2.5.5 / Apple HIG.
+          Sweep 2026-04-27. */}
       <div className="flex justify-center mb-2">
         <motion.button
           onClick={onUndo}
           disabled={!canUndo}
           aria-label="Annuler le dernier swipe"
-          className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+          className={`tap-target-expand w-7 h-7 rounded-full flex items-center justify-center transition-all ${
             canUndo
               ? "text-text-muted hover:text-text"
               : "text-text-muted/20 cursor-not-allowed"
@@ -606,7 +607,7 @@ function EmptyState({ onReset }: { onReset: () => void }) {
 // Same pattern as feed/plans/plans-create after /glowup/suspense-boundaries PR.
 export default function BrowsePage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageLoader />}>
       <BrowsePageInner />
     </Suspense>
   );

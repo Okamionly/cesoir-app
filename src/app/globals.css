@@ -117,6 +117,32 @@ input:focus-visible, textarea:focus-visible, select:focus-visible {
 .font-display { font-family: var(--font-display); }
 .tap-target { min-height: 44px; min-width: 44px; }
 
+/*
+ * Expanded tap area without resizing the visual.
+ *
+ * Use when the icon/glyph MUST stay smaller than 44px (e.g. compact
+ * undo glyph, dense action bars) but the touch target still needs to
+ * meet WCAG 2.5.5 / Apple HIG 44px. Renders an invisible ::before
+ * pseudo-element that grows the hit-area to ≥44×44 around the
+ * element's geometric center, without shifting layout or visuals.
+ *
+ * Required: the element must be `position: relative` (set here) and
+ * pointer-events should not be disabled on its parent overlay.
+ *
+ * Sweep WCAG 2.5.5 — 2026-04-27
+ */
+.tap-target-expand { position: relative; }
+.tap-target-expand::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, 44px);
+  height: max(100%, 44px);
+  transform: translate(-50%, -50%);
+  /* Invisible — the underlying element renders the visual */
+}
+
 /* === STORY RING === */
 .story-ring { padding:2px; background:linear-gradient(135deg,#8B5CF6,#00FF88); border-radius:9999px; }
 .story-ring-off { padding:2px; background:#EBEBEB; border-radius:9999px; }

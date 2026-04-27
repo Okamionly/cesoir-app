@@ -14,20 +14,53 @@
  *  - Stats: total signups via my codes, total roses earned via referrals
  */
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { m } from "motion/react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import PageHeader from "@/components/ui/PageHeader";
 import { springs } from "@/lib/motion-design";
+import {
+  useReferralInfo,
+  ROSES_PER_CLAIM,
+  type ReferralCodeEntry,
+} from "@/lib/referral";
 
+/**
+ * Local InviteCode shape kept for the existing CodeCard which was written
+ * against snake_case (matches the API response too). The dashboard now
+ * derives codes from `useReferralInfo` and adapts them to this shape so
+ * we don't have to refactor CodeCard's props.
+ */
 interface InviteCode {
   code: string;
   used_by: string | null;
   used_at: string | null;
   expires_at: string;
   created_at: string;
+}
+
+function fromEntry(e: ReferralCodeEntry): InviteCode {
+  return {
+    code: e.code,
+    used_by: e.usedBy,
+    used_at: e.usedAt,
+    expires_at: e.expiresAt,
+    created_at: e.createdAt,
+  };
+}
+
+function timeAgo(iso: string): string {
+  const d = new Date(iso).getTime();
+  if (isNaN(d)) return "?";
+  const diffMs = Date.now() - d;
+  const days = Math.floor(diffMs / 86_400_000);
+  if (days <= 0) return "aujourd'hui";
+  if (days === 1) return "hier";
+  if (days < 7) return `il y a ${days}j`;
+  if (days < 30) return `il y a ${Math.floor(days / 7)} sem.`;
+  return `il y a ${Math.floor(days / 30)} mois`;
 }
 
 function fmtDate(iso: string): string {
@@ -117,7 +150,8 @@ function CodeCard({ code, onCopy }: { code: InviteCode; onCopy: (text: string) =
 
       {used && code.used_at ? (
         <div className="text-xs text-text-muted">
-          Utilisé le {fmtDate(code.used_at)}. Tu as gagné <span className="font-semibold text-text">5 🌹</span>.
+          Utilisé {timeAgo(code.used_at)} (le {fmtDate(code.used_at)}). Tu as gagné{" "}
+          <span className="font-semibold text-text">5 🌹</span>.
         </div>
       ) : !expired ? (
         <div className="flex gap-2">
@@ -143,30 +177,21 @@ function CodeCard({ code, onCopy }: { code: InviteCode; onCopy: (text: string) =
 
 export default function InvitesMinePage() {
   const { user, loading: authLoading } = useAuth();
-  const [codes, setCodes] = useState<InviteCode[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { info, loading, refetch } = useReferralInfo(user?.id ?? null);
   const [minting, setMinting] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
-  const fetchCodes = useCallback(async () => {
-    setLoading(true);
-    const { data: sessionData } = await supabase.auth.getSession();
-    const token = sessionData.session?.access_token;
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-    const res = await fetch("/api/invites/mine", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = (await res.json()) as { codes?: InviteCode[]; error?: string };
-    if (data.codes) setCodes(data.codes);
-    setLoading(false);
-  }, []);
+  // Re-derive InviteCode list from the hook so the existing CodeCard JSX
+  // doesn't need to change. Realtime updates flow in via useReferralInfo
+  // (subscribed to invite_codes UPDATE/INSERT/DELETE for this user).
+  const codes: InviteCode[] = info.myCodes.map(fromEntry);
 
+  // Refetch when auth flips (token refresh, signin) — the hook's own
+  // userId dep handles the bulk of this, but keeping a refetch here is
+  // a no-op when info is already fresh and a useful safety net otherwise.
   useEffect(() => {
-    if (!authLoading && user) void fetchCodes();
-  }, [authLoading, user, fetchCodes]);
+    if (!authLoading && user) void refetch();
+  }, [authLoading, user, refetch]);
 
   async function handleMint() {
     setMinting(true);
@@ -180,7 +205,9 @@ export default function InvitesMinePage() {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });
-    await fetchCodes();
+    // Realtime should pick up the INSERTs, but refetch immediately to
+    // close the perceived latency window for the user who just clicked.
+    await refetch();
     setMinting(false);
   }
 
@@ -193,9 +220,11 @@ export default function InvitesMinePage() {
   const used = codes.filter((c) => c.used_by);
   const expired = codes.filter((c) => !c.used_by && new Date(c.expires_at) <= new Date());
 
-  // Each used code = +5 roses earned. Bookkeeping is server-side via
-  // user_wallet, but this is a useful reminder for the dashboard.
-  const rosesEarned = used.length * 5;
+  // Headline numbers come straight from the DB-backed hook so we get
+  // the correct count even when codes paginate or RLS changes.
+  const rosesEarned = info.totalRosesEarned;
+  const totalReferrals = info.totalReferrals;
+  const activeFounders = info.activeFounders;
 
   return (
     <div className="min-h-screen bg-bg pb-20">
@@ -206,7 +235,7 @@ export default function InvitesMinePage() {
       />
 
       <div className="px-4 pt-4 max-w-md mx-auto space-y-6">
-        {/* Stats banner */}
+        {/* Stats banner — numbers come from DB-backed `useReferralInfo` */}
         <m.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -214,8 +243,8 @@ export default function InvitesMinePage() {
           className="rounded-2xl border border-accent/30 bg-accent/5 p-4 flex items-center justify-around text-center"
         >
           <div>
-            <div className="font-display text-2xl font-bold text-text">{used.length}</div>
-            <div className="text-[10px] uppercase tracking-wider text-text-muted">Inscriptions</div>
+            <div className="font-display text-2xl font-bold text-text">{totalReferrals}</div>
+            <div className="text-[10px] uppercase tracking-wider text-text-muted">Parrainés</div>
           </div>
           <div className="w-px h-8 bg-border" aria-hidden="true" />
           <div>
@@ -227,6 +256,43 @@ export default function InvitesMinePage() {
             <div className="font-display text-2xl font-bold text-text">{active.length}</div>
             <div className="text-[10px] uppercase tracking-wider text-text-muted">Codes actifs</div>
           </div>
+        </m.div>
+
+        {/* Plain-language stats lines — required by Wave 16 Bet #2 */}
+        <m.div
+          initial={{ opacity: 0, y: 4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={springs.snap}
+          className="rounded-2xl border border-border bg-card p-4 space-y-1.5 text-sm text-text"
+          aria-live="polite"
+        >
+          {totalReferrals === 0 ? (
+            <p className="text-text-muted">
+              Personne n&apos;a encore utilisé un de tes codes. Partages-en un pour démarrer ta chaîne.
+            </p>
+          ) : (
+            <>
+              <p>
+                Tu as parrainé <span className="font-semibold text-accent">{totalReferrals}</span>{" "}
+                {totalReferrals === 1 ? "ami" : "amis"}.
+              </p>
+              <p>
+                Tu as gagné <span className="font-semibold text-accent">{rosesEarned} 🌹</span>{" "}
+                grâce à tes invitations
+                <span className="text-text-muted">
+                  {" "}
+                  ({ROSES_PER_CLAIM} 🌹 par inscription).
+                </span>
+              </p>
+              {activeFounders > 0 && (
+                <p>
+                  <span className="font-semibold text-accent">{activeFounders}</span> de tes amis{" "}
+                  {activeFounders === 1 ? "porte" : "portent"} le badge{" "}
+                  <span className="font-semibold">Fondateur ☾</span>.
+                </p>
+              )}
+            </>
+          )}
         </m.div>
 
         {/* Active codes section */}

@@ -295,7 +295,7 @@ export default function ChatPage() {
                 // TODO: open chat composer with prefilled icebreaker text
                 console.log("[icebreaker] selected (no composer wired yet):", ice.text);
               }}
-              className="shrink-0 bg-accent/5 border border-accent/15 rounded-xl px-3.5 py-2.5 text-left max-w-[200px] hover:border-accent/30 transition-colors tap-target"
+              className="shrink-0 bg-accent/5 border border-accent/15 rounded-xl px-3.5 py-2.5 text-left max-w-[240px] hover:border-accent/30 transition-colors tap-target"
             >
               <span className="text-[10px] text-accent font-semibold block mb-1">{ice.mode} Suggestion</span>
               <span className="text-[12px] text-text-soft leading-snug line-clamp-2">{ice.text}</span>

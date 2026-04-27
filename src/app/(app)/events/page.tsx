@@ -14,7 +14,7 @@
  * enhancement (kept client-local for now — no deep-link requirement yet).
  */
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { m, type Variants } from "motion/react";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
@@ -22,9 +22,9 @@ import EventCard from "@/components/events/EventCard";
 import EventFilters from "@/components/events/EventFilters";
 import { useEvents } from "@/lib/useEvents";
 import type { EventFiltersState } from "@/lib/events-types";
-import { springs } from "@/lib/motion-design";
+import { springs, ambient } from "@/lib/motion-design";
 import { app } from "@/lib/design-tokens";
-import { Loader2 } from "@/components/ui/lucide";
+import { Calendar } from "@/components/ui/lucide";
 
 const DEFAULT_FILTERS: EventFiltersState = {
   when: "all",
@@ -55,6 +55,11 @@ export default function EventsPage() {
   const headingSubtitle = useMemo(() => {
     const parts = ["Ce soir", "Ce week-end", "Tout l'été"];
     return parts.join(" · ");
+  }, []);
+
+  const filtersActive = filters.when !== "all" || filters.category !== null;
+  const handleClearFilters = useCallback(() => {
+    setFilters(DEFAULT_FILTERS);
   }, []);
 
   return (
@@ -98,14 +103,40 @@ export default function EventsPage() {
       {/* List */}
       <main className="px-4 pt-4 pb-32" aria-label="Liste des soirées">
         {loading && events.length === 0 ? (
-          <div className="flex items-center justify-center py-20 text-text-muted">
-            <Loader2
-              size={22}
-              className="animate-spin"
-              strokeWidth={1.8}
-              aria-label="Chargement"
-            />
-          </div>
+          <ul
+            className="space-y-4"
+            role="status"
+            aria-label="Chargement des soirées"
+          >
+            {Array.from({ length: 3 }).map((_, i) => (
+              <li
+                key={i}
+                className="overflow-hidden rounded-2xl border border-border bg-card animate-pulse"
+              >
+                {/* Flyer placeholder (16/9) */}
+                <div className="aspect-[16/9] w-full bg-border/50" />
+                <div className="space-y-3 p-4">
+                  {/* Date badge */}
+                  <div className="h-3 w-24 rounded bg-border/40" />
+                  {/* Title (2 lines) */}
+                  <div className="space-y-2">
+                    <div className="h-4 w-5/6 rounded bg-border/50" />
+                    <div className="h-4 w-3/5 rounded bg-border/50" />
+                  </div>
+                  {/* Venue */}
+                  <div className="h-3 w-2/3 rounded bg-border/30" />
+                  {/* Chips + CTA row */}
+                  <div className="flex items-center justify-between pt-2">
+                    <div className="flex gap-2">
+                      <div className="h-6 w-14 rounded-full bg-border/30" />
+                      <div className="h-6 w-14 rounded-full bg-border/30" />
+                    </div>
+                    <div className="h-8 w-20 rounded-full bg-border/40" />
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
         ) : error && events.length === 0 ? (
           <EmptyState
             emoji="⚠️"
@@ -113,12 +144,9 @@ export default function EventsPage() {
             subtitle="Vérifie ta connexion et réessaye dans un instant."
           />
         ) : events.length === 0 ? (
-          <EmptyState
-            emoji="🌙"
-            title="Rien de prévu pour ce moment"
-            subtitle="Les events Montpellier arrivent bientôt. Reviens vite."
-            actionLabel="Voir tout"
-            actionHref="/events"
+          <EventsEmptyState
+            filtersActive={filtersActive}
+            onClearFilters={handleClearFilters}
           />
         ) : (
           <m.ul
@@ -135,6 +163,101 @@ export default function EventsPage() {
           </m.ul>
         )}
       </main>
+    </div>
+  );
+}
+
+/**
+ * Empty state for the events list. Shows a calming Calendar icon, a localized
+ * copy that adapts to whether the user has filters active, and a CTA to clear
+ * filters (when active) or reload (when not). The "Voir tous les events" CTA
+ * resets the filter state so the user can see what is actually available.
+ */
+function EventsEmptyState({
+  filtersActive,
+  onClearFilters,
+}: {
+  filtersActive: boolean;
+  onClearFilters: () => void;
+}) {
+  return (
+    <div
+      className="flex flex-col items-center justify-center px-6 py-16 text-center"
+      role="status"
+    >
+      {/* Glow aura behind the icon */}
+      <div className="relative mb-6">
+        <m.div
+          aria-hidden
+          className="absolute inset-0 rounded-full pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(circle at 50% 50%, rgba(139,92,246,0.32), transparent 70%)",
+            filter: "blur(28px)",
+          }}
+          animate={{
+            opacity: [0.4, 0.75, 0.4],
+            scale: [0.9, 1.1, 0.9],
+          }}
+          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <m.div
+          className="relative w-24 h-24 rounded-full flex items-center justify-center"
+          style={{
+            background:
+              "linear-gradient(135deg, rgba(139,92,246,0.15), rgba(0,255,136,0.08))",
+            boxShadow:
+              "inset 0 0 0 1px color-mix(in srgb, var(--color-accent) 24%, transparent)",
+          }}
+          animate={ambient.float(6)}
+        >
+          <Calendar
+            size={36}
+            strokeWidth={1.6}
+            className="text-accent"
+            aria-hidden
+          />
+        </m.div>
+      </div>
+
+      <m.h2
+        className="text-[17px] font-bold text-text mb-1.5"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ ...springs.heavy, delay: 0.1 }}
+      >
+        Pas de soirées dans ta zone
+      </m.h2>
+
+      <m.p
+        className="text-[13px] text-text-muted max-w-[300px] leading-relaxed mb-6"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ ...springs.heavy, delay: 0.2 }}
+      >
+        Élargis ton rayon ou attends que de nouveaux events soient ajoutés.
+      </m.p>
+
+      <m.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ ...springs.heavy, delay: 0.3 }}
+      >
+        <button
+          type="button"
+          onClick={onClearFilters}
+          disabled={!filtersActive}
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-[14px] font-bold text-white transition-all active:scale-95 tap-target disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{
+            background: app.gradient,
+            boxShadow:
+              "0 10px 30px color-mix(in srgb, var(--color-accent) 28%, transparent)",
+          }}
+        >
+          Voir tous les events
+          <span aria-hidden="true">{"→"}</span>
+        </button>
+      </m.div>
     </div>
   );
 }

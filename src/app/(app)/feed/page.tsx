@@ -9,6 +9,7 @@ import { MODES, type ModeKey } from "@/lib/modes";
 import { useFeed, type FeedActivity } from "@/lib/useFeed";
 import { useFeedReactions } from "@/lib/useFeedReactions";
 import EmptyState from "@/components/ui/EmptyState";
+import PageLoader from "@/components/app/PageLoader";
 import { Magnetic } from "@/components/motion/Magnetic";
 import PageHeader from "@/components/ui/PageHeader";
 import { SkeletonChatRow } from "@/components/ui/skeletons";
@@ -405,7 +406,7 @@ function FeedPageInner() {
 
 export default function FeedPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<PageLoader />}>
       <FeedPageInner />
     </Suspense>
   );

@@ -185,15 +185,23 @@ export default function SquadPage() {
               className="flex-1 px-3 py-2.5 bg-bg border border-border rounded-xl text-sm text-text placeholder:text-text-muted focus:outline-none focus:border-accent font-mono tracking-wider"
               aria-label="Code d'invitation"
             />
-            {/* 4. "Rejoindre" button: whileHover scale:1.05 y:-2 with glow, whileTap scale:0.92 */}
+            {/* 4. "Rejoindre" button: whileHover scale:1.05 y:-2 with glow, whileTap scale:0.92
+                BUG-08 fix (2026-04-27): button quasi-invisible at smaller sizes when disabled
+                + low contrast against gradient. Bumped disabled opacity 40→60 (still readable),
+                added min-w-[88px] so it doesn't shrink under "Rejoindre", and a subtle text
+                shadow for legibility on the violet gradient. whileHover already preserves the
+                gradient (no bg override), only adds glow + lift. */}
             <m.button
               onClick={handleJoin}
               disabled={joinCode.length !== 6 || busy}
               whileHover={{ scale: 1.05, y: -2, boxShadow: "0 0 20px color-mix(in srgb, var(--color-accent) 40%, transparent)" }}
               whileTap={{ scale: 0.92 }}
               transition={springs.snap}
-              className="px-4 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-40 transition-opacity"
-              style={{ background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-2))" }}
+              className="min-w-[88px] px-4 py-2.5 rounded-xl text-sm font-semibold text-white disabled:opacity-60 transition-opacity"
+              style={{
+                background: "linear-gradient(135deg, var(--color-accent), var(--color-accent-2))",
+                textShadow: "0 1px 2px rgba(0,0,0,0.2)",
+              }}
             >
               Rejoindre
             </m.button>
