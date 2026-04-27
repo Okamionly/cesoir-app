@@ -6,12 +6,14 @@ import { m } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import { usePlans, PLAN_TYPE_META, type PlanType } from "@/lib/usePlans";
 import PageHeader from "@/components/ui/PageHeader";
+import { useToast } from "@/components/ui/Toast";
 
 const PUBLIC_TYPES: PlanType[] = ["flash", "soiree", "popup"];
 
 function CreatePlanPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { toast } = useToast();
   const defaultType = (searchParams?.get("type") as PlanType) ?? "flash";
   const validatedDefault = PUBLIC_TYPES.includes(defaultType) ? defaultType : "flash";
 
@@ -25,6 +27,7 @@ function CreatePlanPageInner() {
     d.setMinutes(0, 0, 0);
     return d.toISOString().slice(0, 16);
   });
+  const minWhenAt = useMemo(() => new Date().toISOString().slice(0, 16), []);
   const [maxParticipants, setMaxParticipants] = useState(6);
   const [submitting, setSubmitting] = useState(false);
 
@@ -37,34 +40,42 @@ function CreatePlanPageInner() {
     if (!canSubmit || submitting) return;
     setSubmitting(true);
 
-    const whenIso = new Date(whenAt).toISOString();
-    const deadlineIso = type === "flash"
-      ? new Date(Date.now() + 30 * 60_000).toISOString()
-      : whenIso;
+    try {
+      const whenIso = new Date(whenAt).toISOString();
+      const deadlineIso = type === "flash"
+        ? new Date(Date.now() + 30 * 60_000).toISOString()
+        : whenIso;
 
-    const id = await createPlan({
-      type,
-      title: title.trim(),
-      description: description.trim() || undefined,
-      whereText: venue.trim(),
-      venue: venue.trim() || undefined,
-      whenAt: whenIso,
-      deadline: deadlineIso,
-      maxParticipants,
-    });
+      const id = await createPlan({
+        type,
+        title: title.trim(),
+        description: description.trim() || undefined,
+        whereText: venue.trim(),
+        venue: venue.trim() || undefined,
+        whenAt: whenIso,
+        deadline: deadlineIso,
+        maxParticipants,
+      });
 
-    setSubmitting(false);
+      if (id) {
+        toast("Plan créé — visible par tous les profils compatibles.", "success");
+        router.push(`/plans/${id}`);
+        return;
+      }
 
-    if (id) {
-      router.push(`/plans/${id}`);
-    } else {
-      router.push("/plans");
+      // Failure: stay on the form so the user keeps their input.
+      toast("Création échouée — réessaie.", "error");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Erreur inconnue";
+      toast(`Création échouée — ${message}`, "error");
+    } finally {
+      setSubmitting(false);
     }
-  }, [canSubmit, submitting, title, description, venue, whenAt, type, maxParticipants, createPlan, router]);
+  }, [canSubmit, submitting, title, description, venue, whenAt, type, maxParticipants, createPlan, router, toast]);
 
   return (
     <div className="min-h-screen bg-bg pb-28">
-      <PageHeader title="Creer un plan" backHref="/plans" />
+      <PageHeader title="Créer un plan" backHref="/plans" />
 
       <main className="px-5 pt-5 space-y-5 max-w-lg mx-auto">
         {/* Type picker */}
@@ -150,6 +161,7 @@ function CreatePlanPageInner() {
             id="plan-when"
             type="datetime-local"
             value={whenAt}
+            min={minWhenAt}
             onChange={(e) => setWhenAt(e.target.value)}
             className="w-full bg-card border border-border rounded-2xl px-4 py-3 text-sm text-text focus:border-accent focus:outline-none"
           />
@@ -183,7 +195,7 @@ function CreatePlanPageInner() {
               : "border border-border text-text-muted/50 cursor-not-allowed"
           }`}
         >
-          {submitting ? "Creation..." : "Creer le plan"}
+          {submitting ? "Création..." : "Créer le plan"}
         </m.button>
       </main>
     </div>

@@ -53,14 +53,14 @@ export default function EventsPage() {
   const { events, loading, error, totalThisWeek } = useEvents(filters);
 
   const headingSubtitle = useMemo(() => {
-    const parts = ["Ce soir", "Ce week-end", "Tout l'ete"];
+    const parts = ["Ce soir", "Ce week-end", "Tout l'été"];
     return parts.join(" · ");
   }, []);
 
   return (
     <div className="min-h-screen bg-bg">
       <PageHeader
-        title="Soirees"
+        title="Soirées"
         subtitle="Montpellier"
         icon={<span className="text-lg" aria-hidden>🎧</span>}
         iconAnimation="float"
@@ -70,7 +70,7 @@ export default function EventsPage() {
       {/* Hero */}
       <header className="px-4 pt-5 pb-2">
         <h2 className="font-display text-2xl font-bold text-text">
-          Soirees a Montpellier
+          Soirées à Montpellier
         </h2>
         <p className="mt-1 text-[13px] text-text-muted">{headingSubtitle}</p>
         {totalThisWeek > 0 && (
@@ -96,7 +96,7 @@ export default function EventsPage() {
       </section>
 
       {/* List */}
-      <main className="px-4 pt-4 pb-32" aria-label="Liste des soirees">
+      <main className="px-4 pt-4 pb-32" aria-label="Liste des soirées">
         {loading && events.length === 0 ? (
           <div className="flex items-center justify-center py-20 text-text-muted">
             <Loader2
@@ -110,13 +110,13 @@ export default function EventsPage() {
           <EmptyState
             emoji="⚠️"
             title="Impossible de charger les events"
-            subtitle="Verifie ta connexion et reessaye dans un instant."
+            subtitle="Vérifie ta connexion et réessaye dans un instant."
           />
         ) : events.length === 0 ? (
           <EmptyState
             emoji="🌙"
-            title="Rien de prevu pour ce moment"
-            subtitle="Les events Montpellier arrivent bientot. Reviens vite."
+            title="Rien de prévu pour ce moment"
+            subtitle="Les events Montpellier arrivent bientôt. Reviens vite."
             actionLabel="Voir tout"
             actionHref="/events"
           />

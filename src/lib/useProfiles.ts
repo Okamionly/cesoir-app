@@ -4,6 +4,7 @@ import { useAsyncResource } from "@/lib/hooks/useAsyncResource";
 import { supabase } from "./supabase";
 import { type Profile } from "./mock-profiles";
 import { app } from "./design-tokens";
+import { logger } from "./logger";
 
 export interface ProfilesFilters {
   mode?: string;
@@ -92,8 +93,10 @@ export function useProfiles(
           return { profiles: realProfiles, isReal: true };
         }
         return { profiles: [], isReal: false };
-      } catch {
-        // Silently fall back
+      } catch (err) {
+        logger.error("nearby_profiles_rpc_failed", {
+          err: err instanceof Error ? err.message : String(err),
+        });
         return { profiles: [], isReal: false };
       }
     },

@@ -37,7 +37,7 @@ export default function TrustBadge({ trustScore, isVerified = false, compact = f
         borderColor: tier.border,
       }}
       role="status"
-      aria-label={`Score de confiance: ${trustScore} — ${tier.label}${isVerified ? ", profil verifie" : ""}`}
+      aria-label={`Score de confiance: ${trustScore} — ${tier.label}${isVerified ? ", profil vérifié" : ""}`}
     >
       {/* Score number */}
       <span

@@ -52,36 +52,36 @@ const VALUES = [
     title: "Direct",
     emoji: "🎯",
     text: "On dit ce qu'on fait. On fait ce qu'on dit. Pas de corporate, pas de langue de bois.",
-    yes: "Ce soir, pres de toi",
-    no: "Decouvrez une experience relationnelle reinventee",
+    yes: "Ce soir, près de toi",
+    no: "Découvrez une expérience relationnelle réinventée",
   },
   {
     title: "Chaleureux",
     emoji: "🔥",
-    text: "La technologie doit rapprocher. Chaque decision produit est testee contre : est-ce que ca aide les gens a se rencontrer pour de vrai ?",
+    text: "La technologie doit rapprocher. Chaque décision produit est testée contre : est-ce que ça aide les gens à se rencontrer pour de vrai ?",
     yes: "Salut toi ! On matche ?",
     no: "Bienvenue sur votre espace personnel",
   },
   {
-    title: "Honnete",
+    title: "Honnête",
     emoji: "💯",
-    text: "Zero dark pattern. Zero paywall qui ment sur la gratuite. On explique comment on gagne de l'argent (page Pourquoi gratuit).",
+    text: "Zéro dark pattern. Zéro paywall qui ment sur la gratuité. On explique comment on gagne de l'argent (page Pourquoi gratuit).",
     yes: "Tu payes rien. Jamais.",
     no: "L'essai gratuit est vraiment gratuit ?",
   },
   {
     title: "Local",
     emoji: "📍",
-    text: "On construit pour les quartiers, pas les villes. Densite locale > vanity metrics. Montpellier d'abord, le reste apres.",
-    yes: "Bar a Figuerolles ? Place de la Comedie ?",
+    text: "On construit pour les quartiers, pas les villes. Densité locale > vanity metrics. Montpellier d'abord, le reste après.",
+    yes: "Bar à Figuerolles ? Place de la Comédie ?",
     no: "Choisissez un lieu dans votre ville",
   },
   {
     title: "Impatient",
     emoji: "⚡",
-    text: "Ship fast. Itere vite. On prefere livrer 80% aujourd'hui que 100% dans 3 mois. L'attente tue le produit.",
-    yes: "Match → chat → RDV dans la soiree",
-    no: "Nouveaux matchs affiches chaque 24h",
+    text: "Ship fast. Itère vite. On préfère livrer 80% aujourd'hui que 100% dans 3 mois. L'attente tue le produit.",
+    yes: "Match → chat → RDV dans la soirée",
+    no: "Nouveaux matchs affichés chaque 24h",
   },
 ] as const;
 
@@ -101,7 +101,7 @@ const JOBS: Job[] = [
     type: "Freelance 2-3j/semaine",
     priority: "urgent",
     summary:
-      "Ex-Bumble/Hinge/Fruitz ideal. Safety UX feminine, onboarding female-first, messaging anti-harcelement.",
+      "Ex-Bumble/Hinge/Fruitz idéal. Safety UX féminine, onboarding female-first, messaging anti-harcèlement.",
   },
   {
     title: "Tech Lead Full-stack",
@@ -115,14 +115,14 @@ const JOBS: Job[] = [
     type: "2j/mois",
     priority: "urgent",
     summary:
-      "Certifie CNIL, experience dating apps (Happn, Meetic, Fruitz). DPIA, RAT, incidents RGPD.",
+      "Certifié CNIL, expérience dating apps (Happn, Meetic, Fruitz). DPIA, RAT, incidents RGPD.",
   },
   {
     title: "Community Manager",
     type: "Part-time 15h/semaine",
     priority: "open",
     summary:
-      "Gen Z Montpellieraine. TikTok, Discord, events mensuels CeSoir Sessions.",
+      "Gen Z Montpelliéraine. TikTok, Discord, events mensuels CeSoir Sessions.",
   },
 ];
 

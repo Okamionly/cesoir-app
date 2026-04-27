@@ -121,7 +121,7 @@ export default function StoryCreator({ open, onClose, onPublish }: StoryCreatorP
                 {step === "preview" ? "Modifier" : "Annuler"}
               </button>
               <h3 className="text-[16px] font-bold text-text">
-                {step === "edit" ? "Creer une story" : "Apercu"}
+                {step === "edit" ? "Créer une story" : "Aperçu"}
               </h3>
               {step === "edit" ? (
                 <button

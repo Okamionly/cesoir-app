@@ -58,7 +58,7 @@ export function BottomSheet({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={onClose}
-            className="fixed inset-0 z-[900] bg-black/40 backdrop-blur-sm"
+            className="fixed inset-0 z-[850] bg-black/40 backdrop-blur-sm"
           />
 
           {/* Sheet */}
@@ -79,7 +79,7 @@ export function BottomSheet({
                 onClose();
               }
             }}
-            className="fixed inset-x-0 bottom-0 z-[901] flex flex-col rounded-t-3xl bg-bg shadow-2xl"
+            className="fixed inset-x-0 bottom-0 z-[851] flex flex-col rounded-t-3xl bg-bg shadow-2xl"
             style={{ height: snapHeight, touchAction: "none" }}
           >
             {/* Drag handle */}

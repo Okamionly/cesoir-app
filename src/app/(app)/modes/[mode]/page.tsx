@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useMemo, useState, useCallback, useSyncExternalStore } from "react";
+import type { EventFiltersState } from "@/lib/events-types";
 import { m } from "motion/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -14,6 +15,7 @@ import { EVENT_CATEGORY_LABELS } from "@/lib/events-types";
 import { useGeolocation } from "@/lib/useGeolocation";
 import { springs, ambient } from "@/lib/motion-design";
 import { supabase } from "@/lib/supabase";
+import { logger } from "@/lib/logger";
 import { useAuth } from "@/context/AuthContext";
 import { Magnetic } from "@/components/motion/Magnetic";
 import { RackFocus } from "@/components/motion/RackFocus";
@@ -22,17 +24,59 @@ import { ArrowLeft, Calendar, ChevronRight as LucideChevronRight, Star, Zap } fr
 // ─────────────────────────────────────────
 // External store — wall-clock ticker (react-hooks/purity-safe)
 // ─────────────────────────────────────────
+// IMPORTANT: subscribe/getSnapshot/getServerSnapshot MUST be module-level
+// stable references. Defining them inside the component (or returning a fresh
+// object each call) tears the store and causes "Maximum update depth exceeded"
+// because useSyncExternalStore re-subscribes on every render.
+
+// 2026-04-27 ROOT-CAUSE FIX: getNowMs returning a fresh Date.now() on every
+// call broke useSyncExternalStore's caching contract. React calls
+// getSnapshot multiple times per render (especially in StrictMode dev) and
+// expects identical values between calls — but Date.now() advances by ms
+// between calls, so React saw "snapshot changed" → forceStoreRerender →
+// new render → new Date.now() → forceStoreRerender → infinite loop ("Maximum
+// update depth exceeded" caught by ErrorBoundary).
+//
+// Fix: cache the snapshot at module scope and only refresh it when the
+// store's subscriber tick fires. This makes getSnapshot idempotent across
+// consecutive renders.
+let cachedNowMs = Date.now();
+const tickListeners = new Set<() => void>();
+let tickIntervalId: number | null = null;
+
+function ensureTickRunning(): void {
+  if (typeof window === "undefined") return;
+  if (tickIntervalId !== null) return;
+  tickIntervalId = window.setInterval(() => {
+    cachedNowMs = Date.now();
+    tickListeners.forEach((cb) => cb());
+  }, 5 * 60_000);
+}
 
 function subscribeNowTick(callback: () => void): () => void {
-  const id = window.setInterval(callback, 5 * 60_000);
-  return () => window.clearInterval(id);
+  if (typeof window === "undefined") return () => {};
+  tickListeners.add(callback);
+  ensureTickRunning();
+  return () => {
+    tickListeners.delete(callback);
+    if (tickListeners.size === 0 && tickIntervalId !== null) {
+      window.clearInterval(tickIntervalId);
+      tickIntervalId = null;
+    }
+  };
 }
 function getNowMs(): number {
-  return Date.now();
+  return cachedNowMs;
 }
 function getServerNowMs(): number {
   return 0;
 }
+
+// Stable filters object for useEvents — declaring inline `{ when: "all",
+// category: null }` at the call site creates a new ref every render, which
+// invalidates downstream useMemo deps in useEvents and triggers re-fetch
+// loops on every paint.
+const EVENTS_FILTERS: EventFiltersState = { when: "all", category: null };
 
 // ─────────────────────────────────────────
 // Sub-components
@@ -74,18 +118,33 @@ export default function ModeDetailPage({
   const modeData = MODES[modeKey];
 
   // Real profiles for this mode — powers the count and avatar preview.
+  // 2026-04-26 P0 fix: useGeolocation returns null → number on first GPS tick.
+  // Passing those values raw to useProfiles caused its internal useAsyncResource
+  // deps to flip on every coord update, re-firing the RPC in a loop. Memoize
+  // the coord pair so the reference only changes when coords actually move,
+  // and round to ~10m precision so micro-jitter from watchPosition doesn't
+  // re-fetch.
   const { latitude, longitude } = useGeolocation();
-  const { profiles: modeProfiles } = useProfiles(
-    latitude ?? undefined,
-    longitude ?? undefined,
-    modeKey,
-  );
+  const { lat: stableLat, lng: stableLng } = useMemo(() => {
+    if (latitude == null || longitude == null) {
+      return { lat: undefined, lng: undefined };
+    }
+    return {
+      lat: Math.round(latitude * 10000) / 10000,
+      lng: Math.round(longitude * 10000) / 10000,
+    };
+  }, [latitude, longitude]);
+  const { profiles: modeProfiles } = useProfiles(stableLat, stableLng, modeKey);
 
   // Mode-compatible Montpellier events (U4 — Wave 14)
   // Use category filtering via `filterEventsByMode` so each mode surfaces
   // the right vibe (techno for night-owl, live for culture-club, etc.).
   // Wall-clock via useSyncExternalStore keeps render pure and ticks every 5m.
-  const { events: allEvents } = useEvents({ when: "all", category: null });
+  // 2026-04-26 P0 fix: pass module-level EVENTS_FILTERS rather than an inline
+  // literal — useEvents memoizes on `filters` reference and an inline object
+  // re-runs the load callback (and refilter) every render, causing a setState
+  // loop.
+  const { events: allEvents } = useEvents(EVENTS_FILTERS);
   const nowMs = useSyncExternalStore(subscribeNowTick, getNowMs, getServerNowMs);
   const compatibleEvents = useMemo(() => {
     if (!modeData || nowMs === 0) return [];
@@ -118,7 +177,11 @@ export default function ModeDetailPage({
       setTimeout(() => {
         router.push(`/browse?mode=${modeKey}`);
       }, 600);
-    } catch {
+    } catch (err) {
+      logger.warn("mode_activation_failed", {
+        err: err instanceof Error ? err.message : String(err),
+        mode: modeKey,
+      });
       // Proceed to browse even if insert fails
       router.push(`/browse?mode=${modeKey}`);
     }
@@ -155,9 +218,9 @@ export default function ModeDetailPage({
 
   // Steps data
   const steps = [
-    { icon: "⚡", title: "Active le mode", description: `Active "${modeData.name}" et montre ta disponibilite.` },
-    { icon: "👀", title: "Decouvre les profils", description: "Parcours les personnes disponibles ce soir pres de toi." },
-    { icon: "🎯", title: "Propose un plan", description: "Envoie une invitation et organisez votre soiree." },
+    { icon: "⚡", title: "Active le mode", description: `Active "${modeData.name}" et montre ta disponibilité.` },
+    { icon: "👀", title: "Découvre les profils", description: "Parcours les personnes disponibles ce soir près de toi." },
+    { icon: "🎯", title: "Propose un plan", description: "Envoie une invitation et organisez votre soirée." },
   ];
 
   // Price range formatting

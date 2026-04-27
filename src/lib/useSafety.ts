@@ -331,10 +331,10 @@ export function useSafety(): UseSafetyResult {
                         body: {
                           to: contact.phone,
                           message: [
-                            "ALERTE CeSoir - Check-in manque",
-                            "Votre ami(e) n'a pas confirme sa securite.",
-                            `Derniere position connue: ${mapsUrl}`,
-                            "Verifiez qu'il/elle va bien.",
+                            "ALERTE CeSoir - Check-in manqué",
+                            "Votre ami(e) n'a pas confirmé sa sécurité.",
+                            `Dernière position connue: ${mapsUrl}`,
+                            "Vérifiez qu'il/elle va bien.",
                           ].join("\n"),
                         },
                       }),

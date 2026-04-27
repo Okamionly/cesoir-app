@@ -23,7 +23,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     id: "bienvenue",
     title: "Bienvenue !",
     description:
-      "CeSoir, c'est l'app pour trouver quelqu'un avec qui passer la soiree. On te fait le tour en 30 secondes.",
+      "CeSoir, c'est l'app pour trouver quelqu'un avec qui passer la soirée. On te fait le tour en 30 secondes.",
     targetSelector: null,
     tooltipPosition: "bottom",
   },
@@ -31,7 +31,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     id: "modes",
     title: "Tes modes",
     description:
-      "14 facons de sortir : Solo Diner, Night Owl, Dog Date... Choisis ton mood du soir ici.",
+      "14 façons de sortir : Solo Diner, Night Owl, Dog Date... Choisis ton mood du soir ici.",
     targetSelector: '[href="/modes"]',
     tooltipPosition: "top",
   },
@@ -39,7 +39,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     id: "explore",
     title: "Explore",
     description:
-      "Decouvre les profils dispos autour de toi. Filtre par mode, distance, ou laisse-toi surprendre.",
+      "Découvre les profils dispos autour de toi. Filtre par mode, distance, ou laisse-toi surprendre.",
     targetSelector: '[href="/browse"]',
     tooltipPosition: "top",
   },
@@ -47,7 +47,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     id: "swipe",
     title: "Swipe",
     description:
-      "Swipe a droite pour matcher, a gauche pour passer. C'est aussi simple que ca.",
+      "Swipe à droite pour matcher, à gauche pour passer. C'est aussi simple que ça.",
     targetSelector: null,
     tooltipPosition: "bottom",
   },
@@ -55,7 +55,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     id: "chat",
     title: "Chat",
     description:
-      "Quand c'est mutuel, discutez ici pour organiser la soiree. Ice-breakers inclus.",
+      "Quand c'est mutuel, discutez ici pour organiser la soirée. Ice-breakers inclus.",
     targetSelector: '[href="/chat"]',
     tooltipPosition: "top",
   },
@@ -69,9 +69,9 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
   },
   {
     id: "securite",
-    title: "Securite",
+    title: "Sécurité",
     description:
-      "Triple-tap sur le logo pour le mode SOS. Partage ta localisation en temps reel avec tes proches.",
+      "Triple-tap sur le logo pour le mode SOS. Partage ta localisation en temps réel avec tes proches.",
     targetSelector: "[data-logo-moon]",
     tooltipPosition: "bottom",
   },
@@ -79,7 +79,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     id: "cest-parti",
     title: "C'est parti !",
     description:
-      "Tu es pret. Ce soir, c'est ce soir. Amuse-toi bien !",
+      "Tu es prêt. Ce soir, c'est ce soir. Amuse-toi bien !",
     targetSelector: null,
     tooltipPosition: "bottom",
   },

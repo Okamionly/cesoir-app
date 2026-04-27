@@ -440,7 +440,7 @@ export default function OnboardingPage() {
             {saving
               ? "Chargement..."
               : screen === 2
-                ? "Decouvrir les profils"
+                ? "Découvrir les profils"
                 : screen === 1 && !favoriteMode
                   ? "Choisis un mode"
                   : "Suivant"}

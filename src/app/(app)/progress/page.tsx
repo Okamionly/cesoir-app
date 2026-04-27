@@ -242,7 +242,7 @@ function LeaderboardTab() {
       <EmptyState
         emoji="👑"
         title="Classement indisponible"
-        subtitle="Le top des sorteurs apparaitra ici des qu'il y aura assez d'activite."
+        subtitle="Le top des sorteurs apparaîtra ici dès qu'il y aura assez d'activité."
       />
     );
   }

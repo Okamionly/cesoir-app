@@ -85,8 +85,18 @@ export const recommendationsQuerySchema = z.object({
 // Wallet (Roses)
 // ─────────────────────────────────────────────────────────────
 
+/**
+ * Wallet mutations from the client are SPEND-only.
+ *
+ * Audit 2026-04-26 (P0 fraud fix): the `earn` action was removed because it
+ * let any authenticated user grant themselves arbitrary roses via
+ * `POST /api/wallet/roses { action: "earn", amount: 999999 }`. Roses are
+ * server-issued only — they originate from Stripe webhooks, the
+ * `claim_invite_code` RPC, or achievement triggers. The route still returns
+ * HTTP 410 (Gone) for legacy clients that send `action: "earn"`.
+ */
 export const walletActionSchema = z.object({
-  action: z.enum(["spend", "earn"], { message: "action doit être 'spend' ou 'earn'" }),
+  action: z.enum(["spend"], { message: "action doit être 'spend'" }),
   amount: z.number()
     .int("amount doit être un entier")
     .positive("amount doit être positif")

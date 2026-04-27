@@ -157,26 +157,26 @@ const LOCATION_OPTIONS: AssistantOption[] = [
 const GREETING_MESSAGES = [
   "Salut ! Je suis ton assistant CeSoir. Comment tu te sens ce soir ?",
   "Hey ! Pret(e) pour une super soiree ? Dis-moi ton mood du moment.",
-  "Bonsoir ! Je suis la pour t'aider a trouver le plan parfait. Quel est ton etat d'esprit ?",
+  "Bonsoir ! Je suis là pour t'aider à trouver le plan parfait. Quel est ton état d'esprit ?",
 ];
 
 const MOOD_RESPONSES: Record<MoodOption, string> = {
-  aventureux: "Mode aventure active ! Tu veux sortir seul(e) ou avec du monde ?",
-  social: "Ambiance sociale, j'adore ! Tu preferes etre seul(e), en duo ou en groupe ?",
-  romantique: "Soiree romantique en vue... Tu veux sortir seul(e) ou en duo ?",
-  chill: "Soiree tranquille, bonne idee. Seul(e) ou accompagne(e) ?",
-  festif: "On va faire la fete ! Seul(e), duo ou groupe ?",
-  curieux: "La curiosite, c'est la meilleure qualite. Seul(e) ou avec quelqu'un ?",
+  aventureux: "Mode aventure activé ! Tu veux sortir seul(e) ou avec du monde ?",
+  social: "Ambiance sociale, j'adore ! Tu préfères être seul(e), en duo ou en groupe ?",
+  romantique: "Soirée romantique en vue... Tu veux sortir seul(e) ou en duo ?",
+  chill: "Soirée tranquille, bonne idée. Seul(e) ou accompagné(e) ?",
+  festif: "On va faire la fête ! Seul(e), duo ou groupe ?",
+  curieux: "La curiosité, c'est la meilleure qualité. Seul(e) ou avec quelqu'un ?",
 };
 
 const GROUP_RESPONSES: Record<GroupOption, string> = {
-  solo: "Ok, soiree solo ! Quel budget tu veux mettre ?",
-  duo: "A deux c'est mieux ! Quel budget pour la soiree ?",
+  solo: "Ok, soirée solo ! Quel budget tu veux mettre ?",
+  duo: "À deux c'est mieux ! Quel budget pour la soirée ?",
   groupe: "Plus on est de fous, plus on rit ! Budget ?",
 };
 
 const BUDGET_RESPONSES: Record<BudgetOption, string> = {
-  gratuit: "Gratuit et genial, c'est possible ! Quel quartier te tente ?",
+  gratuit: "Gratuit et génial, c'est possible ! Quel quartier te tente ?",
   petit: "Bon plan sans se ruiner. Quel quartier ?",
   plaisir: "On se fait plaisir ce soir ! Quel quartier te ferait envie ?",
 };
@@ -229,10 +229,10 @@ function generateSuggestions(
 
     suggestions.push({
       id: "sug-1",
-      title: `${venue.type === "restaurant" ? "Diner" : "Soiree"} ${venue.type === "restaurant" ? "a" : "au"} ${venue.name}`,
+      title: `${venue.type === "restaurant" ? "Dîner" : "Soirée"} ${venue.type === "restaurant" ? "à" : "au"} ${venue.name}`,
       description: `${group === "solo" ? "Rejoins" : "Retrouve"} ${profile.name} (${compatibility}% compatible) pour ${
         venue.type === "restaurant"
-          ? "un diner"
+          ? "un dîner"
           : venue.type === "bar"
             ? "un verre"
             : "une sortie"

@@ -69,7 +69,7 @@ export default function MapFiltersSheet({ open, onClose, filters, onChange }: Ma
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={onClose}
-            className="fixed inset-0 z-[1100] bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-[850] bg-black/50 backdrop-blur-sm"
           />
           <m.div
             key="filters-sheet"
@@ -83,7 +83,7 @@ export default function MapFiltersSheet({ open, onClose, filters, onChange }: Ma
             onDragEnd={(_, info) => {
               if (info.point.y > 300 || info.velocity.y > 500) onClose();
             }}
-            className="fixed inset-x-0 bottom-0 z-[1101] bg-bg/95 backdrop-blur-xl border-t border-border rounded-t-3xl shadow-2xl max-h-[80vh] overflow-y-auto"
+            className="fixed inset-x-0 bottom-0 z-[851] bg-bg/95 backdrop-blur-xl border-t border-border rounded-t-3xl shadow-2xl max-h-[80vh] overflow-y-auto"
             style={{ touchAction: "none" }}
           >
             <div className="flex items-center justify-center py-2 cursor-grab active:cursor-grabbing">
@@ -128,7 +128,7 @@ export default function MapFiltersSheet({ open, onClose, filters, onChange }: Ma
               {/* Toggles */}
               <p className="text-[10px] uppercase tracking-wider text-text-muted font-semibold mb-2">Affichage</p>
               <div className="space-y-2 mb-5">
-                <ToggleRow label="Voir les soirees" checked={filters.showEvents} onChange={(v) => onChange({ ...filters, showEvents: v })} />
+                <ToggleRow label="Voir les soirées" checked={filters.showEvents} onChange={(v) => onChange({ ...filters, showEvents: v })} />
                 <ToggleRow label="Voir les profils" checked={filters.showProfiles} onChange={(v) => onChange({ ...filters, showProfiles: v })} />
                 <ToggleRow label="Flash plans" checked={filters.showFlash} onChange={(v) => onChange({ ...filters, showFlash: v })} />
                 <ToggleRow label="Zones chaudes (heatmap)" checked={filters.showHeatmap} onChange={(v) => onChange({ ...filters, showHeatmap: v })} />
@@ -137,7 +137,7 @@ export default function MapFiltersSheet({ open, onClose, filters, onChange }: Ma
 
               {/* Age */}
               <p className="text-[10px] uppercase tracking-wider text-text-muted font-semibold mb-2">
-                Age : {filters.ageMin} - {filters.ageMax} ans
+                Âge : {filters.ageMin} - {filters.ageMax} ans
               </p>
               <div className="flex items-center gap-2 mb-5">
                 <input

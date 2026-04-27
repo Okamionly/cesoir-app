@@ -44,7 +44,7 @@ interface MockRoom {
 const CATEGORIES: { key: RoomCategory; label: string }[] = [
   { key: "tous", label: "Tous" },
   { key: "discussion", label: "Discussion" },
-  { key: "debat", label: "Debat" },
+  { key: "debat", label: "Débat" },
   { key: "ambiance", label: "Ambiance" },
 ];
 
@@ -131,7 +131,7 @@ function RoomCard({ room }: { room: MockRoom }) {
             <span className="text-[12px] font-semibold text-text truncate block">
               {room.host.name}
             </span>
-            <span className="text-[10px] text-text-muted">Hote</span>
+            <span className="text-[10px] text-text-muted">Hôte</span>
           </div>
         </div>
 
@@ -241,7 +241,7 @@ export default function RoomsPage() {
             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full gradient-bg text-white text-[11px] font-bold shadow-glow"
           >
             <Plus size={14} strokeWidth={2.5} aria-hidden="true" />
-            Creer
+            Créer
           </m.button>
         }
         slotBelowTitle={

@@ -520,8 +520,8 @@ export function getSmartNotifications(prefs: UserPreferences): SmartNotification
       type: "event",
       title: `${topEvent.event.title}`,
       body: spotsLeft <= 3
-        ? `${spotsLeft} place${spotsLeft > 1 ? "s" : ""} restante${spotsLeft > 1 ? "s" : ""} — depechetoi !`
-        : `Soiree ${MODES[topEvent.event.mode]?.name} dans le ${topEvent.event.arrondissement}`,
+        ? `${spotsLeft} place${spotsLeft > 1 ? "s" : ""} restante${spotsLeft > 1 ? "s" : ""} — dépêche-toi !`
+        : `Soirée ${MODES[topEvent.event.mode]?.name} dans le ${topEvent.event.arrondissement}`,
       icon: "\uD83C\uDF89", // party popper
       priority: 7,
       actionLabel: "Voir l'event",
@@ -535,7 +535,7 @@ export function getSmartNotifications(prefs: UserPreferences): SmartNotification
     notifications.push({
       id: "notif-timing",
       type: "timing",
-      title: `La soiree commence dans ${eventTime}h`,
+      title: `La soirée commence dans ${eventTime}h`,
       body: "Active un mode pour voir qui est dispo ce soir",
       icon: "\uD83D\uDD70\uFE0F", // clock
       priority: 6,
@@ -550,8 +550,8 @@ export function getSmartNotifications(prefs: UserPreferences): SmartNotification
     notifications.push({
       id: "notif-trending",
       type: "trending",
-      title: `Soiree animee a ${zone}`,
-      body: `Beaucoup d'activite ce soir dans ton quartier prefere`,
+      title: `Soirée animée à ${zone}`,
+      body: `Beaucoup d'activité ce soir dans ton quartier préféré`,
       icon: "\uD83D\uDD25",
       priority: 5,
       actionLabel: "Explorer",

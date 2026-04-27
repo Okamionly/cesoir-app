@@ -41,6 +41,34 @@ const PUBLIC_MODES: ModeKey[] = [
   "foodie-quest",
 ];
 
+const DEFAULT_POST_SIGNUP = "/browse";
+
+/**
+ * Whitelist redirect targets to prevent open-redirect attacks.
+ * See login/page.tsx — same rules applied here so signup honors the
+ * `?redirectTo` query param set by the auth middleware.
+ */
+function safeRedirectTarget(raw: string | null | undefined): string {
+  if (!raw) return DEFAULT_POST_SIGNUP;
+  const candidate = raw.trim();
+  if (!candidate.startsWith("/")) return DEFAULT_POST_SIGNUP;
+  if (candidate.startsWith("//")) return DEFAULT_POST_SIGNUP;
+  if (candidate.includes("://")) return DEFAULT_POST_SIGNUP;
+  if (candidate.includes("..")) return DEFAULT_POST_SIGNUP;
+  if (
+    candidate === "/login" ||
+    candidate.startsWith("/login?") ||
+    candidate.startsWith("/login/") ||
+    candidate === "/register" ||
+    candidate.startsWith("/register?") ||
+    candidate === "/signup-quick" ||
+    candidate.startsWith("/signup-quick?")
+  ) {
+    return DEFAULT_POST_SIGNUP;
+  }
+  return candidate;
+}
+
 const MODE_TAGLINES: Record<ModeKey, string> = {
   "solo-diner": "Tu manges seul ce soir, ouvert à un convive.",
   "plus-one": "Cherche quelqu'un pour un événement / une sortie.",
@@ -222,7 +250,10 @@ function SignupQuickInner() {
   }
 
   function handleStep3Enter() {
-    router.push("/browse");
+    // Honor middleware's ?redirectTo= so users land on the page they
+    // originally requested before being bounced to /signup-quick.
+    const target = safeRedirectTarget(params?.get("redirectTo"));
+    router.push(target);
   }
 
   return (

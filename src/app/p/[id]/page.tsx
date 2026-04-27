@@ -151,7 +151,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
   return {
     title: `${profile.name}, ${profile.age} - ${profile.city} | CeSoir`,
-    description: `Decouvre le profil de ${profile.name} sur CeSoir. ${profile.bio.slice(0, 120)}...`,
+    description: `Découvre le profil de ${profile.name} sur CeSoir. ${profile.bio.slice(0, 120)}...`,
     openGraph: {
       title: `${profile.name} sur CeSoir`,
       description: profile.bio.slice(0, 160),
@@ -175,13 +175,13 @@ export default async function PublicProfilePage({ params }: PageProps) {
         </span>
         <h1 className="text-xl font-bold mb-2">Profil introuvable</h1>
         <p className="text-sm text-text-muted mb-6 max-w-xs">
-          Ce profil n&apos;existe pas, a ete supprime, ou n&apos;est plus disponible.
+          Ce profil n&apos;existe pas, a été supprimé, ou n&apos;est plus disponible.
         </p>
         <Link
           href="/browse"
           className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-accent text-white text-sm font-semibold"
         >
-          Decouvrir d&apos;autres profils
+          Découvrir d&apos;autres profils
         </Link>
       </div>
     );

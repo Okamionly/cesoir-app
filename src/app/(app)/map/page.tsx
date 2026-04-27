@@ -801,7 +801,7 @@ export default function MapPage() {
       <PageHeader
         sticky={false}
         borderless={false}
-        className="shrink-0 !z-[1000] bg-bg"
+        className="shrink-0 !z-[840] bg-bg"
         leftSlot={
           <div className="flex items-center gap-2">
             <span className="text-lg text-accent" aria-hidden="true">☾</span>
@@ -816,7 +816,7 @@ export default function MapPage() {
                 className="flex items-center gap-1 bg-accent/10 border border-accent/20 px-2.5 py-1 rounded-full tap-target"
               >
                 <span className="text-[10px]" aria-hidden="true">🔍</span>
-                <span className="text-[10px] text-accent font-semibold">Decouvrir</span>
+                <span className="text-[10px] text-accent font-semibold">Découvrir</span>
               </Link>
             </m.div>
             <div className="text-[11px] text-text-muted">
@@ -849,7 +849,7 @@ export default function MapPage() {
             />
             {activeFilterCount > 0 && (
               <m.div
-                className="absolute top-16 left-3 z-[940] bg-accent text-white text-[10px] font-semibold px-2.5 py-1 rounded-full shadow-lg"
+                className="absolute top-16 left-3 z-[840] bg-accent text-white text-[10px] font-semibold px-2.5 py-1 rounded-full shadow-lg"
                 initial={{ opacity: 0, scale: 0.5 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={springs.snap}
@@ -945,11 +945,11 @@ export default function MapPage() {
         {/* Cross-link to Plans (only if no carousel content) */}
         {!selected && !selectedEvent && !mapFailed && carouselItems.length === 0 && (
           <div
-            className="absolute left-3 right-3 z-[900] flex gap-2"
+            className="absolute left-3 right-3 z-[870] flex gap-2"
             style={{ bottom: "calc(260px + env(safe-area-inset-bottom))" }}
           >
             <m.div className="flex-1" initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ ...springs.heavy, delay: 0.4 }}>
-              <CrossLinkCard emoji="🔥" title="Soirees ce soir" subtitle={`${geoEvents.length} events`} href="/events" />
+              <CrossLinkCard emoji="🔥" title="Soirées ce soir" subtitle={`${geoEvents.length} events`} href="/events" />
             </m.div>
           </div>
         )}
@@ -984,14 +984,14 @@ export default function MapPage() {
           {showRouteModal && (
             <>
               <m.div
-                className="fixed inset-0 z-[1200] bg-black/50 backdrop-blur-sm"
+                className="fixed inset-0 z-[860] bg-black/50 backdrop-blur-sm"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setShowRouteModal(false)}
               />
               <m.div
-                className="fixed bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2 z-[1201] bg-bg border border-border rounded-2xl p-6 shadow-2xl max-w-sm w-[90%]"
+                className="fixed bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2 z-[861] bg-bg border border-border rounded-2xl p-6 shadow-2xl max-w-sm w-[90%]"
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}

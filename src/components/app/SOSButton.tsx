@@ -112,14 +112,14 @@ export default function SOSButton() {
     <AnimatePresence>
       {activated && (
         <m.div
-          className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-red-600/95 backdrop-blur-md"
+          className="fixed inset-0 z-[900] flex flex-col items-center justify-center bg-red-600/95 backdrop-blur-md"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
           role="alert"
           aria-live="assertive"
-          aria-label="Alerte SOS activee"
+          aria-label="Alerte SOS activée"
         >
           {/* SOS Icon */}
           <m.div
@@ -131,13 +131,13 @@ export default function SOSButton() {
           </m.div>
 
           <h2 className="text-2xl font-bold text-white font-display mb-2">
-            SOS Active
+            SOS Activé
           </h2>
 
           <p className="text-white/90 text-center px-8 mb-6 text-sm leading-relaxed">
             {sent
-              ? "Alerte envoyee a tes contacts de confiance."
-              : "Envoi de ta position a tes contacts d'urgence..."}
+              ? "Alerte envoyée à tes contacts de confiance."
+              : "Envoi de ta position à tes contacts d'urgence..."}
           </p>
 
           {/* Countdown */}

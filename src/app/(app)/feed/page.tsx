@@ -225,8 +225,8 @@ function FeedPageInner() {
       ) : items.length === 0 ? (
         <EmptyState
           emoji="☾"
-          title="Rien a signaler pour le moment"
-          subtitle="L'activite apparaitra ici des que ca bouge"
+          title="Rien à signaler pour le moment"
+          subtitle="L'activité apparaîtra ici dès que ça bouge"
           actionLabel="Explorer les profils"
           actionHref="/browse"
         />

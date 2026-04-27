@@ -23,7 +23,7 @@ export interface FABActionMeta {
 export const FAB_ACTIONS_META: FABActionMeta[] = [
   { label: "Mood Match", color: "#8B5CF6", href: "/modes" },
   { label: "Speed Dating", color: "#F59E0B", href: "/speed-dating" },
-  { label: "Creer un plan", color: "#00FF88", href: "/plans/create" },
+  { label: "Créer un plan", color: "#00FF88", href: "/plans/create" },
 ];
 
 export interface FABAction extends FABActionMeta {

@@ -92,16 +92,16 @@ const PREFERES_QUESTIONS: { optionA: string; optionB: string }[] = [
   { optionA: "Superpouvoir : voler", optionB: "Superpouvoir : etre invisible" },
   { optionA: "Vivre a la montagne", optionB: "Vivre au bord de la mer" },
   { optionA: "Ne plus jamais dormir", optionB: "Ne plus jamais manger" },
-  { optionA: "Etre celebre", optionB: "Etre richissime anonymement" },
+  { optionA: "Être célèbre", optionB: "Être richissime anonymement" },
   { optionA: "Parler toutes les langues", optionB: "Jouer de tous les instruments" },
   { optionA: "Netflix & chill", optionB: "Sortir danser" },
   { optionA: "Plage au coucher de soleil", optionB: "Rando en montagne" },
   { optionA: "Cuisiner ensemble", optionB: "Commander et mater un film" },
   { optionA: "Petit-dej au lit", optionB: "Brunch en ville" },
   { optionA: "Voyager en Europe", optionB: "Voyager en Asie" },
-  { optionA: "Etre un chat", optionB: "Etre un dauphin" },
+  { optionA: "Être un chat", optionB: "Être un dauphin" },
   { optionA: "Toujours avoir chaud", optionB: "Toujours avoir froid" },
-  { optionA: "Premier rdv en terrasse", optionB: "Premier rdv au musee" },
+  { optionA: "Premier rdv en terrasse", optionB: "Premier rdv au musée" },
 ];
 
 const TOP3_CATEGORIES: { key: Top3Category; label: string; emoji: string }[] = [
@@ -1051,8 +1051,8 @@ function Top3Card({
               className="w-full mt-3 py-2.5 rounded-2xl gradient-bg text-white font-bold text-[13px] active:scale-[0.98] transition-transform"
             >
               {state.currentRound + 1 >= state.totalRounds
-                ? "Voir les resultats"
-                : "Categorie suivante"}
+                ? "Voir les résultats"
+                : "Catégorie suivante"}
             </m.button>
           </m.div>
         )}

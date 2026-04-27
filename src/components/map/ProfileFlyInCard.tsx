@@ -157,8 +157,8 @@ export default function ProfileFlyInCard({
       aria-label={`Profil de ${profile.name}`}
       className={
         floatingStyle
-          ? "absolute z-[1000] rounded-2xl"
-          : "absolute bottom-24 left-3 right-3 z-[1000] rounded-2xl"
+          ? "absolute z-[870] rounded-2xl"
+          : "absolute bottom-24 left-3 right-3 z-[870] rounded-2xl"
       }
       style={
         floatingStyle

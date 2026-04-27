@@ -171,7 +171,7 @@ export default function PresentationClient({ profile }: PresentationClientProps)
                 <circle cx="12" cy="12" r="10" fill={app.violet} />
                 <path d="M8 12l3 3 5-5" stroke={app.bg} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              <span className="text-[11px] text-accent font-semibold">Verifie</span>
+              <span className="text-[11px] text-accent font-semibold">Vérifié</span>
             </div>
           )}
           <TrustBadge trustScore={profile.trustScore} isVerified={profile.isVerified} />

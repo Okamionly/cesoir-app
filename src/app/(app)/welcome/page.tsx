@@ -66,7 +66,7 @@ const modeKeys = Object.keys(MODES) as (keyof typeof MODES)[];
 const slides: Slide[] = [
   {
     title: "Bienvenue sur CeSoir",
-    subtitle: "Trouve quelqu'un pres de toi, disponible ce soir.",
+    subtitle: "Trouve quelqu'un près de toi, disponible ce soir.",
     content: (
       <div className="flex flex-col items-center gap-6">
         <MoonIcon size={96} />
@@ -100,27 +100,27 @@ const slides: Slide[] = [
     ),
   },
   {
-    title: "Securite avant tout",
-    subtitle: "Verification, signalement, moderation en temps reel.",
+    title: "Sécurité avant tout",
+    subtitle: "Vérification, signalement, modération en temps réel.",
     content: (
       <div className="flex flex-col items-center gap-6">
         <ShieldIcon />
         <ul className="space-y-3 text-sm text-text-muted max-w-xs">
           <li className="flex items-start gap-2">
             <span className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-safe" />
-            Verification de profil obligatoire
+            Vérification de profil obligatoire
           </li>
           <li className="flex items-start gap-2">
             <span className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-safe" />
-            Signalement et blocage instantane
+            Signalement et blocage instantané
           </li>
           <li className="flex items-start gap-2">
             <span className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-safe" />
-            Moderation IA + humaine 24/7
+            Modération IA + humaine 24/7
           </li>
           <li className="flex items-start gap-2">
             <span className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-safe" />
-            Partage de position en temps reel
+            Partage de position en temps réel
           </li>
         </ul>
       </div>
@@ -128,12 +128,12 @@ const slides: Slide[] = [
   },
   {
     title: "Ce soir, pas demain",
-    subtitle: "L'urgence cree l'authenticite. Fini les conversations sans fin.",
+    subtitle: "L'urgence crée l'authenticité. Fini les conversations sans fin.",
     content: (
       <div className="flex flex-col items-center gap-6">
         <ClockIcon />
         <p className="max-w-xs text-center text-sm text-text-muted">
-          Les plans expirent a minuit. Pas de ghost, pas de &ldquo;on se voit un jour&rdquo;.
+          Les plans expirent à minuit. Pas de ghost, pas de &ldquo;on se voit un jour&rdquo;.
           Tu es dispo ou tu ne l&apos;es pas.
         </p>
       </div>
@@ -146,7 +146,7 @@ const slides: Slide[] = [
       <div className="flex flex-col items-center gap-6">
         <MoonIcon size={80} />
         <p className="max-w-xs text-center text-sm text-text-muted">
-          3 minutes pour creer ton profil. Le reste se fait ce soir.
+          3 minutes pour créer ton profil. Le reste se fait ce soir.
         </p>
       </div>
     ),

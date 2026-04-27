@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { m } from "motion/react";
 import { useAuth } from "@/context/AuthContext";
 import { landing } from "@/lib/design-tokens";
@@ -13,8 +14,39 @@ import {
   FormBanner,
 } from "@/components/ui/forms";
 
-export default function LoginPage() {
+const DEFAULT_POST_LOGIN = "/feed";
+
+/**
+ * Whitelist redirect targets to prevent open-redirect attacks.
+ * Only accept same-origin pathnames: must start with "/", must not start
+ * with "//" (protocol-relative), must not contain "://" (absolute URL),
+ * and must not contain ".." (path traversal escape).
+ */
+function safeRedirectTarget(raw: string | null): string {
+  if (!raw) return DEFAULT_POST_LOGIN;
+  const candidate = raw.trim();
+  if (!candidate.startsWith("/")) return DEFAULT_POST_LOGIN;
+  if (candidate.startsWith("//")) return DEFAULT_POST_LOGIN;
+  if (candidate.includes("://")) return DEFAULT_POST_LOGIN;
+  if (candidate.includes("..")) return DEFAULT_POST_LOGIN;
+  // Avoid bouncing back to auth pages (would loop)
+  if (
+    candidate === "/login" ||
+    candidate.startsWith("/login?") ||
+    candidate.startsWith("/login/") ||
+    candidate === "/register" ||
+    candidate.startsWith("/register?") ||
+    candidate === "/signup-quick" ||
+    candidate.startsWith("/signup-quick?")
+  ) {
+    return DEFAULT_POST_LOGIN;
+  }
+  return candidate;
+}
+
+function LoginPageInner() {
   const { signIn, error: authError } = useAuth();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -46,7 +78,10 @@ export default function LoginPage() {
         // Non-blocking — server cookie is what matters
       }
 
-      window.location.href = "/feed";
+      // Honor middleware's ?redirectTo= so users land on the page they
+      // originally requested before being bounced to /login.
+      const target = safeRedirectTarget(searchParams?.get("redirectTo") ?? null);
+      window.location.href = target;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur de connexion");
       setLoading(false);
@@ -171,10 +206,18 @@ export default function LoginPage() {
             className="font-semibold transition-opacity hover:opacity-80"
             style={{ color: landing.vert }}
           >
-            Creer un compte
+            Créer un compte
           </Link>
         </p>
       </m.div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginPageInner />
+    </Suspense>
   );
 }

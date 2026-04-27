@@ -87,6 +87,9 @@ const positions = [
  *  - /speed-dating       — pure empty-state, no quick-action value
  *  - /rooms/[id]         — empty-state, same rationale
  *  - /onboarding/*       — focus flow, no distractions
+ *  - /safety, /safety/*  — FAB recouvrait le bouton/texte "Cercle de confiance"
+ *                          (BUG-07, audit 2026-04-26). Page sensible (trust &
+ *                          safety) — pas de quick-action utile ici.
  */
 function shouldHideFAB(pathname: string | null): boolean {
   if (!pathname) return false;
@@ -95,6 +98,7 @@ function shouldHideFAB(pathname: string | null): boolean {
   if (pathname === "/speed-dating" || pathname.startsWith("/speed-dating/")) return true;
   if (/^\/rooms\/[^/]+/.test(pathname)) return true;
   if (pathname.startsWith("/onboarding")) return true;
+  if (pathname === "/safety" || pathname.startsWith("/safety/")) return true;
   return false;
 }
 

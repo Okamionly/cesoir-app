@@ -130,7 +130,7 @@ export default function SquadPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={springs.heavy}
           className="bg-card border border-border rounded-2xl p-5"
-          aria-label="Creer ton squad"
+          aria-label="Créer ton squad"
         >
           {/* 6. Squad name: slide from left with springs.heavy */}
           <m.h2
@@ -139,9 +139,9 @@ export default function SquadPage() {
             transition={springs.heavy}
             className="text-base font-display font-bold text-text mb-1"
           >
-            Cree ton squad
+            Crée ton squad
           </m.h2>
-          <p className="text-xs text-text-muted mb-4">Invite jusqu&apos;a 3 amis pour matcher ensemble</p>
+          <p className="text-xs text-text-muted mb-4">Invite jusqu&apos;à 3 amis pour matcher ensemble</p>
 
           {/* My squad members */}
           {mySquad.length > 0 && (
@@ -208,7 +208,7 @@ export default function SquadPage() {
               whileTap={{ scale: 0.95 }}
               className="w-full mb-3 py-2.5 rounded-xl border border-accent/30 text-accent text-sm font-semibold hover:bg-accent/10 transition-colors disabled:opacity-50"
             >
-              {busy ? "Creation..." : "Creer mon squad"}
+              {busy ? "Création..." : "Créer mon squad"}
             </m.button>
           )}
 
@@ -228,7 +228,7 @@ export default function SquadPage() {
               transition={springs.snap}
               className="flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold text-white transition-all"
               style={{ background: copied ? "var(--color-accent-2)" : "var(--color-accent)" }}
-              aria-label={copied ? "Lien copie" : "Copier le lien d'invitation"}
+              aria-label={copied ? "Lien copié" : "Copier le lien d'invitation"}
             >
               <AnimatePresence mode="wait">
                 {copied ? (
@@ -240,7 +240,7 @@ export default function SquadPage() {
                     className="inline-flex items-center gap-1"
                   >
                     <Check size={12} strokeWidth={3} color="var(--color-text)" aria-hidden="true" />
-                    Copie
+                    Copié
                   </m.span>
                 ) : (
                   <m.span
@@ -274,7 +274,7 @@ export default function SquadPage() {
               <EmptyState
                 emoji="☾"
                 title="Aucun squad actif pour le moment"
-                subtitle="Cree le tien ou rejoins avec un code"
+                subtitle="Crée le tien ou rejoins avec un code"
               />
             )}
             {displaySquads.map((squad, i) => (

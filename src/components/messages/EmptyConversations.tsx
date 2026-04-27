@@ -68,8 +68,8 @@ export function EmptyConversations() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...springs.heavy, delay: 0.2 }}
       >
-        Le silence avant la magie. Decouvre des profils et commence
-        ta premiere conversation CeSoir.
+        Le silence avant la magie. Découvre des profils et commence
+        ta première conversation CeSoir.
       </m.p>
 
       <m.div
@@ -86,7 +86,7 @@ export function EmptyConversations() {
               "0 10px 30px color-mix(in srgb, var(--color-accent) 28%, transparent)",
           }}
         >
-          Decouvrir des profils
+          Découvrir des profils
           <span aria-hidden="true">{"\u2192"}</span>
         </Link>
       </m.div>

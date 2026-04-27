@@ -172,18 +172,89 @@ export type ShadowToken = typeof shadows;
 // ─────────────────────────────────────────
 // Z-INDEX — canonical layer scale
 // ─────────────────────────────────────────
-
+//
+// 2026-04-26 — P0 SAFETY FIX: re-documented the ladder so the SOS overlay
+// (triple-tap moon → red full-screen alert) is GUARANTEED above every map UI
+// layer. Before this fix, /map shipped with `z-[1100]`/`z-[1200]` filter
+// sheet + route modal, which painted ABOVE SOSButton's `z-[200]` overlay —
+// a safety regression on a dating app.
+//
+// IMPORTANT: there are TWO modal tiers in the app and they MUST NOT mix:
+//
+//   1. App-wide standard modals (chat sheets, photo gallery, story creator,
+//      report sheet, match cinematic, vibe check) live in the 50–350 range
+//      and use Tailwind's z-50 plus arbitrary z-[60..350] classes. They
+//      render INSIDE the page chrome, BELOW the SOS overlay (200 today,
+//      until they're migrated below the new sos token).
+//
+//   2. Map-surface modals (filter sheet, route modal, search bar, fly-in
+//      cards, live activity panel) sit in a dedicated 800–880 (chrome) /
+//      850–870 (overlay) band so they paint above MapLibre canvas + page
+//      header but BELOW sos (900) and toast (950).
+//
+// Documented ladder (low → high). When in doubt, prefer a token over a
+// magic number, and never raise something past sos (900) without an
+// explicit safety-review note.
+//
+//   base                0       — page background, default stacking
+//   overlay             10      — non-interactive page overlays (heatmap)
+//   nav                 20      — generic in-flow nav
+//   dropdown            30      — autocomplete dropdowns, ModeSwitcher
+//   fab                 40      — floating action button (sits BELOW BottomNav)
+//   sticky / bottomNav  50      — sticky bars, BottomNav, TopNav, OfflineBanner
+//   modal               60      — standard modal tier (chat sheets, story creator)
+//   tooltip             70      — tooltips
+//   modalElevated      100      — full-screen lightboxes (PhotoGallery, VibeCheck)
+//   modalUrgent        150–350  — urgent app modals (safety/page modal=150,
+//                                 MidnightReset=350)
+//   mapFab             800      — MapFloatingActions column (right-side)
+//   mapSheet           850      — map bottom-sheet backdrop + filter sheet,
+//                                 KeyboardShortcuts hint, MapCarousel, also
+//                                 the shared BottomSheet primitive (was 900,
+//                                 dropped so BottomSheet on /map cannot
+//                                 cover SOS)
+//   mapSheetContent    851      — map bottom-sheet content (paired w/ 850)
+//   mapModal           860      — map-surface modals (route modal, perm modal)
+//   mapModalContent    861      — map-surface modal content (paired w/ 860)
+//   mapChrome          880–950  — map chrome above the sheet but below SOS:
+//                                 MapFloatingActions(880), filter pill(940),
+//                                 MapSearchBar(950 → moved to 870 in fix),
+//                                 LiveActivityPanel(900 → 870 in fix),
+//                                 ProfileFlyInCard(1000 → 870 in fix)
+//   sos                900      — ⚠️ SAFETY-CRITICAL — SOSButton red overlay
+//                                 MUST be reachable above every map UI element
+//                                 (the current SOSButton.tsx still uses
+//                                 z-[200] and should be migrated to read this
+//                                 token; until then, no map z is ≥ 900)
+//   toast              950      — top toast notifications, sit above SOS so
+//                                 SOS-confirmation toast is visible
+//   skipLink / debug   9999     — focus-visible skip-to-content link, dev
+//                                 overlays
+//
+// Migration plan for follow-up PRs (out of scope for this hotfix):
+//   - SOSButton.tsx: replace `z-[200]` with `style={{ zIndex: zIndex.sos }}`
+//   - All chat/story/photo modals: explicit token instead of arbitrary z-[NN]
+//   - PageHeader: drop `!z-[1000]` override on /map (no longer needed once
+//     filter sheet is at 850)
 export const zIndex = {
   base: 0,
   overlay: 10,
   nav: 20,
   dropdown: 30,
-  sticky: 40,
-  modal: 50,
-  toast: 60,
+  fab: 40,
+  sticky: 50,
+  bottomNav: 50,
+  modal: 60,
   tooltip: 70,
-  fab: 800,
+  modalElevated: 100,
+  modalUrgent: 350,
+  mapFab: 800,
+  mapSheet: 850,
+  mapSheetContent: 851,
+  mapModal: 860,
+  mapModalContent: 861,
   sos: 900,
+  toast: 950,
   debug: 9999,
 } as const;
 

@@ -396,7 +396,7 @@ export default function ShareProfilePage() {
                 className="flex items-center gap-2"
               >
                 <Download size={18} strokeWidth={1.5} />
-                Telecharger PNG
+                Télécharger PNG
               </m.div>
             )}
           </AnimatePresence>

@@ -25,8 +25,6 @@ export interface UseRosesReturn {
   canAfford: (cost: number) => boolean;
   /** Next free rose refill date (legacy — kept for shop UI, not DB-backed yet) */
   nextFreeRose: Date | null;
-  /** Add roses (purchase, reward) */
-  addRoses: (amount: number, reason: string) => void;
   /** Whether the user has premium */
   isPremium: boolean;
   /** Toggle premium (for demo) */
@@ -67,8 +65,18 @@ async function fetchBalance(): Promise<number | null> {
   }
 }
 
+/**
+ * P0 fraud fix (2026-04-26): the `earn` action was removed from this client.
+ * Previously `mutateBalance("earn", n)` let any user grant themselves n roses
+ * via `POST /api/wallet/roses`. Roses are now server-issued only — they
+ * arrive via Supabase realtime (the `user_wallet` row is updated by the
+ * Stripe webhook, the `claim_invite_code` RPC, or achievement triggers) and
+ * the next `fetchBalance` call picks up the new balance.
+ *
+ * Spend remains client-initiated (the user explicitly burns a rose to
+ * super-like / unlock a feature), so this helper is spend-only.
+ */
 async function mutateBalance(
-  action: "spend" | "earn",
   amount: number,
 ): Promise<{ ok: true; balance: number } | { ok: false; error: string }> {
   try {
@@ -81,7 +89,7 @@ async function mutateBalance(
         "Content-Type": "application/json",
         Authorization: `Bearer ${session.access_token}`,
       },
-      body: JSON.stringify({ action, amount }),
+      body: JSON.stringify({ action: "spend", amount }),
     });
     if (res.ok) {
       const data = (await res.json()) as { balance: number };
@@ -213,7 +221,7 @@ export function useRoses(): UseRosesReturn {
       });
 
       void (async () => {
-        const result = await mutateBalance("spend", amount);
+        const result = await mutateBalance(amount);
         if (!result.ok) {
           // Rollback on server failure
           setRoses(previous);
@@ -228,52 +236,13 @@ export function useRoses(): UseRosesReturn {
     [roses],
   );
 
-  const addRoses = useCallback((amount: number, reason: string) => {
-    // Free-first: balance stays pegged at UNLIMITED_ROSES — no server write
-    // (the /api/wallet/roses route rejects with 503). Still log in history.
-    if (!MONETIZATION_ENABLED) {
-      const tx: RoseTransaction = {
-        id: crypto.randomUUID(),
-        type: "earn",
-        amount: 0,
-        reason,
-        timestamp: new Date().toISOString(),
-      };
-      setHistory((prev) => {
-        const updated = [tx, ...prev].slice(0, 50);
-        try {
-          localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
-        } catch {
-          // noop
-        }
-        return updated;
-      });
-      return;
-    }
-
-    setRoses((p) => p + amount); // optimistic
-    const tx: RoseTransaction = {
-      id: crypto.randomUUID(),
-      type: "earn",
-      amount,
-      reason,
-      timestamp: new Date().toISOString(),
-    };
-    setHistory((prev) => {
-      const updated = [tx, ...prev].slice(0, 50);
-      try {
-        localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
-      } catch {
-        // noop
-      }
-      return updated;
-    });
-
-    void (async () => {
-      const result = await mutateBalance("earn", amount);
-      if (result.ok) setRoses(result.balance);
-    })();
-  }, []);
+  // NOTE (P0 fraud fix, 2026-04-26): the former `addRoses` callback was
+  // removed. It posted `{ action: "earn", amount }` which let any client
+  // mint unlimited roses. Crediting the wallet is now server-only — clients
+  // observe the new balance via Supabase realtime on the `user_wallet` row
+  // (or the next `fetchBalance` poll on hydration). If you need to "give"
+  // a user roses, do it from a trusted server context: Stripe webhook,
+  // `claim_invite_code` RPC, or achievement trigger.
 
   /**
    * togglePremium is kept for demo/UI compat (shop toggle). Real premium
@@ -286,8 +255,8 @@ export function useRoses(): UseRosesReturn {
   }, []);
 
   return useMemo(
-    () => ({ roses, useRose, canAfford, nextFreeRose, addRoses, isPremium, togglePremium, history }),
-    [roses, useRose, canAfford, nextFreeRose, addRoses, isPremium, togglePremium, history],
+    () => ({ roses, useRose, canAfford, nextFreeRose, isPremium, togglePremium, history }),
+    [roses, useRose, canAfford, nextFreeRose, isPremium, togglePremium, history],
   );
 }
 

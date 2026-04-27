@@ -65,10 +65,10 @@ function saveLocal(prefs: NotifPrefsShape): void {
 const toggles: { key: NotifKey; label: string; description: string }[] = [
   { key: "matches", label: "Nouveaux matchs", description: "Quand quelqu'un veut te rencontrer" },
   { key: "messages", label: "Messages", description: "Nouveaux messages de tes matchs" },
-  { key: "likes", label: "Likes recus", description: "Quand on aime ton profil" },
-  { key: "events", label: "Evenements", description: "Plans flash et soirees autour de toi" },
-  { key: "feed", label: "Feed", description: "Activites de tes matchs et du quartier" },
-  { key: "challenges", label: "Defis", description: "Defis du jour et progression" },
+  { key: "likes", label: "Likes reçus", description: "Quand on aime ton profil" },
+  { key: "events", label: "Événements", description: "Plans flash et soirées autour de toi" },
+  { key: "feed", label: "Feed", description: "Activités de tes matchs et du quartier" },
+  { key: "challenges", label: "Défis", description: "Défis du jour et progression" },
   { key: "reminder17h", label: "Rappel 17h", description: "\"Ce soir, tu fais quoi ?\" tous les jours" },
   { key: "newsletter", label: "Newsletter", description: "Actus CeSoir et nouveaux modes" },
 ];

@@ -105,7 +105,7 @@ export default function LiveActivityPanel({
 
   return (
     <m.div
-      className="absolute left-3 z-[900]"
+      className="absolute left-3 z-[870]"
       style={{ bottom: "calc(76px + env(safe-area-inset-bottom) + 12px)" }}
       initial={{ y: 40, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}

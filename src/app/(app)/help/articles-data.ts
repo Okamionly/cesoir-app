@@ -23,238 +23,238 @@ export type HelpCategory =
   | "troubleshooting";
 
 export const CATEGORY_LABELS: Record<HelpCategory, string> = {
-  "getting-started": "Demarrer",
+  "getting-started": "Démarrer",
   profile: "Profil",
   matching: "Matching",
-  safety: "Securite",
-  events: "Soirees",
+  safety: "Sécurité",
+  events: "Soirées",
   premium: "Premium",
-  privacy: "Confidentialite",
-  troubleshooting: "Problemes techniques",
+  privacy: "Confidentialité",
+  troubleshooting: "Problèmes techniques",
 };
 
 export const HELP_ARTICLES: HelpArticle[] = [
   {
     slug: "create-account",
-    title: "Comment creer mon compte",
+    title: "Comment créer mon compte",
     category: "getting-started",
-    summary: "Les etapes pour t'inscrire sur CeSoir en moins de 2 minutes.",
+    summary: "Les étapes pour t'inscrire sur CeSoir en moins de 2 minutes.",
     keywords: ["inscription", "compte", "email", "signup", "register"],
-    content: `Ouvre l'app CeSoir sur ton telephone ou rends-toi sur cesoir.app.
+    content: `Ouvre l'app CeSoir sur ton téléphone ou rends-toi sur cesoir.app.
 
-Clique sur "Creer un compte" et renseigne ton email + un mot de passe (au moins 8 caracteres).
+Clique sur "Créer un compte" et renseigne ton email + un mot de passe (au moins 8 caractères).
 
 Tu recevras un email de confirmation — clique sur le lien pour valider ton compte.
 
-Ajoute ensuite ton prenom, ton age (18 ans minimum), une photo de profil et une courte bio.
+Ajoute ensuite ton prénom, ton âge (18 ans minimum), une photo de profil et une courte bio.
 
-Choisis tes modes (Date, Soiree, Amitie, Voyage...) et active la geolocalisation pour voir les profils a proximite. C'est tout !`,
+Choisis tes modes (Date, Soirée, Amitié, Voyage...) et active la géolocalisation pour voir les profils à proximité. C'est tout !`,
   },
   {
     slug: "why-free",
     title: "Pourquoi CeSoir est gratuit",
     category: "getting-started",
-    summary: "Notre modele economique et comment on reste independants.",
+    summary: "Notre modèle économique et comment on reste indépendants.",
     keywords: ["gratuit", "prix", "business model", "premium", "abonnement"],
-    content: `CeSoir est gratuit parce que nous croyons que rencontrer les bonnes personnes ne devrait jamais etre un luxe.
+    content: `CeSoir est gratuit parce que nous croyons que rencontrer les bonnes personnes ne devrait jamais être un luxe.
 
-Les fonctionnalites de base (swiper, matcher, messagerie, soirees gratuites) sont et resteront 100% gratuites.
+Les fonctionnalités de base (swiper, matcher, messagerie, soirées gratuites) sont et resteront 100% gratuites.
 
-Nous finançons l'app via CeSoir Premium (optionnel, 4,99€/mois) qui donne acces a des fonctionnalites bonus : likes illimites, boost, messages avant match, et la suppression des pubs (il n'y en a pas aujourd'hui).
+Nous finançons l'app via CeSoir Premium (optionnel, 4,99€/mois) qui donne accès à des fonctionnalités bonus : likes illimités, boost, messages avant match, et la suppression des pubs (il n'y en a pas aujourd'hui).
 
-Nous ne vendons JAMAIS vos donnees. Notre engagement : aucune publicite ciblee, aucun partage avec des tiers commerciaux.`,
+Nous ne vendons JAMAIS vos données. Notre engagement : aucune publicité ciblée, aucun partage avec des tiers commerciaux.`,
   },
   {
     slug: "how-matching-works",
     title: "Comment marche le matching",
     category: "matching",
-    summary: "L'algorithme, les modes, et ce qui influence ta decouverte.",
+    summary: "L'algorithme, les modes, et ce qui influence ta découverte.",
     keywords: ["matching", "swipe", "like", "algorithme", "discover"],
     content: `Le matching CeSoir n'est pas un simple Tinder. Nous combinons plusieurs signaux :
 
-1. Ta proximite geographique (rayon configurable dans les parametres).
-2. Tes modes actifs (on te montre les utilisateurs compatibles : par exemple, si tu es en mode "Solo Diner", on privilegie les autres mode "Solo Diner" pres de toi).
-3. Tes preferences (genre recherche, tranche d'age).
-4. Votre compatibilite calculee (centres d'interet communs, reponses aux prompts).
-5. L'activite recente (les profils en ligne sont legerement boostes pour favoriser les conversations rapides).
+1. Ta proximité géographique (rayon configurable dans les paramètres).
+2. Tes modes actifs (on te montre les utilisateurs compatibles : par exemple, si tu es en mode "Solo Diner", on privilégie les autres mode "Solo Diner" près de toi).
+3. Tes préférences (genre recherché, tranche d'âge).
+4. Votre compatibilité calculée (centres d'intérêt communs, réponses aux prompts).
+5. L'activité récente (les profils en ligne sont légèrement boostés pour favoriser les conversations rapides).
 
-Quand tu "likes" quelqu'un et qu'il/elle te "like" en retour, c'est un match : vous pouvez vous ecrire.`,
+Quand tu "likes" quelqu'un et qu'il/elle te "like" en retour, c'est un match : vous pouvez vous écrire.`,
   },
   {
     slug: "block-report-user",
     title: "Comment bloquer ou signaler un utilisateur",
     category: "safety",
-    summary: "Proteger son experience et la communaute.",
+    summary: "Protéger son expérience et la communauté.",
     keywords: ["bloquer", "signaler", "report", "block", "abuse", "harcelement"],
-    content: `Si un utilisateur te met mal a l'aise, tu peux le bloquer ou le signaler depuis son profil ou une conversation.
+    content: `Si un utilisateur te met mal à l'aise, tu peux le bloquer ou le signaler depuis son profil ou une conversation.
 
-Pour bloquer : appuie sur les trois points (...) en haut a droite du profil ou du chat, puis "Bloquer". La personne ne pourra plus te voir ni te contacter.
+Pour bloquer : appuie sur les trois points (...) en haut à droite du profil ou du chat, puis "Bloquer". La personne ne pourra plus te voir ni te contacter.
 
-Pour signaler : meme menu, "Signaler", puis choisis un motif (faux profil, harcelement, contenu inapproprie, arnaque, mineur, menace de violence, catfish, autre). Tu peux ajouter des details et des captures d'ecran.
+Pour signaler : même menu, "Signaler", puis choisis un motif (faux profil, harcèlement, contenu inapproprié, arnaque, mineur, menace de violence, catfish, autre). Tu peux ajouter des détails et des captures d'écran.
 
-Toutes les actions sont anonymes. Notre equipe examine chaque signalement sous 24h. Si 3 personnes ou plus signalent un meme profil dans les 48h, il est automatiquement cache en attendant notre revue.`,
+Toutes les actions sont anonymes. Notre équipe examine chaque signalement sous 24h. Si 3 personnes ou plus signalent un même profil dans les 48h, il est automatiquement caché en attendant notre revue.`,
   },
   {
     slug: "how-events-work",
-    title: "Comment fonctionnent les Soirees",
+    title: "Comment fonctionnent les Soirées",
     category: "events",
-    summary: "Decouvrir, reserver et rejoindre les evenements CeSoir.",
+    summary: "Découvrir, réserver et rejoindre les événements CeSoir.",
     keywords: ["soirees", "events", "evenements", "rsvp", "sorties"],
-    content: `Les Soirees CeSoir sont des evenements reels organises par nos partenaires ou la communaute : bars, rooftops, clubs, expos, afterworks, concerts...
+    content: `Les Soirées CeSoir sont des événements réels organisés par nos partenaires ou la communauté : bars, rooftops, clubs, expos, afterworks, concerts...
 
-Pour les decouvrir : ouvre l'onglet "Soirees" ou la map. Filtre par categorie (techno, jazz, brunch...), par date ou par prix.
+Pour les découvrir : ouvre l'onglet "Soirées" ou la map. Filtre par catégorie (techno, jazz, brunch...), par date ou par prix.
 
-Pour RSVP : clique sur un evenement, lis la description, et choisis "Interesse" ou "J'y vais". Tu verras qui d'autre y va parmi tes matchs ou les profils compatibles.
+Pour RSVP : clique sur un événement, lis la description, et choisis "Intéressé" ou "J'y vais". Tu verras qui d'autre y va parmi tes matchs ou les profils compatibles.
 
-Les evenements gratuits sont signales. Certains proposent des places reservees par CeSoir (priorite a la communaute).
+Les événements gratuits sont signalés. Certains proposent des places réservées par CeSoir (priorité à la communauté).
 
-Nos partenaires verifies arborent un badge bleu. Nous recommandons de privilegier les evenements verifies.`,
+Nos partenaires vérifiés arborent un badge bleu. Nous recommandons de privilégier les événements vérifiés.`,
   },
   {
     slug: "rgpd-my-data",
-    title: "RGPD & mes donnees personnelles",
+    title: "RGPD & mes données personnelles",
     category: "privacy",
-    summary: "Tes droits, comment exporter ou supprimer tes donnees.",
+    summary: "Tes droits, comment exporter ou supprimer tes données.",
     keywords: ["rgpd", "gdpr", "privacy", "donnees", "export"],
-    content: `Tu as un controle total sur tes donnees. Tes droits RGPD :
+    content: `Tu as un contrôle total sur tes données. Tes droits RGPD :
 
-- Acces : telecharge un export complet depuis Parametres > Confidentialite > Telecharger mes donnees.
-- Rectification : modifie ton profil a tout moment.
-- Effacement : supprime ton compte depuis Parametres > Confidentialite > Supprimer mon compte (effectif sous 30 jours).
-- Portabilite : export au format JSON.
-- Opposition : ecris a privacy@cesoir.app.
+- Accès : télécharge un export complet depuis Paramètres > Confidentialité > Télécharger mes données.
+- Rectification : modifie ton profil à tout moment.
+- Effacement : supprime ton compte depuis Paramètres > Confidentialité > Supprimer mon compte (effectif sous 30 jours).
+- Portabilité : export au format JSON.
+- Opposition : écris à privacy@cesoir.app.
 
-Nous ne vendons JAMAIS tes donnees. Les seuls partages : Supabase (hebergement UE), Vercel (execution UE), Stripe (paiements), OpenAI (moderation — uniquement le texte, aucune donnee identifiante). Tout est encadre par les Clauses Contractuelles Types (SCC) quand necessaire.
+Nous ne vendons JAMAIS tes données. Les seuls partages : Supabase (hébergement UE), Vercel (exécution UE), Stripe (paiements), OpenAI (modération — uniquement le texte, aucune donnée identifiante). Tout est encadré par les Clauses Contractuelles Types (SCC) quand nécessaire.
 
 Consulte notre DPIA complet sur /legal/dpia.`,
   },
   {
     slug: "disable-deactivate-account",
-    title: "Comment desactiver ou supprimer mon compte",
+    title: "Comment désactiver ou supprimer mon compte",
     category: "profile",
-    summary: "Pause temporaire ou suppression definitive.",
+    summary: "Pause temporaire ou suppression définitive.",
     keywords: ["desactiver", "supprimer", "pause", "delete", "close"],
     content: `Deux options :
 
-Desactivation temporaire (pause) : Parametres > Compte > Mettre en pause. Ton profil devient invisible pour les autres, mais tes donnees et conversations sont conservees. Tu peux te reactiver a tout moment en te reconnectant.
+Désactivation temporaire (pause) : Paramètres > Compte > Mettre en pause. Ton profil devient invisible pour les autres, mais tes données et conversations sont conservées. Tu peux te réactiver à tout moment en te reconnectant.
 
-Suppression definitive : Parametres > Confidentialite > Supprimer mon compte. Tu dois confirmer avec ton mot de passe. Le compte est marque pour suppression (soft-delete 30 jours puis purge definitive, conformement a la CNIL).
+Suppression définitive : Paramètres > Confidentialité > Supprimer mon compte. Tu dois confirmer avec ton mot de passe. Le compte est marqué pour suppression (soft-delete 30 jours puis purge définitive, conformément à la CNIL).
 
-Attention : apres la purge, tes messages, matchs et signalements eventuels sont irrecuperables.`,
+Attention : après la purge, tes messages, matchs et signalements éventuels sont irrécupérables.`,
   },
   {
     slug: "verify-profile",
-    title: "Comment obtenir le badge Verifie",
+    title: "Comment obtenir le badge Vérifié",
     category: "profile",
-    summary: "Verification selfie pour prouver que tu es bien toi.",
+    summary: "Vérification selfie pour prouver que tu es bien toi.",
     keywords: ["verifier", "badge", "selfie", "verification"],
-    content: `Le badge Verifie inspire confiance et augmente ton nombre de matchs.
+    content: `Le badge Vérifié inspire confiance et augmente ton nombre de matchs.
 
-Pour l'obtenir : Profil > "Me verifier" ou ouvre /verify directement.
+Pour l'obtenir : Profil > "Me vérifier" ou ouvre /verify directement.
 
-Prends 3 selfies dans differentes poses (regarder a gauche, sourire, hocher la tete). Notre systeme compare localement ton visage avec ta photo de profil (aucune image n'est envoyee sans ton accord).
+Prends 3 selfies dans différentes poses (regarder à gauche, sourire, hocher la tête). Notre système compare localement ton visage avec ta photo de profil (aucune image n'est envoyée sans ton accord).
 
-Si la correspondance est forte, le badge apparait immediatement. Sinon, notre equipe fait une revue manuelle sous 24h.
+Si la correspondance est forte, le badge apparaît immédiatement. Sinon, notre équipe fait une revue manuelle sous 24h.
 
-Le badge est retire si tu changes de photo de profil — il faut alors re-verifier.`,
+Le badge est retiré si tu changes de photo de profil — il faut alors re-vérifier.`,
   },
   {
     slug: "change-location",
     title: "Changer ma ville ou mon rayon de recherche",
     category: "matching",
-    summary: "Ajuster ta zone de decouverte.",
+    summary: "Ajuster ta zone de découverte.",
     keywords: ["ville", "rayon", "distance", "location", "geoloc"],
-    content: `Tu peux ajuster ton rayon de recherche depuis Parametres > Decouverte > Rayon. Minimum 1 km, maximum 200 km.
+    content: `Tu peux ajuster ton rayon de recherche depuis Paramètres > Découverte > Rayon. Minimum 1 km, maximum 200 km.
 
-Pour changer de ville (voyage, demenagement) : tu peux passer en Mode Touriste ou Mode New-in-Town pour signaler que tu es de passage. Ton profil sera visible dans cette ville temporairement.
+Pour changer de ville (voyage, déménagement) : tu peux passer en Mode Touriste ou Mode New-in-Town pour signaler que tu es de passage. Ton profil sera visible dans cette ville temporairement.
 
-Note : nous utilisons ta geolocalisation en temps reel pour le matching, mais nous floutons ta position exacte pour les non-matchs (precision ~1 km).`,
+Note : nous utilisons ta géolocalisation en temps réel pour le matching, mais nous floutons ta position exacte pour les non-matchs (précision ~1 km).`,
   },
   {
     slug: "modes-explained",
-    title: "Les 4 modes expliques",
+    title: "Les 4 modes expliqués",
     category: "matching",
     summary: "Solo Diner, Plus-One, Night Owl, Foodie Quest — quand les utiliser.",
     keywords: ["modes", "solo diner", "plus-one", "night owl", "foodie quest"],
-    content: `CeSoir propose 4 modes qui correspondent a differentes intentions de soiree.
+    content: `CeSoir propose 4 modes qui correspondent à différentes intentions de soirée.
 
 Les 4 modes :
 
-- Solo Diner : trouver quelqu'un pour diner ce soir.
-- Plus-One : besoin d'un(e) partenaire pour un evenement precis (concert, vernissage, cinema).
-- Night Owl : tu es dispo en soiree, apres 23h, pour sortir.
-- Foodie Quest : aventure culinaire a deux, decouvrir un restaurant ensemble.
+- Solo Diner : trouver quelqu'un pour dîner ce soir.
+- Plus-One : besoin d'un(e) partenaire pour un événement précis (concert, vernissage, cinéma).
+- Night Owl : tu es dispo en soirée, après 23h, pour sortir.
+- Foodie Quest : aventure culinaire à deux, découvrir un restaurant ensemble.
 
-Active plusieurs modes a la fois pour maximiser tes matchs. Chaque mode a sa propre couleur et son ambiance.`,
+Active plusieurs modes à la fois pour maximiser tes matchs. Chaque mode a sa propre couleur et son ambiance.`,
   },
   {
     slug: "safety-sos-checkin",
-    title: "SOS et Check-in — fonctionnalites safety",
+    title: "SOS et Check-in — fonctionnalités safety",
     category: "safety",
-    summary: "Proteger tes sorties en informant tes proches.",
+    summary: "Protéger tes sorties en informant tes proches.",
     keywords: ["sos", "checkin", "safety", "securite", "urgence"],
-    content: `CeSoir prend ta securite au serieux. Deux outils :
+    content: `CeSoir prend ta sécurité au sérieux. Deux outils :
 
-SOS : un bouton d'urgence dans l'onglet Safety. Quand tu l'actives, ta position GPS est envoyee par SMS a tes contacts de confiance avec un lien Google Maps. Utilise-le si tu te sens en danger.
+SOS : un bouton d'urgence dans l'onglet Safety. Quand tu l'actives, ta position GPS est envoyée par SMS à tes contacts de confiance avec un lien Google Maps. Utilise-le si tu te sens en danger.
 
-Check-in : planifie un rappel (ex: toutes les 30 minutes pendant une sortie). Si tu ne confirmes pas que tu vas bien, tes contacts de confiance reçoivent automatiquement une alerte SMS avec ta derniere position.
+Check-in : planifie un rappel (ex: toutes les 30 minutes pendant une sortie). Si tu ne confirmes pas que tu vas bien, tes contacts de confiance reçoivent automatiquement une alerte SMS avec ta dernière position.
 
-Configure tes contacts de confiance depuis Parametres > Securite > Contacts de confiance. 3 contacts max recommandes.`,
+Configure tes contacts de confiance depuis Paramètres > Sécurité > Contacts de confiance. 3 contacts max recommandés.`,
   },
   {
     slug: "premium-benefits",
-    title: "CeSoir Premium — ce que ca apporte",
+    title: "CeSoir Premium — ce que ça apporte",
     category: "premium",
     summary: "Comparer gratuit vs Premium.",
     keywords: ["premium", "abonnement", "paiement", "subscription"],
-    content: `CeSoir Premium coute 4,99€/mois ou 39,99€/an (soit ~3,33€/mois).
+    content: `CeSoir Premium coûte 4,99€/mois ou 39,99€/an (soit ~3,33€/mois).
 
 Avantages :
-- Likes illimites (vs 30/jour en gratuit)
-- Voir qui t'a likee avant de matcher
+- Likes illimités (vs 30/jour en gratuit)
+- Voir qui t'a likée avant de matcher
 - 1 boost par mois (profil mis en avant 30 min)
 - Envoyer un message avant le match (5 SuperLikes par mois)
 - Passeport : match partout dans le monde
-- Mode Invisible (parcourir sans etre vu)
-- Pas de pubs (il n'y en a pas actuellement sur CeSoir, mais si on en ajoutait, les Premium seraient epargnes)
+- Mode Invisible (parcourir sans être vu)
+- Pas de pubs (il n'y en a pas actuellement sur CeSoir, mais si on en ajoutait, les Premium seraient épargnés)
 
-Tu peux annuler a tout moment depuis Parametres > Abonnement.`,
+Tu peux annuler à tout moment depuis Paramètres > Abonnement.`,
   },
   {
     slug: "cancel-subscription",
     title: "Annuler mon abonnement Premium",
     category: "premium",
-    summary: "Procedure pour resilier sans frais.",
+    summary: "Procédure pour résilier sans frais.",
     keywords: ["annuler", "resilier", "cancel", "abonnement"],
-    content: `Tu peux annuler ton abonnement CeSoir Premium a tout moment.
+    content: `Tu peux annuler ton abonnement CeSoir Premium à tout moment.
 
-Depuis l'app : Parametres > Abonnement > Annuler. La resiliation est effective a la fin de la periode en cours (tu gardes Premium jusqu'a l'echeance prevue).
+Depuis l'app : Paramètres > Abonnement > Annuler. La résiliation est effective à la fin de la période en cours (tu gardes Premium jusqu'à l'échéance prévue).
 
-Depuis le navigateur Stripe : tu recevras un email avec un lien vers ton portail client Stripe ou tu peux gerer ton abonnement.
+Depuis le navigateur Stripe : tu recevras un email avec un lien vers ton portail client Stripe où tu peux gérer ton abonnement.
 
-Aucun frais d'annulation, aucune question posee. Nous respectons ton choix.
+Aucun frais d'annulation, aucune question posée. Nous respectons ton choix.
 
-Si tu as des soucis, ecris a support@cesoir.app.`,
+Si tu as des soucis, écris à support@cesoir.app.`,
   },
   {
     slug: "photo-not-uploading",
     title: "Ma photo ne s'upload pas",
     category: "troubleshooting",
-    summary: "Les causes frequentes et comment les resoudre.",
+    summary: "Les causes fréquentes et comment les résoudre.",
     keywords: ["photo", "upload", "bug", "probleme"],
-    content: `Si ton upload echoue :
+    content: `Si ton upload échoue :
 
-1. Verifie la taille : la photo doit faire moins de 5 Mo. Si elle est plus grosse, compresse-la (TinyPNG, ton telephone propose souvent un "Resize" natif).
+1. Vérifie la taille : la photo doit faire moins de 5 Mo. Si elle est plus grosse, compresse-la (TinyPNG, ton téléphone propose souvent un "Resize" natif).
 
-2. Verifie le format : seuls JPG, PNG et WebP sont acceptes. Les HEIC (iPhone) doivent etre convertis.
+2. Vérifie le format : seuls JPG, PNG et WebP sont acceptés. Les HEIC (iPhone) doivent être convertis.
 
-3. Verifie ta connexion internet. Un reseau instable coupe l'upload.
+3. Vérifie ta connexion internet. Un réseau instable coupe l'upload.
 
-4. Assure-toi que ta photo ne contient PAS de contenu explicite : nous utilisons un filtre automatique qui bloque les images inappropriees.
+4. Assure-toi que ta photo ne contient PAS de contenu explicite : nous utilisons un filtre automatique qui bloque les images inappropriées.
 
-5. Si ton avatar n'apparait pas apres l'upload, force un refresh (tirer vers le bas sur l'ecran profil).
+5. Si ton avatar n'apparaît pas après l'upload, force un refresh (tirer vers le bas sur l'écran profil).
 
-Si rien ne marche, ecris a support@cesoir.app avec une capture du probleme.`,
+Si rien ne marche, écris à support@cesoir.app avec une capture du problème.`,
   },
   {
     slug: "not-getting-matches",
@@ -264,37 +264,37 @@ Si rien ne marche, ecris a support@cesoir.app avec une capture du probleme.`,
     keywords: ["match", "matching", "likes", "profil"],
     content: `Plusieurs leviers :
 
-1. Ajoute au moins 3 photos variees (portrait, activite, voyage). Les profils avec 4+ photos reçoivent 2x plus de matchs.
+1. Ajoute au moins 3 photos variées (portrait, activité, voyage). Les profils avec 4+ photos reçoivent 2x plus de matchs.
 
-2. Ecris une bio (meme courte). Un profil sans bio est 40% moins likee.
+2. Écris une bio (même courte). Un profil sans bio est 40% moins likée.
 
-3. Active plusieurs modes pour elargir ta decouverte.
+3. Active plusieurs modes pour élargir ta découverte.
 
-4. Verifie ton profil (badge Verifie) : +3x de matchs.
+4. Vérifie ton profil (badge Vérifié) : +3x de matchs.
 
 5. Connecte-toi aux heures de pointe (19h-23h en semaine, 15h-minuit le week-end).
 
-6. Si ton rayon est trop restreint (<5 km), elargis-le.
+6. Si ton rayon est trop restreint (<5 km), élargis-le.
 
-7. Evite les filtres trop restrictifs (tranche d'age super etroite).
+7. Évite les filtres trop restrictifs (tranche d'âge super étroite).
 
-Patience : les premiers jours, l'algorithme apprend tes preferences. Apres 1 semaine d'usage actif, tes resultats s'ameliorent nettement.`,
+Patience : les premiers jours, l'algorithme apprend tes préférences. Après 1 semaine d'usage actif, tes résultats s'améliorent nettement.`,
   },
   {
     slug: "change-password",
     title: "Changer mon mot de passe",
     category: "profile",
-    summary: "Reinitialiser ou modifier ton mot de passe.",
+    summary: "Réinitialiser ou modifier ton mot de passe.",
     keywords: ["mot de passe", "password", "reset"],
     content: `Deux cas :
 
-Tu connais ton mot de passe actuel : Parametres > Compte > Changer le mot de passe. Renseigne l'ancien + le nouveau (8 caracteres min, avec au moins 1 chiffre recommande).
+Tu connais ton mot de passe actuel : Paramètres > Compte > Changer le mot de passe. Renseigne l'ancien + le nouveau (8 caractères min, avec au moins 1 chiffre recommandé).
 
-Tu l'as oublie : sur l'ecran de connexion, clique "Mot de passe oublie". Tu recevras un email avec un lien de reinitialisation valide 1 heure.
+Tu l'as oublié : sur l'écran de connexion, clique "Mot de passe oublié". Tu recevras un email avec un lien de réinitialisation valide 1 heure.
 
-Nos mots de passe sont haches avec Argon2 (standard industrie) — meme nos developpeurs ne peuvent pas les lire en clair.
+Nos mots de passe sont hachés avec Argon2 (standard industrie) — même nos développeurs ne peuvent pas les lire en clair.
 
-Active la double authentification (MFA) depuis Parametres > Securite pour une protection supplementaire.`,
+Active la double authentification (MFA) depuis Paramètres > Sécurité pour une protection supplémentaire.`,
   },
   {
     slug: "notifications-not-working",
@@ -302,77 +302,77 @@ Active la double authentification (MFA) depuis Parametres > Securite pour une pr
     category: "troubleshooting",
     summary: "Configurer les alertes matchs, messages, SOS.",
     keywords: ["notifications", "push", "alertes", "notif"],
-    content: `Verifications :
+    content: `Vérifications :
 
-1. Les notifications sont actives dans l'app : Parametres > Notifications > Active les types qui t'interessent (matchs, messages, smart notifications).
+1. Les notifications sont actives dans l'app : Paramètres > Notifications > Active les types qui t'intéressent (matchs, messages, smart notifications).
 
-2. Les notifications sont autorisees au niveau du systeme :
-   - iOS : Reglages > CeSoir > Notifications > Autoriser
-   - Android : Parametres systeme > Applications > CeSoir > Notifications
+2. Les notifications sont autorisées au niveau du système :
+   - iOS : Réglages > CeSoir > Notifications > Autoriser
+   - Android : Paramètres système > Applications > CeSoir > Notifications
 
-3. Mode concentration / Ne pas deranger : desactive-le ou exclus CeSoir.
+3. Mode concentration / Ne pas déranger : désactive-le ou exclus CeSoir.
 
-4. Sur PWA (web app) : autorise les notifications lors du prompt initial. Tu peux reverifier dans les parametres du navigateur (Chrome > Parametres > Site > cesoir.app).
+4. Sur PWA (web app) : autorise les notifications lors du prompt initial. Tu peux revérifier dans les paramètres du navigateur (Chrome > Paramètres > Site > cesoir.app).
 
-Les notifications safety (check-in manque, SOS) contournent le Ne pas deranger si tu actives "Urgences" dans les reglages iOS/Android.`,
+Les notifications safety (check-in manqué, SOS) contournent le Ne pas déranger si tu actives "Urgences" dans les réglages iOS/Android.`,
   },
   {
     slug: "community-guidelines",
-    title: "Les regles de la communaute CeSoir",
+    title: "Les règles de la communauté CeSoir",
     category: "safety",
-    summary: "Ce qui est autorise, ce qui ne l'est pas.",
+    summary: "Ce qui est autorisé, ce qui ne l'est pas.",
     keywords: ["regles", "conditions", "comportement", "moderation"],
-    content: `CeSoir est une communaute basee sur le respect. Les regles :
+    content: `CeSoir est une communauté basée sur le respect. Les règles :
 
-AUTORISE :
-- Etre toi-meme, sincerement.
+AUTORISÉ :
+- Être toi-même, sincèrement.
 - Draguer respectueusement.
-- Refuser poliment, bloquer si necessaire.
-- Signaler un comportement deplace.
+- Refuser poliment, bloquer si nécessaire.
+- Signaler un comportement déplacé.
 
 INTERDIT :
-- Harcelement, menaces, discours haineux (racisme, homophobie, transphobie, etc.)
-- Photos sexuellement explicites (la nudite complete est filtree automatiquement)
-- Profils faux, usurpation d'identite, catfishing
+- Harcèlement, menaces, discours haineux (racisme, homophobie, transphobie, etc.)
+- Photos sexuellement explicites (la nudité complète est filtrée automatiquement)
+- Profils faux, usurpation d'identité, catfishing
 - Spam, arnaques, sollicitation commerciale
 - Utilisateurs mineurs (moins de 18 ans) — interdit strict
 - Photos d'enfants identifiables sans floutage
 
-Sanctions progressives : avertissement > timeout 24h > timeout 7j > ban permanent. Les cas graves (menaces, mineurs, violence) conduisent a un ban immediat et un signalement aux autorites si necessaire.
+Sanctions progressives : avertissement > timeout 24h > timeout 7j > ban permanent. Les cas graves (menaces, mineurs, violence) conduisent à un ban immédiat et un signalement aux autorités si nécessaire.
 
-Notre equipe de moderation est disponible 7j/7 et examine chaque signalement sous 24h.`,
+Notre équipe de modération est disponible 7j/7 et examine chaque signalement sous 24h.`,
   },
   {
     slug: "premium-refund",
     title: "Demander un remboursement Premium",
     category: "premium",
-    summary: "Cas ou un remboursement est possible.",
+    summary: "Cas où un remboursement est possible.",
     keywords: ["remboursement", "refund", "stripe"],
-    content: `Les abonnements CeSoir Premium sont en principe non-remboursables une fois la periode commencee (conformement a l'article L221-28 du Code de la Consommation sur les prestations pleinement executees).
+    content: `Les abonnements CeSoir Premium sont en principe non-remboursables une fois la période commencée (conformément à l'article L221-28 du Code de la Consommation sur les prestations pleinement exécutées).
 
 Cas de remboursement exceptionnel :
 
-- Bug technique avere (Premium non active apres paiement).
+- Bug technique avéré (Premium non activé après paiement).
 - Double facturation.
-- Resiliation dans les 14 jours si Premium n'a jamais ete utilise (droit de retractation).
+- Résiliation dans les 14 jours si Premium n'a jamais été utilisé (droit de rétractation).
 
-Contact support@cesoir.app avec ton email de compte + capture d'ecran de la facture. Reponse sous 48h.`,
+Contact support@cesoir.app avec ton email de compte + capture d'écran de la facture. Réponse sous 48h.`,
   },
   {
     slug: "pwa-install",
-    title: "Installer CeSoir sur mon telephone (PWA)",
+    title: "Installer CeSoir sur mon téléphone (PWA)",
     category: "getting-started",
     summary: "Avoir CeSoir comme une vraie app, sans passer par l'App Store.",
     keywords: ["pwa", "installer", "home screen", "app"],
-    content: `CeSoir est une Progressive Web App (PWA) : tu peux l'installer sur ton ecran d'accueil comme une vraie app, sans passer par l'App Store ou Google Play.
+    content: `CeSoir est une Progressive Web App (PWA) : tu peux l'installer sur ton écran d'accueil comme une vraie app, sans passer par l'App Store ou Google Play.
 
-iOS (Safari) : ouvre cesoir.app dans Safari > tape sur l'icone "Partager" > "Sur l'ecran d'accueil" > "Ajouter".
+iOS (Safari) : ouvre cesoir.app dans Safari > tape sur l'icône "Partager" > "Sur l'écran d'accueil" > "Ajouter".
 
 Android (Chrome) : ouvre cesoir.app dans Chrome > menu (3 points) > "Installer l'application".
 
-Avantages : plus rapide, notifications push, mode hors ligne partiel. Pas besoin de stockage supplementaire (< 1 Mo).
+Avantages : plus rapide, notifications push, mode hors ligne partiel. Pas besoin de stockage supplémentaire (< 1 Mo).
 
-Pour desinstaller : comme n'importe quelle app de ton telephone (appui long sur l'icone > Supprimer).`,
+Pour désinstaller : comme n'importe quelle app de ton téléphone (appui long sur l'icône > Supprimer).`,
   },
 ];
 

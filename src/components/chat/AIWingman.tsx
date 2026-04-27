@@ -13,73 +13,73 @@ import { springs, micro } from "@/lib/motion-design";
 const MODE_STARTERS: Record<string, string[]> = {
   "solo-diner": [
     "Tu connais un bon resto dans le coin?",
-    "Cuisine preferee ce soir?",
-    "Plutot terrasse ou interieur?",
+    "Cuisine préférée ce soir?",
+    "Plutôt terrasse ou intérieur?",
   ],
   "night-owl": [
-    "Quel bar tu recommandes apres minuit?",
-    "T'es plutot cocktail ou biere?",
+    "Quel bar tu recommandes après minuit?",
+    "T'es plutôt cocktail ou bière?",
     "Tu sors souvent en semaine?",
   ],
   "plus-one": [
     "C'est quoi l'event ce soir?",
-    "On se retrouve ou?",
-    "C'est quel genre de soiree?",
+    "On se retrouve où?",
+    "C'est quel genre de soirée?",
   ],
   tourist: [
-    "Tu viens d'ou?",
+    "Tu viens d'où?",
     "Qu'est-ce qu'il faut absolument voir ici?",
-    "T'es la pour combien de temps?",
+    "T'es là pour combien de temps?",
   ],
   breakup: [
-    "Comment tu geres?",
+    "Comment tu gères?",
     "Envie de parler ou juste sortir?",
     "Glace ou balade ce soir?",
   ],
   langue: [
     "Tu parles quelles langues?",
     "On pratique en quelle langue?",
-    "T'es a quel niveau?",
+    "T'es à quel niveau?",
   ],
   "dog-date": [
     "Il/elle s'appelle comment ton chien?",
-    "Parc prefere pour les balades?",
+    "Parc préféré pour les balades?",
     "C'est quelle race?",
   ],
   "gamer-night": [
-    "Tu joues a quoi en ce moment?",
+    "Tu joues à quoi en ce moment?",
     "Console ou PC?",
-    "Plutot coop ou versus?",
+    "Plutôt coop ou versus?",
   ],
   "foodie-quest": [
-    "Le meilleur plat que t'as mange recemment?",
+    "Le meilleur plat que t'as mangé récemment?",
     "Street food ou gastro?",
-    "T'as un restau secret a partager?",
+    "T'as un restau secret à partager?",
   ],
   "culture-club": [
-    "Tu as vu quoi recemment?",
+    "Tu as vu quoi récemment?",
     "Expo ou spectacle ce soir?",
-    "T'es plutot musee ou cinema?",
+    "T'es plutôt musée ou cinéma?",
   ],
   "fit-date": [
     "Tu fais quoi comme sport?",
     "Match ou session?",
-    "Plutot matin ou soir pour s'entrainer?",
+    "Plutôt matin ou soir pour s'entraîner?",
   ],
   "sober-tonight": [
-    "Ca fait combien de temps?",
-    "T'as un spot sobre prefere?",
-    "The, jeux ou balade?",
+    "Ça fait combien de temps?",
+    "T'as un spot sobre préféré?",
+    "Thé, jeux ou balade?",
   ],
   "new-in-town": [
-    "T'es arrive quand?",
-    "Tu viens d'ou a la base?",
+    "T'es arrivé quand?",
+    "Tu viens d'où à la base?",
     "Qu'est-ce qui te manque le plus?",
   ],
   seasonal: [
-    "T'as prevu quoi pour ce soir?",
-    "C'est ta premiere fois seul pour cette fete?",
-    "Plutot ambiance calme ou festive?",
+    "T'as prévu quoi pour ce soir?",
+    "C'est ta première fois seul pour cette fête?",
+    "Plutôt ambiance calme ou festive?",
   ],
 };
 
@@ -87,7 +87,7 @@ const MODE_STARTERS: Record<string, string[]> = {
 const DEFAULT_STARTERS = [
   "C'est quoi ton plan pour ce soir?",
   "Tu connais un bon endroit pas loin?",
-  "Ca fait longtemps que tu es sur CeSoir?",
+  "Ça fait longtemps que tu es sur CeSoir?",
 ];
 
 // ─────────────────────────────────────────
@@ -97,69 +97,69 @@ const DEFAULT_STARTERS = [
 
 const MODE_FOLLOWUPS: Record<string, string[]> = {
   "solo-diner": [
-    "Tu preferes quel quartier?",
+    "Tu préfères quel quartier?",
     "Budget resto ce soir?",
     "T'as des allergies alimentaires?",
   ],
   "night-owl": [
-    "Tu restes jusqu'a quelle heure?",
-    "Apres le bar on fait quoi?",
+    "Tu restes jusqu'à quelle heure?",
+    "Après le bar on fait quoi?",
     "Tu connais un after sympa?",
   ],
   "plus-one": [
     "Dress code?",
-    "C'est a quelle heure?",
-    "Y'a d'autres gens qu'on connait?",
+    "C'est à quelle heure?",
+    "Y'a d'autres gens qu'on connaît?",
   ],
   tourist: [
-    "T'as deja mange ou ce soir?",
+    "T'as déjà mangé où ce soir?",
     "Tu veux voir le quartier local?",
-    "On se retrouve ou exactement?",
+    "On se retrouve où exactement?",
   ],
   breakup: [
     "T'as envie de faire quoi exactement?",
-    "Un endroit calme ca te dit?",
-    "T'as besoin de decompresser?",
+    "Un endroit calme ça te dit?",
+    "T'as besoin de décompresser?",
   ],
   langue: [
-    "On se fait un cafe pour pratiquer?",
-    "T'as des sujets preferes?",
+    "On se fait un café pour pratiquer?",
+    "T'as des sujets préférés?",
     "Combien de temps t'as ce soir?",
   ],
   "dog-date": [
     "Ton chien est sociable?",
     "Parc ou balade en ville?",
-    "Il/elle a quel age?",
+    "Il/elle a quel âge?",
   ],
   "gamer-night": [
     "T'as un serveur Discord?",
     "On lance une partie ce soir?",
-    "T'es dispo a quelle heure?",
+    "T'es dispo à quelle heure?",
   ],
   "foodie-quest": [
-    "Budget illimite ou raisonnable?",
+    "Budget illimité ou raisonnable?",
     "T'es aventureux niveau saveurs?",
     "On teste un truc nouveau?",
   ],
   "culture-club": [
     "T'as vu les critiques?",
-    "On y va a quelle heure?",
+    "On y va à quelle heure?",
     "Tu connais l'artiste?",
   ],
   "fit-date": [
-    "T'es a quel niveau?",
-    "On se retrouve a la salle?",
-    "Duree de la session?",
+    "T'es à quel niveau?",
+    "On se retrouve à la salle?",
+    "Durée de la session?",
   ],
   "sober-tonight": [
-    "Tu connais un bon salon de the?",
-    "Plutot jeux de societe ou balade?",
-    "T'as un endroit prefere?",
+    "Tu connais un bon salon de thé?",
+    "Plutôt jeux de société ou balade?",
+    "T'as un endroit préféré?",
   ],
   "new-in-town": [
-    "T'as deja explore quel quartier?",
+    "T'as déjà exploré quel quartier?",
     "Tu cherches quoi comme ambiance?",
-    "On commence par ou?",
+    "On commence par où?",
   ],
   seasonal: [
     "On invite d'autres gens?",
@@ -169,9 +169,9 @@ const MODE_FOLLOWUPS: Record<string, string[]> = {
 };
 
 const DEFAULT_FOLLOWUPS = [
-  "On se retrouve ou?",
-  "T'es dispo a quelle heure?",
-  "Ca te dit de se voir?",
+  "On se retrouve où?",
+  "T'es dispo à quelle heure?",
+  "Ça te dit de se voir?",
 ];
 
 // ─────────────────────────────────────────
@@ -180,7 +180,7 @@ const DEFAULT_FOLLOWUPS = [
 
 const REENGAGE_SUGGESTIONS = [
   "T'es toujours dans le coin?",
-  "Sinon, on remet ca a un autre soir?",
+  "Sinon, on remet ça à un autre soir?",
   "Dis-moi ce qui te ferait plaisir ce soir",
 ];
 
@@ -190,9 +190,9 @@ const REENGAGE_SUGGESTIONS = [
 
 function getTimeOfDayGreeting(): string | null {
   const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return "Bien dormi? Pret pour ce soir?";
-  if (hour >= 12 && hour < 17) return "Deja en train de planifier ta soiree?";
-  if (hour >= 17 && hour < 21) return "La soiree commence bientot!";
+  if (hour >= 5 && hour < 12) return "Bien dormi? Prêt pour ce soir?";
+  if (hour >= 12 && hour < 17) return "Déjà en train de planifier ta soirée?";
+  if (hour >= 17 && hour < 21) return "La soirée commence bientôt!";
   if (hour >= 21 || hour < 5) return "La nuit est jeune!";
   return null;
 }

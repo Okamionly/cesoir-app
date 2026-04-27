@@ -83,7 +83,7 @@ export default function EventFilters({ value, onChange }: EventFiltersProps) {
       {/* Category row */}
       <div
         role="tablist"
-        aria-label="Categories"
+        aria-label="Catégories"
         className="flex gap-2 overflow-x-auto scrollbar-none -mx-4 px-4"
       >
         <Chip

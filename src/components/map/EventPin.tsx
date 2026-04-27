@@ -178,7 +178,7 @@ export function createEventPin(opts: EventPinOptions): EventPinHandle {
   root.className = "cesoir-evt-root";
   root.setAttribute("role", "button");
   root.setAttribute("tabindex", "0");
-  root.setAttribute("aria-label", `Soiree: ${opts.title}`);
+  root.setAttribute("aria-label", `Soirée: ${opts.title}`);
 
   if (!opts.reduced) {
     const delay = opts.animationDelay ?? 0;

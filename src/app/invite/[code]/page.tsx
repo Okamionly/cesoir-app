@@ -181,14 +181,14 @@ export default function InvitePage() {
               Lien invalide
             </h1>
             <p className="text-sm text-text-muted mb-8">
-              Ce lien d&apos;invitation a expire ou n&apos;existe pas.
+              Ce lien d&apos;invitation a expiré ou n&apos;existe pas.
             </p>
             <m.a
               href="/"
               className="inline-block px-8 py-3.5 rounded-full gradient-bg text-white text-sm font-semibold shadow-glow"
               whileTap={{ scale: 0.95, transition: springs.micro }}
             >
-              Decouvrir CeSoir
+              Découvrir CeSoir
             </m.a>
           </m.div>
         )}

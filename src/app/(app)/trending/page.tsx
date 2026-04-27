@@ -290,7 +290,7 @@ export default function TrendingPage() {
           <EmptyState
             emoji="📍"
             title={activeMode ? "Aucun lieu pour ce filtre" : "Pas encore de lieux trending"}
-            subtitle={activeMode ? "Essaie un autre mode" : "Les spots populaires apparaitront des que l'activite monte"}
+            subtitle={activeMode ? "Essaie un autre mode" : "Les spots populaires apparaîtront dès que l'activité monte"}
           />
         )}
       </m.div>

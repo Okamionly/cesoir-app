@@ -29,9 +29,9 @@ interface Props {
 type Step = "idle" | "loading_model" | "pose_1" | "pose_2" | "pose_3" | "matching" | "done";
 
 const POSE_PROMPTS = [
-  { key: "pose_1" as const, label: "Regarde a gauche", emoji: "👈" },
-  { key: "pose_2" as const, label: "Souris a la camera", emoji: "😊" },
-  { key: "pose_3" as const, label: "Hoche la tete", emoji: "👆" },
+  { key: "pose_1" as const, label: "Regarde à gauche", emoji: "👈" },
+  { key: "pose_2" as const, label: "Souris à la caméra", emoji: "😊" },
+  { key: "pose_3" as const, label: "Hoche la tête", emoji: "👆" },
 ];
 
 const MATCH_THRESHOLD = 0.7; // Lower = stricter. 0.6 is face-api.js default.
@@ -67,7 +67,7 @@ export default function SelfieVerification({ userId, avatarUrl, onComplete }: Pr
       return true;
     } catch (err) {
       logger.error("selfie_webcam_failed", { err: String(err) });
-      setError("Impossible d'acceder a la camera. Verifie les permissions.");
+      setError("Impossible d'accéder à la caméra. Vérifie les permissions.");
       return false;
     }
   }, []);
@@ -232,7 +232,7 @@ export default function SelfieVerification({ userId, avatarUrl, onComplete }: Pr
         {step === "idle" && (
           <div className="absolute inset-0 flex items-center justify-center bg-bg-card/80">
             <p className="text-[13px] text-text-muted px-4 text-center">
-              Clique sur &quot;Demarrer&quot; pour lancer la verification
+              Clique sur &quot;Démarrer&quot; pour lancer la vérification
             </p>
           </div>
         )}
@@ -262,7 +262,7 @@ export default function SelfieVerification({ userId, avatarUrl, onComplete }: Pr
           onClick={handleStart}
           className="gradient-bg text-white px-6 py-3 rounded-full text-[14px] font-semibold shadow-glow"
         >
-          Demarrer la verification
+          Démarrer la vérification
         </button>
       )}
       {currentPose && (
@@ -274,7 +274,7 @@ export default function SelfieVerification({ userId, avatarUrl, onComplete }: Pr
         </button>
       )}
       {step === "done" && (
-        <p className="text-[13px] text-text-muted text-center">Verification terminee.</p>
+        <p className="text-[13px] text-text-muted text-center">Vérification terminée.</p>
       )}
     </div>
   );

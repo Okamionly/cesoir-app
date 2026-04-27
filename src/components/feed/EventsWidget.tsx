@@ -111,12 +111,12 @@ export default function EventsWidget() {
 
   if (loading || upcoming.length === 0) return null;
 
-  const sectionTitle = isWeekend() ? "Ce week-end a Montpellier" : "Ce soir a Montpellier";
+  const sectionTitle = isWeekend() ? "Ce week-end à Montpellier" : "Ce soir à Montpellier";
 
   return (
     <section
       className="px-4 pt-3 pb-1"
-      aria-label="Evenements a venir"
+      aria-label="Événements à venir"
     >
       <div className="flex items-center justify-between mb-2">
         <h2 className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-text-muted">
