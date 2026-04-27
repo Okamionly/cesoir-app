@@ -81,11 +81,57 @@ export interface CesoirEvent {
 }
 
 /**
+ * Price range bucket — maps to door_price_eur ranges used in filterEvents.
+ * "free"  = door_price_eur is null or 0
+ * "low"   = 0 < price <= 15
+ * "mid"   = 15 < price <= 30
+ * "high"  = price > 30
+ */
+export type EventPriceRange = "free" | "low" | "mid" | "high" | null;
+
+/**
+ * Distance bucket — approximate radius from user's last known position.
+ * null = no distance filter.
+ */
+export type EventDistanceBucket = 2 | 5 | 10 | 20 | null;
+
+/**
  * Filter state for the `/events` listing page.
+ *
+ * v2 additions (2026-04-27):
+ * - `categories` replaces the single `category` field; allows multi-select
+ *   from the bottom-sheet. `category` is kept as a deprecated alias that
+ *   points to `categories[0] ?? null` — DO NOT add new usages.
+ * - `priceRange` maps to `EventPriceRange` buckets.
+ * - `distance` maps to `EventDistanceBucket` km radii.
  */
 export interface EventFiltersState {
   when: EventWhenFilter;
+  /** @deprecated use `categories` — kept for backward-compat with useEvents */
   category: EventCategory | null;
+  /** Multi-select categories; empty array = "all categories". */
+  categories: EventCategory[];
+  priceRange: EventPriceRange;
+  distance: EventDistanceBucket;
+}
+
+/** Default (no filter active) state. */
+export const DEFAULT_EVENT_FILTERS: EventFiltersState = {
+  when: "all",
+  category: null,
+  categories: [],
+  priceRange: null,
+  distance: null,
+};
+
+/** Count how many non-default filters are active (for badge display). */
+export function countActiveFilters(f: EventFiltersState): number {
+  let n = 0;
+  if (f.when !== "all") n++;
+  if (f.categories.length > 0) n++;
+  if (f.priceRange !== null) n++;
+  if (f.distance !== null) n++;
+  return n;
 }
 
 /**

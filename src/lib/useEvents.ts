@@ -254,9 +254,39 @@ export function filterEvents(
         break;
     }
 
-    if (filters.category && !e.categories.includes(filters.category)) {
+    // Multi-select categories (v2): any event category must intersect the filter set.
+    if (filters.categories && filters.categories.length > 0) {
+      const hasMatch = filters.categories.some((cat) => e.categories.includes(cat));
+      if (!hasMatch) return false;
+    } else if (filters.category && !e.categories.includes(filters.category)) {
+      // Legacy single-select fallback.
       return false;
     }
+
+    // Price range filter — requires priceLabel to be parseable.
+    if (filters.priceRange) {
+      const raw = e.priceLabel;
+      const isFree = !raw || raw === "Gratuit";
+      const priceNum = isFree ? 0 : parseFloat(raw ?? "0");
+      switch (filters.priceRange) {
+        case "free":
+          if (!isFree) return false;
+          break;
+        case "low":
+          if (isFree || priceNum > 15) return false;
+          break;
+        case "mid":
+          if (priceNum <= 15 || priceNum > 30) return false;
+          break;
+        case "high":
+          if (priceNum <= 30) return false;
+          break;
+      }
+    }
+
+    // Distance filter is intentionally skipped client-side (no geolocation in
+    // the filter function scope). The UI uses it to hint the query layer only.
+
     return true;
   });
 }

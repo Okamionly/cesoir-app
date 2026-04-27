@@ -32,6 +32,7 @@ import EventFlyInCard from "@/components/map/EventFlyInCard";
 import { useEvents } from "@/lib/useEvents";
 import { supabase } from "@/lib/supabase";
 import type { CesoirEvent, RsvpStatus } from "@/lib/events-types";
+import { DEFAULT_EVENT_FILTERS } from "@/lib/events-types";
 
 interface ProfileWithPos extends Profile {
   pos: { lat: number; lng: number };
@@ -90,10 +91,7 @@ export default function MapPage() {
 
   // Montpellier events (U2 hook) — shown on /map via a dedicated layer
   // distinct from profile pins. Toggle via `filters.showEvents` (sheet).
-  const { events: montpellierEvents, refetch: refetchEvents } = useEvents({
-    when: "all",
-    category: null,
-  });
+  const { events: montpellierEvents, refetch: refetchEvents } = useEvents(DEFAULT_EVENT_FILTERS);
 
   // 2026-04-24 (CPO-003 fix + SEC-001 alignment):
   // The `nearby_profiles` RPC currently returns `distance_km` but NOT the

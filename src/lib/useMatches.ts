@@ -40,10 +40,21 @@ export function useMatches(options: MatchOptions = {}): UseMatchesResult {
   const optionsRef = useRef(options);
   optionsRef.current = options;
 
+  // Track whether the very first fetch has completed. We only show the
+  // skeleton on the initial load — silent refreshes (every 30s, or
+  // pull-to-refresh) MUST NOT flip `loading` to true, otherwise the
+  // /browse <AnimatePresence> unmounts the deck mid-session and the
+  // user sees a skeleton flash every 30 seconds while swiping. See the
+  // 2026-04-27 perf sweep for why this was the silent compounder of the
+  // "stuck swipe" bug.
+  const initialLoadDoneRef = useRef(false);
+
   const fetchMatches = useCallback(async () => {
     if (!user?.id || !latitude || !longitude) return;
 
-    setLoading(true);
+    if (!initialLoadDoneRef.current) {
+      setLoading(true);
+    }
     setError(null);
 
     try {
@@ -60,6 +71,7 @@ export function useMatches(options: MatchOptions = {}): UseMatchesResult {
       setError(message);
       logger.error("use_matches_fetch_failed", { err: String(err) });
     } finally {
+      initialLoadDoneRef.current = true;
       setLoading(false);
     }
   }, [user?.id, latitude, longitude]);

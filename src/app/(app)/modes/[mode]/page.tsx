@@ -2,6 +2,7 @@
 
 import { use, useMemo, useState, useCallback, useSyncExternalStore } from "react";
 import type { EventFiltersState } from "@/lib/events-types";
+import { DEFAULT_EVENT_FILTERS } from "@/lib/events-types";
 import { m } from "motion/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -76,7 +77,7 @@ function getServerNowMs(): number {
 // category: null }` at the call site creates a new ref every render, which
 // invalidates downstream useMemo deps in useEvents and triggers re-fetch
 // loops on every paint.
-const EVENTS_FILTERS: EventFiltersState = { when: "all", category: null };
+const EVENTS_FILTERS: EventFiltersState = DEFAULT_EVENT_FILTERS;
 
 // ─────────────────────────────────────────
 // Sub-components
