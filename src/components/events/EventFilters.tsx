@@ -104,7 +104,7 @@ function buildDateSlots(): DateSlot[] {
     },
     {
       id: "all",
-      dayLabel: "Tout voir",
+      dayLabel: "Tout",
       dateNum: "∞",
       isTonight: false,
     },
@@ -203,8 +203,8 @@ function DateSlotButton({
       whileTap={{ scale: 0.92 }}
       transition={springs.snap as Transition}
       className={[
-        "relative flex-shrink-0 flex flex-col items-center justify-center",
-        "min-w-[60px] rounded-2xl px-3 py-2.5 transition-colors",
+        "relative w-full flex flex-col items-center justify-center",
+        "rounded-2xl px-2 py-2.5 transition-colors",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
         "tap-target",
         active
@@ -540,27 +540,33 @@ export default function EventFilters({
   const draftActiveCount = useMemo(() => countActiveFilters(draft), [draft]);
 
   // ── Render ──────────────────────────────────────────────
+  // 2026-04-27 (user feedback): the previous v2 had TWO horizontal scrollers
+  // (date row + smart combo row) — user found this ergonomically painful on
+  // mobile ("difficle de defile a gauche ou droite tout doit etre integret
+  // pas de systeme onglet tout doit rentrer"). v3 collapses to a SINGLE row
+  // where 4 dates + Filtres button fit on a 390px viewport with NO scroll
+  // (flex-1 distribution). Smart combos moved INTO the bottom sheet as a
+  // "Suggestions" preset row at the top, so they're still discoverable but
+  // don't clutter the main view.
   return (
     <>
-      {/* ── Row 1: Date carousel + Filter button ── */}
-      <div className="flex items-center gap-3">
-        {/* Date carousel — horizontal scroll, no scrollbar */}
-        <div
-          role="group"
-          aria-label="Filtrer par date"
-          className="flex gap-2 overflow-x-auto scrollbar-none flex-1 -mx-4 px-4"
-        >
-          {dateSlots.map((slot) => (
+      {/* ── Single row: 4 date chips (flex-1) + Filtres button ── */}
+      <div
+        role="group"
+        aria-label="Filtres événements"
+        className="flex items-stretch gap-1.5"
+      >
+        {dateSlots.map((slot) => (
+          <div key={slot.id} className="flex-1 min-w-0">
             <DateSlotButton
-              key={slot.id}
               slot={slot}
               active={value.when === slot.id}
               onClick={() => handleWhen(slot.id)}
             />
-          ))}
-        </div>
+          </div>
+        ))}
 
-        {/* Filtres button */}
+        {/* Filtres button — fixed width, sits flush at the right */}
         <m.button
           type="button"
           aria-label={`Ouvrir les filtres${activeCount > 0 ? `, ${activeCount} actifs` : ""}`}
@@ -569,8 +575,9 @@ export default function EventFilters({
           whileTap={{ scale: 0.94 }}
           transition={springs.snap as Transition}
           className={[
-            "flex-shrink-0 inline-flex items-center gap-2 rounded-2xl px-4 py-2.5",
-            "text-[13px] font-bold whitespace-nowrap transition-colors tap-target",
+            "flex-shrink-0 flex flex-col items-center justify-center gap-0.5",
+            "min-w-[52px] rounded-2xl px-2 py-2.5",
+            "text-[10px] font-bold transition-colors tap-target",
             "focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
             activeCount > 0
               ? "text-white"
@@ -578,29 +585,15 @@ export default function EventFilters({
           ].join(" ")}
           style={activeCount > 0 ? { background: app.gradient } : {}}
         >
-          <Filter size={14} aria-hidden />
-          Filtres
-          <FilterBadge count={activeCount} />
+          <Filter size={16} aria-hidden />
+          <span className="flex items-center gap-1">
+            Filtres
+            <FilterBadge count={activeCount} />
+          </span>
         </m.button>
       </div>
 
-      {/* ── Row 2: Smart combo chips ── */}
-      <div
-        role="group"
-        aria-label="Suggestions de filtres combinés"
-        className="flex gap-2 overflow-x-auto scrollbar-none -mx-4 px-4 pt-2"
-      >
-        {SMART_COMBOS.map((combo) => (
-          <SmartComboChip
-            key={combo.id}
-            combo={combo}
-            active={isComboActive(combo)}
-            onClick={() => handleCombo(combo)}
-          />
-        ))}
-      </div>
-
-      {/* ── Row 3: Active filter pills ── */}
+      {/* ── Active filter pills — wrap below, only visible when filters set ── */}
       <AnimatePresence>
         {activePills.length > 0 && (
           <m.div
@@ -613,7 +606,7 @@ export default function EventFilters({
             <div
               role="group"
               aria-label="Filtres actifs"
-              className="flex flex-wrap gap-2 pt-2"
+              className="flex flex-wrap gap-1.5 pt-2"
             >
               <AnimatePresence>
                 {activePills.map((pill) => (
@@ -638,6 +631,62 @@ export default function EventFilters({
         initialSnap={1}
       >
         <div className="space-y-6 pb-32">
+          {/* Smart combos — moved here from main view (v3 redesign).
+              Tap a preset to fill the draft instantly, then "Voir N résultats". */}
+          <section aria-labelledby="sheet-combos-heading">
+            <h3
+              id="sheet-combos-heading"
+              className="text-[12px] font-bold text-text-muted uppercase tracking-wider mb-3"
+            >
+              Suggestions
+            </h3>
+            <div className="grid grid-cols-2 gap-2">
+              {SMART_COMBOS.map((combo) => {
+                const active =
+                  (combo.patch.when === undefined || draft.when === combo.patch.when) &&
+                  (combo.patch.priceRange === undefined || draft.priceRange === combo.patch.priceRange) &&
+                  (combo.patch.distance === undefined || draft.distance === combo.patch.distance) &&
+                  (combo.patch.categories === undefined ||
+                    (combo.patch.categories as EventCategory[]).every((c) => draft.categories.includes(c)));
+                return (
+                  <m.button
+                    key={combo.id}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => {
+                      haptic();
+                      const cats =
+                        combo.patch.categories !== undefined
+                          ? (combo.patch.categories as EventCategory[])
+                          : draft.categories;
+                      setDraft({
+                        ...draft,
+                        ...(combo.patch.when ? { when: combo.patch.when } : {}),
+                        ...(combo.patch.priceRange !== undefined ? { priceRange: combo.patch.priceRange } : {}),
+                        ...(combo.patch.distance !== undefined ? { distance: combo.patch.distance } : {}),
+                        categories: cats,
+                        category: cats[0] ?? draft.category,
+                      });
+                    }}
+                    whileTap={{ scale: 0.94 }}
+                    transition={springs.snap as Transition}
+                    className={[
+                      "inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-3",
+                      "text-[13px] font-semibold transition-colors tap-target",
+                      "focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
+                      active
+                        ? "bg-accent text-white"
+                        : "bg-bg-card border border-border text-text-muted hover:text-text hover:border-accent/30",
+                    ].join(" ")}
+                  >
+                    {combo.icon}
+                    {combo.label}
+                  </m.button>
+                );
+              })}
+            </div>
+          </section>
+
           {/* Categories */}
           <section aria-labelledby="sheet-categories-heading">
             <h3
