@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useAsyncResource } from "@/lib/hooks/useAsyncResource";
-import { useRealtimeChannel } from "@/lib/hooks/useSupabaseQuery";
+import { useRealtimeChannel, namespacedChannelName } from "@/lib/hooks/useSupabaseQuery";
 import {
   calculateLevel,
   checkLevelUp,
@@ -61,6 +61,13 @@ export function useGamification(): UseGamificationReturn {
   const { user } = useAuth();
   const userId = user?.id;
 
+  // 2026-04-27 fix: stable per-instance nonce so the channel name is
+  // globally unique. Without this, calling `client.channel("xp-{userId}")`
+  // on a re-render returned the SAME (already-subscribed) channel, and
+  // re-attaching `.on(...)` after `.subscribe()` triggered the Supabase
+  // error: "cannot add postgres_changes callbacks ... after subscribe()".
+  const instanceNonce = useId();
+
   // Initial XP load (with AbortSignal)
   const { data: initialXP, loading } = useAsyncResource<number>(
     async (signal) => {
@@ -100,7 +107,7 @@ export function useGamification(): UseGamificationReturn {
   useRealtimeChannel(
     (client) =>
       userId
-        ? client.channel(`xp-${userId}`).on(
+        ? client.channel(namespacedChannelName("xp", userId, instanceNonce)).on(
             "postgres_changes",
             {
               event: "INSERT",
@@ -126,7 +133,7 @@ export function useGamification(): UseGamificationReturn {
             },
           )
         : null,
-    [userId],
+    [userId, instanceNonce],
   );
 
   const addXP = useCallback(
