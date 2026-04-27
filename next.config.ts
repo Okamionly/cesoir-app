@@ -135,12 +135,18 @@ const nextConfig: NextConfig = {
 
 // Sentry wrapping — all flags no-op if SENTRY_DSN / org / project aren't
 // set, so dev builds without a Sentry account don't fail.
+//
+// 2026-04-27: removed `disableLogger: true` — deprecated in @sentry/nextjs
+// and not supported with Turbopack. The replacement is webpack
+// `treeshake.removeDebugLogging`, but that only applies to Webpack builds.
+// In Turbopack dev (Next 16 default), the logger tree-shaking happens
+// automatically when NODE_ENV === 'production'. Net effect: dev keeps the
+// helpful Sentry SDK logs, prod still strips them via the build-time
+// minifier. No change to bundle size in production.
 export default withSentryConfig(nextConfig, {
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
   silent: !process.env.CI,
-  // Tree-shake Sentry SDK code paths we don't use, keeps bundle small.
-  disableLogger: true,
   // Upload source maps only when an auth token is present (prod CI).
   sourcemaps: {
     disable: !process.env.SENTRY_AUTH_TOKEN,

@@ -19,7 +19,7 @@ import { m } from "motion/react";
 import { useMemo, useSyncExternalStore } from "react";
 import { springs, micro } from "@/lib/motion-design";
 import { useEvents } from "@/lib/useEvents";
-import { EVENT_CATEGORY_LABELS } from "@/lib/events-types";
+import { EVENT_CATEGORY_LABELS, DEFAULT_EVENT_FILTERS } from "@/lib/events-types";
 import { Calendar, Zap } from "@/components/ui/lucide";
 import { useAccessibility } from "@/components/ui/ReducedMotion";
 
@@ -91,7 +91,7 @@ export default function EventsWidget() {
 
   // Filter "tonight" triggers same-day filter in useEvents; we enrich client-side
   // to handle the 48h window since the hook doesn't expose custom date-ranges.
-  const { events, loading } = useEvents({ when: "all", category: null });
+  const { events, loading } = useEvents(DEFAULT_EVENT_FILTERS);
 
   // Subscribe to wall-clock via useSyncExternalStore — the React-blessed
   // way to read an external value (Date.now()) without tripping

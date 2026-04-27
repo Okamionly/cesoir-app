@@ -21,15 +21,14 @@ import EmptyState from "@/components/ui/EmptyState";
 import EventCard from "@/components/events/EventCard";
 import EventFilters from "@/components/events/EventFilters";
 import { useEvents } from "@/lib/useEvents";
-import type { EventFiltersState } from "@/lib/events-types";
+import {
+  DEFAULT_EVENT_FILTERS,
+  countActiveFilters,
+  type EventFiltersState,
+} from "@/lib/events-types";
 import { springs, ambient } from "@/lib/motion-design";
 import { app } from "@/lib/design-tokens";
 import { Calendar } from "@/components/ui/lucide";
-
-const DEFAULT_FILTERS: EventFiltersState = {
-  when: "all",
-  category: null,
-};
 
 const listVariants: Variants = {
   hidden: { opacity: 0 },
@@ -49,7 +48,7 @@ const itemVariants: Variants = {
 };
 
 export default function EventsPage() {
-  const [filters, setFilters] = useState<EventFiltersState>(DEFAULT_FILTERS);
+  const [filters, setFilters] = useState<EventFiltersState>(DEFAULT_EVENT_FILTERS);
   const { events, loading, error, totalThisWeek } = useEvents(filters);
 
   const headingSubtitle = useMemo(() => {
@@ -57,9 +56,9 @@ export default function EventsPage() {
     return parts.join(" · ");
   }, []);
 
-  const filtersActive = filters.when !== "all" || filters.category !== null;
+  const filtersActive = countActiveFilters(filters) > 0;
   const handleClearFilters = useCallback(() => {
-    setFilters(DEFAULT_FILTERS);
+    setFilters(DEFAULT_EVENT_FILTERS);
   }, []);
 
   return (
@@ -97,7 +96,7 @@ export default function EventsPage() {
         className="sticky top-[64px] z-20 bg-bg/85 backdrop-blur-md border-b border-border px-4 py-3"
         aria-label="Filtres"
       >
-        <EventFilters value={filters} onChange={setFilters} />
+        <EventFilters value={filters} onChange={setFilters} resultCount={events.length} />
       </section>
 
       {/* List */}

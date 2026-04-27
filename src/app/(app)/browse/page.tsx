@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef, Suspense } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
@@ -89,14 +89,27 @@ function BrowsePageInner() {
   const { matchesUsed, isAtCap, resetTime, incrementMatch } = useMatchCap();
   const { roses, useRose, canAfford } = useRoses();
 
-  // Convert scored matches to Profile shape for SwipeCard
-  const list: Profile[] = matches.map(candidateToProfile);
+  // Convert scored matches to Profile shape for SwipeCard.
+  // 2026-04-27 perf fix: memoize so SwipeCard's `profile` prop keeps a stable
+  // reference between renders. Without this, every render produced fresh
+  // Profile objects → SwipeCard re-rendered on every parent state change
+  // (idx, info, pullY…), fighting the swipe animation.
+  const list: Profile[] = useMemo(
+    () => matches.map(candidateToProfile),
+    [matches],
+  );
 
   const card = list[idx];
   const next1 = list[idx + 1];
+  const next2 = list[idx + 2];
 
-  // Find the original MatchCandidate for the current card (needed for mode info on like/superlike)
-  const currentMatch = matches.find((m) => m.id === card?.id);
+  // Find the original MatchCandidate for the current card (needed for mode
+  // info on like/superlike). Memoized so the `handleAction` deps don't
+  // change every render.
+  const currentMatch = useMemo(
+    () => matches.find((m) => m.id === card?.id),
+    [matches, card?.id],
+  );
 
   // Auto-dismiss is now self-managed inside MatchCinematic (8s default,
   // pausable on hover/tap). See src/components/app/MatchCinematic.tsx.
@@ -106,68 +119,86 @@ function BrowsePageInner() {
     setIdx(0);
   }, [filter, matches.length]);
 
-  const handleAction = useCallback(async (action: "like" | "pass") => {
+  const handleAction = useCallback((action: "like" | "pass") => {
     if (card) {
+      const swipedCard = card;
+      const mode = currentMatch?.sharedModes[0] ?? swipedCard.mode;
+
       // Wave 15 · CPO core-loop event #3
       trackFirstTime("first_swipe", {
         direction: action,
-        mode: currentMatch?.sharedModes[0] ?? card.mode ?? null,
+        mode: mode ?? null,
       });
 
       // Push to undo stack before advancing
-      pushSwipe(card);
+      pushSwipe(swipedCard);
 
+      // 2026-04-27 perf fix: optimistic UI. Sound + haptics fire
+      // immediately, then we advance the index right away. The network
+      // call to like()/pass() runs in the background — when the swipe
+      // returns `matched: true`, the cinematic mounts on top of the
+      // already-shown next card. Previously `await like(...)` blocked
+      // the index bump for the full /api/swipe roundtrip (300-800ms),
+      // which is why swipes felt "stuck".
       if (action === "like") {
         playSound("like");
         haptics.medium();
-        const mode = currentMatch?.sharedModes[0] ?? card.mode;
-        const result = await like(card.id, mode);
-        if (result?.matched) {
-          playSound("match");
-          haptics.heavy();
-          setMatch(card);
-          setMatchConvoId(result.conversationId ?? null);
-          incrementMatch();
-          // Wave 15 · CPO core-loop event #4
-          trackFirstTime("first_match", {
-            mode: mode ?? null,
-            peer_id: card.id,
-          });
-        }
+        void like(swipedCard.id, mode).then((result) => {
+          if (result?.matched) {
+            playSound("match");
+            haptics.heavy();
+            setMatch(swipedCard);
+            setMatchConvoId(result.conversationId ?? null);
+            incrementMatch();
+            // Wave 15 · CPO core-loop event #4
+            trackFirstTime("first_match", {
+              mode: mode ?? null,
+              peer_id: swipedCard.id,
+            });
+          }
+        });
       } else {
         haptics.light();
-        await pass(card.id);
+        void pass(swipedCard.id);
       }
     }
     setIdx(i => Math.min(i + 1, list.length));
     setInfo(false);
   }, [card, currentMatch, list.length, like, pass, pushSwipe, incrementMatch]);
 
-  const handleSuperLike = useCallback(async () => {
+  const handleSuperLike = useCallback(() => {
     if (!card) return;
 
     // Spend a Rose for the super like
     const spent = useRose(1, `Super like sur ${card.name}`);
     if (!spent) return; // Not enough roses — button should be disabled but guard here
 
+    const swipedCard = card;
+    const mode = currentMatch?.sharedModes[0] ?? swipedCard.mode;
+
     playSound("match");
     haptics.match();
     // Wave 15 · CPO core-loop event #3 (superlike counts as first swipe)
     trackFirstTime("first_swipe", {
       direction: "superlike",
-      mode: currentMatch?.sharedModes[0] ?? card.mode ?? null,
+      mode: mode ?? null,
     });
-    pushSwipe(card);
-    const mode = currentMatch?.sharedModes[0] ?? card.mode;
-    const result = await superlike(card.id, mode);
-    if (result?.matched) {
-      playSound("match");
-      haptics.heavy();
-      setMatch(card);
-      setMatchConvoId(null);
-      incrementMatch();
-      trackFirstTime("first_match", { mode: mode ?? null, peer_id: card.id });
-    }
+    pushSwipe(swipedCard);
+
+    // 2026-04-27 perf fix: optimistic UI — fire-and-forget the network
+    // call so the deck advances immediately. Same rationale as
+    // handleAction. See note on lines above.
+    void superlike(swipedCard.id, mode).then((result) => {
+      if (result?.matched) {
+        playSound("match");
+        haptics.heavy();
+        setMatch(swipedCard);
+        setMatchConvoId(null);
+        incrementMatch();
+        trackFirstTime("first_match", { mode: mode ?? null, peer_id: swipedCard.id });
+      }
+    });
+
     setIdx(i => Math.min(i + 1, list.length));
     setInfo(false);
   }, [card, currentMatch, list.length, superlike, useRose, pushSwipe, incrementMatch]);
@@ -263,6 +294,23 @@ function BrowsePageInner() {
 
       {/* Card area — 3D Perspective deck */}
       <main ref={mainRef} className="flex-1 relative px-4 pb-1 overflow-hidden" style={{ perspective: 800 }} role="list" aria-label="Profils à découvrir">
+        {/* 2026-04-27 perf fix: invisible image preloader for the next 2
+            cards. Without this the next card's photo started fetching
+            only when its <Image> mounted (i.e. AFTER the swipe), so the
+            user saw the deck advance to a card with no photo for ~200ms.
+            Using `loading="eager"` + sized 1×1 + opacity 0 keeps the
+            request happening but pays no visible cost. */}
+        {(next1 || next2) && (
+          <div aria-hidden style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none", overflow: "hidden" }}>
+            {next1 && (
+              <Image src={next1.photo} alt="" width={1} height={1} loading="eager" priority unoptimized={false} />
+            )}
+            {next2 && (
+              <Image src={next2.photo} alt="" width={1} height={1} loading="eager" priority unoptimized={false} />
+            )}
+          </div>
+        )}
+
         {/* Geolocation denied / unavailable — show a dedicated CTA state
             (CPO-002). Previously we fell through to "C'est tout pour ce soir"
             EmptyState which told the user nothing useful. */}
@@ -328,9 +376,16 @@ function BrowsePageInner() {
         )}
 
         {/* Card stack (suppressed when geoloc missing so user sees the
-            dedicated geo-denied state instead of a misleading empty state). */}
+            dedicated geo-denied state instead of a misleading empty state).
+
+            2026-04-27 perf fix: removed `mode="popLayout"`. With popLayout,
+            AnimatePresence held the next card off the DOM until the
+            outgoing card finished its 0.4s `swipeLeft` exit, so users
+            saw a half-second pause between swipes. Default `mode="sync"`
+            mounts the next card immediately while the previous one
+            animates out — exactly the Tinder/Bumble feel we want. */}
         {!loading && !geoError && (
-          <AnimatePresence mode="popLayout">
+          <AnimatePresence>
             {card ? (
               <motion.div
                 key={card.id}
