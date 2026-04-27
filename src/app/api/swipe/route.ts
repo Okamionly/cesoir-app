@@ -5,6 +5,7 @@ import { getDailyLikeCap } from "@/lib/premium-gate";
 import { swipeSchema } from "@/lib/validation";
 import { logger } from "@/lib/logger";
 import { requireUser, AuthError } from "@/lib/api/auth";
+import { sendPushToUser } from "@/lib/push/sendPush";
 
 /** Postgres unique-constraint violation. */
 const PG_UNIQUE_VIOLATION = "23505";
@@ -146,11 +147,68 @@ export async function POST(request: Request) {
 
     if (matched) {
       conversationId = await createConversation(db, userId, targetId, mode);
+
+      // ── Wave 16 Bet #4 — push notification for the new match ──
+      // Fire-and-forget. sendPushToUser never throws and short-circuits in
+      // dev when VAPID env vars are missing, so this can't break the swipe
+      // response. We notify BOTH users — the swiper has the app open (the
+      // in-app MatchCinematic also fires) but their other devices may be
+      // backgrounded; the swipee almost certainly isn't here right now,
+      // which is the whole point of push.
+      void notifyMatch(db, userId, targetId, conversationId).catch((err) => {
+        logger.warn("api_swipe_push_match_failed", { err: String(err) });
+      });
     }
   }
 
   const response: SwipeResponse = { matched, conversationId, swipesRemaining, resetAt };
   return NextResponse.json(response);
+}
+
+/**
+ * Fan out a push to both participants of a fresh match.
+ * Reads each side's display name from `profiles` so the body is personalized.
+ * Best-effort: any failure is logged but does NOT block the swipe response.
+ */
+async function notifyMatch(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  db: SupabaseClient<any>,
+  swiperId: string,
+  targetId: string,
+  conversationId: string | null,
+): Promise<void> {
+  if (!conversationId) return;
+
+  const { data: profiles } = await db
+    .from("profiles")
+    .select("id, name")
+    .in("id", [swiperId, targetId]);
+
+  const nameById = new Map<string, string>();
+  for (const p of (profiles ?? []) as Array<{ id: string; name: string | null }>) {
+    nameById.set(p.id, p.name ?? "Quelqu'un");
+  }
+  const swiperName = nameById.get(swiperId) ?? "Quelqu'un";
+  const targetName = nameById.get(targetId) ?? "Quelqu'un";
+
+  await Promise.all([
+    sendPushToUser(swiperId, {
+      title: "C'est un match !",
+      body: `${targetName} veut te rencontrer ce soir`,
+      tag: "cesoir-match",
+      url: `/chat/${conversationId}`,
+      chatUrl: `/chat/${conversationId}`,
+      profileUrl: `/profile/${targetId}`,
+    }),
+    sendPushToUser(targetId, {
+      title: "C'est un match !",
+      body: `${swiperName} veut te rencontrer ce soir`,
+      tag: "cesoir-match",
+      url: `/chat/${conversationId}`,
+      chatUrl: `/chat/${conversationId}`,
+      profileUrl: `/profile/${swiperId}`,
+    }),
+  ]);
 }
 
 /** Create (or retrieve existing) conversation for a new match. */

@@ -23,6 +23,7 @@ import type { Route } from "next";
 import { m, useReducedMotion, type Transition } from "motion/react";
 import PageHeader from "@/components/ui/PageHeader";
 import EmptyState from "@/components/ui/EmptyState";
+import { SkeletonEventDetail } from "@/components/ui/skeletons";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import EventLineup from "@/components/events/EventLineup";
 import EventVenueMap from "@/components/events/EventVenueMap";
@@ -31,7 +32,6 @@ import { useEvent } from "@/lib/useEvents";
 import { EVENT_CATEGORY_LABELS } from "@/lib/events-types";
 import { springs } from "@/lib/motion-design";
 import {
-  Loader2,
   MapPin,
   Clock,
   Share2,
@@ -82,9 +82,7 @@ export default function EventDetailPage({ params }: EventDetailPageProps) {
     return (
       <div className="min-h-screen bg-bg">
         <PageHeader backHref="/events" title="Soirée" />
-        <div className="flex items-center justify-center py-24 text-text-muted">
-          <Loader2 size={22} className="animate-spin" aria-label="Chargement" />
-        </div>
+        <SkeletonEventDetail />
       </div>
     );
   }

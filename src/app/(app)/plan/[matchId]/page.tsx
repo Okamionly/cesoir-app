@@ -154,7 +154,7 @@ function MatchHeader({ name, avatar }: { name: string; avatar: string | null }) 
         <h1 className="text-[18px] font-bold text-text">
           Planifier avec {name}
         </h1>
-        <p className="text-[11px] text-text-muted">Organisez votre soirée</p>
+        <p className="text-[11px] text-text-muted">Organisez votre soirée ensemble</p>
       </div>
     </div>
   );
@@ -278,7 +278,7 @@ export default function DatePlannerPage() {
                 {"\u{1F552}"} Quand ?
               </h2>
               <p className="text-[13px] text-text-muted mb-6">
-                Choisissez l&apos;heure pour ce soir
+                Choisis l&apos;heure pour ce soir
               </p>
 
               <div className="grid grid-cols-3 gap-3">
@@ -401,7 +401,7 @@ export default function DatePlannerPage() {
                 {"\uD83D\uDCCD"} Ou ?
               </h2>
               <p className="text-[13px] text-text-muted mb-6">
-                Suggestions {activityLabel.toLowerCase()} pres de vous
+                Suggestions {activityLabel.toLowerCase()} pres de chez toi
               </p>
 
               {venues.length > 0 ? (
@@ -435,7 +435,7 @@ export default function DatePlannerPage() {
                 {"\u2728"} Confirmation
               </h2>
               <p className="text-[13px] text-text-muted mb-6 text-center">
-                Verifiez les details avant d&apos;envoyer
+                Vérifie les détails avant d&apos;envoyer
               </p>
 
               {/* Summary card */}

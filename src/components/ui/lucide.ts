@@ -113,6 +113,9 @@ export {
   Music,
   Ticket,
   PartyPopper,
+
+  // Gamification (level-up / badge unlock toasts)
+  Trophy,
 } from "lucide-react";
 
 export type { LucideIcon } from "lucide-react";

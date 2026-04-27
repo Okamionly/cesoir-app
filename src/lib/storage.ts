@@ -102,3 +102,142 @@ export async function getAvatarSignedUrl(
   if (error || !data) return null;
   return data.signedUrl;
 }
+
+// ───────────────────────────────────────────────────────────────────
+// Voice messages bucket helpers (migration 031)
+//
+// The `voice-messages` bucket is PRIVATE. RLS allows:
+//   - INSERT into `<userId>/...`
+//   - SELECT for any participant of the conversation referenced by
+//     the second folder segment (`<userId>/<conversationId>/<file>`)
+//
+// Storage path convention (enforced both client-side AND in the RLS
+// policy):
+//   `<senderId>/<conversationId>/<uuid>.webm`
+// ───────────────────────────────────────────────────────────────────
+
+const VOICE_BUCKET = "voice-messages";
+
+/**
+ * Hard cap on a single voice clip — keep in sync with:
+ *   - migration 031 `file_size_limit = 1048576`
+ *   - the 60s recorder cutoff (60s of opus@~24kbps ≈ 180KB,
+ *     so 1MB leaves comfortable headroom for browser-side codec quirks).
+ */
+export const VOICE_MAX_BYTES = 1_048_576;
+
+/**
+ * Hard cap on recorded duration (ms). Browser-enforced by the recorder
+ * component; server-enforced by the `messages_voice_duration_range`
+ * CHECK constraint added in migration 031 (allows 65000 to give a 5s
+ * safety buffer for clock skew between MediaRecorder ticks and Date.now).
+ */
+export const VOICE_MAX_DURATION_MS = 60_000;
+
+/**
+ * Builds the storage path for a new voice clip.
+ *
+ * Format: `<senderId>/<conversationId>/<uuid>.<ext>`
+ *
+ * The two folder levels are LOAD-BEARING — the SELECT RLS policy on
+ * `storage.objects` reads `(storage.foldername(name))[2]` to resolve
+ * which conversation the clip belongs to. Don't flatten this layout
+ * without also rewriting the policy in migration 031.
+ */
+export function buildVoiceMessagePath(
+  senderId: string,
+  conversationId: string,
+  ext: "webm" | "ogg" | "mp4" = "webm",
+): string {
+  // crypto.randomUUID is available in modern browsers + Node 20.
+  const uuid =
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  return `${senderId}/${conversationId}/${uuid}.${ext}`;
+}
+
+/**
+ * Uploads a recorded voice Blob to the `voice-messages` bucket.
+ *
+ * Returns the storage path (relative to the bucket) on success, or
+ * an error object describing why the upload failed. The caller is
+ * responsible for persisting the path to `messages.voice_url` and
+ * handling the error toast.
+ *
+ * Size enforcement:
+ *   - Client-side check before the round trip (fail fast on iOS where
+ *     a 60s recording can occasionally bloat past 1MB if the browser
+ *     picks a higher bitrate fallback codec).
+ *   - Server-side via the bucket's `file_size_limit` (defence in depth).
+ */
+export async function uploadVoiceMessage(
+  senderId: string,
+  conversationId: string,
+  blob: Blob,
+): Promise<
+  | { ok: true; path: string }
+  | { ok: false; reason: "too_large" | "upload_failed"; message: string }
+> {
+  if (blob.size > VOICE_MAX_BYTES) {
+    return {
+      ok: false,
+      reason: "too_large",
+      message: `Le message vocal depasse la taille max (${Math.round(VOICE_MAX_BYTES / 1024)} Ko).`,
+    };
+  }
+
+  // Pick extension from MIME type. Default to webm — Chrome/Edge/Firefox
+  // all produce `audio/webm;codecs=opus`. iOS Safari 14.1+ produces
+  // `audio/mp4` (AAC) and we map that to `.mp4`. The bucket's
+  // allowed_mime_types list (migration 031) accepts both.
+  const ext: "webm" | "ogg" | "mp4" = blob.type.includes("mp4")
+    ? "mp4"
+    : blob.type.includes("ogg")
+      ? "ogg"
+      : "webm";
+  const path = buildVoiceMessagePath(senderId, conversationId, ext);
+
+  const { error } = await supabase.storage
+    .from(VOICE_BUCKET)
+    .upload(path, blob, {
+      cacheControl: "3600",
+      contentType: blob.type || "audio/webm",
+      upsert: false,
+    });
+
+  if (error) {
+    return {
+      ok: false,
+      reason: "upload_failed",
+      message: error.message || "Echec de l'upload du message vocal.",
+    };
+  }
+
+  return { ok: true, path };
+}
+
+/**
+ * Mints a 1-hour signed URL for a voice clip.
+ *
+ * Called by `VoiceMessagePlayer` on mount (and on play if the URL has
+ * expired — the cached URL TTL is 1h so most playback sessions stay
+ * within a single signing). Returns `null` if the path is missing or
+ * the signing call fails (RLS denied, file gone, network error).
+ *
+ * The bucket is private — `getPublicUrl` would also work for an
+ * authenticated reader because the storage gateway evaluates RLS, but
+ * a signed URL keeps the contract crisp: anyone with the URL can play
+ * the clip until it expires, even if they later log out mid-listen.
+ */
+export async function getVoiceMessageSignedUrl(
+  path: string | null | undefined,
+  expiresInSeconds: number = 3600,
+): Promise<string | null> {
+  if (!path) return null;
+  const { data, error } = await supabase.storage
+    .from(VOICE_BUCKET)
+    .createSignedUrl(path, expiresInSeconds);
+  if (error || !data) return null;
+  return data.signedUrl;
+}

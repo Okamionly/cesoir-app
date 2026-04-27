@@ -27,6 +27,10 @@ export interface ChatMessage {
   createdAt: string;
   readAt: string | null;
   isOwn: boolean;
+  /** Voice clip storage path (`voice-messages` bucket) — null for text. */
+  voiceUrl?: string | null;
+  /** Voice clip duration in ms — null for text. */
+  voiceDurationMs?: number | null;
 }
 
 // ---------- Hook : conversation list ----------
@@ -261,6 +265,8 @@ export function useChat(conversationId: string | undefined, userId: string | und
             createdAt: m.created_at,
             readAt: m.read_at,
             isOwn: m.sender_id === userId,
+            voiceUrl: m.voice_url ?? null,
+            voiceDurationMs: m.voice_duration_ms ?? null,
           })),
         );
       }
@@ -304,6 +310,8 @@ export function useChat(conversationId: string | undefined, userId: string | und
         createdAt: m.created_at,
         readAt: m.read_at,
         isOwn: m.sender_id === userId,
+        voiceUrl: m.voice_url ?? null,
+        voiceDurationMs: m.voice_duration_ms ?? null,
       }));
       setMessages((prev) => {
         // dedupe
@@ -347,6 +355,8 @@ export function useChat(conversationId: string | undefined, userId: string | und
                       createdAt: m.created_at,
                       readAt: m.read_at,
                       isOwn: m.sender_id === userId,
+                      voiceUrl: m.voice_url ?? null,
+                      voiceDurationMs: m.voice_duration_ms ?? null,
                     },
                   ];
                 });

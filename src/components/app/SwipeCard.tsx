@@ -92,6 +92,22 @@ export default function SwipeCard({
         else if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onToggleExpand(); }
       }}
     >
+      {/* Live availability ring (mig 030) — pulses green around the card
+          while the candidate has "Je suis dispo ce soir" active. Sits
+          INSIDE the card so it inherits the rounded corners but on top
+          of the photo gallery so it's never clipped by the gradient. */}
+      {p.broadcast_active && (
+        <motion.div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 rounded-3xl z-[7]"
+          style={{
+            boxShadow: `0 0 0 2px ${LIVE_COLOR}, 0 0 22px ${LIVE_COLOR}80`,
+          }}
+          animate={{ opacity: [0.55, 1, 0.55] }}
+          transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+        />
+      )}
+
       {/* Photo Gallery — replaces single photo */}
       <PhotoGallery
         photos={photoList}
@@ -203,6 +219,27 @@ export default function SwipeCard({
           )}
 
           <h2 className="text-[38px] font-black leading-[0.95] tracking-tight text-white mb-1">{p.name}</h2>
+          {/* Live broadcast pill (mig 030) — sits between the name and the
+              age line so it reads as a status banner. Pulsing dot on the
+              left mirrors the green ring around the card. */}
+          {p.broadcast_active && (
+            <div
+              className="inline-flex items-center gap-1.5 self-start mb-2 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider backdrop-blur-md"
+              style={{
+                backgroundColor: `${LIVE_COLOR}26`,
+                color: LIVE_COLOR,
+                border: `1px solid ${LIVE_COLOR}55`,
+              }}
+            >
+              <motion.span
+                className="block w-1.5 h-1.5 rounded-full"
+                style={{ backgroundColor: LIVE_COLOR }}
+                animate={{ opacity: [0.4, 1, 0.4] }}
+                transition={{ duration: 1.6, repeat: Infinity }}
+              />
+              Dispo maintenant
+            </div>
+          )}
           <p className="text-[15px] text-white/50 font-light mb-3">
             {p.age} ans · {p.distance} km ·{" "}
             <span className="font-medium" style={{ color: LIVE_COLOR }}>

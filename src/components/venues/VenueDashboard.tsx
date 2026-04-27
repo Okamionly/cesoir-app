@@ -230,11 +230,12 @@ export default function VenueDashboard() {
           <span className="text-2xl" style={{ color: app.violet }} aria-hidden>
             ☾
           </span>
-          <h1 className="font-display text-2xl font-bold text-neutral-900">
+          {/* 2026-04-27: dark-mode parity — title/subtitle use tokens. */}
+          <h1 className="font-display text-2xl font-bold text-text">
             CeSoir Venues
           </h1>
         </div>
-        <p className="mt-1 text-sm text-neutral-600">
+        <p className="mt-1 text-sm text-text-muted">
           {user?.email ?? "—"} · Montpellier
         </p>
       </header>
@@ -256,7 +257,7 @@ export default function VenueDashboard() {
         <button
           type="button"
           onClick={() => setShowCreate((v) => !v)}
-          className="inline-flex items-center gap-1.5 rounded-full bg-neutral-900 text-white px-4 py-2 text-sm font-semibold hover:bg-neutral-800 transition-colors"
+          className="inline-flex items-center gap-1.5 rounded-full bg-text text-text-inv px-4 py-2 text-sm font-semibold hover:opacity-90 transition-opacity"
         >
           {showCreate ? "Annuler" : "+ Créer un event"}
         </button>
@@ -274,8 +275,9 @@ export default function VenueDashboard() {
             transition={{ duration: 0.25 }}
             className="mb-6 overflow-hidden"
           >
-            <div className="border border-neutral-200 rounded-2xl p-5 bg-white space-y-4">
-              <h3 className="font-semibold text-neutral-900">Nouvel event</h3>
+            {/* 2026-04-27: dark-mode parity — neutrals → border/bg-card, text-neutral-900 → text-text. */}
+            <div className="border border-border rounded-2xl p-5 bg-bg-card space-y-4">
+              <h3 className="font-semibold text-text">Nouvel event</h3>
 
               <Field label="Titre">
                 <input
@@ -285,7 +287,7 @@ export default function VenueDashboard() {
                   }
                   required
                   maxLength={80}
-                  className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:border-neutral-400"
+                  className="w-full rounded-lg border border-border bg-bg text-text px-3 py-2 text-sm focus:outline-none focus:border-text-muted"
                   placeholder="Ex: Techno Revolution w/ DJ XYZ"
                 />
               </Field>
@@ -298,7 +300,7 @@ export default function VenueDashboard() {
                       setForm((p) => ({ ...p, venueName: e.target.value }))
                     }
                     required
-                    className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:border-neutral-400"
+                    className="w-full rounded-lg border border-border bg-bg text-text px-3 py-2 text-sm focus:outline-none focus:border-text-muted"
                     placeholder="Rockstore"
                   />
                 </Field>
@@ -308,7 +310,7 @@ export default function VenueDashboard() {
                     onChange={(e) =>
                       setForm((p) => ({ ...p, venueAddress: e.target.value }))
                     }
-                    className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:border-neutral-400"
+                    className="w-full rounded-lg border border-border bg-bg text-text px-3 py-2 text-sm focus:outline-none focus:border-text-muted"
                     placeholder="20 Rue de Verdun, Montpellier"
                   />
                 </Field>
@@ -323,7 +325,7 @@ export default function VenueDashboard() {
                       setForm((p) => ({ ...p, startsAt: e.target.value }))
                     }
                     required
-                    className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:border-neutral-400"
+                    className="w-full rounded-lg border border-border bg-bg text-text px-3 py-2 text-sm focus:outline-none focus:border-text-muted"
                   />
                 </Field>
                 <Field label="Flyer URL (optionnel)">
@@ -333,7 +335,7 @@ export default function VenueDashboard() {
                       setForm((p) => ({ ...p, flyerUrl: e.target.value }))
                     }
                     type="url"
-                    className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:border-neutral-400"
+                    className="w-full rounded-lg border border-border bg-bg text-text px-3 py-2 text-sm focus:outline-none focus:border-text-muted"
                     placeholder="https://..."
                   />
                 </Field>
@@ -345,13 +347,13 @@ export default function VenueDashboard() {
                   onChange={(e) =>
                     setForm((p) => ({ ...p, lineup: e.target.value }))
                   }
-                  className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:border-neutral-400"
+                  className="w-full rounded-lg border border-border bg-bg text-text px-3 py-2 text-sm focus:outline-none focus:border-text-muted"
                   placeholder="DJ XYZ, MC Blue, B2B Set"
                 />
               </Field>
 
               <fieldset>
-                <legend className="text-xs font-semibold uppercase tracking-wide text-neutral-600 mb-2">
+                <legend className="text-xs font-semibold uppercase tracking-wide text-text-muted mb-2">
                   Catégories
                 </legend>
                 <div className="flex flex-wrap gap-1.5">
@@ -364,9 +366,10 @@ export default function VenueDashboard() {
                         onClick={() => toggleCategory(c.value)}
                         className={[
                           "rounded-full px-3 py-1 text-xs font-medium border transition-colors",
+                          // 2026-04-27: dark-mode parity — neutrals → text/bg/border tokens.
                           active
-                            ? "bg-neutral-900 text-white border-neutral-900"
-                            : "bg-white text-neutral-700 border-neutral-200 hover:border-neutral-400",
+                            ? "bg-text text-text-inv border-text"
+                            : "bg-bg text-text-muted border-border hover:border-text-muted",
                         ].join(" ")}
                       >
                         {c.label}
@@ -377,7 +380,7 @@ export default function VenueDashboard() {
               </fieldset>
 
               {formError && (
-                <p className="text-xs text-red-600" role="alert">
+                <p className="text-xs text-danger" role="alert">
                   {formError}
                 </p>
               )}
@@ -386,14 +389,14 @@ export default function VenueDashboard() {
                 <button
                   type="button"
                   onClick={() => setShowCreate(false)}
-                  className="rounded-full px-4 py-2 text-sm text-neutral-600 hover:text-neutral-900"
+                  className="rounded-full px-4 py-2 text-sm text-text-muted hover:text-text"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
                   disabled={submitting || !form.title || !form.venueName || !form.startsAt}
-                  className="rounded-full bg-neutral-900 text-white px-5 py-2 text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:bg-neutral-800"
+                  className="rounded-full bg-text text-text-inv px-5 py-2 text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90"
                 >
                   {submitting ? "Publication..." : "Publier"}
                 </button>
@@ -406,15 +409,15 @@ export default function VenueDashboard() {
       {/* Events list */}
       <section aria-label="Liste des events" className="space-y-3">
         {loading && events.length === 0 ? (
-          <div className="text-center py-12 text-sm text-neutral-500">
+          <div className="text-center py-12 text-sm text-text-muted">
             Chargement...
           </div>
         ) : error ? (
-          <div className="text-center py-12 text-sm text-red-600">{error}</div>
+          <div className="text-center py-12 text-sm text-danger">{error}</div>
         ) : events.length === 0 ? (
-          <div className="border border-dashed border-neutral-200 rounded-2xl p-10 text-center">
-            <p className="text-sm text-neutral-600 mb-1">Aucun event pour l&apos;instant.</p>
-            <p className="text-xs text-neutral-400">
+          <div className="border border-dashed border-border rounded-2xl p-10 text-center">
+            <p className="text-sm text-text-muted mb-1">Aucun event pour l&apos;instant.</p>
+            <p className="text-xs text-text-muted opacity-75">
               Clique sur &laquo; Créer un event &raquo; pour publier ta première soirée.
             </p>
           </div>
@@ -424,12 +427,13 @@ export default function VenueDashboard() {
             return (
               <article
                 key={event.id}
-                className="border border-neutral-200 rounded-2xl p-4 bg-white"
+                // 2026-04-27: dark-mode parity — bg-white → bg-bg-card, neutrals → border.
+                className="border border-border rounded-2xl p-4 bg-bg-card"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-neutral-900 truncate">
+                      <h3 className="font-semibold text-text truncate">
                         {event.title}
                       </h3>
                       {event.featured && (
@@ -441,13 +445,13 @@ export default function VenueDashboard() {
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-neutral-500">
+                    <p className="text-xs text-text-muted">
                       {formatDateBadge(event.starts_at)} · {event.venue_name}
                     </p>
                   </div>
                   <div className="shrink-0 text-right">
-                    <span className="block text-xs text-neutral-400 mb-0.5">RSVP</span>
-                    <span className="font-semibold text-neutral-900">
+                    <span className="block text-xs text-text-muted opacity-75 mb-0.5">RSVP</span>
+                    <span className="font-semibold text-text">
                       {event.rsvp_count ?? 0}
                     </span>
                   </div>
@@ -476,10 +480,10 @@ export default function VenueDashboard() {
                     type="button"
                     onClick={() => handleFeaturedClick(event.id)}
                     className={[
-                      "rounded-full px-4 py-1.5 text-xs font-semibold border transition-colors",
+                      "rounded-full px-4 py-1.5 text-xs font-semibold border transition-opacity",
                       event.featured
-                        ? "border-neutral-200 text-neutral-400 cursor-default"
-                        : "border-neutral-900 bg-neutral-900 text-white hover:bg-neutral-800",
+                        ? "border-border text-text-muted opacity-60 cursor-default"
+                        : "border-text bg-text text-text-inv hover:opacity-90",
                     ].join(" ")}
                     disabled={event.featured}
                   >
@@ -508,13 +512,15 @@ export default function VenueDashboard() {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="bg-white rounded-2xl p-6 max-w-sm w-full"
+              // 2026-04-27: dark-mode parity — modal panel uses bg-bg token.
+              className="bg-bg rounded-2xl p-6 max-w-sm w-full"
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 className="font-display text-xl font-bold text-neutral-900 mb-2">
+              {/* 2026-04-27: dark-mode parity — modal title/copy/CTAs use tokens. */}
+              <h3 className="font-display text-xl font-bold text-text mb-2">
                 {MONETIZATION_ENABLED ? "Activer Featured" : "Bientôt disponible"}
               </h3>
-              <p className="text-sm text-neutral-600 mb-4">
+              <p className="text-sm text-text-muted mb-4">
                 {MONETIZATION_ENABLED
                   ? "Ton event sera épinglé en haut du feed Soirées pendant 7 jours. Paiement via Stripe."
                   : "La monétisation B2B arrive dans les prochaines semaines. Pour l'instant, tous les events sont organiques. Garde ton event actif et contacte-nous pour être prioritaire."}
@@ -529,14 +535,14 @@ export default function VenueDashboard() {
                     );
                     setShowFeaturedModal(false);
                   }}
-                  className="w-full rounded-full bg-neutral-900 text-white py-3 text-sm font-semibold hover:bg-neutral-800"
+                  className="w-full rounded-full bg-text text-text-inv py-3 text-sm font-semibold hover:opacity-90"
                 >
                   Payer 49 € · 7 jours Featured
                 </button>
               ) : (
                 <a
                   href="mailto:hello@cesoir.app?subject=Featured%20event%20Venues"
-                  className="block text-center w-full rounded-full border border-neutral-200 text-neutral-900 py-3 text-sm font-semibold hover:border-neutral-400"
+                  className="block text-center w-full rounded-full border border-border text-text py-3 text-sm font-semibold hover:border-text-muted"
                 >
                   Nous contacter
                 </a>
@@ -544,7 +550,7 @@ export default function VenueDashboard() {
               <button
                 type="button"
                 onClick={() => setShowFeaturedModal(false)}
-                className="block mx-auto mt-3 text-xs text-neutral-500"
+                className="block mx-auto mt-3 text-xs text-text-muted"
               >
                 Fermer
               </button>
@@ -567,16 +573,17 @@ function KpiTile({
   value: number | string;
   hint?: string;
 }) {
+  // 2026-04-27: dark-mode parity — KPI tile uses tokens for bg, border, text.
   return (
-    <div className="border border-neutral-200 rounded-2xl p-4 bg-white">
-      <div className="text-[11px] uppercase tracking-wide text-neutral-500">
+    <div className="border border-border rounded-2xl p-4 bg-bg-card">
+      <div className="text-[11px] uppercase tracking-wide text-text-muted">
         {label}
       </div>
-      <div className="mt-1 font-display text-2xl font-bold text-neutral-900">
+      <div className="mt-1 font-display text-2xl font-bold text-text">
         {value}
       </div>
       {hint && (
-        <div className="mt-0.5 text-[10px] text-neutral-400">{hint}</div>
+        <div className="mt-0.5 text-[10px] text-text-muted opacity-75">{hint}</div>
       )}
     </div>
   );
@@ -591,14 +598,15 @@ function Stat({
   value: number | string;
   small?: boolean;
 }) {
+  // 2026-04-27: dark-mode parity — inner stat tile uses bg-bg + tokens.
   return (
-    <div className="rounded-lg bg-neutral-50 px-2 py-1.5">
-      <div className="text-[9px] uppercase tracking-wide text-neutral-400">
+    <div className="rounded-lg bg-bg px-2 py-1.5">
+      <div className="text-[9px] uppercase tracking-wide text-text-muted opacity-75">
         {label}
       </div>
       <div
         className={[
-          "mt-0.5 font-semibold text-neutral-900",
+          "mt-0.5 font-semibold text-text",
           small ? "text-xs" : "text-sm",
         ].join(" ")}
       >
@@ -617,7 +625,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-xs font-semibold uppercase tracking-wide text-neutral-600 mb-1 block">
+      <span className="text-xs font-semibold uppercase tracking-wide text-text-muted mb-1 block">
         {label}
       </span>
       {children}

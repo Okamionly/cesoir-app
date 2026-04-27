@@ -61,7 +61,7 @@ export const EMPTY_STATES: Record<EmptyStateKey, EmptyStateCopy> = {
   },
   browse: {
     emoji: "🌙",
-    title: "C'est tout pour ce soir",
+    title: "Tu as tout vu pour ce soir",
     subtitle: "Reviens plus tard ou change de mode.",
     cta: { label: "Recommencer", command: "reset" },
   },

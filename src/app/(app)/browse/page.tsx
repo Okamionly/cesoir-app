@@ -34,6 +34,8 @@ import { app as appTokens } from "@/lib/design-tokens";
 import ModeSwitcher from "@/components/app/ModeSwitcher";
 import MatchCinematic from "@/components/app/MatchCinematic";
 import { trackFirstTime } from "@/lib/analytics";
+import { usePWAInstall } from "@/lib/usePWAInstall";
+import { announceToSR } from "@/components/ui/LiveRegion";
 
 /** Map a MatchCandidate from the scoring pipeline to the Profile shape used by SwipeCard */
 function candidateToProfile(c: MatchCandidate): Profile {
@@ -88,6 +90,10 @@ function BrowsePageInner() {
   const { canUndo, pushSwipe, undo } = useSwipeUndo();
   const { matchesUsed, isAtCap, resetTime, incrementMatch } = useMatchCap();
   const { roses, useRose, canAfford } = useRoses();
+  // PWA install banner gates on engagement (>= 3 swipes). We only consume
+  // `recordSwipe` here — the banner itself mounts in (app)/layout.tsx and
+  // self-gates on pathname.
+  const { recordSwipe: recordSwipeForInstall } = usePWAInstall();
 
   // Convert scored matches to Profile shape for SwipeCard.
   // 2026-04-27 perf fix: memoize so SwipeCard's `profile` prop keeps a stable
@@ -130,6 +136,10 @@ function BrowsePageInner() {
         mode: mode ?? null,
       });
 
+      // PWA banner engagement signal — bumps the localStorage swipe
+      // counter checked by usePWAInstall().
+      recordSwipeForInstall();
+
       // Push to undo stack before advancing
       pushSwipe(swipedCard);
 
@@ -143,6 +153,9 @@ function BrowsePageInner() {
       if (action === "like") {
         playSound("like");
         haptics.medium();
+        // a11y round 2 (2026-04-27): announce the swipe action so SR users
+        // know the card advanced. Polite — match cinematic uses assertive.
+        announceToSR(`Liké ${swipedCard.name}`, "polite");
         void like(swipedCard.id, mode).then((result) => {
           if (result?.matched) {
             playSound("match");
@@ -159,12 +172,13 @@ function BrowsePageInner() {
         });
       } else {
         haptics.light();
+        announceToSR(`Passé ${swipedCard.name}`, "polite");
         void pass(swipedCard.id);
       }
     }
     setIdx(i => Math.min(i + 1, list.length));
     setInfo(false);
-  }, [card, currentMatch, list.length, like, pass, pushSwipe, incrementMatch]);
+  }, [card, currentMatch, list.length, like, pass, pushSwipe, incrementMatch, recordSwipeForInstall]);
 
   const handleSuperLike = useCallback(() => {
     if (!card) return;
@@ -178,11 +192,15 @@ function BrowsePageInner() {
 
     playSound("match");
     haptics.match();
+    // a11y round 2: announce superlike so SR users hear the action.
+    announceToSR(`Super liké ${swipedCard.name}`, "polite");
     // Wave 15 · CPO core-loop event #3 (superlike counts as first swipe)
     trackFirstTime("first_swipe", {
       direction: "superlike",
       mode: mode ?? null,
     });
+    // PWA banner engagement signal — superlike counts too.
+    recordSwipeForInstall();
     pushSwipe(swipedCard);
 
     // 2026-04-27 perf fix: optimistic UI — fire-and-forget the network
@@ -201,12 +219,16 @@ function BrowsePageInner() {
 
     setIdx(i => Math.min(i + 1, list.length));
     setInfo(false);
-  }, [card, currentMatch, list.length, superlike, useRose, pushSwipe, incrementMatch]);
+  }, [card, currentMatch, list.length, superlike, useRose, pushSwipe, incrementMatch, recordSwipeForInstall]);
 
   const handleUndo = useCallback(() => {
     const restored = undo();
     if (restored) {
       setIdx(i => Math.max(0, i - 1));
+      // a11y round 2: confirm the rewind so SR users know the deck moved
+      // back. Restored card has a `name` field on the swipe history entry.
+      const name = (restored as { name?: string } | null)?.name;
+      announceToSR(name ? `Annulé. ${name} restauré.` : "Dernier swipe annulé", "polite");
     }
   }, [undo]);
 
@@ -292,8 +314,15 @@ function BrowsePageInner() {
       {/* Mode switcher */}
       <ModeSwitcher active={filter} onChange={(m) => { setFilter(m); setIdx(0); }} />
 
-      {/* Card area — 3D Perspective deck */}
-      <main ref={mainRef} className="flex-1 relative px-4 pb-1 overflow-hidden" style={{ perspective: 800 }} role="list" aria-label="Profils à découvrir">
+      {/* Card area — 3D Perspective deck.
+          a11y round 2 (2026-04-27): removed `role="list"` from `<main>`.
+          The combo is invalid per WAI-ARIA — `role` overrides the landmark,
+          so VoiceOver was announcing this as a list rather than the page's
+          main content. Kept `aria-label` as a region label. The card
+          underneath still carries `role="listitem"`-like semantics via its
+          aria-label / variant pattern, but a single-card deck doesn't
+          really need list semantics anyway. */}
+      <main ref={mainRef} data-tour="swipe-deck" className="flex-1 relative px-4 pb-1 overflow-hidden" style={{ perspective: 800 }} aria-label="Profils à découvrir">
         {/* 2026-04-27 perf fix: invisible image preloader for the next 2
             cards. Without this the next card's photo started fetching
             only when its <Image> mounted (i.e. AFTER the swipe), so the
@@ -315,7 +344,10 @@ function BrowsePageInner() {
             (CPO-002). Previously we fell through to "C'est tout pour ce soir"
             EmptyState which told the user nothing useful. */}
         {!geoLoading && geoError && (!latitude || !longitude) && (
-          <div className="w-full h-full flex flex-col items-center justify-center text-center px-8">
+          // a11y round 2 (2026-04-27): role="alert" so SR users hear the
+          // geolocation error the moment it surfaces (otherwise it would
+          // render silently and they'd just see an empty deck).
+          <div role="alert" aria-live="assertive" className="w-full h-full flex flex-col items-center justify-center text-center px-8">
             <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mb-5">
               <span className="text-[28px]" aria-hidden="true">📍</span>
             </div>
@@ -623,6 +655,7 @@ function ActionButtons({
         <Magnetic strength={0.18} radius={70}>
           <motion.button
             onClick={onLike}
+            data-tour="like-button"
             aria-label="Liker"
             className="w-[60px] h-[60px] rounded-full gradient-bg flex items-center justify-center text-white shadow-[0_8px_28px_-6px_color-mix(in_srgb,var(--color-accent-2)_60%,transparent)]"
             whileTap={micro.tapScale}

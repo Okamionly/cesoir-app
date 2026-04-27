@@ -1,10 +1,12 @@
 "use client";
 
 import { m, AnimatePresence } from "motion/react";
-import { useEffect } from "react";
+import { useEffect, useId, useRef } from "react";
 import { springs, micro } from "@/lib/motion-design";
 import { MODES, MODE_KEYS, type ModeKey } from "@/lib/modes";
 import { MODE_COLORS } from "@/lib/mode-colors";
+import { useFocusTrap } from "@/lib/hooks/useFocusTrap";
+import { X } from "@/components/ui/lucide";
 
 export interface MapFilters {
   modes: ModeKey[]; // empty = all
@@ -44,12 +46,19 @@ interface MapFiltersSheetProps {
  * toggles for heatmap/events/online, plus age + distance sliders.
  */
 export default function MapFiltersSheet({ open, onClose, filters, onChange }: MapFiltersSheetProps) {
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = prev; };
   }, [open]);
+
+  // a11y round 2 (2026-04-27): focus trap + Escape + focus restore. Replaces
+  // the manual setState approach that left focus stranded behind the sheet.
+  useFocusTrap(sheetRef, open, { onEscape: onClose });
 
   const toggleMode = (k: ModeKey) => {
     const has = filters.modes.includes(k);
@@ -70,9 +79,11 @@ export default function MapFiltersSheet({ open, onClose, filters, onChange }: Ma
             transition={{ duration: 0.2 }}
             onClick={onClose}
             className="fixed inset-0 z-[850] bg-black/50 backdrop-blur-sm"
+            aria-hidden="true"
           />
           <m.div
             key="filters-sheet"
+            ref={sheetRef}
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
@@ -85,19 +96,32 @@ export default function MapFiltersSheet({ open, onClose, filters, onChange }: Ma
             }}
             className="fixed inset-x-0 bottom-0 z-[851] bg-bg/95 backdrop-blur-xl border-t border-border rounded-t-3xl shadow-2xl max-h-[80vh] overflow-y-auto"
             style={{ touchAction: "none" }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
           >
-            <div className="flex items-center justify-center py-2 cursor-grab active:cursor-grabbing">
+            <div className="flex items-center justify-center py-2 cursor-grab active:cursor-grabbing" aria-hidden="true">
               <div className="h-1 w-10 rounded-full bg-border" />
             </div>
 
             <div className="px-5 pb-6 pt-2">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-[16px] font-bold">Filtres de la carte</h2>
-                <m.button
-                  onClick={resetAll}
-                  className="text-[11px] text-accent font-semibold tap-target"
-                  whileTap={micro.tapScale}
-                >Reinitialiser</m.button>
+                <h2 id={titleId} className="text-[16px] font-bold">Filtres de la carte</h2>
+                <div className="flex items-center gap-1">
+                  <m.button
+                    onClick={resetAll}
+                    className="text-[11px] text-accent font-semibold tap-target px-2"
+                    whileTap={micro.tapScale}
+                  >Reinitialiser</m.button>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="tap-target rounded-full p-2 text-text-muted hover:text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+                    aria-label="Fermer les filtres"
+                  >
+                    <X size={18} strokeWidth={2} aria-hidden="true" />
+                  </button>
+                </div>
               </div>
 
               {/* Modes chips */}

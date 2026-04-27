@@ -151,7 +151,15 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       {children}
 
       <div
-        aria-live="polite"
+        // a11y round 2 (2026-04-27): error toasts need to interrupt current
+        // SR narration (e.g. network failure mid-typing). The provider
+        // doesn't know the toast type at the container level, so we use
+        // assertive — error/success/info toasts are short enough that
+        // interruption is acceptable. The visual UI is unchanged.
+        aria-live="assertive"
+        aria-atomic="true"
+        role="region"
+        aria-label="Notifications"
         className="fixed top-4 left-1/2 z-[9999] flex w-full max-w-sm -translate-x-1/2 flex-col items-center gap-2 px-4"
       >
         <AnimatePresence mode="popLayout">

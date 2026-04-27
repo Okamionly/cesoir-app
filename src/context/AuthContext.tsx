@@ -117,7 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     if (!res.ok) {
-      setError(payload.error ?? "Inscription refusée");
+      setError(payload.error ?? "Ce compte existe déjà. Connecte-toi.");
       setLoading(false);
       return null;
     }

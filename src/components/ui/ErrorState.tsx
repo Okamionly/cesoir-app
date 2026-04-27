@@ -16,7 +16,7 @@ interface ErrorStateProps {
    */
   onRetry?: () => void;
   /**
-   * Label for the retry button. Defaults to "Réessayer".
+   * Label for the retry button. Defaults to "Réessaye".
    */
   retryLabel?: string;
   className?: string;
@@ -32,7 +32,7 @@ export default function ErrorState({
   title,
   description,
   onRetry,
-  retryLabel = "Réessayer",
+  retryLabel = "Réessaye",
   className = "",
 }: ErrorStateProps) {
   return (

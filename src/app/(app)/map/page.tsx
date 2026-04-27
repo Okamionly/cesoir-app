@@ -17,8 +17,16 @@ import { HeatmapFallback } from "@/components/map/HeatmapOverlay";
 import LiveActivityPanel from "@/components/map/LiveActivityPanel";
 import CrossLinkCard from "@/components/app/CrossLinkCard";
 import PageHeader from "@/components/ui/PageHeader";
-import maplibregl from "maplibre-gl";
-import "maplibre-gl/dist/maplibre-gl.css";
+// 2026-04-27 (round-3 perf polish): maplibre-gl was imported at module level,
+// which forced the entire ~140KB MapLibre bundle into the /map entry chunk —
+// blocking parse + execution before the page could even render its loading
+// state. Now we lazy-load it inside the init effect via dynamic import. The
+// CSS still ships with the page (loaded once on first map mount via
+// `import('maplibre-gl/dist/maplibre-gl.css')`).
+//
+// Type-only import keeps `maplibregl.Map` references compiling without a
+// runtime cost — TS strips it during emit.
+import type * as MaplibreType from "maplibre-gl";
 import Supercluster from "supercluster";
 import { getActiveCityCenter } from "@/lib/cities";
 import MapSearchBar from "@/components/map/MapSearchBar";
@@ -80,10 +88,13 @@ export default function MapPage() {
   const [activityUpdatedAt, setActivityUpdatedAt] = useState<Date>(() => new Date());
   const [activityRefreshing, setActivityRefreshing] = useState(false);
   const mapContainer = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<maplibregl.Map | null>(null);
-  const pinHandlesRef = useRef<Map<string, { handle: ProfilePinHandle; marker: maplibregl.Marker }>>(new Map());
-  const clusterMarkersRef = useRef<maplibregl.Marker[]>([]);
-  const eventMarkersRef = useRef<Map<string, { handle: EventPinHandle; marker: maplibregl.Marker }>>(new Map());
+  const mapRef = useRef<MaplibreType.Map | null>(null);
+  // Holds the dynamically-loaded maplibre-gl module so hooks outside the init
+  // effect can construct Markers / GeoJSONSources after the bundle arrives.
+  const maplibreRef = useRef<typeof MaplibreType | null>(null);
+  const pinHandlesRef = useRef<Map<string, { handle: ProfilePinHandle; marker: MaplibreType.Marker }>>(new Map());
+  const clusterMarkersRef = useRef<MaplibreType.Marker[]>([]);
+  const eventMarkersRef = useRef<Map<string, { handle: EventPinHandle; marker: MaplibreType.Marker }>>(new Map());
   const center = latitude && longitude ? { lat: latitude, lng: longitude } : getActiveCityCenter();
   const currentModeFilter: ModeKey | undefined = filters.modes.length === 1 ? filters.modes[0] : undefined;
   const { profiles: realProfiles } = useProfiles(latitude ?? undefined, longitude ?? undefined, currentModeFilter);
@@ -190,94 +201,119 @@ export default function MapPage() {
     ensurePinStyles();
   }, [mounted]);
 
-  // Init map once when mounted
+  // Init map once when mounted.
+  // 2026-04-27 (round-3 perf polish): we lazy-load both the JS module and the
+  // CSS here so neither ships in the initial /map entry chunk. The init is
+  // async — `cancelled` guards against React unmount mid-load.
   useEffect(() => {
     if (!mounted || !mapContainer.current || mapRef.current) return;
 
-    // Prefer dark tiles when the OS asks for dark mode; fall back to positron.
-    const darkMode = typeof window !== "undefined"
-      && window.matchMedia
-      && window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const styleUrl = darkMode
-      ? "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
-      : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
+    let cancelled = false;
+    let cleanup: (() => void) | null = null;
 
-    const map = new maplibregl.Map({
-      container: mapContainer.current,
-      style: styleUrl,
-      center: [center.lng, center.lat],
-      zoom: 13,
-      attributionControl: false,
-    });
+    (async () => {
+      // Parallelize JS + CSS fetch to overlap network rounds.
+      const [maplibreModule] = await Promise.all([
+        import("maplibre-gl"),
+        import("maplibre-gl/dist/maplibre-gl.css" as string),
+      ]);
+      if (cancelled || !mapContainer.current) return;
 
-    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
-    mapRef.current = map;
+      const maplibregl = maplibreModule.default ?? maplibreModule;
+      maplibreRef.current = maplibregl as unknown as typeof MaplibreType;
 
-    const fallbackTimer = setTimeout(() => {
-      if (mapRef.current && !mapRef.current.isStyleLoaded()) setMapFailed(true);
-    }, 3000);
+      // Prefer dark tiles when the OS asks for dark mode; fall back to positron.
+      const darkMode = typeof window !== "undefined"
+        && window.matchMedia
+        && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const styleUrl = darkMode
+        ? "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
+        : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
 
-    const updateViewport = () => {
-      const b = map.getBounds();
-      setBounds([b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]);
-      setZoom(map.getZoom());
-    };
+      const map = new maplibregl.Map({
+        container: mapContainer.current,
+        style: styleUrl,
+        center: [center.lng, center.lat],
+        zoom: 13,
+        attributionControl: false,
+      });
 
-    // Debounced viewport update via rAF
-    let rafId: number | null = null;
-    const onMove = () => {
-      if (rafId !== null) return;
-      rafId = requestAnimationFrame(() => { updateViewport(); rafId = null; });
-    };
+      map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "bottom-right");
+      mapRef.current = map;
 
-    map.on("load", () => {
-      clearTimeout(fallbackTimer);
-      setMapFailed(false);
-      updateViewport();
+      const fallbackTimer = setTimeout(() => {
+        if (mapRef.current && !mapRef.current.isStyleLoaded()) setMapFailed(true);
+      }, 3000);
 
-      if (!map.getSource("activity-heat")) {
-        map.addSource("activity-heat", {
-          type: "geojson",
-          data: { type: "FeatureCollection", features: [] },
-        });
-        map.addLayer({
-          id: "activity-heat-layer",
-          type: "heatmap",
-          source: "activity-heat",
-          paint: {
-            "heatmap-weight": ["interpolate", ["linear"], ["get", "intensity"], 0, 0, 1, 1],
-            "heatmap-intensity": 1,
-            "heatmap-color": [
-              "interpolate", ["linear"], ["heatmap-density"],
-              0, "rgba(139,92,246,0)",
-              0.3, "rgba(236,72,153,0.4)",
-              0.6, "rgba(0,255,136,0.6)",
-              1, "rgba(0,255,136,0.9)",
-            ],
-            "heatmap-radius": 40,
-            "heatmap-opacity": 0.7,
-          },
-          layout: { visibility: "none" },
-        });
-      }
-    });
+      const updateViewport = () => {
+        const b = map.getBounds();
+        setBounds([b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]);
+        setZoom(map.getZoom());
+      };
 
-    map.on("move", onMove);
-    map.on("zoom", onMove);
-    map.on("error", () => setMapFailed(true));
+      // Debounced viewport update via rAF
+      let rafId: number | null = null;
+      const onMove = () => {
+        if (rafId !== null) return;
+        rafId = requestAnimationFrame(() => { updateViewport(); rafId = null; });
+      };
 
-    // Clicking the bare map clears selection (focus mode reset).
-    map.on("click", () => {
-      setSelectedId(null);
-      setSelectedEvent(null);
-      setFlyInAnchor(null);
+      map.on("load", () => {
+        clearTimeout(fallbackTimer);
+        setMapFailed(false);
+        updateViewport();
+
+        if (!map.getSource("activity-heat")) {
+          map.addSource("activity-heat", {
+            type: "geojson",
+            data: { type: "FeatureCollection", features: [] },
+          });
+          map.addLayer({
+            id: "activity-heat-layer",
+            type: "heatmap",
+            source: "activity-heat",
+            paint: {
+              "heatmap-weight": ["interpolate", ["linear"], ["get", "intensity"], 0, 0, 1, 1],
+              "heatmap-intensity": 1,
+              "heatmap-color": [
+                "interpolate", ["linear"], ["heatmap-density"],
+                0, "rgba(139,92,246,0)",
+                0.3, "rgba(236,72,153,0.4)",
+                0.6, "rgba(0,255,136,0.6)",
+                1, "rgba(0,255,136,0.9)",
+              ],
+              "heatmap-radius": 40,
+              "heatmap-opacity": 0.7,
+            },
+            layout: { visibility: "none" },
+          });
+        }
+      });
+
+      map.on("move", onMove);
+      map.on("zoom", onMove);
+      map.on("error", () => setMapFailed(true));
+
+      // Clicking the bare map clears selection (focus mode reset).
+      map.on("click", () => {
+        setSelectedId(null);
+        setSelectedEvent(null);
+        setFlyInAnchor(null);
+      });
+
+      cleanup = () => {
+        clearTimeout(fallbackTimer);
+        if (rafId !== null) cancelAnimationFrame(rafId);
+        map.remove();
+        mapRef.current = null;
+      };
+    })().catch(() => {
+      if (!cancelled) setMapFailed(true);
     });
 
     return () => {
-      clearTimeout(fallbackTimer);
-      if (rafId !== null) cancelAnimationFrame(rafId);
-      map.remove();
-      mapRef.current = null;
+      cancelled = true;
+      cleanup?.();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mounted]);
@@ -309,7 +345,7 @@ export default function MapPage() {
     const map = mapRef.current;
     if (!map) return;
     const apply = () => {
-      const source = map.getSource("activity-heat") as maplibregl.GeoJSONSource | undefined;
+      const source = map.getSource("activity-heat") as MaplibreType.GeoJSONSource | undefined;
       if (!source) return;
       const intensityVal: Record<typeof liveHotspots[number]["intensity"], number> = { low: 0.3, medium: 0.6, high: 1 };
       source.setData({
@@ -339,7 +375,11 @@ export default function MapPage() {
   // --- Render clustered profile markers with ProfilePin ---------------------
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !bounds) return;
+    const maplibregl = maplibreRef.current;
+    // Wait for both the map instance AND the lazy maplibre module to land —
+    // they arrive together in the init effect, but a re-render can fire this
+    // hook before the runtime is available.
+    if (!map || !bounds || !maplibregl) return;
 
     const reduced = prefersReducedMotion();
     const pointerFine = isPointerFineMedia();
@@ -460,10 +500,17 @@ export default function MapPage() {
         photo: profile.photo,
         color,
         online: profile.online,
+        // 2026-04-27 (mig 030): forward the live broadcast flag so the
+        // pin renders the green pulse + pip when "Je suis dispo ce soir"
+        // is active.
+        broadcastActive: profile.broadcast_active === true,
         reduced,
         pointerFine,
         variant: "profile",
         animationDelay: Math.min(idx * 0.02, 0.3),
+        // a11y round 2 (2026-04-27): SR users hear the profile name + age
+        // when tabbing through pins.
+        ariaLabel: `${profile.name}, ${profile.age} ans${profile.online ? ", en ligne" : ""}`,
         onClick: () => {
           const screenPt = map.project([lng, lat]);
           const container = map.getContainer().getBoundingClientRect();
@@ -507,7 +554,8 @@ export default function MapPage() {
   // pins that drop out of the new event set.
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !bounds) return;
+    const maplibregl = maplibreRef.current;
+    if (!map || !bounds || !maplibregl) return;
 
     const reduced = prefersReducedMotion();
     const pointerFine = isPointerFineMedia();
@@ -817,8 +865,11 @@ export default function MapPage() {
                 <span className="text-[10px] text-accent font-semibold">Découvrir</span>
               </Link>
             </m.div>
-            <div className="text-[11px] text-text-muted min-w-0 max-w-[160px]">
-              {loading ? "Localisation..." : error ? <span className="text-danger block truncate" title={error}>{error}</span> : <><span className="w-1.5 h-1.5 rounded-full bg-safe inline-block mr-1" /><m.span key={`count-${filtered.length}`} initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={springs.snap}>{filtered.length}</m.span></>}
+            {/* a11y round 2 (2026-04-27): aria-live="polite" so SR users
+                hear the count update as filters change. The visual flip
+                animation is mute for SR otherwise. */}
+            <div className="text-[11px] text-text-muted min-w-0 max-w-[160px]" aria-live="polite" aria-atomic="true">
+              {loading ? "Localisation..." : error ? <span role="alert" className="text-danger block truncate" title={error}>{error}</span> : <><span className="w-1.5 h-1.5 rounded-full bg-safe inline-block mr-1" aria-hidden="true" /><m.span key={`count-${filtered.length}`} initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} transition={springs.snap}>{filtered.length}</m.span> <span className="sr-only">{filtered.length === 1 ? "profil visible" : "profils visibles"}</span></>}
             </div>
           </div>
         }

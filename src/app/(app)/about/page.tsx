@@ -60,7 +60,7 @@ const VALUES = [
     emoji: "🔥",
     text: "La technologie doit rapprocher. Chaque décision produit est testée contre : est-ce que ça aide les gens à se rencontrer pour de vrai ?",
     yes: "Salut toi ! On matche ?",
-    no: "Bienvenue sur votre espace personnel",
+    no: "Bienvenue sur ton espace personnel",
   },
   {
     title: "Honnête",
@@ -74,7 +74,7 @@ const VALUES = [
     emoji: "📍",
     text: "On construit pour les quartiers, pas les villes. Densité locale > vanity metrics. Montpellier d'abord, le reste après.",
     yes: "Bar à Figuerolles ? Place de la Comédie ?",
-    no: "Choisissez un lieu dans votre ville",
+    no: "Choisissez un lieu dans ta ville",
   },
   {
     title: "Impatient",

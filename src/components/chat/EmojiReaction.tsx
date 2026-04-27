@@ -23,7 +23,8 @@ function ReactionPicker({ onSelect, onClose }: ReactionPickerProps) {
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.8, y: 8 }}
       transition={{ type: "spring", stiffness: 400, damping: 25 }}
-      className="absolute -top-12 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 bg-white border border-border rounded-full px-2 py-1.5 shadow-lg"
+      // 2026-04-27: dark-mode parity — bg-white → bg-bg so picker stays visible in dark theme.
+      className="absolute -top-12 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 bg-bg border border-border rounded-full px-2 py-1.5 shadow-lg"
       role="listbox"
       aria-label="Choisir une reaction"
     >

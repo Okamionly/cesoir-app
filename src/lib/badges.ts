@@ -398,6 +398,22 @@ export const ALL_BADGES: Badge[] = [
     rarity: "legendary",
     xp: 100,
   },
+  // 2026-04-27 — "Vu ce soir" IRL meet badge (mig 032 + /api/match/confirm-irl).
+  // Granted server-side when BOTH participants of a conversation
+  // confirm via /api/match/confirm-irl within 48h after plan_time + 2h.
+  // The id MUST match the achievement_key string inserted by the API
+  // route ('first-date') — useBadges resolves earned status by matching
+  // badge.id against achievements.achievement_key.
+  {
+    id: "first-date",
+    name: "Premier RDV IRL",
+    emoji: "🎉",
+    description: "T'as vu quelqu'un en vrai (et lui aussi a confirmé)",
+    category: "social",
+    requirement: "Les deux personnes confirment s'être vues IRL après un plan",
+    rarity: "rare",
+    xp: 200,
+  },
 ];
 
 // ─────────────────────────────────────────

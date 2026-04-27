@@ -177,7 +177,7 @@ export default function CompatibilityPage({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.4 }}
             >
-              {score >= 80 && "Super match — vous avez beaucoup en commun."}
+              {score >= 80 && "Super match — tu as beaucoup en commun avec lui."}
               {score >= 60 && score < 80 && "Belle compatibilité, des intérêts partagés."}
               {score >= 40 && score < 60 && "Compatibilité correcte, un peu à découvrir."}
               {score < 40 && "Peu de modes communs — l'opposé des contraires ?"}

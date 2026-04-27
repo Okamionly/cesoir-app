@@ -251,6 +251,15 @@ function checkBadgeProgress(
       return { earned: stats.wasOnlineAtMidnight, progress: null, progressLabel: null };
     case "lucky-match":
       return { earned: stats.hadQuickMatch, progress: null, progressLabel: null };
+    case "first-date":
+      // Earned status comes exclusively from the achievements row inserted
+      // server-side by /api/match/confirm-irl when BOTH participants of a
+      // conversation confirm IRL within the 48h window. We never derive it
+      // client-side because the mutual-confirm step requires the peer's
+      // private confirmation timestamp (read via RLS-gated table). If the
+      // achievement row exists, useBadges short-circuits to earned=true
+      // before even reaching this case — so always-false here is safe.
+      return { earned: false, progress: null, progressLabel: null };
     default:
       return { earned: false, progress: null, progressLabel: null };
   }

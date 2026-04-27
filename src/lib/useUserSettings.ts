@@ -36,6 +36,13 @@ export interface NotificationPrefs {
   newsletter?: boolean;
   plansFlash?: boolean;
   sons?: boolean;
+  /**
+   * Daily 19h45 (Europe/Paris) "Last Call" push showing the top 3
+   * events near the user tonight. OPT-IN by default (false). Backed
+   * by /api/push/last-call cron. See migration 032 for the rate-limit
+   * log + nearby-events RPC.
+   */
+  lastCall?: boolean;
 }
 
 export type LocationBlur = "exact" | "block" | "km";

@@ -4,7 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { m, AnimatePresence, type Transition } from "motion/react";
 import { IconSearch, IconMap, IconChat, IconMoon, IconUser } from "@/components/ui/Icons";
+import { Bell } from "@/components/ui/lucide";
 import { springs } from "@/lib/motion-design";
+import { useAuth } from "@/context/AuthContext";
+import { useNotifications } from "@/lib/useNotifications";
 
 /**
  * TopNav — desktop-only top navigation (md+).
@@ -14,8 +17,9 @@ import { springs } from "@/lib/motion-design";
  * Sprint 5 md:hidden on BottomNav was correct but left desktop with no
  * nav at all. This component fills that gap.
  *
- * Sticks to the top of the viewport, matches BottomNav's 5 tabs + badge
- * behavior. Hidden on mobile (hidden md:flex).
+ * Wave 16 (2026-04-27): adds a bell icon at the right edge linking to
+ * `/notifications`, with an unread count badge sourced from the
+ * `useNotifications` hook.
  */
 
 type TabKey = "feed" | "map" | "chat" | "modes" | "profile";
@@ -53,6 +57,28 @@ function DotBadge({ visible }: { visible: boolean }) {
   );
 }
 
+/**
+ * Bell with a numeric badge (unreadCount). Renders nothing extra when
+ * count is 0. Caps display at "9+" so layout stays stable.
+ */
+function NotifBellBadge({ count }: { count: number }) {
+  if (count <= 0) return null;
+  const label = count > 9 ? "9+" : String(count);
+  return (
+    <m.span
+      initial={{ scale: 0 }}
+      animate={{ scale: 1 }}
+      exit={{ scale: 0 }}
+      transition={springs.micro as Transition}
+      className="absolute -top-1 -right-1 inline-flex items-center justify-center min-w-[16px] h-[16px] px-1 rounded-full text-[9px] font-bold text-white bg-red-500"
+      role="status"
+      aria-label={`${count} notifications non lues`}
+    >
+      {label}
+    </m.span>
+  );
+}
+
 interface TopNavProps {
   chatUnread?: number;
   newMatches?: number;
@@ -65,6 +91,11 @@ export default function TopNav({
   dailyChallengeAvailable = false,
 }: TopNavProps) {
   const pathname = usePathname();
+  const { user } = useAuth();
+
+  // Pull notification unread count for the bell badge.
+  // Safe even if AuthContext returns null user — hook handles undefined id.
+  const { unreadCount } = useNotifications(user?.id);
 
   // Try to pull badge data with fallback
   let chatCount = chatUnread;
@@ -86,6 +117,8 @@ export default function TopNav({
     modes: dailyChallengeAvailable,
     profile: false,
   };
+
+  const notifActive = pathname?.startsWith("/notifications");
 
   return (
     <nav
@@ -130,6 +163,32 @@ export default function TopNav({
               </Link>
             );
           })}
+
+          {/* Notifications bell — separated from main tabs so it reads as a
+              utility action rather than a primary destination. */}
+          <Link
+            href="/notifications"
+            aria-current={notifActive ? "page" : undefined}
+            aria-label={
+              unreadCount > 0
+                ? `Notifications (${unreadCount} non lues)`
+                : "Notifications"
+            }
+            className={`relative ml-2 flex items-center justify-center w-9 h-9 rounded-full tap-target transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none ${
+              notifActive
+                ? "bg-accent/10 text-accent"
+                : "text-text-muted hover:text-text hover:bg-bg-card"
+            }`}
+          >
+            <m.span
+              className="relative"
+              whileTap={{ scale: 0.92 }}
+              transition={springs.micro as Transition}
+            >
+              <Bell size={18} />
+              <NotifBellBadge count={unreadCount} />
+            </m.span>
+          </Link>
         </div>
       </div>
     </nav>

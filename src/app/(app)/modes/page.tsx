@@ -11,6 +11,7 @@ import { MODE_ICONS } from "@/components/ui/Icons";
 import { modesVariants } from "@/lib/motion-design";
 import PageHeader from "@/components/ui/PageHeader";
 import { ModeCard } from "@/components/app/ModeCard";
+import { SkeletonModesGrid } from "@/components/ui/skeletons";
 
 const containerVariants: Variants = modesVariants.grid;
 const cardVariants: Variants = modesVariants.modeCard;
@@ -26,7 +27,7 @@ export default function ModesPage() {
   // Counts come from `mode_activations` (deduplicated per user/mode) so
   // desktop + mobile + refresh always show the same numbers, regardless
   // of the radius/age/limit filters applied to `useProfiles`.
-  const { counts: countsByMode } = useModeCounts();
+  const { counts: countsByMode, loading: countsLoading } = useModeCounts();
 
   const topUsersByMode = useMemo(() => {
     const top: Record<string, Profile[]> = {};
@@ -46,6 +47,11 @@ export default function ModesPage() {
         hairlineVariant="vert-violet"
       />
 
+      {countsLoading && profiles.length === 0 ? (
+        <div className="px-4 pb-24 pt-4">
+          <SkeletonModesGrid count={MODE_KEYS.length} />
+        </div>
+      ) : (
       <m.main
         className="px-4 pb-24 pt-4 space-y-2.5"
         variants={containerVariants}
@@ -83,6 +89,7 @@ export default function ModesPage() {
           );
         })}
       </m.main>
+      )}
     </div>
   );
 }

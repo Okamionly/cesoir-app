@@ -155,7 +155,8 @@ export default function TrustedCircle() {
             exit={{ height: 0, opacity: 0 }}
             className="mb-4 overflow-hidden"
           >
-            <div className="space-y-2 rounded-xl bg-white/60 p-3">
+            {/* 2026-04-27: dark-mode parity — bg-white/60 → bg-bg-card so add-form chip is visible in dark theme. */}
+            <div className="space-y-2 rounded-xl bg-bg-card p-3">
               <input
                 type="text"
                 value={newName}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import {
   motion,
   AnimatePresence,
@@ -9,12 +10,27 @@ import {
   useReducedMotion,
 } from "motion/react";
 import Link from "next/link";
-import PlasmaOcean from "@/components/landing/PlasmaOcean";
 import MoonHero from "@/components/landing/MoonHero";
 import PhoneVideo from "@/components/landing/PhoneVideo";
-import StarField from "@/components/landing/StarField";
 import { springs, easings } from "@/lib/motion-design";
 import { usePausableInterval } from "@/lib/usePausableInterval";
+
+// Dynamic imports — round-3 perf polish (audit P1).
+// PlasmaOcean: WebGL fragment shader (~6KB minified, but creates a heavy GL
+// context + shader compile cost). Deferring with ssr:false removes both the
+// shader code and the canvas init from the LCP critical path. The motion
+// wrapper still reserves the visual slot, so layout doesn't shift when it
+// hydrates ~50-100ms after the headline paints.
+//
+// StarField: ambient particle layer rendered above plasma. Pure decoration
+// (aria-hidden), so deferring it doesn't affect a11y or LCP candidate. Both
+// are no-SSR because they run inside a useEffect and need `window`.
+const PlasmaOcean = dynamic(() => import("@/components/landing/PlasmaOcean"), {
+  ssr: false,
+});
+const StarField = dynamic(() => import("@/components/landing/StarField"), {
+  ssr: false,
+});
 
 /**
  * SceneController — single-page morphic cinematic landing.

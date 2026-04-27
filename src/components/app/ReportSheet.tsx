@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useRef, useState } from "react";
 import { m, AnimatePresence } from "motion/react";
 import { IconX } from "@/components/ui/Icons";
+import { useFocusTrap } from "@/lib/hooks/useFocusTrap";
 
 const reasons = [
   { value: "fake_profile", label: "Faux profil", icon: "🎭" },
@@ -26,6 +27,12 @@ export default function ReportSheet({ profileName, isOpen, onClose, onReport }: 
   const [details, setDetails] = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
+
+  // a11y round 2 (2026-04-27): focus trap + Escape + focus restore so keyboard
+  // users can dismiss the sheet without tabbing through the page behind it.
+  useFocusTrap(sheetRef, isOpen, { onEscape: onClose });
 
   async function handleSubmit() {
     if (!reason) return;
@@ -45,18 +52,23 @@ export default function ReportSheet({ profileName, isOpen, onClose, onReport }: 
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={onClose}
+          aria-hidden="true"
         >
           <m.div
+            ref={sheetRef}
             className="w-full max-w-lg bg-bg border-t border-border rounded-t-3xl p-6 max-h-[80vh] overflow-y-auto"
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             onClick={e => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={titleId}
           >
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-[17px] font-bold">Signaler {profileName}</h2>
-              <button onClick={onClose} className="tap-target p-1" aria-label="Fermer">
+              <h2 id={titleId} className="text-[17px] font-bold">Signaler {profileName}</h2>
+              <button onClick={onClose} className="tap-target p-1 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/60" aria-label="Fermer">
                 <IconX size={20} className="text-text-muted" />
               </button>
             </div>

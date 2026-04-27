@@ -213,7 +213,7 @@ export default function WeMetFeedback({
                   transition={weMetSprings.confirm}
                 >
                   <h2 className="text-[18px] font-black text-text text-center mb-2">
-                    Vous vous etes vus ?
+                    Vous vous êtes vus ?
                   </h2>
                   <p className="text-[13px] text-text-muted text-center mb-6">
                     Vous et {peerName} aviez prevu de sortir
