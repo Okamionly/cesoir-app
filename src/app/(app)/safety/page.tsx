@@ -587,7 +587,7 @@ export default function SafetyPage() {
           className="block text-center text-[13px] font-semibold mb-20 tap-target py-2"
           style={{ color: "var(--color-accent)" }}
         >
-          {"\u2190"} Retour \u00e0 l&apos;exploration
+          {"←"} Retour à l&apos;exploration
         </Link>
       </main>
     </div>
