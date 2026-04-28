@@ -2211,5 +2211,39 @@
       "is_interrupt": false,
       "logged_at": "2026-04-19T20:53:46.221120"
     }
+  },
+  {
+    "timestamp": "2026-04-28T19:20:57.072801",
+    "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+    "hook_event_name": "PostToolUseFailure",
+    "tool_name": "Bash",
+    "tool_use_id": "toolu_01GAJHPG78ujq8iP2HSbToj9",
+    "tool_input": {
+      "command": "cd \"C:/Users/mrgue/CLAUDE CODE/cesoir-app\" && git add logs/ && git commit -m \"chore(logs): sync claude code session logs\n\nCo-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>\" 2>&1 | tail -3 && echo \"---PUSH---\" && git push origin master 2>&1 | tail -5 && echo \"---VERIFY---\" && git fetch origin && git log --oneline origin/master..master 2>&1 && echo \"Local HEAD: $(git rev-parse HEAD)\" && echo \"Remote HEAD: $(git rev-parse origin/master)\"",
+      "timeout": 90000,
+      "description": "Commit + push + verify"
+    },
+    "error": "Exit code 1\nThe following paths are ignored by one of your .gitignore files:\nlogs\nhint: Use -f if you really want to add them.\nhint: Disable this message with \"git config set advice.addIgnoredFile false\"",
+    "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+    "permission_mode": "bypassPermissions",
+    "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+    "raw_input": {
+      "session_id": "a4bb1816-6621-4fb1-90a8-5551c77236e5",
+      "transcript_path": "C:\\Users\\mrgue\\.claude\\projects\\C--Users-mrgue-CLAUDE-CODE\\a4bb1816-6621-4fb1-90a8-5551c77236e5.jsonl",
+      "cwd": "C:\\Users\\mrgue\\CLAUDE CODE\\cesoir-app",
+      "permission_mode": "bypassPermissions",
+      "hook_event_name": "PostToolUseFailure",
+      "tool_name": "Bash",
+      "tool_input": {
+        "command": "cd \"C:/Users/mrgue/CLAUDE CODE/cesoir-app\" && git add logs/ && git commit -m \"chore(logs): sync claude code session logs\n\nCo-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>\" 2>&1 | tail -3 && echo \"---PUSH---\" && git push origin master 2>&1 | tail -5 && echo \"---VERIFY---\" && git fetch origin && git log --oneline origin/master..master 2>&1 && echo \"Local HEAD: $(git rev-parse HEAD)\" && echo \"Remote HEAD: $(git rev-parse origin/master)\"",
+        "timeout": 90000,
+        "description": "Commit + push + verify"
+      },
+      "tool_use_id": "toolu_01GAJHPG78ujq8iP2HSbToj9",
+      "error": "Exit code 1\nThe following paths are ignored by one of your .gitignore files:\nlogs\nhint: Use -f if you really want to add them.\nhint: Disable this message with \"git config set advice.addIgnoredFile false\"",
+      "is_interrupt": false,
+      "duration_ms": 235,
+      "logged_at": "2026-04-28T19:20:57.072801"
+    }
   }
 ]
