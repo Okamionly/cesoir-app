@@ -20,7 +20,7 @@ type Tab = "achievements" | "challenges" | "leaderboard" | "trust" | "reviews";
 
 const TABS: { key: Tab; label: string; emoji: string }[] = [
   { key: "achievements", label: "Badges", emoji: "\uD83C\uDFC6" },
-  { key: "challenges", label: "Defis", emoji: "\u26A1" },
+  { key: "challenges", label: "Défis", emoji: "\u26A1" },
   { key: "leaderboard", label: "Classement", emoji: "\uD83D\uDC51" },
   { key: "trust", label: "Confiance", emoji: "\u2728" },
   { key: "reviews", label: "Reviews", emoji: "\uD83D\uDCAC" },
@@ -46,7 +46,7 @@ function AchievementsTab() {
       <EmptyState
         emoji="🏆"
         title="Aucun badge pour le moment"
-        subtitle="Demarre une conversation, valide ton profil, sors — debloque des badges."
+        subtitle="Démarre une conversation, valide ton profil, sors — débloque des badges."
       />
     );
   }
@@ -55,7 +55,7 @@ function AchievementsTab() {
     <div className="px-5 py-4">
       <div className="mb-4 flex items-center justify-between text-[12px] text-text-muted">
         <span>
-          <strong className="text-text">{totalEarned}</strong>/{all.length} badges debloquees
+          <strong className="text-text">{totalEarned}</strong>/{all.length} badges débloqués
         </span>
         <span>{earned.reduce((sum, bp) => sum + bp.badge.xp, 0)} XP</span>
       </div>

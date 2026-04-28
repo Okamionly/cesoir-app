@@ -167,7 +167,7 @@ function SceneFeed() {
   const profiles = [
     { label: "Nouveau profil", mode: "Solo Diner", dist: "tout pres", color: "#8B5CF6" },
     { label: "Quelqu'un comme toi", mode: "Night Owl", dist: "ce soir", color: "#6366F1" },
-    { label: "Match possible", mode: "Langues", dist: "pres de toi", color: "#06B6D4" },
+    { label: "Match possible", mode: "Langues", dist: "près de toi", color: "#06B6D4" },
     { label: "Dispo maintenant", mode: "Gaming", dist: "juste a cote", color: "#EC4899" },
   ];
 

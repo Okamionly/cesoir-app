@@ -115,7 +115,7 @@ export function useGeolocation(): UseGeolocationResult {
       setLoading(false);
       switch (err.code) {
         case err.PERMISSION_DENIED:
-          setError("Active la geolocalisation pour voir les gens pres de toi");
+          setError("Active la géolocalisation pour voir les gens près de toi");
           break;
         case err.POSITION_UNAVAILABLE:
           setError("Position indisponible");

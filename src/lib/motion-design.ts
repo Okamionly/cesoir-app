@@ -81,10 +81,17 @@ export const feedVariants = {
  */
 export const browseVariants = {
   card: {
-    initial: { scale: 0.8, rotateY: -10, opacity: 0 },
+    // 2026-04-27 fix (user-reported "swipe figé"): explicitly reset x and
+    // rotateZ on initial. Without these, AnimatePresence in sync mode
+    // could leave the new card at x:-400 / rotateZ:-15 inherited from
+    // the previous card's swipeLeft exit, so the next profile rendered
+    // off-screen and the deck looked frozen on the background-stack image.
+    initial: { scale: 0.8, rotateY: -10, opacity: 0, x: 0, rotateZ: 0 },
     center: {
       scale: 1,
       rotateY: 0,
+      rotateZ: 0,
+      x: 0,
       opacity: 1,
       transition: springs.rubber,
     },
