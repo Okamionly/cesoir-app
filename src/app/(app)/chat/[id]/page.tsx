@@ -8,6 +8,7 @@ import { m, AnimatePresence, useReducedMotion } from "motion/react";
 import { chatVariants, springs } from "@/lib/motion-design";
 import { useAuth } from "@/context/AuthContext";
 import { useChat, useTypingIndicator, useConversationPresence } from "@/lib/useChat";
+import { useUserSettings } from "@/lib/useUserSettings";
 import { supabase } from "@/lib/supabase";
 import type { DbProfile, DbConversation } from "@/lib/supabase";
 import ErrorState from "@/components/ui/ErrorState";
@@ -16,12 +17,16 @@ import type { ModeKey } from "@/lib/modes";
 import { haptics } from "@/lib/haptics";
 import { trackFirstTime } from "@/lib/analytics";
 import { TypingIndicator as PeerTypingIndicator } from "@/components/messages/TypingIndicator";
+import { TypingIndicator as InputTypingChip } from "@/components/chat/TypingIndicator";
+import { useTypingStatus } from "@/lib/useTypingStatus";
 
 // Chat feature components
 import SparkTimer from "@/components/chat/SparkTimer";
 import { VoiceNoteBubble } from "@/components/chat/VoiceNote";
 import VoiceMessageRecorder from "@/components/chat/VoiceMessageRecorder";
 import VoiceMessagePlayer from "@/components/chat/VoiceMessagePlayer";
+import VoiceMiniPlayer from "@/components/chat/VoiceMiniPlayer";
+import { pauseAll as pauseAllVoices } from "@/components/chat/voice-player-coordinator";
 import { ReactionWrapper, type Reaction } from "@/components/chat/EmojiReaction";
 import { PlanProposalButton, PlanCard, type PlanData } from "@/components/chat/PlanProposal";
 import { LocationShareButton, LocationCard } from "@/components/chat/LocationShare";
@@ -31,6 +36,7 @@ import { PlusMenu } from "@/components/chat/PlusMenu";
 import EventInviteButton from "@/components/chat/EventInviteButton";
 import VibeCheck, { VibeCheckButton } from "@/components/chat/VibeCheck";
 import AIWingman from "@/components/chat/AIWingman";
+import IcebreakerSuggestions from "@/components/chat/IcebreakerSuggestions";
 import QuickReact from "@/components/chat/QuickReact";
 import WeMetFeedback from "@/components/app/WeMetFeedback";
 import IRLConfirm from "@/components/match/IRLConfirm";
@@ -98,8 +104,36 @@ function formatLastSeen(iso: string | null): string {
   return `Vu il y a ${Math.floor(hours / 24)}j`;
 }
 
-function ChatBubble({ content, isOwn, time, showTail, readAt }: { content: string; isOwn: boolean; time: string; showTail: boolean; readAt?: string | null }) {
+function ChatBubble({
+  content,
+  isOwn,
+  time,
+  showTail,
+  readAt,
+  showReadReceipt,
+}: {
+  content: string;
+  isOwn: boolean;
+  time: string;
+  showTail: boolean;
+  readAt?: string | null;
+  /**
+   * Wave 17 — render the small grey "Vu HH:MM" italic line below own
+   * bubbles. Caller is responsible for the reciprocal-opt-in check
+   * (BOTH self and peer must have profiles.read_receipts_enabled = true).
+   * If false, the line is hidden even when readAt is set.
+   */
+  showReadReceipt?: boolean;
+}) {
   const variants = isOwn ? chatVariants.bubbleSent : chatVariants.bubbleReceived;
+
+  // "Vu 21:34" — short hour:minute label per spec.
+  const readAtLabel = readAt
+    ? new Date(readAt).toLocaleTimeString("fr-FR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : null;
 
   return (
     <m.div
@@ -131,6 +165,17 @@ function ChatBubble({ content, isOwn, time, showTail, readAt }: { content: strin
             )}
           </span>
         </div>
+        {/* Wave 17 — read receipt label. Only when caller confirms BOTH
+            participants have opted in (showReadReceipt). Italic, small,
+            muted grey, sits below the bubble per design spec. */}
+        {isOwn && showReadReceipt && readAtLabel && (
+          <span
+            className="text-[10px] text-text-muted italic mt-0.5 mr-1"
+            aria-label={`Lu a ${readAtLabel}`}
+          >
+            Vu {readAtLabel}
+          </span>
+        )}
       </div>
     </m.div>
   );
@@ -162,6 +207,17 @@ export default function ConversationPage({
   const [unreadWhileScrolledUp, setUnreadWhileScrolledUp] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const wasAtBottomRef = useRef(true);
+  // Wave 17 — voice-note polish.
+  // `inputFocused` tracks whether the textarea owns focus AND the user
+  // has typed something. When both are true while a voice clip is
+  // playing, we collapse the originating bubble + show the mini-player
+  // chip. We use focus + non-empty content (rather than focus alone) so
+  // a stray tap on the textarea doesn't shrink an actively-watched bubble.
+  const [inputFocused, setInputFocused] = useState(false);
+  // Distinct from `wasAtBottomRef` so the scroll-pause heuristic uses
+  // the *previous* scrollTop, not the at-bottom boolean — we only want
+  // to fire pause when the user moves UPWARDS by more than the dead zone.
+  const lastScrollTopRef = useRef(0);
   /**
    * Tracks conversation-metadata lookup so we can tell "still loading" from
    * "lookup finished, convo does not exist". Before this, `.eq("id", id)`
@@ -175,12 +231,20 @@ export default function ConversationPage({
   const messagesTopRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Typing indicator (broadcast-based)
+  // Typing indicator (broadcast-based) — peer name shown in messages log
   const { peerTyping, sendTyping, stopTyping } = useTypingIndicator(
     conversationId,
     user?.id,
     user?.user_metadata?.name,
   );
+
+  // Wave 17 — boolean typing status for the chip above the input area.
+  // Same Realtime channel base, but filtered by peerId; fans out via
+  // Supabase broadcast so it coexists with the legacy `useTypingIndicator`.
+  const {
+    peerTyping: peerTypingBool,
+    broadcastTyping,
+  } = useTypingStatus(conversationId, peer?.id);
 
   // Peer presence (online / last seen)
   const peerPresence = useConversationPresence(
@@ -211,6 +275,38 @@ export default function ConversationPage({
 
   // QuickReact per-message reactions (single reaction per message for QuickReact)
   const [quickReactions, setQuickReactions] = useState<Record<string, { emoji: string; byMe: boolean } | null>>({});
+
+  // Wave 17 — read receipts reciprocal opt-in.
+  // Self flag comes from `useUserSettings` (which fetches profiles.read_receipts_enabled).
+  // Peer flag is fetched once when the peer profile resolves. Both must be
+  // TRUE for the small "Vu HH:MM" indicator to render under own bubbles.
+  // The server-side mark_messages_read RPC enforces the same check before
+  // ever stamping read_at, so even if the client predicate diverges, no
+  // read state can leak.
+  const { settings: userSettings } = useUserSettings();
+  const selfReceiptsEnabled = userSettings.readReceiptsEnabled;
+  const [peerReceiptsEnabled, setPeerReceiptsEnabled] = useState(false);
+  useEffect(() => {
+    if (!peer?.id) {
+      setPeerReceiptsEnabled(false);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("read_receipts_enabled")
+        .eq("id", peer.id)
+        .maybeSingle();
+      if (!cancelled) {
+        setPeerReceiptsEnabled(Boolean(data?.read_receipts_enabled));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [peer?.id]);
+  const showReadReceipts = selfReceiptsEnabled && peerReceiptsEnabled;
 
   // fetch conversation metadata + peer profile. Resolves to `notfound`
   // when the id is invalid (bad UUID, deleted row, or unauthorised via RLS).
@@ -257,17 +353,32 @@ export default function ConversationPage({
     };
   }, [conversationId, user]);
 
-  // mark messages as read when conversation opens and when new messages arrive
+  // Mark messages as read when conversation opens and when new messages arrive.
+  // Wave 17 — gated by self opt-in (the RPC also enforces reciprocal opt-in
+  // server-side; the local check just avoids a wasted network call when the
+  // user has the feature off). When opted-in, the RPC stamps read_at = now()
+  // on every unread message from the peer ONLY IF the peer is also opted-in.
   useEffect(() => {
-    if (conversationId && user?.id && messages.length > 0) {
+    if (
+      conversationId &&
+      user?.id &&
+      messages.length > 0 &&
+      selfReceiptsEnabled
+    ) {
       markAsRead();
     }
-  }, [conversationId, user?.id, messages.length, markAsRead]);
+  }, [conversationId, user?.id, messages.length, markAsRead, selfReceiptsEnabled]);
 
-  // Observe scroll position to toggle the scroll-to-bottom FAB
+  // Observe scroll position to toggle the scroll-to-bottom FAB.
+  // Wave 17 also wires the voice-note auto-pause: when the user moves
+  // UPWARDS by more than 24px from the previous scrollTop, we assume
+  // they want to read older messages, and we pause any playing voice
+  // (the player keeps its position so a tap on the bubble or the
+  // mini-player chip resumes).
   useEffect(() => {
     const el = scrollContainerRef.current;
     if (!el) return;
+    lastScrollTopRef.current = el.scrollTop;
     const onScroll = () => {
       const distanceFromBottom =
         el.scrollHeight - el.scrollTop - el.clientHeight;
@@ -277,6 +388,13 @@ export default function ConversationPage({
       if (atBottom) {
         setUnreadWhileScrolledUp(0);
       }
+      // Voice auto-pause — fires only on upward gestures past dead zone.
+      const prev = lastScrollTopRef.current;
+      const dy = el.scrollTop - prev;
+      if (dy < -24) {
+        pauseAllVoices();
+      }
+      lastScrollTopRef.current = el.scrollTop;
     };
     el.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
@@ -740,6 +858,13 @@ export default function ConversationPage({
                         isOwn={msg.isOwn}
                         time={formatTime(msg.createdAt)}
                         messageId={msg.id}
+                        peerName={msg.isOwn ? null : (peer?.name ?? null)}
+                        // Wave 17 — collapse the bubble while the user is
+                        // typing. The floating mini-player below the input
+                        // takes over UX. We only collapse the *peer's*
+                        // bubble (own messages keep their full size — the
+                        // user is more likely to want to scrub their own).
+                        collapsed={inputFocused && inputValue.length > 0 && !msg.isOwn}
                         onPlaybackComplete={(id) => {
                           // Best-effort mark-as-read for voice received from
                           // peer. Own messages: no-op (we don't read our own).
@@ -774,6 +899,7 @@ export default function ConversationPage({
                       time={formatTime(msg.createdAt)}
                       showTail={showTail}
                       readAt={msg.isOwn ? msg.readAt : undefined}
+                      showReadReceipt={showReadReceipts}
                     />
                   </ReactionWrapper>
                 </QuickReact>
@@ -905,6 +1031,16 @@ export default function ConversationPage({
         )}
       </AnimatePresence>
 
+      {/* Wave 17 — AI icebreakers from peer's bio + shared mode.
+          Self-hides once the user sends a message; falls back to the
+          static AIWingman starters below if the API errors out. */}
+      <IcebreakerSuggestions
+        conversationId={conversationId}
+        peerId={peer?.id}
+        messageCount={messages.length}
+        onSelectSuggestion={(text) => setInputValue(text)}
+      />
+
       {/* AI Wingman suggestions */}
       <AIWingman
         mode={convoMode}
@@ -919,6 +1055,22 @@ export default function ConversationPage({
           return count;
         })()}
       />
+
+      {/* Wave 17 — voice mini-player chip. Visible only while a clip is
+          playing AND the user is typing (so the bubble is collapsed and
+          the chip provides a tappable hand-back). */}
+      <VoiceMiniPlayer visible={inputFocused && inputValue.length > 0} />
+
+      {/* Wave 17 — peer typing chip above the input bar */}
+      <AnimatePresence>
+        {peerTypingBool && (
+          <InputTypingChip
+            key="input-typing-chip"
+            visible={peerTypingBool}
+            peerName={peer?.name ?? undefined}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Input bar */}
       <m.div
@@ -981,7 +1133,14 @@ export default function ConversationPage({
           <m.textarea
             ref={inputRef}
             value={inputValue}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => { setInputValue(e.target.value); sendTyping(); }}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+              const next = e.target.value;
+              setInputValue(next);
+              sendTyping();
+              broadcastTyping(next);
+            }}
+            onFocus={() => setInputFocused(true)}
+            onBlur={() => setInputFocused(false)}
             onKeyDown={handleKeyDown}
             placeholder="Message..."
             rows={1}

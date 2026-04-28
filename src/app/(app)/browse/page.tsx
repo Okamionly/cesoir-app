@@ -457,6 +457,8 @@ function BrowsePageInner() {
                   onLike={swipe.triggerLike}
                   onPass={swipe.triggerPass}
                   onReport={() => setShowReport(true)}
+                  compatibilityScore={currentMatch?.score}
+                  scoreBreakdown={currentMatch?.scoreBreakdown}
                 />
               </motion.div>
             ) : (

@@ -445,16 +445,22 @@ export function useChat(conversationId: string | undefined, userId: string | und
     [conversationId, userId],
   );
 
-  // mark all messages as read
+  // Mark all peer messages as read.
+  //
+  // Wave 17 (migration 038) — delegates to the `mark_messages_read` RPC,
+  // which is a no-op unless BOTH participants have
+  // `profiles.read_receipts_enabled = true`. This way the `read_at`
+  // timestamp is only ever written when the feature is on for both sides
+  // — peer can't infer read state from row metadata even if they sniff
+  // the realtime stream. Privacy guarantee lives on the server.
+  //
+  // The RPC is safe to call unconditionally on chat open; if the user
+  // (or peer) opted out, the function returns 0 and nothing changes.
   const markAsRead = useCallback(async () => {
     if (!conversationId || !userId) return;
-
-    await supabase
-      .from("messages")
-      .update({ read_at: new Date().toISOString() })
-      .eq("conversation_id", conversationId)
-      .neq("sender_id", userId)
-      .is("read_at", null);
+    await supabase.rpc("mark_messages_read", {
+      p_conversation_id: conversationId,
+    });
   }, [conversationId, userId]);
 
   return { messages, loading, loadingMore, hasMore, sending, sendMessage, markAsRead, loadMore };

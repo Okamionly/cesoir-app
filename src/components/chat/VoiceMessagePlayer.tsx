@@ -6,12 +6,20 @@
  * Features
  *   - Lazy signed URL: minted on first mount via `getVoiceMessageSignedUrl`
  *     (1h TTL) — callers don't have to pre-resolve URLs at the page level.
- *   - Tap-to-seek waveform with 32 bars; the bar grid is also a click
- *     target (delegated, no per-bar handler).
+ *   - Tap-to-seek waveform with 32 bars; the bar grid is also a drag
+ *     target — pointermove while pressed continuously updates currentTime
+ *     so the user can scrub like a YouTube progress bar.
  *   - Speed toggle: 1x → 1.5x → 2x cycle, persisted to `playbackRate`.
+ *   - Total duration label: "0:12 / 0:30" — the second half is the
+ *     authoritative DB duration so the user can see how much remains
+ *     before pressing play.
  *   - Mark-as-read: when the listener reaches the end of the clip, calls
  *     `onPlaybackComplete(messageId)` once. The page wires that to a
  *     `messages.read_at` patch — same shape as the read-receipt for text.
+ *   - Coordinator: registers with `voice-player-coordinator` so the
+ *     surrounding chat shell can (a) auto-pause on scroll, (b) take over
+ *     to display a tiny floating mini-player while the user types, and
+ *     (c) ensure only one bubble plays at a time.
  *   - Errors (signing failed, audio stream error) surface inline so the
  *     bubble never appears "dead" — there's always a status the user
  *     can act on (retry).
@@ -23,7 +31,15 @@
  *   would burn data on a thread the user might never play).
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { m } from "motion/react";
 import { Play, Pause } from "@/components/ui/lucide";
 import { getVoiceMessageSignedUrl } from "@/lib/storage";
@@ -32,6 +48,14 @@ import {
   CHAT_VOICE_WAVEFORM_ACCENT,
   CHAT_VOICE_NEUTRAL_BG,
 } from "@/lib/chat-content-colors";
+import {
+  clearActiveController,
+  pingActive,
+  registerController,
+  setActiveController,
+  type VoicePlayerController,
+  type VoicePlayerSnapshot,
+} from "./voice-player-coordinator";
 
 const SPEED_CYCLE: Array<1 | 1.5 | 2> = [1, 1.5, 2];
 const BAR_COUNT = 32;
@@ -51,6 +75,12 @@ interface VoiceMessagePlayerProps {
    */
   messageId: string;
   /**
+   * Display label shown next to the mini-player while playing
+   * (e.g. "▶ 0:23 · Marie"). Defaults to null — the chip then shows
+   * just the clock.
+   */
+  peerName?: string | null;
+  /**
    * Fired once per mount when playback reaches the end. The page wires
    * this to a `messages.read_at` UPDATE (only meaningful for received
    * messages — own messages can short-circuit).
@@ -58,6 +88,17 @@ interface VoiceMessagePlayerProps {
   onPlaybackComplete?: (messageId: string) => void;
   /** Optional className for the outer wrapper. */
   className?: string;
+  /**
+   * When true, the player renders as a thin strip (~24px) — no waveform,
+   * no time labels. The chat page sets this when the user is typing AND
+   * a clip is playing; the floating mini-player chip handles full UX.
+   */
+  collapsed?: boolean;
+}
+
+/** Imperative handle for the chat page — used to expand on mini-player tap. */
+export interface VoiceMessagePlayerHandle {
+  scrollIntoView(): void;
 }
 
 function formatDuration(ms: number): string {
@@ -90,24 +131,55 @@ function generateBars(seed: string): number[] {
   return bars;
 }
 
-export default function VoiceMessagePlayer({
-  voicePath,
-  durationMs,
-  isOwn,
-  time,
-  messageId,
-  onPlaybackComplete,
-  className = "",
-}: VoiceMessagePlayerProps) {
+const VoiceMessagePlayer = forwardRef<VoiceMessagePlayerHandle, VoiceMessagePlayerProps>(
+  function VoiceMessagePlayer(
+    {
+      voicePath,
+      durationMs,
+      isOwn,
+      time,
+      messageId,
+      peerName = null,
+      onPlaybackComplete,
+      className = "",
+      collapsed = false,
+    }: VoiceMessagePlayerProps,
+    ref,
+  ) {
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
   const [signingError, setSigningError] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentMs, setCurrentMs] = useState(0);
   const [speed, setSpeed] = useState<1 | 1.5 | 2>(1);
+  const [isScrubbing, setIsScrubbing] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const waveformRef = useRef<HTMLDivElement | null>(null);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
   const completedFiredRef = useRef(false);
+
+  // Mirror state into refs so the imperative coordinator controller (which
+  // is created once on mount) always reads fresh values.
+  const isPlayingRef = useRef(isPlaying);
+  const currentMsRef = useRef(currentMs);
+  const speedRef = useRef<1 | 1.5 | 2>(speed);
+  const peerNameRef = useRef<string | null>(peerName);
+  const durationMsRef = useRef(durationMs);
+  useEffect(() => {
+    isPlayingRef.current = isPlaying;
+  }, [isPlaying]);
+  useEffect(() => {
+    currentMsRef.current = currentMs;
+  }, [currentMs]);
+  useEffect(() => {
+    speedRef.current = speed;
+  }, [speed]);
+  useEffect(() => {
+    peerNameRef.current = peerName;
+  }, [peerName]);
+  useEffect(() => {
+    durationMsRef.current = durationMs;
+  }, [durationMs]);
 
   const bars = useMemo(() => generateBars(voicePath), [voicePath]);
 
@@ -145,12 +217,19 @@ export default function VoiceMessagePlayer({
   const handleTimeUpdate = useCallback(() => {
     const a = audioRef.current;
     if (!a) return;
-    setCurrentMs(a.currentTime * 1000);
+    const ms = a.currentTime * 1000;
+    setCurrentMs(ms);
+    currentMsRef.current = ms;
+    // Push tick to coordinator so the mini-player updates its label.
+    pingActive();
   }, []);
 
   const handleEnded = useCallback(() => {
     setIsPlaying(false);
     setCurrentMs(durationMs);
+    isPlayingRef.current = false;
+    currentMsRef.current = durationMs;
+    pingActive();
     if (!completedFiredRef.current) {
       completedFiredRef.current = true;
       onPlaybackComplete?.(messageId);
@@ -159,7 +238,9 @@ export default function VoiceMessagePlayer({
 
   const handleError = useCallback(() => {
     setIsPlaying(false);
+    isPlayingRef.current = false;
     setSigningError("Lecture echouee.");
+    pingActive();
   }, []);
 
   // Apply speed changes to the live audio element.
@@ -167,40 +248,208 @@ export default function VoiceMessagePlayer({
     if (audioRef.current) audioRef.current.playbackRate = speed;
   }, [speed]);
 
-  const togglePlay = useCallback(async () => {
+  // Internal helpers — used by both the UI button and the coordinator.
+  const internalPause = useCallback(() => {
+    const a = audioRef.current;
+    if (!a) return;
+    a.pause();
+    setIsPlaying(false);
+    isPlayingRef.current = false;
+    pingActive();
+  }, []);
+
+  const internalResume = useCallback(async () => {
     const a = audioRef.current;
     if (!a || !signedUrl) return;
-
-    if (isPlaying) {
-      a.pause();
-      setIsPlaying(false);
-      return;
-    }
-
     try {
-      a.playbackRate = speed;
+      a.playbackRate = speedRef.current;
       await a.play();
       setIsPlaying(true);
+      isPlayingRef.current = true;
+      pingActive();
     } catch {
-      // iOS sometimes rejects play() if the gesture chain is broken
-      // (e.g. user tapped during a layout shift). Surface a soft hint.
       setIsPlaying(false);
+      isPlayingRef.current = false;
       setSigningError("Touche encore pour lire.");
     }
-  }, [isPlaying, signedUrl, speed]);
+  }, [signedUrl]);
 
-  const handleSeek = useCallback(
-    (e: React.PointerEvent<HTMLDivElement>) => {
+  const togglePlay = useCallback(async () => {
+    if (isPlayingRef.current) {
+      internalPause();
+      return;
+    }
+    await internalResume();
+  }, [internalPause, internalResume]);
+
+  // ---------- coordinator wiring ----------
+  // One controller per player instance, registered on mount. We use refs
+  // for the mutable values so the controller's getSnapshot always returns
+  // the latest snapshot without re-creating the controller on every state
+  // change (which would churn `register/unregister` and lose track of the
+  // active controller across renders).
+  useEffect(() => {
+    const controller: VoicePlayerController = {
+      getSnapshot(): VoicePlayerSnapshot {
+        return {
+          messageId,
+          peerName: peerNameRef.current,
+          durationMs: durationMsRef.current,
+          currentMs: currentMsRef.current,
+          speed: speedRef.current,
+          isPlaying: isPlayingRef.current,
+        };
+      },
+      pause() {
+        internalPause();
+      },
+      async resume() {
+        await internalResume();
+      },
+      expand() {
+        wrapperRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      },
+    };
+    const unregister = registerController(controller);
+    // When this player becomes the active one (on play), publish to coord;
+    // when it pauses or unmounts, clear if it was active.
+    return () => {
+      clearActiveController(controller);
+      unregister();
+    };
+    // We intentionally do NOT depend on the internal helpers — they only
+    // close over refs, so the controller body always reads fresh values
+    // even when this effect runs only once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messageId]);
+
+  // Whenever this player transitions to "playing", announce active.
+  // We don't run this on every tick — only on the boolean transition,
+  // which we model via a tiny tracking ref.
+  const wasPlayingRef = useRef(false);
+  useEffect(() => {
+    if (isPlaying && !wasPlayingRef.current) {
+      // Fabricate a controller-shaped object on the fly with stable refs;
+      // we share one created above by re-querying via the registry.
+      // Simpler: build the same shape inline (controllers Set is internal).
+      setActiveController({
+        getSnapshot(): VoicePlayerSnapshot {
+          return {
+            messageId,
+            peerName: peerNameRef.current,
+            durationMs: durationMsRef.current,
+            currentMs: currentMsRef.current,
+            speed: speedRef.current,
+            isPlaying: isPlayingRef.current,
+          };
+        },
+        pause() {
+          internalPause();
+        },
+        async resume() {
+          await internalResume();
+        },
+        expand() {
+          wrapperRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+        },
+      });
+    }
+    wasPlayingRef.current = isPlaying;
+  }, [isPlaying, messageId, internalPause, internalResume]);
+
+  // Imperative handle for the chat page (mini-player tap → expand bubble).
+  useImperativeHandle(
+    ref,
+    () => ({
+      scrollIntoView() {
+        wrapperRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      },
+    }),
+    [],
+  );
+
+  // ---------- seek / scrub ----------
+  const seekToClientX = useCallback(
+    (clientX: number) => {
       const a = audioRef.current;
       const grid = waveformRef.current;
       if (!a || !grid) return;
       const rect = grid.getBoundingClientRect();
-      const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-      const target = ratio * (durationMs / 1000);
-      a.currentTime = target;
-      setCurrentMs(target * 1000);
+      const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      const targetSec = ratio * (durationMs / 1000);
+      a.currentTime = targetSec;
+      const ms = targetSec * 1000;
+      setCurrentMs(ms);
+      currentMsRef.current = ms;
       // If we seek backwards past the end, allow a fresh mark-as-read.
       if (ratio < 1) completedFiredRef.current = false;
+      pingActive();
+    },
+    [durationMs],
+  );
+
+  const handleScrubStart = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      try {
+        e.currentTarget.setPointerCapture(e.pointerId);
+      } catch {
+        /* ignore */
+      }
+      setIsScrubbing(true);
+      seekToClientX(e.clientX);
+    },
+    [seekToClientX],
+  );
+
+  const handleScrubMove = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!isScrubbing) return;
+      e.preventDefault();
+      seekToClientX(e.clientX);
+    },
+    [isScrubbing, seekToClientX],
+  );
+
+  const handleScrubEnd = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!isScrubbing) return;
+      try {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      } catch {
+        /* ignore */
+      }
+      setIsScrubbing(false);
+    },
+    [isScrubbing],
+  );
+
+  // Keyboard a11y — left/right arrows nudge by 5%
+  const handleSeekKey = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      const a = audioRef.current;
+      if (!a) return;
+      const delta = e.key === "ArrowLeft" ? -0.05 : e.key === "ArrowRight" ? 0.05 : 0;
+      if (delta === 0) return;
+      e.preventDefault();
+      const newSec = Math.max(
+        0,
+        Math.min(durationMs / 1000, a.currentTime + delta * (durationMs / 1000)),
+      );
+      a.currentTime = newSec;
+      const ms = newSec * 1000;
+      setCurrentMs(ms);
+      currentMsRef.current = ms;
+      pingActive();
     },
     [durationMs],
   );
@@ -219,6 +468,61 @@ export default function VoiceMessagePlayer({
     Math.min(1, currentMs / Math.max(1, durationMs)),
   );
 
+  // Collapsed mode — render just a thin strip (the floating mini-player
+  // takes over UX while the user is typing).
+  if (collapsed) {
+    return (
+      <m.div
+        ref={wrapperRef}
+        initial={{ opacity: 0.6, height: 0 }}
+        animate={{ opacity: 0.85, height: "auto" }}
+        transition={{ duration: 0.18 }}
+        className={`flex ${isOwn ? "justify-end" : "justify-start"} mt-2 ${className}`}
+      >
+        <div
+          className={`flex items-center gap-2 px-3 h-6 rounded-full max-w-[60%] ${
+            isOwn ? "gradient-bg" : ""
+          }`}
+          style={!isOwn ? { backgroundColor: CHAT_VOICE_NEUTRAL_BG } : undefined}
+        >
+          {signedUrl && (
+            <audio
+              ref={audioRef}
+              src={signedUrl}
+              preload="metadata"
+              onTimeUpdate={handleTimeUpdate}
+              onEnded={handleEnded}
+              onError={handleError}
+            />
+          )}
+          <div
+            className="flex-1 h-1 rounded-full overflow-hidden"
+            style={{
+              backgroundColor: isOwn ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.12)",
+            }}
+            role="progressbar"
+            aria-valuenow={Math.round(progress * 100)}
+          >
+            <div
+              className="h-full"
+              style={{
+                width: `${progress * 100}%`,
+                backgroundColor: isOwn ? "white" : CHAT_VOICE_WAVEFORM_ACCENT,
+              }}
+            />
+          </div>
+          <span
+            className={`text-[9px] font-medium tabular-nums ${
+              isOwn ? "text-white/80" : "text-text-muted"
+            }`}
+          >
+            {formatDuration(currentMs)}
+          </span>
+        </div>
+      </m.div>
+    );
+  }
+
   const bubbleColors = isOwn
     ? "gradient-bg rounded-br-md"
     : "rounded-bl-md";
@@ -228,6 +532,7 @@ export default function VoiceMessagePlayer({
 
   return (
     <m.div
+      ref={wrapperRef}
       initial={{ opacity: 0, y: 8, scale: 0.96 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.2 }}
@@ -278,7 +583,7 @@ export default function VoiceMessagePlayer({
           )}
         </button>
 
-        {/* Waveform — tappable for seek */}
+        {/* Waveform — tappable + draggable for scrub */}
         <div
           ref={waveformRef}
           role="slider"
@@ -287,7 +592,11 @@ export default function VoiceMessagePlayer({
           aria-valuemin={0}
           aria-valuemax={Math.round(durationMs / 1000)}
           aria-valuenow={Math.round(currentMs / 1000)}
-          onPointerDown={handleSeek}
+          onPointerDown={handleScrubStart}
+          onPointerMove={handleScrubMove}
+          onPointerUp={handleScrubEnd}
+          onPointerCancel={handleScrubEnd}
+          onKeyDown={handleSeekKey}
           className="flex items-center gap-[2px] h-7 flex-1 cursor-pointer touch-none select-none"
         >
           {bars.map((h, i) => {
@@ -308,7 +617,9 @@ export default function VoiceMessagePlayer({
                       ? CHAT_VOICE_WAVEFORM_ACCENT
                       : "rgba(0,0,0,0.18)",
                 }}
-                animate={isPlaying && isActive ? { scaleY: [1, 1.25, 1] } : {}}
+                animate={
+                  isPlaying && isActive && !isScrubbing ? { scaleY: [1, 1.25, 1] } : {}
+                }
                 transition={{ duration: 0.3 }}
               />
             );
@@ -329,14 +640,16 @@ export default function VoiceMessagePlayer({
           {speed}x
         </button>
 
-        {/* Duration / current */}
+        {/* Duration / current — "0:12 / 0:30" format */}
         <div className="flex flex-col items-end shrink-0 gap-0.5">
           <span
             className={`text-[10px] font-medium tabular-nums ${
               isOwn ? "text-white/70" : "text-text-muted"
             }`}
           >
-            {formatDuration(isPlaying || currentMs > 0 ? currentMs : durationMs)}
+            {formatDuration(isPlaying || currentMs > 0 ? currentMs : 0)}
+            <span className={isOwn ? "text-white/40" : "text-text-muted/50"}> / </span>
+            {formatDuration(durationMs)}
           </span>
           <span
             className={`text-[9px] tabular-nums ${
@@ -361,4 +674,7 @@ export default function VoiceMessagePlayer({
       )}
     </m.div>
   );
-}
+  },
+);
+
+export default VoiceMessagePlayer;

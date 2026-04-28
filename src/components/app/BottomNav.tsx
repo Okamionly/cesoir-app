@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { m, AnimatePresence, type Transition } from "motion/react";
 import { IconSearch, IconMap, IconChat, IconMoon, IconUser } from "@/components/ui/Icons";
-import { Music } from "@/components/ui/lucide";
+import { Music, Sparkles } from "@/components/ui/lucide";
 import { springs } from "@/lib/motion-design";
 
 // Small wrapper so the lucide icon matches the `{ size, className }` API the
@@ -28,6 +28,26 @@ function IconSoirees({
   );
 }
 
+// Wrapper for the Crystal tab. Wave 17 — uses lucide Sparkles to match
+// the Crystal Ball card branding (same icon used in the page header
+// + waiting pill). Thin stroke to harmonise with IconSoirees.
+function IconCrystal({
+  size = 24,
+  className = "",
+}: {
+  size?: number;
+  className?: string;
+}) {
+  return (
+    <Sparkles
+      size={size}
+      strokeWidth={1.8}
+      className={className}
+      aria-hidden="true"
+    />
+  );
+}
+
 // ---------- Badge data hooks (safe imports) ----------
 
 /**
@@ -38,6 +58,7 @@ function useSafeBadgeData(): {
   chatUnread: number;
   newMatches: number;
   dailyChallengeAvailable: boolean;
+  crystalAvailable: boolean;
 } {
   const [dailyChallengeAvailable, setDailyChallengeAvailable] = useState(false);
 
@@ -68,6 +89,21 @@ function useSafeBadgeData(): {
     // Context not available — stays at 0
   }
 
+  // Crystal Ball (Wave 17) — pings only when today's match exists and
+  // the user hasn't decided yet. Same try/catch pattern as the others
+  // because the hook depends on AuthContext.
+  let crystalAvailable = false;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { useCrystalBall } = require("@/lib/useCrystalBall") as {
+      useCrystalBall: () => { available: boolean };
+    };
+    const { available } = useCrystalBall();
+    crystalAvailable = available;
+  } catch {
+    // Context not available — stays at false
+  }
+
   // Daily challenge: check localStorage for today's completion
   useEffect(() => {
     try {
@@ -81,22 +117,31 @@ function useSafeBadgeData(): {
     }
   }, []);
 
-  return { chatUnread, newMatches, dailyChallengeAvailable };
+  return { chatUnread, newMatches, dailyChallengeAvailable, crystalAvailable };
 }
 
 // ---------- Tab configuration ----------
 
-type TabKey = "feed" | "map" | "events" | "chat" | "modes" | "profile";
+type TabKey =
+  | "feed"
+  | "map"
+  | "events"
+  | "chat"
+  | "modes"
+  | "profile"
+  | "crystal";
 
 // 2026-04-23 Wave14 — "events" slot injected between map & chat.
-// 6 tabs still fit in the 440px phone-frame; the BottomNav already uses
-// `justify-around` + `tap-target` utilities so each tab keeps >=44px touch.
+// 2026-04-28 Wave17 — optional "crystal" tab added at the end. It is
+// rendered conditionally (only when the daily Crystal Ball is
+// available + not yet decided) so the static 6-tab layout is the
+// default and we don't break the existing 440px / tap-target budget.
 //
 // `dataTour` opts the tab into the first-time onboarding spotlight tour
 // (see `src/components/onboarding/Tour.tsx`). Only the tabs that the
 // tour actually highlights need this — the selectors are stable strings
 // so the tour file owns the source of truth.
-const tabs: {
+const baseTabs: {
   href: `/${TabKey}`;
   key: TabKey;
   Icon: typeof IconSearch;
@@ -110,6 +155,13 @@ const tabs: {
   { href: "/modes", key: "modes", Icon: IconMoon, label: "Modes", dataTour: "modes-tab" },
   { href: "/profile", key: "profile", Icon: IconUser, label: "Profil", dataTour: "profile-tab" },
 ];
+
+const crystalTab: (typeof baseTabs)[number] = {
+  href: "/crystal",
+  key: "crystal",
+  Icon: IconCrystal,
+  label: "Crystal",
+};
 
 // ---------- Badge sub-component ----------
 
@@ -149,12 +201,19 @@ interface BottomNavProps {
   chatBadgeCount?: number;
   newMatchCount?: number;
   dailyChallengeReady?: boolean;
+  /**
+   * 2026-04-28 (Wave 17). When true, an optional 7th tab "Crystal" is
+   * rendered at the end with a permanent ping. Falls back to the
+   * internal hook (`useCrystalBall`) when not provided.
+   */
+  crystalAvailable?: boolean;
 }
 
 export default function BottomNav({
   chatBadgeCount,
   newMatchCount,
   dailyChallengeReady,
+  crystalAvailable,
 }: BottomNavProps) {
   const pathname = usePathname();
 
@@ -165,6 +224,7 @@ export default function BottomNav({
   const chatCount = chatBadgeCount ?? internal.chatUnread;
   const matchCount = newMatchCount ?? internal.newMatches;
   const challengeAvailable = dailyChallengeReady ?? internal.dailyChallengeAvailable;
+  const crystalReady = crystalAvailable ?? internal.crystalAvailable;
 
   // Build badge map
   const badges: Record<TabKey, boolean> = {
@@ -174,7 +234,13 @@ export default function BottomNav({
     chat: chatCount > 0,
     modes: challengeAvailable,
     profile: false,
+    crystal: crystalReady,
   };
+
+  // Conditional 7th tab — only show Crystal when there's something to
+  // act on. Keeping it off the static layout means we never compress
+  // the existing 6 tabs into a smaller hit area.
+  const tabs = crystalReady ? [...baseTabs, crystalTab] : baseTabs;
 
   // Haptic tap handler (no sound)
   const handleTap = useCallback(() => {

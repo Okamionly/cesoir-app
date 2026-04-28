@@ -414,6 +414,179 @@ export const ALL_BADGES: Badge[] = [
     rarity: "rare",
     xp: 200,
   },
+
+  // 2026-04-28 — Wave 17 mastery badges (mig 046).
+  // Granted server-side by the `award_mode_mastery(user_id)` plpgsql
+  // function via AFTER INSERT/UPDATE triggers on irl_confirmations.
+  // Tiers per mode: apprenti (3 verified IRL meets) / initie (10) /
+  // maitre (25). Only mutual_at-stamped rows count; the parent
+  // conversation must have the matching `mode` column. Each id MUST
+  // match the `{mode}-{tier}` achievement_key string the SQL function
+  // inserts so useBadges + useMasteryTiers resolve earned status.
+  // ── Solo Diner (3) ──
+  {
+    id: "solo-diner-apprenti",
+    name: "Solo Diner · Apprenti",
+    emoji: "🍽️",
+    description: "3 dîners Solo Diner confirmés IRL",
+    category: "explorer",
+    requirement: "3 dates Solo Diner avec confirmation IRL mutuelle",
+    rarity: "common",
+    xp: 100,
+  },
+  {
+    id: "solo-diner-initie",
+    name: "Solo Diner · Initié",
+    emoji: "🍽️",
+    description: "10 dîners Solo Diner confirmés IRL",
+    category: "explorer",
+    requirement: "10 dates Solo Diner avec confirmation IRL mutuelle",
+    rarity: "rare",
+    xp: 250,
+  },
+  {
+    id: "solo-diner-maitre",
+    name: "Solo Diner · Maître",
+    emoji: "🍽️",
+    description: "25 dîners Solo Diner confirmés IRL",
+    category: "explorer",
+    requirement: "25 dates Solo Diner avec confirmation IRL mutuelle",
+    rarity: "epic",
+    xp: 500,
+  },
+  // ── Plus-One (3) ──
+  {
+    id: "plus-one-apprenti",
+    name: "Plus-One · Apprenti",
+    emoji: "🎬",
+    description: "3 events Plus-One confirmés IRL",
+    category: "explorer",
+    requirement: "3 dates Plus-One avec confirmation IRL mutuelle",
+    rarity: "common",
+    xp: 100,
+  },
+  {
+    id: "plus-one-initie",
+    name: "Plus-One · Initié",
+    emoji: "🎬",
+    description: "10 events Plus-One confirmés IRL",
+    category: "explorer",
+    requirement: "10 dates Plus-One avec confirmation IRL mutuelle",
+    rarity: "rare",
+    xp: 250,
+  },
+  {
+    id: "plus-one-maitre",
+    name: "Plus-One · Maître",
+    emoji: "🎬",
+    description: "25 events Plus-One confirmés IRL",
+    category: "explorer",
+    requirement: "25 dates Plus-One avec confirmation IRL mutuelle",
+    rarity: "epic",
+    xp: 500,
+  },
+  // ── Night Owl (3) ──
+  {
+    id: "night-owl-apprenti",
+    name: "Night Owl · Apprenti",
+    emoji: "🌙",
+    description: "3 sessions Night Owl confirmées IRL",
+    category: "explorer",
+    requirement: "3 dates Night Owl avec confirmation IRL mutuelle",
+    rarity: "common",
+    xp: 100,
+  },
+  {
+    id: "night-owl-initie",
+    name: "Night Owl · Initié",
+    emoji: "🌙",
+    description: "10 sessions Night Owl confirmées IRL",
+    category: "explorer",
+    requirement: "10 dates Night Owl avec confirmation IRL mutuelle",
+    rarity: "rare",
+    xp: 250,
+  },
+  {
+    id: "night-owl-maitre",
+    name: "Night Owl · Maître",
+    emoji: "🌙",
+    description: "25 sessions Night Owl confirmées IRL",
+    category: "explorer",
+    requirement: "25 dates Night Owl avec confirmation IRL mutuelle",
+    rarity: "epic",
+    xp: 500,
+  },
+  // ── Foodie Quest (3) ──
+  {
+    id: "foodie-quest-apprenti",
+    name: "Foodie Quest · Apprenti",
+    emoji: "🔥",
+    description: "3 quêtes Foodie Quest confirmées IRL",
+    category: "explorer",
+    requirement: "3 dates Foodie Quest avec confirmation IRL mutuelle",
+    rarity: "common",
+    xp: 100,
+  },
+  {
+    id: "foodie-quest-initie",
+    name: "Foodie Quest · Initié",
+    emoji: "🔥",
+    description: "10 quêtes Foodie Quest confirmées IRL",
+    category: "explorer",
+    requirement: "10 dates Foodie Quest avec confirmation IRL mutuelle",
+    rarity: "rare",
+    xp: 250,
+  },
+  {
+    id: "foodie-quest-maitre",
+    name: "Foodie Quest · Maître",
+    emoji: "🔥",
+    description: "25 quêtes Foodie Quest confirmées IRL",
+    category: "explorer",
+    requirement: "25 dates Foodie Quest avec confirmation IRL mutuelle",
+    rarity: "epic",
+    xp: 500,
+  },
+  // 2026-04-28 — Wave 17 QR check-in badge (mig 042 + /api/checkins/qr).
+  // Granted server-side by the process_qr_scan RPC when BOTH users have
+  // scanned each other's QR for the same plan (or typed each other's
+  // 6-digit fallback code) at the venue. The id MUST match the
+  // achievement_key string inserted by the RPC ('verified-date') —
+  // useBadges resolves earned status by matching badge.id against
+  // achievements.achievement_key.
+  {
+    id: "verified-date",
+    name: "Date Vérifié",
+    emoji: "📍",
+    description: "Tu t'es scanné mutuellement avec ton match au lieu du RDV",
+    category: "safety",
+    requirement: "Scan mutuel à un date IRL",
+    rarity: "epic",
+    xp: 250,
+  },
+  // 2026-04-28 — Anti-ghost clean-streak badge (mig 045).
+  // Counterpart to the recurring penalty: rewards 60 consecutive days
+  // with ZERO active ghost_penalties. Granted by a separate trigger
+  // (TBD follow-up migration) — kept out of mig 045 because the
+  // award path needs a 60-day window that's only meaningful once
+  // penalties have been running for at least that long.
+  //
+  // Naming note: there is already a `bon-citoyen` badge in the safety
+  // category (id collision avoided) — that one rewards reporting
+  // fake profiles. This badge shares the human-facing name on purpose
+  // (both are "good citizen" rewards) but the id `bon-citoyen-clean`
+  // disambiguates the achievements lookup.
+  {
+    id: "bon-citoyen-clean",
+    name: "Bon citoyen",
+    emoji: "🕊️",
+    description: "Aucun signal de ghost en 60 jours",
+    category: "social",
+    requirement:
+      "Aucune pénalité anti-ghost active sur les 60 derniers jours consécutifs",
+    rarity: "rare",
+    xp: 200,
+  },
 ];
 
 // ─────────────────────────────────────────

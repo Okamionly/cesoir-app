@@ -8,6 +8,8 @@ import { feedVariants, springs } from "@/lib/motion-design";
 import { MODES, type ModeKey } from "@/lib/modes";
 import { useFeed, type FeedActivity } from "@/lib/useFeed";
 import { useFeedReactions } from "@/lib/useFeedReactions";
+import { usePlanSuggestions } from "@/lib/usePlanSuggestions";
+import PlanSuggestionCard from "@/components/plans/PlanSuggestionCard";
 import EmptyState from "@/components/ui/EmptyState";
 import PageLoader from "@/components/app/PageLoader";
 import { Magnetic } from "@/components/motion/Magnetic";
@@ -20,6 +22,7 @@ import { NewItemsBanner } from "@/components/feed/NewItemsBanner";
 import { ReactionBar } from "@/components/feed/ReactionBar";
 import EventsWidget from "@/components/feed/EventsWidget";
 import ActivityFeed from "@/components/feed/ActivityFeed";
+import NearbyActivesWidget from "@/components/feed/NearbyActivesWidget";
 import {
   FilterBar,
   isFeedFilter,
@@ -138,6 +141,14 @@ function FeedPageInner() {
     acknowledgeNew,
   } = useFeed();
 
+  // Wave 17 — auto-suggested plans surfaced when two matched users RSVP
+  // the same event. Renders above the activity feed when active.
+  const {
+    suggestions: planSuggestions,
+    accept: acceptPlanSuggestion,
+    dismiss: dismissPlanSuggestion,
+  } = usePlanSuggestions();
+
   const [refreshing, setRefreshing] = useState(false);
   const [timestampTick, setTimestampTick] = useState(0);
   const listRef = useRef<HTMLUListElement>(null);
@@ -204,6 +215,21 @@ function FeedPageInner() {
   const content = (
     <>
       {/*
+        Wave 17: Plan suggestions — auto-prompts when two matched users
+        RSVP the same event. Rendered ABOVE the activity feed so they
+        catch the eye immediately. The card itself handles its own
+        exit animation when accepted/dismissed; the hook drops the row
+        from `planSuggestions` optimistically so the slot collapses.
+      */}
+      {planSuggestions.length > 0 && (
+        <PlanSuggestionCard
+          key={planSuggestions[0]!.id}
+          suggestion={planSuggestions[0]!}
+          onAccept={acceptPlanSuggestion}
+          onDismiss={dismissPlanSuggestion}
+        />
+      )}
+      {/*
         2026-04-27 (round-3 perf polish): wrap heavy widgets in their own
         Suspense so the rest of the feed (FilterBar + list) doesn't block on
         ActivityFeed/EventsWidget/LiveTicker data fetches. Each gets a slim
@@ -217,6 +243,12 @@ function FeedPageInner() {
       </Suspense>
       <Suspense fallback={<div className="h-12 px-4" aria-hidden="true" />}>
         <LiveTicker onRefresh={handleRefresh} refreshing={refreshing} />
+      </Suspense>
+      {/* Wave 17: "Près de toi maintenant" rail — top 5 broadcast-active
+          profiles within 10 km, sorted by distance. Realtime via
+          useNearbyActives (60s poll + postgres_changes). */}
+      <Suspense fallback={<div className="h-24 px-4" aria-hidden="true" />}>
+        <NearbyActivesWidget />
       </Suspense>
       <FilterBar value={filter} onChange={handleFilterChange} />
 

@@ -20,6 +20,7 @@ import EmptyStateShared from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
 import { X } from "@/components/ui/lucide";
 import { NOTIFICATION_TYPE_COLORS } from "@/lib/notification-config";
+import { WingmanInviteCard } from "@/components/plans/WingmanInviteCard";
 
 // ---------- Extended notification types ----------
 
@@ -521,6 +522,9 @@ export default function NotificationsPage() {
           </div>
         }
       />
+
+      {/* Wingman invites — top-of-page card list (self-hides when empty). */}
+      <WingmanInviteCard />
 
       {/* Body — pull-to-refresh wraps the list area */}
       <PullToRefresh onRefresh={handleRefresh}>

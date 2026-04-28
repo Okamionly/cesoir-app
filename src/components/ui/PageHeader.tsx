@@ -8,6 +8,7 @@ import { RackFocus } from "@/components/motion/RackFocus";
 import { Magnetic } from "@/components/motion/Magnetic";
 import { ChevronLeft, X } from "@/components/ui/lucide";
 import { XPBar } from "@/components/ui/XPBar";
+import { StreakBadge } from "@/components/ui/StreakBadge";
 import { useAuth } from "@/context/AuthContext";
 
 // ─────────────────────────────────────────
@@ -100,6 +101,17 @@ export interface PageHeaderProps {
    * Not rendered when user is not logged in (guarded inside XPBar).
    */
   showXP?: boolean;
+  /**
+   * Show the daily streak chip in the actions slot (before any caller
+   * `actions` content). Default: same as `showXP` — the streak chip
+   * lives next to the XP bar conceptually, so pages that hide one
+   * usually want to hide both. Pass `false` explicitly to suppress
+   * the streak even when XP is shown (e.g. focused chat-detail header).
+   *
+   * The badge is self-guarded: it returns null when the user is not
+   * logged in or when `currentStreak === 0`.
+   */
+  showStreak?: boolean;
   /**
    * Replace the ENTIRE title area content (keeps icon + back visible).
    * Use when the title region needs multi-line custom layout (badge row,
@@ -321,13 +333,33 @@ function PageHeader({
   titleSlot,
   onHeader,
   showXP = true,
+  showStreak,
 }: PageHeaderProps) {
   const reducedMotion = useReducedMotion();
   const { user } = useAuth();
 
   const stickyClass = sticky ? "sticky top-0 z-30" : "relative";
   const hairline = getHairlineGradient(hairlineVariant);
-  const rightSlot = actions ?? rightAction;
+  const callerActions = actions ?? rightAction;
+
+  // Streak chip defaults to the same visibility as the XP bar — the
+  // two share the "I'm engaging with the app" surface. Caller can
+  // override with an explicit `showStreak={false}`.
+  const resolveShowStreak = showStreak ?? showXP;
+  const streakNode =
+    resolveShowStreak && user ? <StreakBadge /> : null;
+
+  // Compose the right-side slot. Streak chip renders BEFORE caller
+  // actions (closer to the title, so it reads as page chrome rather
+  // than per-page CTA). XPBar lives in its own strip below — see end
+  // of <header>.
+  const rightSlot =
+    streakNode || callerActions ? (
+      <div className="flex items-center gap-2">
+        {streakNode}
+        {callerActions}
+      </div>
+    ) : null;
 
   const iconMotion = getIconMotion(iconAnimation);
   const shouldAnimateIcon =

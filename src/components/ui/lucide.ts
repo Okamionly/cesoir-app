@@ -105,6 +105,8 @@ export {
 
   // Misc product
   RotateCcw,
+  RotateCw,
+  Pencil,
   Flame,
   Filter,
   LogOut,

@@ -23,6 +23,10 @@ import { supabase } from "@/lib/supabase";
 import { useSupabaseQuery } from "@/lib/hooks/useSupabaseQuery";
 import { logger } from "@/lib/logger";
 
+interface ReadReceiptRow {
+  read_receipts_enabled: boolean | null;
+}
+
 // ── Types ────────────────────────────────────────────────────────────────────
 
 export interface NotificationPrefs {
@@ -90,6 +94,14 @@ export interface UserSettings {
   notifications: NotificationPrefs;
   privacy: PrivacyPrefs;
   app: AppPrefs;
+  /**
+   * Wave 17 — opt-in chat read receipts. Reciprocal: when false, the user
+   * neither sends nor receives "Vu" indicators. Backed by
+   * `profiles.read_receipts_enabled` (migration 038), NOT user_settings,
+   * because the read-receipts RPC needs to do a JOIN against profiles
+   * directly. False by default.
+   */
+  readReceiptsEnabled: boolean;
 }
 
 const EMPTY_SETTINGS: UserSettings = {
@@ -97,6 +109,7 @@ const EMPTY_SETTINGS: UserSettings = {
   notifications: {},
   privacy: {},
   app: {},
+  readReceiptsEnabled: false,
 };
 
 // ── Hook ─────────────────────────────────────────────────────────────────────
@@ -110,6 +123,13 @@ export interface UseUserSettingsReturn {
   updateNotifications: (partial: NotificationPrefs) => Promise<void>;
   updatePrivacy: (partial: PrivacyPrefs) => Promise<void>;
   updateAppPrefs: (partial: AppPrefs) => Promise<void>;
+  /**
+   * Wave 17 — toggle chat read receipts (writes profiles.read_receipts_enabled).
+   * Reciprocal: server-side mark_messages_read RPC verifies BOTH parties
+   * have it enabled before stamping read_at, so flipping this off both
+   * stops outgoing receipts AND blocks incoming ones from showing as "Vu".
+   */
+  updateReadReceipts: (enabled: boolean) => Promise<void>;
 }
 
 export function useUserSettings(): UseUserSettingsReturn {
@@ -132,14 +152,36 @@ export function useUserSettings(): UseUserSettingsReturn {
     { enabled: Boolean(userId) },
   );
 
+  // `read_receipts_enabled` lives on `profiles` (migration 038) — it has to,
+  // because the mark_messages_read RPC needs to JOIN profiles to enforce
+  // reciprocal opt-in server-side. We fetch it separately here so the
+  // /settings page can drive the toggle from the same hook.
+  const {
+    data: profileFlag,
+    refetch: refetchProfileFlag,
+  } = useSupabaseQuery<ReadReceiptRow>(
+    async (client) => {
+      if (!userId) return { data: null, error: null };
+      const result = await client
+        .from("profiles")
+        .select("read_receipts_enabled")
+        .eq("id", userId)
+        .maybeSingle();
+      return result as { data: ReadReceiptRow | null; error: typeof result.error };
+    },
+    [userId],
+    { enabled: Boolean(userId) },
+  );
+
   const settings: UserSettings = data
     ? {
         tonightChips: data.tonight_chips ?? [],
         notifications: data.notifications_prefs ?? {},
         privacy: data.privacy_prefs ?? {},
         app: data.app_prefs ?? {},
+        readReceiptsEnabled: profileFlag?.read_receipts_enabled ?? false,
       }
-    : EMPTY_SETTINGS;
+    : { ...EMPTY_SETTINGS, readReceiptsEnabled: profileFlag?.read_receipts_enabled ?? false };
 
   // Upsert patch merges JSON buckets client-side then writes the whole column.
   // Relies on RLS (user_id = auth.uid()) + UNIQUE(user_id) constraint.
@@ -190,6 +232,22 @@ export function useUserSettings(): UseUserSettingsReturn {
     [applyPatch, settings.app],
   );
 
+  const updateReadReceipts = useCallback(
+    async (enabled: boolean) => {
+      if (!userId) return;
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ read_receipts_enabled: enabled })
+        .eq("id", userId);
+      if (updateError) {
+        logger.error("read_receipts_update_failed", { err: updateError.message });
+        throw new Error(updateError.message);
+      }
+      await refetchProfileFlag();
+    },
+    [userId, refetchProfileFlag],
+  );
+
   return {
     settings,
     loading,
@@ -199,5 +257,6 @@ export function useUserSettings(): UseUserSettingsReturn {
     updateNotifications,
     updatePrivacy,
     updateAppPrefs,
+    updateReadReceipts,
   };
 }

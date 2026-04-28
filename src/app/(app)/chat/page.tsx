@@ -6,6 +6,8 @@ import Image from "next/image";
 import { m } from "motion/react";
 import { useConversations } from "@/lib/useConversations";
 import type { ConversationPreview } from "@/lib/useConversations";
+import { useMoments } from "@/lib/useMoments";
+import type { MomentGroup } from "@/lib/useMoments";
 import { MODES } from "@/lib/modes";
 import type { ModeKey } from "@/lib/modes";
 import { springs } from "@/lib/motion-design";
@@ -13,6 +15,9 @@ import { FlashNoteReceived } from "@/components/chat/FlashNote";
 import PageHeader from "@/components/ui/PageHeader";
 import { ConversationRow } from "@/components/messages/ConversationRow";
 import { EmptyConversations } from "@/components/messages/EmptyConversations";
+import { MomentRing } from "@/components/moments/MomentRing";
+import { MomentViewer } from "@/components/moments/MomentViewer";
+import { MomentComposer } from "@/components/moments/MomentComposer";
 
 // Flash notes and new-match IDs come from backend hooks — empty until wired.
 // TODO: wire to useFlashNotes() + backend "new_match" flag on conversations.
@@ -77,6 +82,49 @@ function MatchBubble({ convo }: { convo: ConversationPreview }) {
 
 export default function ChatPage() {
   const { conversations, loading, totalUnread, refresh } = useConversations();
+
+  // ── Wave 17 — 24h disappearing moments ─────────────────────────────
+  // Layered above the existing NEW MATCHS row: rings of users who have
+  // active moments on top, the conversation avatars stay below. The
+  // composer is gated behind a single "+ moment" tile so the chat page
+  // doesn't grow another permanent action button.
+  const {
+    groups: momentGroups,
+    myMoment,
+    post: postMoment,
+    remove: removeMoment,
+  } = useMoments();
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [viewerStartIndex, setViewerStartIndex] = useState<number | null>(null);
+
+  // Combined list of groups for the viewer: own moment first (if any),
+  // then matches' groups in DESC posted_at order. We reuse MomentGroup
+  // shape so the viewer doesn't care which side authored what.
+  const ownGroup: MomentGroup | null = myMoment
+    ? {
+        userId: myMoment.userId,
+        user: myMoment.user,
+        moments: [myMoment],
+        latestPostedAt: myMoment.postedAt,
+      }
+    : null;
+  const allGroups = ownGroup ? [ownGroup, ...momentGroups] : momentGroups;
+
+  const handleOpenViewer = useCallback(
+    (group: MomentGroup) => {
+      const idx = allGroups.findIndex((g) => g.userId === group.userId);
+      if (idx >= 0) setViewerStartIndex(idx);
+    },
+    [allGroups],
+  );
+
+  const handlePost = useCallback(
+    async (blob: Blob, caption: string) => {
+      const inserted = await postMoment(blob, caption);
+      return inserted !== null;
+    },
+    [postMoment],
+  );
 
   const withUnread = conversations.filter((c) => c.unreadCount > 0);
   const displayUnread = totalUnread;
@@ -242,6 +290,38 @@ export default function ChatPage() {
         </div>
       )}
 
+      {/* Wave 17 — Moments row (always rendered, even if no new matches,
+          so the composer "+" tile is always reachable). Sits above the
+          NEW MATCHS section. */}
+      <div className="px-4 py-4 border-b border-border">
+        <p className="text-[10px] text-text-muted uppercase tracking-widest font-semibold mb-3">Moments</p>
+        <div className="flex gap-4 overflow-x-auto no-scrollbar" role="list" aria-label="Moments des matchs">
+          {ownGroup ? (
+            <MomentRing group={ownGroup} onOpen={handleOpenViewer} isOwn />
+          ) : (
+            <button
+              type="button"
+              onClick={() => setComposerOpen(true)}
+              aria-label="Publier un moment"
+              className="shrink-0 flex flex-col items-center gap-1.5 group"
+            >
+              <div className="w-16 h-16 rounded-full border-2 border-dashed border-accent/50 group-hover:border-accent group-hover:bg-accent/5 flex items-center justify-center text-2xl text-accent transition-all">
+                +
+              </div>
+              <span className="text-[11px] font-semibold text-accent">Moment</span>
+            </button>
+          )}
+          {momentGroups.map((g) => (
+            <MomentRing key={g.userId} group={g} onOpen={handleOpenViewer} />
+          ))}
+          {momentGroups.length === 0 && !ownGroup && (
+            <p className="text-[12px] text-text-muted self-center">
+              Tes matchs n&apos;ont pas encore publié de moment.
+            </p>
+          )}
+        </div>
+      </div>
+
       {/* Matches bar */}
       {withUnread.length > 0 && (
         <div className="px-4 py-4 border-b border-border">
@@ -367,6 +447,24 @@ export default function ChatPage() {
             </div>
           )}
         </>
+      )}
+
+      {/* ── Wave 17 — Moments modals ───────────────────────────────── */}
+      <MomentComposer
+        open={composerOpen}
+        onClose={() => setComposerOpen(false)}
+        onPost={handlePost}
+      />
+      {viewerStartIndex !== null && allGroups.length > 0 && (
+        <MomentViewer
+          groups={allGroups}
+          startGroupIndex={viewerStartIndex}
+          onClose={() => setViewerStartIndex(null)}
+          onDelete={async (mom) => {
+            if (mom.userId !== ownGroup?.userId) return false;
+            return removeMoment(mom.id);
+          }}
+        />
       )}
     </div>
   );

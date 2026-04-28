@@ -5,19 +5,26 @@ import Image from "next/image";
 import dynamic from "next/dynamic";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { m, useReducedMotion } from "motion/react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { useUserSettings } from "@/lib/useUserSettings";
+import { usePassport } from "@/lib/usePassport";
 import { useBadges } from "@/lib/useBadges";
 import { RARITY_CONFIG } from "@/lib/badges";
 import { Magnetic } from "@/components/motion/Magnetic";
 import { springs, profileVariants } from "@/lib/motion-design";
 import PageHeader from "@/components/ui/PageHeader";
 import AvailabilityBroadcast from "@/components/profile/AvailabilityBroadcast";
-import { ChevronRight as LucideChevronRight, Settings as LucideSettings } from "@/components/ui/lucide";
+import MasteryStrip from "@/components/profile/MasteryStrip";
+import VibePicker from "@/components/profile/VibePicker";
+import { ChevronRight as LucideChevronRight, Settings as LucideSettings, Plus as LucidePlus, Edit3 as LucideEdit3 } from "@/components/ui/lucide";
 import { VoiceIntroPlayer } from "@/components/profile/VoiceIntroPlayer";
+import PromptEditor from "@/components/profile/PromptEditor";
+import BioAssistantModal from "@/components/profile/BioAssistantModal";
+import { useProfilePrompts } from "@/lib/useProfilePrompts";
+import { PROMPT_SLOT_COUNT } from "@/lib/prompts";
 
 // VoiceIntroRecorder — round-3 perf polish (audit P1). Pulls in MediaRecorder
 // glue + waveform + countdown ring. Defer until the user actually taps
@@ -65,6 +72,31 @@ export default function ProfilePage() {
 
   // Server settings + optimistic local mirror for instant UI.
   const { settings, updateTonightChips } = useUserSettings();
+
+  // Travel passport (Wave 17 / mig 040) — surface as a small pill in the
+  // hero header when active so the user gets a constant reminder that
+  // their matching is using a different city than their device GPS.
+  const { passport } = usePassport();
+  // Days remaining label is computed once per re-render and only depends
+  // on the passport window; we round to whole days so the label drifting
+  // by a few seconds is invisible. `useMemo` keeps the React purity
+  // linter happy and avoids re-allocating on every render.
+  const passportRemainingLabel = useMemo<string | null>(() => {
+    if (!passport.isActive || !passport.activeUntil) return null;
+    const ms = new Date(passport.activeUntil).getTime() - new Date().getTime();
+    const days = Math.max(1, Math.ceil(ms / (24 * 60 * 60 * 1000)));
+    return `${days} ${days === 1 ? "jour" : "jours"}`;
+  }, [passport.isActive, passport.activeUntil]);
+
+  // Wave 17 — Hinge-style prompts. The hook returns the user's saved
+  // pairs (0–3 rows). The editor modal is mounted lazily once the user
+  // opens it — first render of /profile stays light.
+  const { prompts: profilePrompts } = useProfilePrompts();
+  const [promptEditorOpen, setPromptEditorOpen] = useState(false);
+
+  // Wave 17 — AI bio assistant. Opens a 5-question wizard that drafts a
+  // bio with Claude, lets the user edit, then saves to profiles.bio.
+  const [bioAssistantOpen, setBioAssistantOpen] = useState(false);
 
   // Earned badges for the small strip below the status pill (legendary first
   // so the Founder badge always grabs attention if present).
@@ -254,6 +286,41 @@ export default function ProfilePage() {
           Montpellier, France
         </m.p>
 
+        {/* Travel passport pill (Wave 17 / mig 040). Visible only while
+            the passport window is currently active. Tapping jumps to
+            /settings where the user can edit / clear it. */}
+        {passport.isActive && passport.city && (
+          <m.div
+            initial={{ opacity: 0, y: 4, scale: 0.92 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ ...springs.gentle, delay: 0.45 }}
+            className="mt-2"
+          >
+            <Link
+              href="/settings"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold tap-target focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+              style={{
+                background: "var(--color-accent)15",
+                border: "1px solid var(--color-accent)40",
+                color: "var(--color-accent)",
+              }}
+              title="Travel passport actif — tape pour modifier"
+              aria-label={`Travel passport actif vers ${passport.city}`}
+            >
+              <span aria-hidden="true">✈️</span>
+              <span>{passport.city}</span>
+              {passportRemainingLabel && (
+                <>
+                  <span aria-hidden="true" className="opacity-50">
+                    ·
+                  </span>
+                  <span>{passportRemainingLabel}</span>
+                </>
+              )}
+            </Link>
+          </m.div>
+        )}
+
         {/* Bio — shown only if filled, italic + 2-line clamp so the hero
             stays compact even on long bios. Empty bio → no slot at all
             (don't display 'no bio yet' which feels like a chore). */}
@@ -267,6 +334,31 @@ export default function ProfilePage() {
             {bio}
           </m.p>
         )}
+
+        {/* Bio assistant pill — Wave 17. Always visible so empty-bio users
+            see the affordance, and users with a weak bio can tap to refresh
+            it. The label changes copy slightly when a bio already exists. */}
+        <m.div
+          initial={{ opacity: 0, y: 4, scale: 0.92 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ ...springs.gentle, delay: 0.46 }}
+          className="mt-3"
+        >
+          <button
+            type="button"
+            onClick={() => setBioAssistantOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold tap-target focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none transition-transform hover:scale-105"
+            style={{
+              background: "var(--color-accent)15",
+              border: "1px solid var(--color-accent)40",
+              color: "var(--color-accent)",
+            }}
+            aria-label={bio ? "Reecrire ma bio avec l'IA" : "Aide-moi a ecrire ma bio avec l'IA"}
+          >
+            <span aria-hidden="true">✨</span>
+            <span>{bio ? "Reecrire ma bio" : "Aide-moi a ecrire"}</span>
+          </button>
+        </m.div>
 
         {/* Status pill cluster — disponibility + current mode (if any) */}
         <m.div
@@ -454,6 +546,28 @@ export default function ProfilePage() {
         </m.div>
       </m.section>
 
+      {/* ── MASTERY STRIP (Wave 17, mig 046) ──
+           Sits directly under the hero (and the in-hero badge strip)
+           because the strip itself is a per-mode badge progression. */}
+      <m.div className="mb-8" {...fade(0.06)}>
+        <MasteryStrip />
+      </m.div>
+
+      {/* ── VIBE: tonight's mood (Wave 17, mig 039) ── */}
+      <m.section
+        className="px-6 mb-8"
+        {...fade(0.08)}
+        aria-labelledby="vibe-label"
+      >
+        <h3
+          id="vibe-label"
+          className="text-[11px] font-semibold text-text-muted uppercase tracking-[0.12em] mb-3.5"
+        >
+          Ton vibe ce soir
+        </h3>
+        <VibePicker />
+      </m.section>
+
       {/* ── INTENT: What do you want tonight? ── */}
       <m.section
         className="px-6 mb-8"
@@ -491,6 +605,101 @@ export default function ProfilePage() {
           })}
         </div>
       </m.section>
+
+      {/* ── PROMPTS (Wave 17) ── 3 Hinge-style profile prompts ── */}
+      <m.section
+        className="px-6 mb-8"
+        {...fade(0.12)}
+        aria-labelledby="prompts-label"
+      >
+        <div className="flex items-center justify-between mb-3.5">
+          <h3
+            id="prompts-label"
+            className="text-[11px] font-semibold text-text-muted uppercase tracking-[0.12em]"
+          >
+            Prompts
+            <span className="ml-2 text-text-muted/70 normal-case tracking-normal font-normal">
+              {profilePrompts.length} / {PROMPT_SLOT_COUNT}
+            </span>
+          </h3>
+          <button
+            type="button"
+            onClick={() => setPromptEditorOpen(true)}
+            className="inline-flex items-center gap-1 text-[12px] font-medium text-text-muted hover:text-text transition-colors tap-target focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-md"
+            aria-label="Modifier mes prompts"
+          >
+            <LucideEdit3 size={14} strokeWidth={1.6} aria-hidden="true" />
+            Modifier
+          </button>
+        </div>
+
+        {profilePrompts.length === 0 ? (
+          <button
+            type="button"
+            onClick={() => setPromptEditorOpen(true)}
+            className="w-full flex flex-col items-center gap-2 py-5 rounded-2xl border border-dashed border-border hover:border-accent/40 bg-bg-card hover:bg-accent/5 transition-all tap-target focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            aria-label="Ajouter des prompts"
+          >
+            <span
+              className="w-10 h-10 rounded-full flex items-center justify-center"
+              style={{ background: "var(--color-accent)15" }}
+              aria-hidden="true"
+            >
+              <LucidePlus size={20} strokeWidth={1.8} color="var(--color-accent)" aria-hidden="true" />
+            </span>
+            <span className="text-[13px] font-medium text-text">
+              Ajoute 3 prompts pour rendre ton profil mémorable
+            </span>
+            <span className="text-[11px] text-text-muted">
+              Photos seules ne suffisent pas — montre ta personnalité
+            </span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setPromptEditorOpen(true)}
+            className="w-full text-left bg-bg-card border border-border rounded-2xl overflow-hidden hover:bg-bg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            aria-label="Modifier mes prompts"
+          >
+            <ul className="divide-y divide-border">
+              {profilePrompts.map((p, i) => (
+                <li key={`${p.promptId}-${i}`} className="px-4 py-3">
+                  <div className="flex items-start gap-3">
+                    <span
+                      className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-[15px] bg-bg border border-border"
+                      aria-hidden="true"
+                    >
+                      {p.question?.emoji ?? "✨"}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-0.5">
+                        {p.question?.question ?? "Prompt retiré"}
+                      </p>
+                      <p className="text-[14px] text-text italic leading-snug line-clamp-2">
+                        {p.answer}
+                      </p>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </button>
+        )}
+      </m.section>
+
+      {/* PromptEditor modal — mounted only when needed (cheap unmount on close) */}
+      <PromptEditor
+        open={promptEditorOpen}
+        onClose={() => setPromptEditorOpen(false)}
+      />
+
+      {/* BioAssistantModal — Wave 17 AI bio wizard. Same lazy-mount pattern. */}
+      <BioAssistantModal
+        open={bioAssistantOpen}
+        onClose={() => setBioAssistantOpen(false)}
+        onBioSaved={(newBio) => setBio(newBio)}
+        userId={user?.id}
+      />
 
       {/* ── ESSENTIALS ── 3 main destinations ── */}
       <m.nav
