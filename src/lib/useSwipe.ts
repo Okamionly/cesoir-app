@@ -22,15 +22,23 @@ export function useSwipe(onAction: (action: "like" | "pass") => void): SwipeResu
   const nextScale = useTransform(x, [-200, 0, 200], [1, 0.94, 1]);
 
   const go = useCallback((action: "like" | "pass") => {
-    animate(x, action === "like" ? 500 : -500, {
+    // 2026-04-27 fix (user-reported "swipe figé"): use animation's
+    // onComplete instead of an arbitrary setTimeout(300). With the spring
+    // physics and stiffness=300/damping=30, the actual animation can run
+    // 350-500ms — so the previous setTimeout fired BEFORE the spring
+    // settled, then x.set(0) raced with the still-running animation.
+    // Result: the next card sometimes inherited a non-zero x and rendered
+    // off-screen.
+    const controls = animate(x, action === "like" ? 500 : -500, {
       type: "spring",
       stiffness: 300,
       damping: 30,
+      onComplete: () => {
+        onAction(action);
+        x.set(0);
+      },
     });
-    setTimeout(() => {
-      onAction(action);
-      x.set(0);
-    }, 300);
+    return controls;
   }, [onAction, x]);
 
   const onDragEnd = useCallback(

@@ -92,7 +92,7 @@ export function useLiveNotifications(): {
       next.push({
         id: "online",
         icon: "\uD83D\uDD14",
-        message: `${onlineCount} ${onlineCount === 1 ? "personne dispo" : "personnes dispos"} pres de toi ce soir`,
+        message: `${onlineCount} ${onlineCount === 1 ? "personne dispo" : "personnes dispos"} près de toi ce soir`,
       });
     }
 

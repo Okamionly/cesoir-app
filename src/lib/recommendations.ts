@@ -483,7 +483,7 @@ export function getSmartNotifications(prefs: UserPreferences): SmartNotification
     notifications.push({
       id: "notif-nearby",
       type: "nearby",
-      title: `${randomCount} personnes en mode ${modeName} pres de toi`,
+      title: `${randomCount} personnes en mode ${modeName} près de toi`,
       body: `C'est ton heure preferee pour sortir — il y a du monde ce soir !`,
       icon: "\uD83D\uDCCD",
       priority: 8,
