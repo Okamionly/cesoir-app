@@ -7,9 +7,7 @@ import { useMidnightReset } from "@/lib/useMidnightReset";
 import {
   MIDNIGHT_URGENT_COLOR,
   MIDNIGHT_STAR_COLORS,
-  MIDNIGHT_BACKDROP,
   MIDNIGHT_TITLE_GRADIENT,
-  MIDNIGHT_SUBTITLE_COLOR,
   MIDNIGHT_SUBTEXT_COLOR,
 } from "@/lib/chat-content-colors";
 
@@ -62,17 +60,19 @@ export default function MidnightReset() {
   const isUrgent = hours === 0 && minutes < 60;
   const isDramatic = totalMs > 0 && totalMs <= 60_000; // last 60 seconds
 
-  // Show celebration overlay when reset triggers.
-  // Fix (2026-04-23): reduced from 3s → 2s + tap-to-dismiss.
+  // Show celebration toast when reset triggers.
+  // 2026-04-28 (user feedback "le site crash"): refonte du blocking overlay
+  // full-screen en toast non-bloquant. Auto-dismiss en 4s, fermeture immédiate
+  // via ✕ — le contenu de la page reste visible et utilisable.
   useEffect(() => {
     if (isResetting) {
       setShowOverlay(true);
-      setStars(Array.from({ length: 40 }, (_, i) => i));
+      setStars(Array.from({ length: 12 }, (_, i) => i));
 
       const timer = setTimeout(() => {
         setShowOverlay(false);
         setStars([]);
-      }, 2000);
+      }, 4000);
 
       return () => clearTimeout(timer);
     }
@@ -89,7 +89,7 @@ export default function MidnightReset() {
       <div
         className="shrink-0 px-4 pt-2 pb-1"
         role="status"
-        aria-label="Compte a rebours minuit"
+        aria-label="Compte à rebours minuit"
       >
         <AnimatePresence mode="wait">
           {isDramatic ? (
@@ -157,135 +157,83 @@ export default function MidnightReset() {
               }
             >
               <span className={isUrgent ? "" : "text-text-muted"}>
-                {"\u23F0"} Reset dans {hours}h {String(minutes).padStart(2, "0")}m
+                {"⏰"} Reset dans {hours}h {String(minutes).padStart(2, "0")}m
               </span>
             </m.p>
           )}
         </AnimatePresence>
       </div>
 
-      {/* ─── Full-screen "Nouveau jour" celebration overlay ─── */}
+      {/* ─── "Nouveau jour" celebration toast (non-blocking) ───
+          Refonte 2026-04-28 : avant = overlay full-screen black + blur qui
+          ressemblait à un crash. Maintenant = toast en haut, contenu de la
+          page reste accessible derrière, fermeture immédiate via ✕. */}
       <AnimatePresence>
         {showOverlay && (
           <m.div
-            className="fixed inset-0 z-[350] flex flex-col items-center justify-center cursor-pointer"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.4 }}
-            role="alert"
-            aria-label="Nouveau jour — touche pour fermer"
-            onClick={dismissOverlay}
-            onKeyDown={(e) => {
-              if (e.key === "Escape" || e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                dismissOverlay();
-              }
-            }}
-            tabIndex={0}
+            className="fixed top-4 left-1/2 z-[350] -translate-x-1/2 max-w-[92vw] w-[360px]"
+            initial={{ opacity: 0, y: -16, scale: 0.92 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -16, scale: 0.92 }}
+            transition={springs.snap}
+            role="status"
+            aria-label="Nouveau jour"
           >
-            {/* Dark backdrop */}
-            <m.div
-              className="absolute inset-0"
+            <div
+              className="relative rounded-2xl px-5 py-4 flex items-center gap-3 shadow-2xl border border-white/10"
               style={{
-                background: MIDNIGHT_BACKDROP,
-                backdropFilter: "blur(12px)",
+                background: "linear-gradient(135deg, rgba(20,20,30,0.95), rgba(40,30,60,0.95))",
+                backdropFilter: "blur(8px)",
               }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            />
+            >
+              {/* Rotating moon */}
+              <m.span
+                className="text-[36px] leading-none shrink-0"
+                initial={{ rotate: -180, scale: 0.3 }}
+                animate={{ rotate: 0, scale: 1 }}
+                transition={{ type: "spring", stiffness: 80, damping: 12 }}
+                aria-hidden="true"
+              >
+                {"☾"}
+              </m.span>
 
-            {/* Stars sparkle */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              {/* Texts */}
+              <div className="flex-1 min-w-0">
+                <p
+                  className="font-bold text-[15px] leading-tight"
+                  style={{
+                    fontFamily: "var(--font-display, 'Space Grotesk')",
+                    background: MIDNIGHT_TITLE_GRADIENT,
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                  }}
+                >
+                  Nouveau jour
+                </p>
+                <p
+                  className="text-[12px] mt-0.5"
+                  style={{ color: MIDNIGHT_SUBTEXT_COLOR }}
+                >
+                  Bonne soirée ! Nouveaux matchs, nouvelle énergie.
+                </p>
+              </div>
+
+              {/* Dismiss button — visible et tap-able immédiatement */}
+              <button
+                type="button"
+                onClick={dismissOverlay}
+                className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors tap-target"
+                aria-label="Fermer"
+              >
+                <span aria-hidden="true">✕</span>
+              </button>
+            </div>
+
+            {/* Subtle stars sparkle inside the toast bounds */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none rounded-2xl">
               {stars.map((i) => (
                 <CelebrationStar key={i} index={i} />
               ))}
-            </div>
-
-            {/* Content */}
-            <div className="relative z-10 flex flex-col items-center">
-              {/* Rotating moon */}
-              <m.div
-                className="text-[72px] mb-6"
-                initial={{ rotate: -180, scale: 0.3, opacity: 0 }}
-                animate={{ rotate: 0, scale: 1, opacity: 1 }}
-                transition={{
-                  ...springs.elastic,
-                  rotate: { type: "spring", stiffness: 80, damping: 12, mass: 1.5 },
-                }}
-                aria-hidden="true"
-              >
-                {"\u263E"}
-              </m.div>
-
-              {/* "Nouveau jour" text */}
-              <m.h1
-                className="font-black text-[36px] leading-tight text-center mb-3"
-                style={{
-                  fontFamily: "var(--font-display, 'Space Grotesk')",
-                  background: MIDNIGHT_TITLE_GRADIENT,
-                  backgroundSize: "200% 200%",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                }}
-                initial={{ opacity: 0, scale: 0.7 }}
-                animate={{
-                  opacity: 1,
-                  scale: 1,
-                  backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
-                }}
-                transition={{
-                  opacity: springs.cinematic,
-                  scale: springs.cinematic,
-                  backgroundPosition: { duration: 4, repeat: Infinity, ease: "linear" },
-                }}
-              >
-                Nouveau jour
-              </m.h1>
-
-              {/* Subtitle */}
-              <m.p
-                className="text-[15px] font-medium text-center"
-                style={{ color: MIDNIGHT_SUBTITLE_COLOR }}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ ...springs.heavy, delay: 0.3 }}
-              >
-                Bonne soiree !
-              </m.p>
-
-              {/* Subtext */}
-              <m.p
-                className="text-[12px] text-center mt-2"
-                style={{ color: MIDNIGHT_SUBTEXT_COLOR }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
-              >
-                Nouveaux matchs, nouveaux challenges, nouvelle energie
-              </m.p>
-
-              {/* Dismiss hint + button — fix 2026-04-23 : user could not skip the 3s overlay */}
-              <m.button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  dismissOverlay();
-                }}
-                className="mt-8 px-5 py-2 rounded-full text-[13px] font-medium border tap-target"
-                style={{
-                  color: MIDNIGHT_SUBTITLE_COLOR,
-                  borderColor: MIDNIGHT_SUBTEXT_COLOR,
-                  background: "transparent",
-                }}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 1.0 }}
-                aria-label="Fermer l'ecran Nouveau jour"
-              >
-                Continuer &rarr;
-              </m.button>
             </div>
           </m.div>
         )}
