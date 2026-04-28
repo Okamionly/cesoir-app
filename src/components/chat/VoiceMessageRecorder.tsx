@@ -271,7 +271,12 @@ export default function VoiceMessageRecorder({
 
       if (cancelled || tooShort) {
         if (tooShort && !cancelled) {
-          setErrorMsg("Maintiens le bouton pour parler.");
+          // Wave 17 polish — softer hint that doubles as a retry cue.
+          // The previous message ("Maintiens le bouton pour parler.")
+          // read as a generic warning; this microcopy explains the
+          // *why* (probably accidental tap) without scolding.
+          setErrorMsg("Maintiens pour enregistrer plus longtemps.");
+          haptics.light();
         }
         chunksRef.current = [];
         setIsRecording(false);

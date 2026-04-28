@@ -12,9 +12,11 @@ import { useAccessibility, type FontSize } from "@/components/ui/ReducedMotion";
 import { useTranslation, type Locale } from "@/lib/i18n";
 import { useWomenFirstSettings } from "@/lib/useWomenFirst";
 import { useUserSettings } from "@/lib/useUserSettings";
+import { usePassport } from "@/lib/usePassport";
 import { springs } from "@/lib/motion-design";
 import PageHeader from "@/components/ui/PageHeader";
 import { ChevronRight } from "@/components/ui/lucide";
+import PassportEditor from "@/components/profile/PassportEditor";
 
 // ── Types ──────────────────────────────────────────
 
@@ -240,11 +242,17 @@ export default function SettingsPage() {
     updateNotifications: serverUpdateNotifications,
     updatePrivacy: serverUpdatePrivacy,
     updateAppPrefs: serverUpdateAppPrefs,
+    updateReadReceipts: serverUpdateReadReceipts,
     loading: serverLoading,
   } = useUserSettings();
 
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [mounted, setMounted] = useState(false);
+  const [passportEditorOpen, setPassportEditorOpen] = useState(false);
+
+  // Travel passport — Wave 17 (mig 040). Surfaces a current-state row +
+  // a "Changer de ville" button that opens the PassportEditor sheet.
+  const { passport } = usePassport();
 
   // Load local state first (instant paint), then overlay server values once available.
   useEffect(() => {
@@ -448,10 +456,100 @@ export default function SettingsPage() {
               Comme Bumble — les femmes initient la conversation
             </p>
           </div>
+          {/* Wave 17 — opt-in chat read receipts (reciprocal). */}
+          <div className="px-4 py-3.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[13px] font-semibold text-text">
+                Confirmations de lecture
+              </span>
+              <Toggle
+                value={serverSettings.readReceiptsEnabled}
+                onChange={(v) => {
+                  serverUpdateReadReceipts(v).catch((err) =>
+                    console.error("[settings] read receipts sync failed:", err),
+                  );
+                }}
+              />
+            </div>
+            <p className="text-[11px] text-text-muted mt-1">
+              Tu vois quand l&apos;autre lit, et l&apos;inverse
+            </p>
+          </div>
         </Section>
 
-        {/* ── 4. Apparence ──────────────────────────── */}
-        <Section title="Apparence" index={3}>
+        {/* ── 4. Travel Passport (Wave 17 / mig 040) ── */}
+        <Section title="Travel passport" index={3}>
+          <div className="px-4 py-3.5">
+            {passport.isActive && passport.city ? (
+              <>
+                <div className="flex items-center justify-between gap-3 mb-1">
+                  <span className="text-[13px] font-semibold text-text">
+                    <span aria-hidden="true">✈️ </span>
+                    {passport.city}
+                  </span>
+                  <span
+                    className="text-[10px] font-bold uppercase tracking-[0.12em] px-2 py-0.5 rounded-full"
+                    style={{
+                      background: "var(--color-accent)18",
+                      color: "var(--color-accent)",
+                    }}
+                  >
+                    Actif
+                  </span>
+                </div>
+                <p className="text-[11px] text-text-muted">
+                  Jusqu&apos;au{" "}
+                  {passport.activeUntil
+                    ? new Date(passport.activeUntil).toLocaleDateString("fr-FR", {
+                        day: "numeric",
+                        month: "long",
+                      })
+                    : ""}
+                </p>
+              </>
+            ) : passport.isUpcoming && passport.city ? (
+              <>
+                <span className="text-[13px] font-semibold text-text">
+                  <span aria-hidden="true">✈️ </span>
+                  {passport.city}
+                </span>
+                <p className="text-[11px] text-text-muted mt-1">
+                  Démarre le{" "}
+                  {passport.activeFrom
+                    ? new Date(passport.activeFrom).toLocaleDateString("fr-FR", {
+                        day: "numeric",
+                        month: "long",
+                      })
+                    : ""}
+                </p>
+              </>
+            ) : (
+              <>
+                <span className="text-[13px] font-semibold text-text">
+                  Aucune ville définie
+                </span>
+                <p className="text-[11px] text-text-muted mt-1">
+                  Voyage prévu&nbsp;? Match comme si tu y étais déjà.
+                </p>
+              </>
+            )}
+            <button
+              type="button"
+              onClick={() => setPassportEditorOpen(true)}
+              className="mt-3 w-full py-2.5 rounded-xl text-[13px] font-semibold border tap-target transition-colors focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+              style={{
+                background: "var(--color-accent)10",
+                borderColor: "var(--color-accent)40",
+                color: "var(--color-accent)",
+              }}
+            >
+              {passport.city ? "Changer de ville" : "Définir une ville"}
+            </button>
+          </div>
+        </Section>
+
+        {/* ── 5. Apparence ──────────────────────────── */}
+        <Section title="Apparence" index={4}>
           <div className="px-4 py-3.5">
             <p className="text-[13px] font-semibold text-text mb-3">Thème</p>
             <PillSelector
@@ -466,8 +564,8 @@ export default function SettingsPage() {
           </div>
         </Section>
 
-        {/* ── 5. Accessibilité ──────────────────────── */}
-        <Section title="Accessibilité">
+        {/* ── 6. Accessibilité ──────────────────────── */}
+        <Section title="Accessibilité" index={5}>
           <div className="px-4 py-3.5">
             <p className="text-[13px] font-semibold text-text mb-3">Langue</p>
             <PillSelector<Locale>
@@ -498,14 +596,21 @@ export default function SettingsPage() {
           />
         </Section>
 
-        {/* ── 6. À propos ───────────────────────────── */}
-        <Section title="À propos">
+        {/* ── 7. À propos ───────────────────────────── */}
+        <Section title="À propos" index={6}>
           <InfoRow label="Version" value="1.0.0" />
           <LinkRow label="Conditions générales" href="/cgu" />
           <LinkRow label="Politique de confidentialité" href="/privacy" />
           <LinkRow label="À propos de CeSoir" href="/about" />
         </Section>
       </div>
+
+      {/* Travel passport editor sheet (mounted at the page root so it can
+          escape any overflow:hidden on parent sections). */}
+      <PassportEditor
+        open={passportEditorOpen}
+        onClose={() => setPassportEditorOpen(false)}
+      />
     </div>
   );
 }

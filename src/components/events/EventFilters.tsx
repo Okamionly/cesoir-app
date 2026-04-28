@@ -48,6 +48,8 @@ import {
   type EventWhenFilter,
 } from "@/lib/events-types";
 import { app } from "@/lib/design-tokens";
+import { SavedSearchesStrip } from "@/components/filters/SavedSearchesStrip";
+import { SaveSearchButton } from "@/components/filters/SaveSearchButton";
 
 // ─────────────────────────────────────────
 // Date carousel helpers
@@ -631,6 +633,19 @@ export default function EventFilters({
         initialSnap={1}
       >
         <div className="space-y-6 pb-32">
+          {/* Wave 17: user saved-search bookmarks. Tap a chip → applies the
+              filter combo immediately into the draft. The strip auto-hides
+              when the user has no saved searches. */}
+          <SavedSearchesStrip<EventFiltersState>
+            surface="events"
+            onApply={(applied) => {
+              setDraft({
+                ...applied,
+                category: applied.categories[0] ?? null,
+              });
+            }}
+          />
+
           {/* Smart combos — moved here from main view (v3 redesign).
               Tap a preset to fill the draft instantly, then "Voir N résultats". */}
           <section aria-labelledby="sheet-combos-heading">
@@ -759,6 +774,11 @@ export default function EventFilters({
           >
             Réinitialiser
           </button>
+          {/* Wave 17: bookmark the current draft as a named saved search. */}
+          <SaveSearchButton<EventFiltersState>
+            surface="events"
+            getFilters={() => draft}
+          />
           <m.button
             type="button"
             onClick={applySheet}

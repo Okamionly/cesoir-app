@@ -5,9 +5,16 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { m } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import { usePlans, PLAN_TYPE_META, type PlanType } from "@/lib/usePlans";
+import {
+  PLAN_TEMPLATES,
+  resolveTemplateWhen,
+  type PlanTemplate,
+} from "@/lib/planTemplates";
+import type { ModeKey } from "@/lib/modes";
 import PageHeader from "@/components/ui/PageHeader";
 import { useToast } from "@/components/ui/Toast";
 import PageLoader from "@/components/app/PageLoader";
+import { WingmanPicker } from "@/components/plans/WingmanPicker";
 
 const PUBLIC_TYPES: PlanType[] = ["flash", "soiree", "popup"];
 
@@ -31,8 +38,29 @@ function CreatePlanPageInner() {
   const minWhenAt = useMemo(() => new Date().toISOString().slice(0, 16), []);
   const [maxParticipants, setMaxParticipants] = useState(6);
   const [submitting, setSubmitting] = useState(false);
+  const [templateId, setTemplateId] = useState<string | null>(null);
+  const [mode, setMode] = useState<ModeKey | null>(null);
+  // Wingman opt-in: when ON, we open the picker right after the plan
+  // is created so the user can invite a friend in one flow.
+  const [wantsWingman, setWantsWingman] = useState(false);
+  const [wingmanPickerOpen, setWingmanPickerOpen] = useState(false);
+  const [pickerPlanId, setPickerPlanId] = useState<string | null>(null);
 
   const { createPlan } = usePlans();
+
+  // ── Template seeding ──────────────────────────────────────
+  // Tapping a template fills the form with sensible defaults but
+  // leaves every field editable. Re-tapping the same template is a
+  // no-op (avoids overwriting user edits). Tapping a different one
+  // re-seeds the title/when/mode only — venue and description are
+  // preserved (the user may have written something useful).
+  const applyTemplate = useCallback((tpl: PlanTemplate) => {
+    if (templateId === tpl.id) return;
+    setTemplateId(tpl.id);
+    setMode(tpl.mode);
+    setTitle(tpl.suggestedTitle);
+    setWhenAt(resolveTemplateWhen(tpl.suggestedTime));
+  }, [templateId]);
 
   const meta = PLAN_TYPE_META[type];
   const canSubmit = useMemo(() => title.trim().length > 2 && whenAt.length > 0, [title, whenAt]);
@@ -56,11 +84,19 @@ function CreatePlanPageInner() {
         whenAt: whenIso,
         deadline: deadlineIso,
         maxParticipants,
+        mode: mode ?? undefined,
       });
 
       if (id) {
         toast("Plan créé — visible par tous les profils compatibles.", "success");
-        router.push(`/plans/${id}`);
+        if (wantsWingman) {
+          // Open picker without leaving this screen — the user picks a
+          // wingman, the modal closes, then they navigate to /plans/:id.
+          setPickerPlanId(id);
+          setWingmanPickerOpen(true);
+        } else {
+          router.push(`/plans/${id}`);
+        }
         return;
       }
 
@@ -72,13 +108,68 @@ function CreatePlanPageInner() {
     } finally {
       setSubmitting(false);
     }
-  }, [canSubmit, submitting, title, description, venue, whenAt, type, maxParticipants, createPlan, router, toast]);
+  }, [canSubmit, submitting, title, description, venue, whenAt, type, maxParticipants, mode, createPlan, router, toast, wantsWingman]);
+
+  const handlePickerClose = useCallback(() => {
+    setWingmanPickerOpen(false);
+    if (pickerPlanId) {
+      router.push(`/plans/${pickerPlanId}`);
+    }
+  }, [router, pickerPlanId]);
 
   return (
     <div className="min-h-screen bg-bg pb-28">
       <PageHeader title="Créer un plan" backHref="/plans" />
 
       <main className="px-5 pt-5 space-y-5 max-w-lg mx-auto">
+        {/* Templates — tap to pre-fill the form. Single row, no scroll
+            (flex-1 + min-w-0 distribution, same pattern as EventFilters v3).
+            6 pills fit on a 390px viewport. Re-tap = no-op so we don't
+            stomp on edits. */}
+        <div>
+          <label className="text-[11px] font-semibold text-text-muted uppercase mb-2 block">
+            Modèles
+          </label>
+          <div
+            role="group"
+            aria-label="Modèles de plan"
+            className="flex items-stretch gap-1.5"
+          >
+            {PLAN_TEMPLATES.map((tpl) => {
+              const Icon = tpl.icon;
+              const active = templateId === tpl.id;
+              return (
+                <m.button
+                  key={tpl.id}
+                  type="button"
+                  aria-pressed={active}
+                  aria-label={`Modèle ${tpl.label}`}
+                  onClick={() => applyTemplate(tpl)}
+                  whileTap={{ scale: 0.94 }}
+                  transition={springs.snap}
+                  className={`flex-1 min-w-0 flex flex-col items-center justify-center gap-0.5 rounded-2xl px-1 py-2.5 border text-[11px] font-semibold transition-all ${
+                    active
+                      ? "border-accent gradient-bg text-white shadow-glow"
+                      : "border-border bg-card text-text-muted"
+                  }`}
+                >
+                  <Icon
+                    size={16}
+                    aria-hidden
+                    className={active ? "text-white" : "text-text"}
+                  />
+                  <span className="truncate w-full text-center">{tpl.label}</span>
+                </m.button>
+              );
+            })}
+          </div>
+          {templateId && (
+            <p className="text-[11px] text-text-muted mt-2">
+              Modèle appliqué — tu peux tout modifier ci-dessous.
+            </p>
+          )}
+        </div>
+
         {/* Type picker */}
         <div>
           <label className="text-[11px] font-semibold text-text-muted uppercase mb-2 block">Type</label>
@@ -183,6 +274,27 @@ function CreatePlanPageInner() {
           />
         </div>
 
+        {/* Wingman toggle */}
+        <div>
+          <label className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-card px-4 py-3 cursor-pointer">
+            <span className="flex-1 min-w-0">
+              <span className="block text-sm font-semibold text-text">
+                Inviter un wingman
+              </span>
+              <span className="block text-[12px] text-text-muted leading-snug mt-0.5">
+                Un ami CeSoir vient avec toi (max 4 personnes au total).
+              </span>
+            </span>
+            <input
+              type="checkbox"
+              checked={wantsWingman}
+              onChange={(e) => setWantsWingman(e.target.checked)}
+              aria-label="Activer l'invitation wingman"
+              className="w-5 h-5 accent-accent flex-shrink-0"
+            />
+          </label>
+        </div>
+
         {/* Submit */}
         <m.button
           onClick={handleSubmit}
@@ -199,6 +311,14 @@ function CreatePlanPageInner() {
           {submitting ? "Création..." : "Créer le plan"}
         </m.button>
       </main>
+
+      {pickerPlanId && (
+        <WingmanPicker
+          open={wingmanPickerOpen}
+          onClose={handlePickerClose}
+          planId={pickerPlanId}
+        />
+      )}
     </div>
   );
 }

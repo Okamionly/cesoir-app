@@ -92,6 +92,11 @@ export function useProfiles(
               // 2026-04-27 (mig 030): forward the SQL-computed broadcast
               // flag so SwipeCard / map pins can render the green pulse.
               broadcast_active: p.broadcast_active === true,
+              // 2026-04-28 (mig 040 / Wave 17): forward the passport flag +
+              // city so the SwipeCard can render a "Passport" chip near
+              // the mode badge.
+              passport_active: p.passport_active === true,
+              passport_city: (p.passport_city as string | null | undefined) ?? null,
             }));
           return { profiles: realProfiles, isReal: true };
         }

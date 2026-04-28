@@ -7,6 +7,8 @@ import { MODES, MODE_KEYS, type ModeKey } from "@/lib/modes";
 import { MODE_COLORS } from "@/lib/mode-colors";
 import { useFocusTrap } from "@/lib/hooks/useFocusTrap";
 import { X } from "@/components/ui/lucide";
+import { SavedSearchesStrip } from "@/components/filters/SavedSearchesStrip";
+import { SaveSearchButton } from "@/components/filters/SaveSearchButton";
 
 export interface MapFilters {
   modes: ModeKey[]; // empty = all
@@ -113,6 +115,11 @@ export default function MapFiltersSheet({ open, onClose, filters, onChange }: Ma
                     className="text-[11px] text-accent font-semibold tap-target px-2"
                     whileTap={micro.tapScale}
                   >Reinitialiser</m.button>
+                  <SaveSearchButton<MapFilters>
+                    surface="map"
+                    getFilters={() => filters}
+                    className="text-[11px] no-underline"
+                  />
                   <button
                     type="button"
                     onClick={onClose}
@@ -122,6 +129,15 @@ export default function MapFiltersSheet({ open, onClose, filters, onChange }: Ma
                     <X size={18} strokeWidth={2} aria-hidden="true" />
                   </button>
                 </div>
+              </div>
+
+              {/* Wave 17: saved-search bookmarks for the map surface.
+                  Hidden until the user has saved at least one combo. */}
+              <div className="mb-5">
+                <SavedSearchesStrip<MapFilters>
+                  surface="map"
+                  onApply={(applied) => onChange(applied)}
+                />
               </div>
 
               {/* Modes chips */}

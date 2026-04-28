@@ -9,12 +9,13 @@ import { logger } from "./logger";
 //   Mode compatibility:  40 pts  — both active in the same mode
 //   Distance:            25 pts  — closer = higher
 //   Timing:              20 pts  — both available NOW beats "later"
-//   Social proof:        15 pts  — karma, reviews, verification
+//   Social proof:        15 pts  — karma, reviews, verification, vibe match
 //
 // The algorithm is designed for URGENCY: tonight, nearby, same vibe.
 
 import { supabase } from "@/lib/supabase";
 import type { ModeKey } from "@/lib/modes";
+import type { VibeId } from "@/lib/vibes";
 
 // ----------------------------------------
 // Types
@@ -54,6 +55,13 @@ export interface MatchCandidate {
    * "Dispo maintenant" pill on swipe cards / map pins.
    */
   broadcast_active?: boolean;
+  /**
+   * 2026-04-28 (mig 039): the candidate's vibe today (or null). Read
+   * server-side via the get_vibe_today RPC so stale (yesterday) values
+   * are filtered out automatically. Surfaces as a chip on the swipe
+   * card and feeds the +2 same-vibe bonus in the social score.
+   */
+  vibe_today?: VibeId | null;
 }
 
 export interface ScoreBreakdown {
@@ -121,6 +129,10 @@ interface NearbyProfileRow {
  * @param candidateModes - All active modes for the candidate
  * @param candidateKarma - Total karma points for the candidate
  * @param candidateReviewAvg - Average review rating (1-5) for the candidate
+ * @param vibeMatch - True when both users picked the SAME vibe today (mig 039)
+ * @param ghostPenaltyActive - True when the candidate has an active
+ *        anti-ghost penalty (mig 045). Triggers a -5 visibility deboost
+ *        in the social bucket — this is the visibility cost.
  * @returns Score 0-100 and its breakdown
  */
 export function calculateMatchScore(
@@ -129,6 +141,8 @@ export function calculateMatchScore(
   candidateModes: ModeKey[],
   candidateKarma: number,
   candidateReviewAvg: number,
+  vibeMatch: boolean = false,
+  ghostPenaltyActive: boolean = false,
 ): { score: number; breakdown: ScoreBreakdown; sharedModes: ModeKey[] } {
   // --- 1. Mode compatibility (40 pts max) ---
   const sharedModes = userModes.filter((m) => candidateModes.includes(m));
@@ -165,6 +179,8 @@ export function calculateMatchScore(
     candidateKarma,
     candidateReviewAvg,
     candidate.broadcast_active === true,
+    vibeMatch,
+    ghostPenaltyActive,
   );
 
   const breakdown: ScoreBreakdown = {
@@ -229,18 +245,36 @@ function getTimingScore(availableTime: string | null): number {
  *   Karma (0-100 scale):               0-5 pts
  *   Review average (1-5):              0-5 pts
  *   Active "dispo ce soir" broadcast:  +5 pts (mig 030)
+ *   Same vibe today (Wave 17):         +2 pts (mig 039)
+ *   Active ghost penalty (mig 045):    -5 pts (visibility cost)
  *
  * The broadcast bonus deliberately sits in the social bucket: it's a
  * declared intent signal ("I'm actually available right now") and feeds
  * the same urgency the timing score already chases. Capped at 15 like
  * the rest of the social block, so the boost never lets a stranger
  * outscore a high-karma + reviewed match — it just nudges the tie.
+ *
+ * The vibe match is a small +2 nudge — strong enough to break ties
+ * between two otherwise-equal candidates but never enough to flip a
+ * low-quality match above a high-quality one. Both users must have
+ * picked the SAME vibe today (read through get_vibe_today RPC so
+ * yesterday's selection doesn't count).
+ *
+ * Mig 045 (anti-ghost) — `ghostPenaltyActive` subtracts 5 from the
+ * social score and is allowed to push the bucket below zero (we floor
+ * at 0 at the very end). This is the visibility cost: a chronic
+ * ghoster never disappears entirely from the deck, but they slide down
+ * far enough that fresh, well-behaved candidates float to the top.
+ * Combined with the -15 × severity karma deduction (also reflected in
+ * `karma`) the deboost compounds — the user pays in both dimensions.
  */
 function getSocialScore(
   isVerified: boolean,
   karma: number,
   reviewAvg: number,
   broadcastActive: boolean = false,
+  vibeMatch: boolean = false,
+  ghostPenaltyActive: boolean = false,
 ): number {
   let score = 0;
 
@@ -261,7 +295,18 @@ function getSocialScore(
   // surface to the top of the swipe deck while the flag is live.
   if (broadcastActive) score += 5;
 
-  return Math.min(15, score);
+  // Same vibe today (mig 039): tiny tie-break bonus when both users
+  // picked the SAME mood for tonight. Capped at 15 like the rest of
+  // the social block, so this never flips bad matches above good ones.
+  if (vibeMatch) score += 2;
+
+  // Anti-ghost visibility deboost (mig 045): chronic ghosters lose
+  // visibility while a penalty row is active (≤30 days). -5 is the
+  // visibility cost; the karma side of the punishment is already
+  // baked into `karma` above via the karma_transactions deduction.
+  if (ghostPenaltyActive) score -= 5;
+
+  return Math.min(15, Math.max(0, score));
 }
 
 // ----------------------------------------
@@ -347,19 +392,33 @@ export async function findMatches(
 
   if (ageFiltered.length === 0) return [];
 
-  // ----- Step 4: Fetch user's active modes -----
-  const userModes = await getActiveModes(userId);
+  // ----- Step 4: Fetch user's active modes + their vibe today (mig 039) -----
+  const [userModes, userVibe] = await Promise.all([
+    getActiveModes(userId),
+    getVibeForUser(userId),
+  ]);
 
   // ----- Step 5: Batch-fetch candidate data -----
   const candidateIds = ageFiltered.map((p) => p.id);
 
   // Fetch all active modes for candidates, karma totals, review averages,
-  // and founder-badge holders in parallel.
-  const [candidateModesMap, karmaMap, reviewMap, founderSet] = await Promise.all([
+  // founder-badge holders, tonight's vibe, and active ghost penalties
+  // in parallel. The ghost set drives the -5 visibility deboost in
+  // getSocialScore — this is the visibility cost (mig 045).
+  const [
+    candidateModesMap,
+    karmaMap,
+    reviewMap,
+    founderSet,
+    vibeMap,
+    ghostPenaltySet,
+  ] = await Promise.all([
     getActiveModesForUsers(candidateIds),
     getKarmaForUsers(candidateIds),
     getReviewAvgForUsers(candidateIds),
     getFounderUserIds(candidateIds),
+    getVibesForUsers(candidateIds),
+    getActiveGhostPenaltyUserIds(candidateIds),
   ]);
 
   // ----- Step 6: Score each candidate -----
@@ -367,6 +426,12 @@ export async function findMatches(
     const cModes = candidateModesMap.get(candidate.id) ?? [];
     const cKarma = karmaMap.get(candidate.id) ?? 0;
     const cReview = reviewMap.get(candidate.id) ?? 0;
+    const cVibe = vibeMap.get(candidate.id) ?? null;
+    const cGhost = ghostPenaltySet.has(candidate.id);
+
+    // Vibe match (mig 039): both users picked the SAME vibe today.
+    // Both must be non-null AND equal — null vibes don't trigger the bonus.
+    const vibeMatch = userVibe !== null && cVibe !== null && userVibe === cVibe;
 
     const { score, breakdown, sharedModes } = calculateMatchScore(
       userModes,
@@ -374,6 +439,8 @@ export async function findMatches(
       cModes,
       cKarma,
       cReview,
+      vibeMatch,
+      cGhost,
     );
 
     return {
@@ -402,6 +469,9 @@ export async function findMatches(
       is_founder: founderSet.has(candidate.id),
       // 2026-04-27 (mig 030): forward the live broadcast flag.
       broadcast_active: candidate.broadcast_active === true,
+      // 2026-04-28 (mig 039): forward today's vibe so SwipeCard can
+      // render the small mood chip below the mode badge.
+      vibe_today: cVibe,
     };
   });
 
@@ -533,6 +603,102 @@ async function getFounderUserIds(userIds: string[]): Promise<Set<string>> {
     set.add(row.user_id);
   }
   return set;
+}
+
+/**
+ * Returns the subset of `userIds` who currently have an ACTIVE anti-ghost
+ * penalty row (mig 045) — i.e. `expires_at > now()`. Active membership
+ * triggers the -5 visibility deboost in getSocialScore. RLS only lets a
+ * user SEE their own penalties, but the matching pipeline reads through
+ * the same Supabase client used for nearby_profiles which itself bypasses
+ * RLS via a SECURITY DEFINER function. Here we run a plain SELECT — if
+ * RLS is enforced for the calling client we just see an empty set, which
+ * is the safe default (no deboost rather than a crash).
+ *
+ * Single SELECT with the IN-list and an `expires_at > now()` filter.
+ * The partial index `idx_ghost_penalties_active` covers this query.
+ */
+async function getActiveGhostPenaltyUserIds(
+  userIds: string[],
+): Promise<Set<string>> {
+  const set = new Set<string>();
+  if (userIds.length === 0) return set;
+
+  const nowIso = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("ghost_penalties")
+    .select("user_id")
+    .in("user_id", userIds)
+    .gt("expires_at", nowIso);
+
+  if (error) {
+    // Don't crash the matching pipeline on a deboost-table read failure
+    // — the consequence is a missing penalty (slightly more visibility
+    // for ghosters), not a wrong match.
+    logger.warn("matching_ghost_penalties_query_failed", {
+      err: error.message,
+    });
+    return set;
+  }
+  if (!data) return set;
+
+  for (const row of data as Array<{ user_id: string }>) {
+    set.add(row.user_id);
+  }
+  return set;
+}
+
+/**
+ * Fetch the current user's vibe today (mig 039) via the get_vibe_today RPC.
+ * Returns null when the user hasn't picked one today (or it's stale).
+ */
+async function getVibeForUser(userId: string): Promise<VibeId | null> {
+  const { data, error } = await supabase.rpc("get_vibe_today", {
+    uid: userId,
+  });
+
+  if (error) {
+    logger.error("matching_get_vibe_for_user_failed", { err: error.message });
+    return null;
+  }
+
+  return (data as VibeId | null) ?? null;
+}
+
+/**
+ * Batch-fetch tonight's vibe for every candidate (mig 039).
+ *
+ * The RPC takes a single uid, so we fan out one call per user and zip
+ * the results. Cheap because the RPC is a single-row read of a cached
+ * column. If we ever see >50 candidates per scoring pass we can replace
+ * this with a SELECT id, vibe_today, vibe_set_at WHERE id IN (...) and
+ * apply the UTC-midnight filter client-side — but the RPC keeps the
+ * "single source of truth" invariant for now.
+ *
+ * Errors per user are swallowed → null, so one bad row doesn't blow
+ * up the whole pipeline.
+ */
+async function getVibesForUsers(
+  userIds: string[],
+): Promise<Map<string, VibeId | null>> {
+  const map = new Map<string, VibeId | null>();
+  if (userIds.length === 0) return map;
+
+  const results = await Promise.all(
+    userIds.map(async (id) => {
+      const { data, error } = await supabase.rpc("get_vibe_today", {
+        uid: id,
+      });
+      if (error) return { id, vibe: null as VibeId | null };
+      return { id, vibe: (data as VibeId | null) ?? null };
+    }),
+  );
+
+  for (const { id, vibe } of results) {
+    map.set(id, vibe);
+  }
+
+  return map;
 }
 
 async function getReviewAvgForUsers(

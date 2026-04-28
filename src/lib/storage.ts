@@ -241,3 +241,154 @@ export async function getVoiceMessageSignedUrl(
   if (error || !data) return null;
   return data.signedUrl;
 }
+
+// ───────────────────────────────────────────────────────────────────
+// Moments bucket helpers (migration 047 — Wave 17)
+//
+// The `moments` bucket is PRIVATE. RLS allows:
+//   - INSERT into `<userId>/...`
+//   - DELETE from `<userId>/...`
+//   - SELECT for the owner OR any user matched with the owner via
+//     the `conversations` table.
+//
+// Storage path convention (enforced both client-side AND in the RLS
+// policy):
+//   `<userId>/<uuid>.<ext>`
+//
+// One folder level — different from voice-messages because moments
+// don't carry a conversation context. The matching check is done
+// against the user_id segment.
+// ───────────────────────────────────────────────────────────────────
+
+const MOMENTS_BUCKET = "moments";
+
+/**
+ * Hard cap on a single moment photo — keep in sync with:
+ *   - migration 047 `file_size_limit = 4194304` (4 MB)
+ *   - the API route that re-validates the multipart payload size.
+ *
+ * 4 MB is generous for a JPEG/WebP at phone-camera resolution after
+ * the client-side downscale to 1080px max edge. We don't bother
+ * transcoding HEIC; the picker accepts only image/jpeg|png|webp
+ * (browsers convert iOS HEIC to JPEG on file input automatically).
+ */
+export const MOMENT_MAX_BYTES = 4_194_304;
+
+/**
+ * Hard cap on caption length. Mirrors the SQL CHECK constraint
+ * (`moments_caption_length`). Keep in sync with the API zod schema
+ * and the MomentComposer counter UI.
+ */
+export const MOMENT_CAPTION_MAX = 50;
+
+/**
+ * Builds the storage path for a new moment.
+ *
+ * Format: `<userId>/<uuid>.<ext>`
+ *
+ * The single folder level is LOAD-BEARING — the SELECT RLS policy on
+ * `storage.objects` reads `(storage.foldername(name))[1]` to resolve
+ * which user owns the moment. Don't flatten or nest further without
+ * also rewriting the policy in migration 047.
+ */
+export function buildMomentPath(
+  userId: string,
+  ext: "webp" | "jpg" | "jpeg" | "png" = "webp",
+): string {
+  // crypto.randomUUID is available in modern browsers + Node 20.
+  const uuid =
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  return `${userId}/${uuid}.${ext}`;
+}
+
+/**
+ * Picks the file extension matching a Blob/File MIME type.
+ * Defaults to `webp` for unknown types — the bucket's allowed_mime_types
+ * list (migration 047) accepts image/webp, image/jpeg, image/png.
+ */
+export function momentExtFromMime(
+  mime: string | undefined,
+): "webp" | "jpg" | "png" {
+  if (!mime) return "webp";
+  if (mime.includes("png")) return "png";
+  if (mime.includes("jpeg") || mime.includes("jpg")) return "jpg";
+  return "webp";
+}
+
+/**
+ * Uploads a moment photo Blob to the `moments` bucket.
+ *
+ * Returns the storage path (relative to the bucket) on success, or
+ * an error object describing why the upload failed. The caller is
+ * responsible for then inserting the matching row in `public.moments`
+ * (the API route does both atomically server-side).
+ *
+ * Size enforcement:
+ *   - Client-side check before the round trip (fail fast on phones
+ *     where a 4032×3024 12MP photo can occasionally cross 4 MB even
+ *     after compression).
+ *   - Server-side via the bucket's `file_size_limit` (defence in
+ *     depth) AND in the API route.
+ */
+export async function uploadMomentMedia(
+  userId: string,
+  blob: Blob,
+): Promise<
+  | { ok: true; path: string }
+  | { ok: false; reason: "too_large" | "upload_failed"; message: string }
+> {
+  if (blob.size > MOMENT_MAX_BYTES) {
+    return {
+      ok: false,
+      reason: "too_large",
+      message: `Le moment depasse la taille max (${Math.round(MOMENT_MAX_BYTES / 1024 / 1024)} Mo).`,
+    };
+  }
+
+  const ext = momentExtFromMime(blob.type);
+  const path = buildMomentPath(userId, ext);
+
+  const { error } = await supabase.storage
+    .from(MOMENTS_BUCKET)
+    .upload(path, blob, {
+      cacheControl: "3600",
+      contentType: blob.type || "image/webp",
+      upsert: false,
+    });
+
+  if (error) {
+    return {
+      ok: false,
+      reason: "upload_failed",
+      message: error.message || "Echec de l'upload du moment.",
+    };
+  }
+
+  return { ok: true, path };
+}
+
+/**
+ * Mints a 1-hour signed URL for a moment photo.
+ *
+ * Called by `MomentRing` on mount (to render the avatar background)
+ * and by `MomentViewer` (to render the full-screen photo). Returns
+ * `null` if the path is missing or the signing call fails (RLS
+ * denied, file gone, network error).
+ *
+ * The bucket is private — `getPublicUrl` would also work for an
+ * authenticated reader because the storage gateway evaluates RLS,
+ * but a signed URL keeps the contract crisp.
+ */
+export async function getMomentSignedUrl(
+  path: string | null | undefined,
+  expiresInSeconds: number = 3600,
+): Promise<string | null> {
+  if (!path) return null;
+  const { data, error } = await supabase.storage
+    .from(MOMENTS_BUCKET)
+    .createSignedUrl(path, expiresInSeconds);
+  if (error || !data) return null;
+  return data.signedUrl;
+}

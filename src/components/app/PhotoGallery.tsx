@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence, useMotionValue, PanInfo } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import { X, Lock } from "@/components/ui/lucide";
+import type { PromptQuestion } from "@/lib/prompts";
 
 // Re-export for backwards compatibility with imports that used to live here.
 export { getMockGradients } from "@/lib/photo-gallery-gradients";
@@ -12,6 +13,30 @@ export { getMockGradients } from "@/lib/photo-gallery-gradients";
 // ─────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────
+
+/**
+ * A single resolved prompt to render as an overlay card inside the carousel.
+ * Provided by SwipeCard from the candidate's `useProfilePrompts` (or mock
+ * data). The viewer-visible mode color tint is forwarded so the card can
+ * match the candidate's mode without PhotoGallery re-importing mode helpers.
+ */
+export interface InterleavedPrompt {
+  /** Catalogue question (id, text, emoji, category). */
+  question: PromptQuestion;
+  /** User-typed answer. Already trimmed; rendered verbatim. */
+  answer: string;
+  /** Hex tint for the prompt card border + emoji halo. Defaults if omitted. */
+  modeTint?: string;
+}
+
+/**
+ * Discriminated union describing one slide in the unified carousel.
+ * The gallery materialises this list and walks it for navigation; consumers
+ * never reason about indices manually.
+ */
+type CarouselSlot =
+  | { kind: "photo"; photoIndex: number }
+  | { kind: "prompt"; prompt: InterleavedPrompt; promptIndex: number };
 
 interface PhotoGalleryProps {
   /** Array of photo URLs (1-6) */
@@ -24,6 +49,14 @@ interface PhotoGalleryProps {
   gradients?: string[];
   /** Called when gallery is swiped (prevents parent card drag conflict) */
   onGallerySwipe?: () => void;
+  /**
+   * WAVE 17 — Hinge-style profile prompts. When provided, the gallery
+   * interleaves one prompt card every 2 photos (after photo[1], photo[3],
+   * photo[5]) until the prompts list is exhausted. Tap navigation, swipe
+   * gestures, and the position-bar count all account for the merged slot
+   * sequence; nothing else in SwipeCard needs to change.
+   */
+  interleavedPrompts?: InterleavedPrompt[];
 }
 
 // ─────────────────────────────────────────
@@ -36,6 +69,7 @@ export default function PhotoGallery({
   name,
   gradients,
   onGallerySwipe,
+  interleavedPrompts,
 }: PhotoGalleryProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [fullscreen, setFullscreen] = useState(false);
@@ -45,10 +79,58 @@ export default function PhotoGallery({
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
   const dragX = useMotionValue(0);
 
-  const total = photos.length;
+  // ── Build the unified slot sequence (photos + interleaved prompts) ──
+  // Pattern: photo, photo, prompt, photo, photo, prompt, … so every 2
+  // photos gets followed by one prompt card. We deliberately insert AFTER
+  // pairs (not before) so the candidate's hero photo + photo 2 land side
+  // by side on the deck, then the prompt acts as a "personality break"
+  // before more photos.
+  const slots = useMemo<CarouselSlot[]>(() => {
+    const out: CarouselSlot[] = [];
+    let promptIdx = 0;
+    photos.forEach((_, i) => {
+      out.push({ kind: "photo", photoIndex: i });
+      const isPairEnd = (i + 1) % 2 === 0;
+      if (
+        isPairEnd &&
+        interleavedPrompts &&
+        promptIdx < interleavedPrompts.length
+      ) {
+        out.push({
+          kind: "prompt",
+          prompt: interleavedPrompts[promptIdx],
+          promptIndex: promptIdx,
+        });
+        promptIdx += 1;
+      }
+    });
+    // Append any leftover prompts at the end so they're never silently
+    // dropped (e.g. profile with 1 photo + 3 prompts).
+    if (interleavedPrompts) {
+      while (promptIdx < interleavedPrompts.length) {
+        out.push({
+          kind: "prompt",
+          prompt: interleavedPrompts[promptIdx],
+          promptIndex: promptIdx,
+        });
+        promptIdx += 1;
+      }
+    }
+    return out;
+  }, [photos, interleavedPrompts]);
+
+  const total = slots.length;
+  const currentSlot = slots[currentIndex];
+
+  // Photos 2..N stay blurred until matched. Prompt cards never blur — they
+  // are short text, intended as the "social proof" surface even pre-match.
   const isBlurred = useCallback(
-    (index: number) => !isMatched && index > 0,
-    [isMatched]
+    (index: number) => {
+      const slot = slots[index];
+      if (!slot || slot.kind !== "photo") return false;
+      return !isMatched && slot.photoIndex > 0;
+    },
+    [isMatched, slots],
   );
 
   // ── Navigation ──
@@ -106,11 +188,16 @@ export default function PhotoGallery({
       const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
       const clickX = e.clientX - rect.left;
       const cardWidth = rect.width;
+      const slot = slots[currentIndex];
+      const isPromptSlot = slot?.kind === "prompt";
 
-      // Left third = prev, right third = next, center = fullscreen
+      // Left third = prev, right third = next, center = fullscreen.
+      // Prompt slots never enter fullscreen (the text is the content;
+      // there's nothing to zoom into) — center taps fall through to next
+      // so the user always advances the deck.
       if (clickX < cardWidth * 0.3) {
         goPrev(e);
-      } else if (clickX > cardWidth * 0.7) {
+      } else if (clickX > cardWidth * 0.7 || isPromptSlot) {
         goNext(e);
       } else {
         // Open fullscreen from tap position
@@ -118,7 +205,7 @@ export default function PhotoGallery({
         setFullscreen(true);
       }
     },
-    [currentIndex, isBlurred, goNext, goPrev]
+    [currentIndex, isBlurred, goNext, goPrev, slots],
   );
 
   // ── Fullscreen a11y: Escape close + focus trap + focus restore ──
@@ -163,9 +250,9 @@ export default function PhotoGallery({
 
   // ── Render photo or gradient ──
 
-  const renderPhoto = (index: number, className?: string) => {
-    const gradient = gradients?.[index];
-    if (gradient && !photos[index]?.startsWith("http")) {
+  const renderPhoto = (photoIndex: number, className?: string) => {
+    const gradient = gradients?.[photoIndex];
+    if (gradient && !photos[photoIndex]?.startsWith("http")) {
       return (
         <div
           className={`absolute inset-0 ${className || ""}`}
@@ -180,13 +267,57 @@ export default function PhotoGallery({
     // fills the card width on every breakpoint.
     return (
       <Image
-        src={photos[index]}
-        alt={`Photo ${index + 1} de ${name}`}
+        src={photos[photoIndex]}
+        alt={`Photo ${photoIndex + 1} de ${name}`}
         fill
         sizes="(max-width: 640px) 100vw, 600px"
         className={`object-cover ${className || ""}`}
-        priority={index === 0}
+        priority={photoIndex === 0}
       />
+    );
+  };
+
+  // ── Render a prompt card slot (Wave 17) ──
+  // Background is a gradient using the candidate's mode tint so the card
+  // blends with the deck's mode-coded identity. We deliberately do NOT
+  // photograph or glass-morph here — the goal is high-contrast readable
+  // copy that pops between photos.
+  const renderPromptSlot = (slot: { prompt: InterleavedPrompt }) => {
+    const tint = slot.prompt.modeTint ?? "#8B5CF6";
+    return (
+      <div
+        className="absolute inset-0 flex items-center justify-center px-8"
+        style={{
+          background: `linear-gradient(155deg, ${tint}26 0%, ${tint}12 50%, #00000040 100%), #0A0A0D`,
+        }}
+        role="group"
+        aria-label={`Prompt : ${slot.prompt.question.question}`}
+      >
+        <div
+          className="w-full max-w-[88%] rounded-[28px] p-7 backdrop-blur-md"
+          style={{
+            background: "rgba(255,255,255,0.06)",
+            border: `1px solid ${tint}55`,
+            boxShadow: `0 18px 60px ${tint}33`,
+          }}
+        >
+          <div
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full mb-4"
+            style={{ background: `${tint}22`, color: tint }}
+          >
+            <span aria-hidden="true">{slot.prompt.question.emoji}</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.18em]">
+              {slot.prompt.question.category}
+            </span>
+          </div>
+          <p className="text-[15px] font-bold tracking-tight text-white/85 leading-snug mb-3">
+            {slot.prompt.question.question}
+          </p>
+          <p className="text-[20px] italic font-medium text-white leading-snug">
+            “{slot.prompt.answer}”
+          </p>
+        </div>
+      </div>
     );
   };
 
@@ -212,8 +343,12 @@ export default function PhotoGallery({
             style={{ x: dragX }}
             onClick={handleTap}
           >
-            {/* The photo */}
-            {renderPhoto(currentIndex)}
+            {/* Slot content — either a photo or a prompt card */}
+            {currentSlot?.kind === "prompt"
+              ? renderPromptSlot(currentSlot)
+              : currentSlot
+                ? renderPhoto(currentSlot.photoIndex)
+                : null}
 
             {/* Blur overlay for non-matched photos 2-6 */}
             {isBlurred(currentIndex) && (
@@ -254,7 +389,11 @@ export default function PhotoGallery({
                   goTo(i);
                 }}
                 className="relative h-[3px] flex-1 rounded-full bg-white/25 before:absolute before:inset-x-0 before:-top-5 before:-bottom-5 before:content-[''] before:min-h-11"
-                aria-label={`Photo ${i + 1} sur ${total}`}
+                aria-label={
+                  slots[i]?.kind === "prompt"
+                    ? `Prompt ${i + 1} sur ${total}`
+                    : `Photo ${i + 1} sur ${total}`
+                }
                 aria-current={i === currentIndex ? "true" : undefined}
               >
                 <span className="absolute inset-0 rounded-full overflow-hidden pointer-events-none">
@@ -282,9 +421,10 @@ export default function PhotoGallery({
         )}
       </div>
 
-      {/* Fullscreen overlay */}
+      {/* Fullscreen overlay — only opens for photo slots, never for prompt
+          slots (prompts are text content; nothing to zoom into). */}
       <AnimatePresence>
-        {fullscreen && !isBlurred(currentIndex) && (
+        {fullscreen && currentSlot?.kind === "photo" && !isBlurred(currentIndex) && (
           <motion.div
             className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
             initial={{ opacity: 0 }}
@@ -321,9 +461,9 @@ export default function PhotoGallery({
               onClick={(e) => e.stopPropagation()}
             >
               <FullscreenPhoto
-                src={photos[currentIndex]}
-                gradient={gradients?.[currentIndex]}
-                alt={`Photo ${currentIndex + 1} de ${name}`}
+                src={photos[currentSlot.photoIndex]}
+                gradient={gradients?.[currentSlot.photoIndex]}
+                alt={`Photo ${currentSlot.photoIndex + 1} de ${name}`}
                 onClose={() => setFullscreen(false)}
               />
             </motion.div>
