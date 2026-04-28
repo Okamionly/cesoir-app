@@ -2,12 +2,10 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "crons": [
     {
-      "_comment_lastCall": "Last Call daily push — fires at 18:45 UTC = 19:45 Europe/Paris in CEST (summer, late-Mar→late-Oct). In CET (winter), 18:45 UTC = 19:45 Paris ALSO HOLDS — wait, see note below. Vercel cron schedules are interpreted in UTC ONLY (no TZ field as of 2026-04). To stay aligned with Paris evenings year-round we'd need TWO entries (17:45 UTC for CET, 18:45 UTC for CEST), but Vercel doesn't support a 'tz' attribute and will run BOTH if we list both. Compromise: pick one schedule and accept a 1h drift twice a year. We pick 18:45 UTC = 19:45 Paris (summer-correct). Winter users get the push at 19:45 UTC = 20:45 Paris — still well within the 'about to go out' window, just shifted later. Document this in the route handler so a future engineer doesn't 'fix' it without realizing.",
       "path": "/api/push/last-call",
       "schedule": "45 18 * * *"
     },
     {
-      "_comment_antiGhost": "Anti-ghost karma decay — daily 04:00 UTC = 05:00 Paris (CET) / 06:00 Paris (CEST). Pre-morning by design: penalties + visibility deboosts land before users wake up, so the new state is in effect for the entire day. Idempotent at the DB level (UNIQUE (user_id, applied_day)), so a manual re-run in the same UTC day is a no-op.",
       "path": "/api/cron/anti-ghost",
       "schedule": "0 4 * * *"
     }
