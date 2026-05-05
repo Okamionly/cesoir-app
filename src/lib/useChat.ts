@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useId, useRef } from "react";
 import { supabase } from "./supabase";
 import type { DbConversation, DbMessage, DbProfile } from "./supabase";
 import type { RealtimeChannel } from "@supabase/supabase-js";
@@ -566,6 +566,13 @@ export function useConversationPresence(
     isOnline: false,
     lastSeen: null,
   });
+  // 2026-04-28 fix: presence channel was using `presence-${conversationId}`
+  // directly. Same crash class as PR #43 (gamification realtime) — supabase-js
+  // returns the cached channel instance for repeated names, so re-attaching
+  // .on() after .subscribe() throws "cannot add postgres_changes callbacks
+  // after subscribe()". Use a per-instance nonce so each mount opens its
+  // own channel.
+  const presenceNonce = useId();
 
   // Unified subscription — presence tracking is wired in the factory's
   // own .subscribe callback (invoked once when channel joins). The outer
@@ -573,9 +580,10 @@ export function useConversationPresence(
   useRealtimeChannel(
     (client) => {
       if (!conversationId || !userId || !peerId) return null;
-      const channel = client.channel(`presence-${conversationId}`, {
-        config: { presence: { key: userId } },
-      });
+      const channel = client.channel(
+        namespacedChannelName(`presence-${conversationId}`, userId, presenceNonce),
+        { config: { presence: { key: userId } } },
+      );
       channel.on("presence", { event: "sync" }, () => {
         const state = channel.presenceState();
         const peerPresences = state[peerId] as
@@ -600,7 +608,7 @@ export function useConversationPresence(
       });
       return channel;
     },
-    [conversationId, userId, peerId],
+    [conversationId, userId, peerId, presenceNonce],
   );
 
   return presence;

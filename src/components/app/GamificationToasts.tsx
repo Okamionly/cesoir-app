@@ -261,17 +261,40 @@ function GamificationToastsInner() {
   // effects don't fire repeatedly on each render of the underlying state.
   const enqueuedLevelRef = useRef<Set<number>>(new Set());
   const enqueuedBadgeRef = useRef<Set<string>>(new Set());
-  // Snapshot the set of badges considered "earned" on first render so we
-  // don't blast the user with toasts for every historic badge.
-  const initialEarnedRef = useRef<Set<string> | null>(null);
-
-  // Seed the initial earned snapshot once badges have loaded.
+  // 2026-04-28 fix: snapshot of badges the user has ALREADY been notified
+  // about — persisted to localStorage so a remount (route change, HMR,
+  // StrictMode) doesn't replay every historic badge as "newly earned".
+  // Previous logic seeded an in-memory ref on first render, but if useBadges
+  // returned earned=false initially then flipped to earned=true after the
+  // achievements query resolved, the seed was already locked in as empty
+  // → every existing badge fired a toast on every navigation.
+  const SEEN_KEY = "cesoir-toast-seen-badges-v1";
+  const seenBadgeIdsRef = useRef<Set<string>>(
+    typeof window === "undefined"
+      ? new Set()
+      : new Set(JSON.parse(localStorage.getItem(SEEN_KEY) ?? "[]") as string[]),
+  );
+  // Whether we've at least once seen a non-empty earned set from the server,
+  // used as a "data has loaded" gate so we don't toast on first paint.
+  const hasSyncedRef = useRef(false);
   useEffect(() => {
-    if (initialEarnedRef.current !== null) return;
+    if (hasSyncedRef.current) return;
     if (allBadges.length === 0) return;
-    initialEarnedRef.current = new Set(
-      allBadges.filter((bp) => bp.earned).map((bp) => bp.badge.id),
-    );
+    // Wait for at least one server tick that actually returned earned data.
+    // Most users have at least the Fondateur badge — if NO badge is earned
+    // after the first sync, we still flip the gate (legit zero-badge user).
+    hasSyncedRef.current = true;
+    // Pre-fill seenBadgeIdsRef with everything currently earned so the FIRST
+    // paint after sync doesn't toast historic badges. Persist to localStorage.
+    const earnedNow = allBadges.filter((bp) => bp.earned).map((bp) => bp.badge.id);
+    earnedNow.forEach((id) => seenBadgeIdsRef.current.add(id));
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(SEEN_KEY, JSON.stringify(Array.from(seenBadgeIdsRef.current)));
+      } catch {
+        // localStorage full / disabled — silent fail, worst case we re-toast.
+      }
+    }
   }, [allBadges]);
 
   // ── Level-up listener ───────────────────────────────────────
@@ -297,8 +320,9 @@ function GamificationToastsInner() {
 
   // ── Badge unlock listener ───────────────────────────────────
   useEffect(() => {
-    if (initialEarnedRef.current === null) return;
-    const seen = initialEarnedRef.current;
+    if (!hasSyncedRef.current) return;
+    const seen = seenBadgeIdsRef.current;
+    let mutated = false;
 
     for (const bp of allBadges) {
       if (!bp.earned) continue;
@@ -307,14 +331,24 @@ function GamificationToastsInner() {
 
       enqueuedBadgeRef.current.add(bp.badge.id);
       seen.add(bp.badge.id);
+      mutated = true;
 
       enqueueToast({
         type: "badge-unlock",
-        title: `Badge debloque : ${bp.badge.name}`,
+        title: `Badge débloqué : ${bp.badge.name}`,
         body: `+${bp.badge.xp} XP`,
         icon: bp.badge.emoji,
         duration: 3000,
       });
+    }
+
+    // Persist any newly-toasted badges so future sessions skip them too.
+    if (mutated && typeof window !== "undefined") {
+      try {
+        localStorage.setItem(SEEN_KEY, JSON.stringify(Array.from(seen)));
+      } catch {
+        // ignore quota errors
+      }
     }
   }, [allBadges, enqueueToast]);
 

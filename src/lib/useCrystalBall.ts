@@ -145,6 +145,9 @@ export function useCrystalBall(): UseCrystalBallResult {
   const [locallyPassed, setLocallyPassed] = useState(false);
 
   const userIdRef = useRef<string | null>(null);
+  // Guards the silent-fallback log so we only emit it once per session
+  // (otherwise the per-route mount + 5min refresh would flood logs).
+  const fetchMatchMissingLoggedRef = useRef(false);
   userIdRef.current = user?.id ?? null;
 
   // ----------------------------------------------------------------
@@ -165,6 +168,29 @@ export function useCrystalBall(): UseCrystalBallResult {
         .rpc("get_my_crystal_ball", { target_day: todayLocal() });
 
       if (rpcErr) {
+        // 2026-04-28 silent-fallback: when the migration creating this RPC
+        // hasn't been pushed to the prod DB yet, PostgREST returns
+        // PGRST202 ("Could not find the function in the schema cache").
+        // Instead of surfacing a raw SQL error string in the UI (which was
+        // visible on /crystal AND polluting the console on every authed
+        // route via the BottomNav badge hook), we silently treat it as
+        // "feature not available yet" — match=null, no error banner.
+        const isMissingMigration =
+          rpcErr.code === "PGRST202" ||
+          rpcErr.code === "42883" ||
+          /Could not find the function/i.test(rpcErr.message ?? "") ||
+          /does not exist/i.test(rpcErr.message ?? "");
+        if (isMissingMigration) {
+          // Log once at debug level — don't spam Sentry / console.
+          if (!fetchMatchMissingLoggedRef.current) {
+            fetchMatchMissingLoggedRef.current = true;
+            logger.warn("crystal_ball_rpc_missing_migration_silent", {
+              code: rpcErr.code,
+            });
+          }
+          setMatch(null);
+          return;
+        }
         setError(rpcErr.message);
         logger.error("crystal_ball_fetch_failed", { err: rpcErr.message });
         setMatch(null);
