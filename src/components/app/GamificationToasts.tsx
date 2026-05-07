@@ -22,7 +22,7 @@
  */
 
 import { useEffect, useMemo, useRef } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence, useMotionValue, useTransform } from "motion/react";
 import { useAuth } from "@/context/AuthContext";
 import { useGamification } from "@/lib/useGamification";
 import { useBadges } from "@/lib/useBadges";
@@ -112,6 +112,8 @@ interface ToastCardProps {
 
 function LevelUpCard({ toast, onDismiss, reducedMotion }: ToastCardProps) {
   const perks = (toast.meta as { perks?: LevelReward[] } | undefined)?.perks ?? [];
+  const x = useMotionValue(0);
+  const opacity = useTransform(x, [-160, 0, 160], [0, 1, 0]);
 
   return (
     <motion.div
@@ -125,13 +127,19 @@ function LevelUpCard({ toast, onDismiss, reducedMotion }: ToastCardProps) {
           ? { duration: 0.01 }
           : { type: "spring", stiffness: 320, damping: 28 }
       }
-      onClick={onDismiss}
-      className="relative w-full max-w-md cursor-pointer overflow-hidden rounded-3xl border shadow-2xl"
+      drag={reducedMotion ? false : "x"}
+      dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={0.4}
+      onDragEnd={(_, info) => { if (Math.abs(info.offset.x) > 100) onDismiss(); }}
       style={{
+        x,
+        opacity,
         background: `linear-gradient(135deg, ${appTokens.violet} 0%, ${appTokens.purple} 50%, ${appTokens.rose} 100%)`,
         borderColor: "rgba(255,255,255,0.2)",
         boxShadow: `0 12px 48px ${appTokens.violet}55`,
       }}
+      onClick={onDismiss}
+      className="relative w-full max-w-md cursor-pointer overflow-hidden rounded-3xl border shadow-2xl"
     >
       <ConfettiBurst disabled={reducedMotion} />
 
@@ -179,6 +187,9 @@ function LevelUpCard({ toast, onDismiss, reducedMotion }: ToastCardProps) {
 }
 
 function BadgeUnlockCard({ toast, onDismiss, reducedMotion }: ToastCardProps) {
+  const x = useMotionValue(0);
+  const opacity = useTransform(x, [-140, 0, 140], [0, 1, 0]);
+
   return (
     <motion.div
       role="status"
@@ -191,13 +202,19 @@ function BadgeUnlockCard({ toast, onDismiss, reducedMotion }: ToastCardProps) {
           ? { duration: 0.01 }
           : { type: "spring", stiffness: 380, damping: 30 }
       }
-      onClick={onDismiss}
-      className="relative w-full max-w-sm cursor-pointer rounded-2xl border px-4 py-3 shadow-lg backdrop-blur-md"
+      drag={reducedMotion ? false : "x"}
+      dragConstraints={{ left: 0, right: 0 }}
+      dragElastic={0.4}
+      onDragEnd={(_, info) => { if (Math.abs(info.offset.x) > 80) onDismiss(); }}
       style={{
+        x,
+        opacity,
         background: appTokens.bgCard,
         borderColor: appTokens.border,
         boxShadow: `0 8px 24px ${appTokens.violet}22`,
       }}
+      onClick={onDismiss}
+      className="relative w-full max-w-sm cursor-pointer rounded-2xl border px-4 py-3 shadow-lg backdrop-blur-md"
     >
       <div className="flex items-center gap-3">
         <div

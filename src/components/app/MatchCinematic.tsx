@@ -234,7 +234,7 @@ export default function MatchCinematic({
 
   const phrase = useMemo(() => {
     if (mode) return `Vous cherchez tous les deux un ${mode.name} ce soir`;
-    return "Vous etes dispos ce soir";
+    return "Vous êtes dispos ce soir";
   }, [mode]);
 
   // Side-effects when overlay opens
@@ -435,19 +435,35 @@ export default function MatchCinematic({
                   alt={peerName}
                   width={128}
                   height={128}
+                  sizes="128px"
                   className="w-full h-full object-cover"
                   unoptimized
                 />
               </div>
             </m.div>
 
-            {/* Name — uses moodMatchVariants.matchCard signature (rubber spring w/ rotateZ) */}
+            {/* Name — rubber spring reveal + single scale pulse to earn the moment */}
             <m.h2
               id="match-cinematic-title"
               className="text-3xl font-black text-white mb-2"
-              variants={moodMatchVariants.matchCard}
+              variants={{
+                ...moodMatchVariants.matchCard,
+                visible: {
+                  ...(moodMatchVariants.matchCard.visible as object),
+                },
+              }}
               initial="hidden"
-              animate="visible"
+              animate={{
+                scale: [0, 1.05, 0.97, 1.03, 1],
+                opacity: 1,
+                rotateZ: 0,
+              }}
+              transition={{
+                duration: 0.9,
+                times: [0, 0.45, 0.65, 0.82, 1],
+                delay: 0.5,
+                ease: "easeOut",
+              }}
             >
               {peerName}
             </m.h2>
@@ -470,7 +486,7 @@ export default function MatchCinematic({
               transition={{ ...springs.heavy, delay: 0.9 }}
             >
               <p className="text-[10px] uppercase tracking-widest text-white/40 mb-1">
-                Message propose
+                Message proposé
               </p>
               <p className="text-[14px] text-white/90 italic">&ldquo;{starter}&rdquo;</p>
             </m.div>

@@ -172,8 +172,8 @@ export async function POST(request: Request) {
   //    Best-effort — failures are logged but never break the response.
   if (mutual && awarded) {
     const pushPayload = {
-      title: "Date verifie !",
-      body: "Vous vous etes scannes a deux. +30 karma + badge Date Verifie debloque.",
+      title: "Date vérifié !",
+      body: "Vous vous êtes scannés à deux. +30 karma + badge Date Vérifié débloqué.",
       tag: "cesoir-default" as const,
       url: "/profile?tab=achievements",
     };

@@ -31,7 +31,7 @@ export const TUTORIAL_STEPS: TutorialStep[] = [
     id: "modes",
     title: "Tes modes",
     description:
-      "14 façons de sortir : Solo Diner, Night Owl, Dog Date... Choisis ton mood du soir ici.",
+      "4 modes pour ce soir : Solo Diner, Night Owl, Plus-One, Foodie Quest. Choisis ton mood ici.",
     targetSelector: '[href="/modes"]',
     tooltipPosition: "top",
   },

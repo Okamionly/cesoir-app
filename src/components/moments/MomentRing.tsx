@@ -27,7 +27,7 @@
 
 import { useCallback, useMemo } from "react";
 import Image from "next/image";
-import { m } from "motion/react";
+import { m, useReducedMotion } from "motion/react";
 import type { MomentGroup } from "@/lib/useMoments";
 
 const SEEN_KEY_PREFIX = "cesoir.momentSeen.";
@@ -67,6 +67,7 @@ export function markMomentSeen(group: MomentGroup): void {
 
 export function MomentRing({ group, onOpen, isOwn = false }: MomentRingProps) {
   const seen = useMemo(() => (isOwn ? true : isMomentSeen(group)), [group, isOwn]);
+  const reducedMotion = useReducedMotion();
 
   const handleClick = useCallback(() => {
     onOpen(group);
@@ -113,8 +114,8 @@ export function MomentRing({ group, onOpen, isOwn = false }: MomentRingProps) {
               background:
                 "conic-gradient(from 0deg, #8B5CF6, #EC4899, #F472B6, #8B5CF6)",
             }}
-            animate={{ rotate: 360 }}
-            transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+            animate={reducedMotion ? {} : { rotate: 360 }}
+            transition={reducedMotion ? { duration: 0 } : { duration: 6, repeat: Infinity, ease: "linear" }}
           />
         ) : (
           <div
@@ -136,6 +137,7 @@ export function MomentRing({ group, onOpen, isOwn = false }: MomentRingProps) {
               alt={name}
               width={64}
               height={64}
+              sizes="64px"
               className="w-16 h-16 rounded-full object-cover"
             />
           ) : (

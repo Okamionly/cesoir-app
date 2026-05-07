@@ -13,10 +13,10 @@ import PageHeader from "@/components/ui/PageHeader";
 import { Plus } from "@/components/ui/lucide";
 
 const TYPE_FILTERS: { key: PlanType | "all"; label: string; emoji: string }[] = [
-  { key: "all", label: "Tous", emoji: "\uD83C\uDF1F" },
-  { key: "flash", label: "Flash", emoji: "\u26A1" },
-  { key: "soiree", label: "Soirees", emoji: "\uD83C\uDF7B" },
-  { key: "popup", label: "Events", emoji: "\uD83C\uDF89" },
+  { key: "all", label: "Tous", emoji: "🌟" },
+  { key: "flash", label: "Flash", emoji: "⚡" },
+  { key: "soiree", label: "Soirees", emoji: "🍻" },
+  { key: "popup", label: "Events", emoji: "🎉" },
 ];
 
 const containerVariants: Variants = {
@@ -33,6 +33,28 @@ const cardVariants: Variants = {
 function formatTime(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }).replace(":", "h");
+}
+
+function plansEmptyTitle(activeType: PlanType | "all"): string {
+  if (activeType === "flash") return "Aucun plan flash ce soir";
+  if (activeType === "soiree") return "Aucune soirée organisée";
+  if (activeType === "popup") return "Pas d'events pop-up pour l'instant";
+  return "Aucun plan pour ce soir";
+}
+
+function plansEmptySubtitle(activeType: PlanType | "all"): string {
+  if (activeType === "all") {
+    return "Crée le premier plan de la soirée — les gens proches de toi pourront rejoindre.";
+  }
+  const label = activeType === "flash" ? "flash" : activeType === "soiree" ? "soirée" : "event";
+  return `Sois le premier à proposer un plan ${label} ce soir.`;
+}
+
+function plansEmptyEmoji(activeType: PlanType | "all"): string {
+  if (activeType === "flash") return "⚡";
+  if (activeType === "soiree") return "🍻";
+  if (activeType === "popup") return "🎉";
+  return "☾";
 }
 
 function PlansPageInner() {
@@ -70,7 +92,7 @@ function PlansPageInner() {
             </span>
           </span>
         }
-        icon={<span className="text-lg" aria-hidden="true">{"\u263E"}</span>}
+        icon={<span className="text-lg" aria-hidden="true">{"☾"}</span>}
         iconAnimation="float"
         rackFocus
         actions={
@@ -110,11 +132,12 @@ function PlansPageInner() {
         </div>
       ) : sortedPlans.length === 0 ? (
         <EmptyState
-          emoji={"\u263E"}
-          title="Aucun plan pour le moment"
-          subtitle="Sois le premier à en créer un !"
+          emoji={plansEmptyEmoji(activeType)}
+          title={plansEmptyTitle(activeType)}
+          subtitle={plansEmptySubtitle(activeType)}
           actionLabel="Créer un plan"
           actionHref={`/plans/create${activeType !== "all" ? `?type=${activeType}` : ""}`}
+          ariaLive="polite"
         />
       ) : (
         <m.div
@@ -195,7 +218,7 @@ function PlansPageInner() {
                             whileHover={!isFull || isInterested ? { scale: 1.05 } : {}}
                             whileTap={!isFull || isInterested ? { scale: 0.92 } : {}}
                           >
-                            {isInterested ? "Inscrit \u2713" : isFull ? "Complet" : "J'y vais"}
+                            {isInterested ? "Inscrit ✓" : isFull ? "Complet" : "J'y vais"}
                           </m.button>
                         </div>
                       </div>

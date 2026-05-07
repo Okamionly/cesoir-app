@@ -328,14 +328,46 @@ export default function PassportEditor({ open, onClose }: PassportEditorProps) {
                   Désactiver
                 </button>
               )}
-              <button
+              <motion.button
                 type="button"
                 onClick={handleSave}
                 disabled={submitting || !selected}
-                className="flex-1 py-3 rounded-full text-[14px] font-semibold bg-text text-bg hover:opacity-90 transition-opacity tap-target disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none"
+                whileTap={!submitting && selected ? { scale: 0.96 } : {}}
+                className="flex-1 py-3 rounded-full text-[14px] font-semibold bg-text text-bg hover:opacity-90 transition-opacity tap-target disabled:opacity-50 disabled:cursor-not-allowed focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none relative overflow-hidden"
               >
-                {submitting ? "Enregistrement…" : "Enregistrer"}
-              </button>
+                <AnimatePresence mode="wait">
+                  {submitting ? (
+                    <motion.span
+                      key="flying"
+                      className="absolute inset-0 flex items-center justify-center gap-2"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      <motion.span
+                        aria-hidden="true"
+                        initial={{ x: -24, opacity: 0 }}
+                        animate={{ x: 24, opacity: [0, 1, 1, 0] }}
+                        transition={{ duration: 0.7, ease: "easeInOut", times: [0, 0.2, 0.8, 1] }}
+                      >
+                        ✈️
+                      </motion.span>
+                    </motion.span>
+                  ) : (
+                    <motion.span
+                      key="label"
+                      className="relative"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.15 }}
+                    >
+                      Enregistrer
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </motion.button>
             </div>
           </motion.div>
         </>

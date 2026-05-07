@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useCallback } from "react";
-import { motion, AnimatePresence, MotionValue } from "motion/react";
+import { motion, AnimatePresence, MotionValue, useTransform } from "motion/react";
 import { Profile } from "@/lib/mock-profiles";
 import { MODES } from "@/lib/modes";
 import { MODE_ICONS } from "@/components/ui/Icons";
@@ -88,6 +88,10 @@ export default function SwipeCard({
 }: SwipeCardProps) {
   const ModeIcon = MODE_ICONS[p.mode];
 
+  // Scale labels in proportion to swipe distance for tactile feedback
+  const likeScale = useTransform(likeOpacity, [0, 1], [0.7, 1]);
+  const nopeScale = useTransform(nopeOpacity, [0, 1], [0.7, 1]);
+
   // Photo list for the gallery
   const photoList = p.photos && p.photos.length > 0 ? p.photos : [p.photo];
 
@@ -134,6 +138,7 @@ export default function SwipeCard({
       drag="x"
       dragConstraints={{ left: 0, right: 0 }}
       dragElastic={0.7}
+      dragTransition={{ bounceStiffness: 600, bounceDamping: 20, power: 0.3 }}
       onDragEnd={(event, info) => { setCompatOpen(false); onDragEnd(event, info); }}
       onClick={handleCardClick}
       whileDrag={{ cursor: "grabbing" }}
@@ -177,12 +182,12 @@ export default function SwipeCard({
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent pointer-events-none z-[5]" />
 
       {/* Swipe indicators */}
-      <motion.div className="absolute top-8 left-6 z-10" style={{ opacity: likeOpacity }}>
+      <motion.div className="absolute top-8 left-6 z-10" style={{ opacity: likeOpacity, scale: likeScale }}>
         <div
           className="px-5 py-2 rounded-2xl border-2 backdrop-blur-sm -rotate-6"
           style={{
             borderColor: LIKE_COLOR,
-            backgroundColor: `${LIKE_COLOR}26`, // /15 ≈ 26 alpha hex
+            backgroundColor: `${LIKE_COLOR}26`,
           }}
         >
           <span
@@ -193,7 +198,7 @@ export default function SwipeCard({
           </span>
         </div>
       </motion.div>
-      <motion.div className="absolute top-8 right-6 z-10" style={{ opacity: nopeOpacity }}>
+      <motion.div className="absolute top-8 right-6 z-10" style={{ opacity: nopeOpacity, scale: nopeScale }}>
         <div
           className="px-5 py-2 rounded-2xl border-2 backdrop-blur-sm rotate-6"
           style={{
@@ -215,7 +220,7 @@ export default function SwipeCard({
         {onReport && (
           <button
             onClick={(e) => { e.stopPropagation(); onReport(); }}
-            className="bg-black/40 backdrop-blur-md rounded-full w-8 h-8 flex items-center justify-center text-white/70 text-[14px] tap-target"
+            className="bg-black/40 backdrop-blur-md rounded-full w-8 h-8 flex items-center justify-center text-white/70 text-[14px] tap-target focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 rounded-full"
             aria-label="Signaler ce profil"
           >
             ···
@@ -431,7 +436,7 @@ function CompatibilityBadge({ score, breakdown, open, onToggle }: CompatibilityB
         aria-label={`${score}% de compatibilité — voir le détail`}
         aria-expanded={open}
         onClick={onToggle}
-        className="relative flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 rounded-full"
+        className="relative flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 rounded-full tap-target"
         style={{ width: SIZE, height: SIZE }}
       >
         {/* SVG donut ring */}

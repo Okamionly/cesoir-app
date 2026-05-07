@@ -134,8 +134,8 @@ function ChallengesTab() {
     return (
       <EmptyState
         emoji="⚡"
-        title="Pas de defis aujourd'hui"
-        subtitle="Reviens demain a minuit pour 3 nouveaux defis quotidiens."
+        title="Pas de défis aujourd'hui"
+        subtitle="3 nouveaux défis quotidiens s'activent chaque soir à minuit. Reviens demain pour en décrocher."
       />
     );
   }
@@ -328,6 +328,36 @@ function TrustTab() {
   const ratingPts = totalReviews > 0 ? Math.round(((averageRating - 1) / 4) * 30) : 0;
   const volumePts = Math.round(Math.min(totalReviews / 20, 1) * 25);
   const karmaPts = Math.round(Math.min(xp / 5000, 1) * 20);
+
+  // First-time user: no reviews yet — show instructional state instead of a
+  // 0/100 hero that looks broken.
+  if (totalReviews === 0 && trustScore === 0) {
+    return (
+      <div className="px-5 py-12 flex flex-col items-center text-center gap-4">
+        <div className="w-16 h-16 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center text-2xl" aria-hidden="true">
+          ✨
+        </div>
+        <div>
+          <p className="text-[16px] font-bold text-text mb-1.5">Ton score de confiance se construit</p>
+          <p className="text-[13px] text-text-muted leading-relaxed max-w-[280px]">
+            Après ton premier meetup, tes matches pourront te laisser un avis. Le score démarre dès le premier retour.
+          </p>
+        </div>
+        <div className="w-full max-w-[260px] space-y-2 pt-2">
+          <BreakdownRow label="Avis reçus" value="0/30" percent={0} />
+          <BreakdownRow label="Volume d'avis" value="0/25" percent={0} />
+          <BreakdownRow label="Karma (XP)" value={`${karmaPts}/20`} percent={karmaPts / 20} />
+        </div>
+        <a
+          href="/browse"
+          className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-full text-[13px] font-semibold text-white active:scale-95 transition-transform"
+          style={{ background: "linear-gradient(135deg, #8B5CF6, #00FF88)", boxShadow: "0 0 20px rgba(139,92,246,0.25)" }}
+        >
+          Trouver des matchs
+        </a>
+      </div>
+    );
+  }
 
   return (
     <div className="px-5 py-4 space-y-4">

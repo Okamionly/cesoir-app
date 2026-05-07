@@ -837,8 +837,46 @@ export default function MapPage() {
     (filters.distanceKm !== DEFAULT_FILTERS.distanceKm ? 1 : 0);
 
   if (!mounted) return (
-    <div className="h-screen bg-bg flex items-center justify-center">
-      <span className="text-3xl text-accent animate-pulse">☾</span>
+    <div className="h-screen bg-bg flex flex-col" role="status" aria-label="Chargement de la carte">
+      {/* Header skeleton */}
+      <div className="shrink-0 h-14 px-4 flex items-center gap-3 border-b border-border">
+        <div className="animate-shimmer rounded h-5 w-16" />
+        <div className="flex-1" />
+        <div className="animate-shimmer rounded-full h-7 w-20" />
+        <div className="animate-shimmer rounded h-4 w-16" />
+      </div>
+      {/* Trust banner skeleton */}
+      <div className="shrink-0 h-8 px-4 bg-accent/5 border-b border-accent/10 flex items-center gap-2">
+        <div className="animate-shimmer rounded h-3 w-64" />
+      </div>
+      {/* Map area skeleton — grid pattern + centered label */}
+      <div className="flex-1 relative overflow-hidden" aria-hidden="true">
+        <div
+          className="absolute inset-0 animate-shimmer"
+          style={{
+            backgroundImage:
+              "linear-gradient(color-mix(in srgb, var(--color-border) 40%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--color-border) 40%, transparent) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }}
+        />
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
+          <span className="text-3xl text-accent animate-pulse">☾</span>
+          <p className="text-[12px] text-text-muted">Chargement de la carte…</p>
+        </div>
+        {/* Fake profile pin dots for shape */}
+        {[
+          { top: "30%", left: "25%" },
+          { top: "45%", left: "60%" },
+          { top: "60%", left: "40%" },
+          { top: "38%", left: "72%" },
+        ].map((pos, i) => (
+          <div
+            key={i}
+            className="absolute w-10 h-10 rounded-full animate-shimmer border-2 border-bg"
+            style={{ top: pos.top, left: pos.left }}
+          />
+        ))}
+      </div>
     </div>
   );
 

@@ -356,9 +356,20 @@ export default function QRCheckInScanner({
         <m.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-2xl bg-accent/10 border border-accent/30 px-4 py-3 text-[13px] text-text"
+          transition={{ type: "spring", stiffness: 300, damping: 22 }}
+          className="rounded-2xl bg-accent/10 border border-accent/30 px-4 py-3 text-[13px] text-text flex items-center gap-3"
         >
-          {resultMsg}
+          {/* Check circle — springs in after a brief delay */}
+          <m.span
+            aria-hidden="true"
+            className="shrink-0 w-8 h-8 rounded-full bg-accent flex items-center justify-center text-white text-[18px] font-bold"
+            initial={{ scale: 0, rotate: -30 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: "spring", stiffness: 500, damping: 18, mass: 0.6, delay: 0.15 }}
+          >
+            ✓
+          </m.span>
+          <span>{resultMsg}</span>
         </m.div>
       )}
 

@@ -194,6 +194,7 @@ export default function NearbyActivesWidget({
                           alt=""
                           width={40}
                           height={40}
+                          sizes="40px"
                           className="w-10 h-10 rounded-full object-cover border border-border group-hover:border-accent/50 transition-colors"
                           unoptimized={p.photo.includes("ui-avatars.com")}
                         />

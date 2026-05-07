@@ -63,7 +63,7 @@ export const TOUR_STEPS: TourStep[] = [
     id: "modes-tab",
     selector: '[data-tour="modes-tab"]',
     title: "Choisis ton mode pour ce soir",
-    body: "Solo Diner, Night Owl, Dog Date… 14 façons de sortir. Choisis ton mood ici.",
+    body: "Solo Diner, Night Owl, Foodie Quest… 4 façons de sortir. Choisis ton mood ici.",
     placement: "top",
     padding: 8,
     shape: "rect",

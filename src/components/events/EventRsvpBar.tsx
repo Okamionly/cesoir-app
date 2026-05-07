@@ -103,7 +103,8 @@ export default function EventRsvpBar({
                 onClick={() => handlePick("going")}
                 {...primaryInteractive}
                 disabled={saving}
-                className="flex-1 rounded-full px-4 py-2.5 text-[13px] font-semibold text-white transition-all disabled:opacity-50"
+                aria-label="Confirmer ma participation à cet événement"
+                className="flex-1 rounded-full px-4 py-2.5 text-[13px] font-semibold text-white transition-all disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
                 style={{
                   background: app.gradient,
                   boxShadow: "0 4px 18px rgba(139,92,246,0.25)",
@@ -117,8 +118,10 @@ export default function EventRsvpBar({
                 onClick={() => handlePick(isMaybe ? null : "maybe")}
                 {...primaryInteractive}
                 disabled={saving}
+                aria-pressed={isMaybe}
+                aria-label={isMaybe ? "Annuler la participation peut-être" : "Indiquer peut-être pour cet événement"}
                 className={[
-                  "rounded-full px-4 py-2.5 text-[13px] font-semibold transition-colors disabled:opacity-50",
+                  "rounded-full px-4 py-2.5 text-[13px] font-semibold transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2",
                   isMaybe
                     ? "bg-accent/15 text-accent border border-accent/40"
                     : "bg-card border border-border text-text-muted hover:text-text",

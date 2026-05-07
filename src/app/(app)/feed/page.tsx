@@ -272,10 +272,17 @@ function FeedPageInner() {
       ) : items.length === 0 ? (
         <EmptyState
           emoji="☾"
-          title="Rien à signaler pour le moment"
-          subtitle="L'activité apparaîtra ici dès que ça bouge"
-          actionLabel="Explorer les profils"
+          title="Le fil est calme ce soir"
+          subtitle={
+            filter === "tonight"
+              ? "Pas encore d'activité ce soir dans ton secteur. Change de filtre ou reviens dans un moment."
+              : filter === "friends"
+              ? "Aucun ami actif en ce moment. Invite quelqu'un ou explore les profils proches."
+              : "Personne n'a encore bougé ici. Sois le premier — active le broadcast pour apparaître."
+          }
+          actionLabel="Découvrir des profils"
           actionHref="/browse"
+          ariaLive="polite"
         />
       ) : (
         <>

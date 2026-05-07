@@ -66,9 +66,15 @@ function VibeChip({
           : undefined
       }
     >
-      <span className="text-[20px] leading-none" aria-hidden="true">
+      <motion.span
+        className="leading-none block"
+        aria-hidden="true"
+        animate={active ? { scale: [1, 1.35, 0.9, 1.1, 1] } : { scale: 1 }}
+        transition={active ? { duration: 0.45, times: [0, 0.25, 0.55, 0.75, 1] } : springs.micro as Transition}
+        style={{ fontSize: active ? "24px" : "20px" }}
+      >
         {vibe.emoji}
-      </span>
+      </motion.span>
       <span
         className={[
           "text-[10px] font-bold leading-none mt-1.5 tracking-tight",

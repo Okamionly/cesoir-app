@@ -255,7 +255,7 @@ function EventsEmptyState({
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...springs.heavy, delay: 0.1 }}
       >
-        Pas de soirées dans ta zone
+        {filtersActive ? "Aucun résultat pour ces filtres" : "Pas de soirées ce soir"}
       </m.h2>
 
       <m.p
@@ -264,28 +264,38 @@ function EventsEmptyState({
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...springs.heavy, delay: 0.2 }}
       >
-        Élargis ton rayon ou attends que de nouveaux events soient ajoutés.
+        {filtersActive
+          ? "Essaie de retirer un filtre — catégorie, date ou créneau — pour élargir les résultats."
+          : "Aucune soirée n'est encore programmée ici. Reviens ce soir ou consulte les plans flash."}
       </m.p>
 
       <m.div
+        className="flex flex-col items-center gap-3"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...springs.heavy, delay: 0.3 }}
       >
-        <button
-          type="button"
-          onClick={onClearFilters}
-          disabled={!filtersActive}
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-[14px] font-bold text-white transition-all active:scale-95 tap-target disabled:opacity-50 disabled:cursor-not-allowed"
-          style={{
-            background: app.gradient,
-            boxShadow:
-              "0 10px 30px color-mix(in srgb, var(--color-accent) 28%, transparent)",
-          }}
+        {filtersActive && (
+          <button
+            type="button"
+            onClick={onClearFilters}
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-[14px] font-bold text-white transition-all active:scale-95 tap-target"
+            style={{
+              background: app.gradient,
+              boxShadow:
+                "0 10px 30px color-mix(in srgb, var(--color-accent) 28%, transparent)",
+            }}
+          >
+            Réinitialiser les filtres
+            <span aria-hidden="true">{"→"}</span>
+          </button>
+        )}
+        <a
+          href="/plans"
+          className="text-[13px] font-semibold text-accent underline-offset-2 hover:underline tap-target py-1"
         >
-          Voir tous les events
-          <span aria-hidden="true">{"→"}</span>
-        </button>
+          Voir les plans flash ce soir
+        </a>
       </m.div>
     </div>
   );

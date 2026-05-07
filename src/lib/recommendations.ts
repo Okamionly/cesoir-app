@@ -318,7 +318,7 @@ function getRecommendedProfiles(prefs: UserPreferences): RecommendedProfile[] {
       reason = `${finalScore}% compatible`;
       reasonIcon = "\u2728"; // sparkle
     } else {
-      reason = `Profil interessant`;
+      reason = `Profil intéressant`;
       reasonIcon = "\uD83D\uDCA1"; // lightbulb
     }
 
@@ -417,7 +417,7 @@ function getRecommendedVenues(prefs: UserPreferences): RecommendedVenue[] {
     let reason = "";
     let reasonIcon = "";
     if (zoneMatch) {
-      reason = `Dans ton quartier prefere`;
+      reason = `Dans ton quartier préféré`;
       reasonIcon = "\uD83D\uDCCD";
     } else {
       reason = `Quartier ${venue.neighborhood}`;
@@ -484,7 +484,7 @@ export function getSmartNotifications(prefs: UserPreferences): SmartNotification
       id: "notif-nearby",
       type: "nearby",
       title: `${randomCount} personnes en mode ${modeName} près de toi`,
-      body: `C'est ton heure preferee pour sortir — il y a du monde ce soir !`,
+      body: `C’est ton heure préférée pour sortir — il y a du monde ce soir !`,
       icon: "\uD83D\uDCCD",
       priority: 8,
       actionLabel: "Voir",

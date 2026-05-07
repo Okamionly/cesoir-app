@@ -501,6 +501,9 @@ const VoiceMessagePlayer = forwardRef<VoiceMessagePlayerHandle, VoiceMessagePlay
               backgroundColor: isOwn ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.12)",
             }}
             role="progressbar"
+            aria-label="Progression du message vocal"
+            aria-valuemin={0}
+            aria-valuemax={100}
             aria-valuenow={Math.round(progress * 100)}
           >
             <div
@@ -559,10 +562,11 @@ const VoiceMessagePlayer = forwardRef<VoiceMessagePlayerHandle, VoiceMessagePlay
           type="button"
           onClick={togglePlay}
           disabled={!signedUrl}
-          className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-colors ${
-            isOwn ? "bg-white/20 hover:bg-white/30" : "bg-black/10 hover:bg-black/15"
+          aria-pressed={isPlaying}
+          aria-label={isPlaying ? "Pause du message vocal" : "Lire le message vocal"}
+          className={`shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-colors tap-target focus-visible:outline-none focus-visible:ring-2 ${
+            isOwn ? "bg-white/20 hover:bg-white/30 focus-visible:ring-white/60" : "bg-black/10 hover:bg-black/15 focus-visible:ring-accent"
           } ${!signedUrl ? "opacity-60" : ""}`}
-          aria-label={isPlaying ? "Pause" : "Lecture"}
         >
           {isPlaying ? (
             <Pause
@@ -630,12 +634,12 @@ const VoiceMessagePlayer = forwardRef<VoiceMessagePlayerHandle, VoiceMessagePlay
         <button
           type="button"
           onClick={cycleSpeed}
-          className={`shrink-0 px-1.5 h-6 rounded-full text-[10px] font-bold tabular-nums leading-none flex items-center justify-center transition-colors ${
-            isOwn
-              ? "bg-white/20 text-white hover:bg-white/30"
-              : "bg-black/10 text-text hover:bg-black/15"
-          }`}
           aria-label={`Vitesse de lecture, actuelle ${speed}x — toucher pour changer`}
+          className={`shrink-0 px-1.5 h-6 min-w-[44px] rounded-full text-[10px] font-bold tabular-nums leading-none flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 ${
+            isOwn
+              ? "bg-white/20 text-white hover:bg-white/30 focus-visible:ring-white/60"
+              : "bg-black/10 text-text hover:bg-black/15 focus-visible:ring-accent"
+          }`}
         >
           {speed}x
         </button>

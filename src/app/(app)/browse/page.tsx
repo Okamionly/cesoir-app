@@ -348,25 +348,27 @@ function BrowsePageInner() {
           // geolocation error the moment it surfaces (otherwise it would
           // render silently and they'd just see an empty deck).
           <div role="alert" aria-live="assertive" className="w-full h-full flex flex-col items-center justify-center text-center px-8">
-            <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mb-5">
+            <div className="w-16 h-16 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center mb-5">
               <span className="text-[28px]" aria-hidden="true">📍</span>
             </div>
-            <p className="text-[17px] font-bold mb-1 text-text">
-              Active la géolocalisation
+            <p className="text-[17px] font-bold mb-2 text-text">
+              Position introuvable
             </p>
-            <p className="text-[13px] text-text-muted mb-6 max-w-xs">
-              {geoError} — CeSoir matche les gens proches de toi ce soir, sans
-              ta position on ne peut rien te proposer.
+            <p className="text-[13px] text-text-muted mb-1 max-w-[280px] leading-relaxed">
+              CeSoir matche les gens proches de toi ce soir. Sans ta position, impossible de te proposer des profils.
+            </p>
+            <p className="text-[11px] text-text-muted/60 mb-6 max-w-[240px]">
+              Active la localisation dans les réglages de ton navigateur, puis rafraîchis.
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="gradient-bg text-white px-8 py-3 rounded-full text-[14px] font-semibold"
+              className="gradient-bg text-white px-8 py-3 rounded-full text-[14px] font-semibold shadow-[0_8px_24px_rgba(139,92,246,0.25)] active:scale-95 transition-transform"
             >
-              Réessayer
+              Activer et réessayer
             </button>
             <Link
               href="/help"
-              className="text-[12px] text-accent mt-4"
+              className="text-[12px] text-accent mt-4 py-2 tap-target"
             >
               Comment l&apos;activer sur iPhone / Android ?
             </Link>
@@ -677,14 +679,22 @@ function ActionButtons({
 
 function EmptyState({ onReset }: { onReset: () => void }) {
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center">
-      <div className="w-16 h-16 rounded-full gradient-bg flex items-center justify-center mb-5">
+    <div className="w-full h-full flex flex-col items-center justify-center text-center px-8">
+      <div className="w-16 h-16 rounded-full gradient-bg flex items-center justify-center mb-5 shadow-[0_0_28px_rgba(139,92,246,0.3)]">
         <IconStar size={24} className="text-white" />
       </div>
-      <p className="text-[17px] font-bold mb-1 text-text">C&apos;est tout pour ce soir</p>
-      <p className="text-[13px] text-text-muted mb-8">Reviens plus tard ou change de mode</p>
-      <button onClick={onReset} className="gradient-bg text-white px-8 py-3 rounded-full text-[14px] font-semibold">
-        Recommencer
+      <p className="text-[17px] font-bold mb-2 text-text">Tu as vu tous les profils</p>
+      <p className="text-[13px] text-text-muted mb-2 leading-relaxed max-w-[260px]">
+        Plus de nouveaux profils dans ta zone ce soir. Change de mode ou réinitialise le deck.
+      </p>
+      <p className="text-[11px] text-text-muted/60 mb-8">
+        Les profils se renouvellent chaque soir à minuit.
+      </p>
+      <button
+        onClick={onReset}
+        className="gradient-bg text-white px-8 py-3 rounded-full text-[14px] font-semibold shadow-[0_8px_24px_rgba(139,92,246,0.25)] active:scale-95 transition-transform"
+      >
+        Changer de mode
       </button>
     </div>
   );

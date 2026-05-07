@@ -228,6 +228,7 @@ export function MomentViewer({
                 alt={ownerName}
                 width={32}
                 height={32}
+                sizes="32px"
                 className="w-8 h-8 rounded-full object-cover"
               />
             ) : (
@@ -250,7 +251,8 @@ export function MomentViewer({
                 const ok = await onDelete(moment);
                 if (ok) onClose();
               }}
-              className="pointer-events-auto text-[11px] text-white/80 hover:text-white px-2 py-1"
+              aria-label="Supprimer ce moment"
+              className="pointer-events-auto tap-target text-[11px] text-white/80 hover:text-white px-2 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 rounded-lg"
             >
               Supprimer
             </button>
@@ -259,10 +261,10 @@ export function MomentViewer({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Fermer"
-            className="pointer-events-auto w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center"
+            aria-label="Fermer le viewer"
+            className="pointer-events-auto tap-target w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
           >
-            <X size={18} className="text-white" />
+            <X size={18} className="text-white" aria-hidden="true" />
           </button>
         </div>
 
@@ -306,13 +308,13 @@ export function MomentViewer({
           type="button"
           aria-label="Moment précédent"
           onClick={goPrev}
-          className="absolute inset-y-0 left-0 w-1/3 z-0 focus:outline-none"
+          className="absolute inset-y-0 left-0 w-1/3 z-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-inset"
         />
         <button
           type="button"
           aria-label="Moment suivant"
           onClick={goNext}
-          className="absolute inset-y-0 right-0 w-2/3 z-0 focus:outline-none"
+          className="absolute inset-y-0 right-0 w-2/3 z-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-inset"
         />
       </m.div>
     </AnimatePresence>

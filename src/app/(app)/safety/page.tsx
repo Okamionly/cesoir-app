@@ -391,12 +391,19 @@ export default function SafetyPage() {
             }}
           >
             {recentActions.length === 0 ? (
-              <div className="p-6 text-center">
-                <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
-                  Aucune action récente.
+              <div className="p-6 text-center flex flex-col items-center gap-2">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center mb-1"
+                  style={{ backgroundColor: "color-mix(in srgb, var(--color-safe) 8%, transparent)" }}
+                  aria-hidden="true"
+                >
+                  <Shield size={18} color="var(--color-safe)" strokeWidth={1.8} />
+                </div>
+                <p className="text-sm font-semibold" style={{ color: "var(--color-text)" }}>
+                  Tout est calme
                 </p>
-                <p className="text-xs mt-1" style={{ color: "var(--color-border)" }}>
-                  Tes alertes SOS et check-ins apparaîtront ici.
+                <p className="text-xs leading-relaxed max-w-[220px]" style={{ color: "var(--color-text-muted)" }}>
+                  Tes alertes SOS et check-ins apparaîtront ici. Rien à signaler pour l&apos;instant.
                 </p>
               </div>
             ) : (

@@ -280,7 +280,8 @@ export default function BottomNav({
                 onClick={handleTap}
                 data-tour={tab.dataTour}
                 aria-current={active ? "page" : undefined}
-                className={`relative flex flex-col items-center gap-[2px] tap-target justify-center transition-colors ${
+                aria-label={tab.label}
+                className={`relative flex flex-col items-center gap-[2px] tap-target justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-lg ${
                   active ? "text-accent" : "text-text-muted hover:text-text-soft"
                 }`}
               >

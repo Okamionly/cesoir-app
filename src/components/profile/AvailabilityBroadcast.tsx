@@ -290,10 +290,34 @@ export default function AvailabilityBroadcast({
         ) : (
           <motion.div
             key="active"
+            className="relative"
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.25 }}
+          >
+            {/* Radial pulse ring — propagates outward once on activation */}
+            {!reducedMotion && (
+              <>
+                <motion.span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 rounded-full"
+                  style={{ border: "2px solid var(--color-accent-2)" }}
+                  initial={{ scale: 1, opacity: 0.7 }}
+                  animate={{ scale: 2.2, opacity: 0 }}
+                  transition={{ duration: 0.7, ease: "easeOut", delay: 0.1 }}
+                />
+                <motion.span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 rounded-full"
+                  style={{ border: "2px solid var(--color-accent-2)" }}
+                  initial={{ scale: 1, opacity: 0.5 }}
+                  animate={{ scale: 3, opacity: 0 }}
+                  transition={{ duration: 1.1, ease: "easeOut", delay: 0.25 }}
+                />
+              </>
+            )}
+          <motion.div
             className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full border bg-bg-card"
             style={{
               borderColor: "var(--color-accent-2)55",
@@ -334,6 +358,7 @@ export default function AvailabilityBroadcast({
               <X size={12} strokeWidth={2} aria-hidden="true" />
               Annuler
             </button>
+          </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
