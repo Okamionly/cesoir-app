@@ -5,6 +5,7 @@ import { m, AnimatePresence } from "motion/react";
 import { springs, micro, ambient } from "@/lib/motion-design";
 import PageHeader from "@/components/ui/PageHeader";
 import { Camera, ChevronLeft, ChevronRight, Check, Info } from "@/components/ui/lucide";
+import { supabase } from "@/lib/supabase";
 
 // ─── Types ───────────────────────────────────────────
 type VerifyMethod = "selfie" | "phone" | "social" | "video";
@@ -114,6 +115,40 @@ function ProgressBar({ methods, completed }: { methods: VerifyMethod[]; complete
 function SelfieVerification({ onComplete }: { onComplete: () => void }) {
   const [step, setStep] = useState<SelfieStep>("instructions");
   const [selectedPose, setSelectedPose] = useState(0);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoCapture = useCallback(async (file: File) => {
+    setUploading(true);
+    setUploadError("");
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setUploadError("Session expirée. Reconnecte-toi.");
+        setUploading(false);
+        return;
+      }
+      const formData = new FormData();
+      formData.append("photo", file);
+      const res = await fetch("/api/profile/verify/selfie", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        body: formData,
+      });
+      if (!res.ok) {
+        const data = (await res.json()) as { error?: string };
+        setUploadError(data.error ?? "Erreur lors de l'envoi. Reessaie.");
+        setUploading(false);
+        return;
+      }
+      setStep("success");
+    } catch {
+      setUploadError("Erreur réseau. Reessaie.");
+    } finally {
+      setUploading(false);
+    }
+  }, []);
 
   return (
     <AnimatePresence mode="wait">
@@ -216,12 +251,28 @@ function SelfieVerification({ onComplete }: { onComplete: () => void }) {
             </m.div>
           </m.div>
 
+          {/* Hidden file input — triggers camera on mobile or file picker on desktop */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            capture="user"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) void handlePhotoCapture(file);
+            }}
+          />
+          {uploadError && (
+            <p className="text-[12px] text-danger text-center mb-3">{uploadError}</p>
+          )}
           <m.button
-            onClick={() => setStep("success")}
-            className="w-full gradient-bg text-white py-3.5 rounded-full text-[14px] font-semibold shadow-glow tap-target"
-            whileTap={micro.tapScale}
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="w-full gradient-bg text-white py-3.5 rounded-full text-[14px] font-semibold shadow-glow tap-target disabled:opacity-60"
+            whileTap={!uploading ? micro.tapScale : undefined}
           >
-            Prendre la photo
+            {uploading ? "Envoi en cours..." : "Prendre la photo"}
           </m.button>
           <button
             onClick={() => setStep("instructions")}
@@ -563,6 +614,41 @@ function PhoneVerification({ onComplete }: { onComplete: () => void }) {
 function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
   const [step, setStep] = useState<VideoStep>("instructions");
   const [promptIndex, setPromptIndex] = useState(0);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const videoFileRef = useRef<File | null>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+
+  const submitVideoToApi = useCallback(async (file: File) => {
+    setUploading(true);
+    setUploadError("");
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        setUploadError("Session expirée. Reconnecte-toi.");
+        setUploading(false);
+        return false;
+      }
+      const formData = new FormData();
+      formData.append("video", file);
+      const res = await fetch("/api/profile/verify/video", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}` },
+        body: formData,
+      });
+      if (!res.ok) {
+        const data = (await res.json()) as { error?: string };
+        setUploadError(data.error ?? "Erreur lors de l'envoi. Reessaie.");
+        setUploading(false);
+        return false;
+      }
+      return true;
+    } catch {
+      setUploadError("Erreur réseau. Reessaie.");
+      setUploading(false);
+      return false;
+    }
+  }, []);
 
   useEffect(() => {
     if (step === "smile" || step === "turn") {
@@ -578,13 +664,43 @@ function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
       return () => clearTimeout(timer);
     }
     if (step === "verifying") {
-      const timer = setTimeout(() => setStep("success"), 2000);
-      return () => clearTimeout(timer);
+      // If we captured a video file, submit it; otherwise go to success anyway
+      // (mobile may not support MediaRecorder — the prompts UX still works).
+      const file = videoFileRef.current;
+      const proceed = async () => {
+        if (file) {
+          const ok = await submitVideoToApi(file);
+          if (!ok) {
+            // Revert to instructions so user can retry
+            setStep("instructions");
+            return;
+          }
+        }
+        // Delay so "verifying" spinner is visible before success
+        setTimeout(() => setStep("success"), 1500);
+      };
+      void proceed();
     }
-  }, [step]);
+  }, [step, submitVideoToApi]);
 
   return (
     <AnimatePresence mode="wait">
+      {/* Hidden video file input for upload fallback */}
+      <input
+        ref={videoInputRef}
+        type="file"
+        accept="video/mp4,video/quicktime,video/webm"
+        capture="user"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) {
+            videoFileRef.current = file;
+            setStep("smile");
+          }
+        }}
+      />
+
       {step === "instructions" && (
         <m.div
           key="video-instructions"
@@ -618,12 +734,16 @@ function VideoLivenessVerification({ onComplete }: { onComplete: () => void }) {
             </p>
           </div>
 
+          {uploadError && (
+            <p className="text-[12px] text-danger text-center mb-3">{uploadError}</p>
+          )}
           <m.button
-            onClick={() => setStep("smile")}
-            className="w-full gradient-bg text-white py-3.5 rounded-full text-[14px] font-semibold shadow-glow tap-target"
-            whileTap={micro.tapScale}
+            onClick={() => videoInputRef.current?.click()}
+            disabled={uploading}
+            className="w-full gradient-bg text-white py-3.5 rounded-full text-[14px] font-semibold shadow-glow tap-target disabled:opacity-60"
+            whileTap={!uploading ? micro.tapScale : undefined}
           >
-            Lancer la vérification vidéo
+            {uploading ? "Envoi en cours..." : "Lancer la vérification vidéo"}
           </m.button>
         </m.div>
       )}

@@ -56,6 +56,10 @@ export type {
 type ClientDB = any;
 
 let _client: SupabaseClient<ClientDB> | null = null;
+// Module-level guard: emit the env-trimmed warning only once per boot, not on
+// every component mount that triggers getClient(). Without this guard the
+// warning spams the console proportionally to the number of React renders.
+let _envTrimmedWarned = false;
 
 /**
  * Builds a Supabase client appropriate for the current runtime.
@@ -97,13 +101,16 @@ function getClient(): SupabaseClient<ClientDB> {
     typeof window !== "undefined" &&
     (rawUrl !== url || rawKey !== key)
   ) {
-    // One-time runtime breadcrumb so the bug is easy to spot in Sentry if it
-    // surfaces again on a different env. Logs only on the client to avoid
-    // SSR log noise on every request.
-    logger.warn(
-      "supabase_env_trimmed",
-      { hint: "Fix the source value in Vercel/Local env to remove this workaround." },
-    );
+    // One-time boot warning — guard prevents spam on every component mount.
+    // The issue is a trailing whitespace/newline in the Vercel env var.
+    // Fix the source value in Vercel/Local env to silence this permanently.
+    if (!_envTrimmedWarned) {
+      _envTrimmedWarned = true;
+      logger.warn(
+        "supabase_env_trimmed",
+        { hint: "Fix the source value in Vercel/Local env to remove this workaround." },
+      );
+    }
   }
 
   if (typeof window !== "undefined") {
