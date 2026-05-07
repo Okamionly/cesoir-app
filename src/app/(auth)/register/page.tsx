@@ -106,13 +106,14 @@ function RegisterPageInner() {
   const [showPassword, setShowPassword] = useState(false);
   const [gender, setGender] = useState("");
   const [lookingFor, setLookingFor] = useState("");
+  const [consentLookingFor, setConsentLookingFor] = useState(false);
   const [bio, setBio] = useState("");
   const [error, setError] = useState("");
   const [tempUserId, setTempUserId] = useState<string | null>(null);
   const [photoUploaded, setPhotoUploaded] = useState(false);
 
   const stepOneInvalid =
-    !gender || !lookingFor || !name || !email || !password || !age;
+    !gender || !name || !email || !password || !age;
 
   // If an invite code is passed in the URL (e.g. from /invite/[code]),
   // auto-verify it and skip the gate. Falls through to step 0 on failure.
@@ -469,13 +470,33 @@ function RegisterPageInner() {
                   value={gender}
                   onChange={setGender}
                 />
-                <FormChoice
-                  legend="Je cherche"
-                  variant="dark"
-                  options={LOOKING_FOR}
-                  value={lookingFor}
-                  onChange={setLookingFor}
-                />
+                {/* RGPD Art.9: explicit consent before collecting orientation */}
+                <div>
+                  <div className="mb-2 flex items-start gap-2">
+                    <input
+                      type="checkbox"
+                      id="consent-looking-for"
+                      checked={consentLookingFor}
+                      onChange={(e) => {
+                        setConsentLookingFor(e.target.checked);
+                        if (!e.target.checked) setLookingFor("");
+                      }}
+                      className="mt-0.5 h-4 w-4 rounded cursor-pointer shrink-0"
+                    />
+                    <label htmlFor="consent-looking-for" className="text-[11px] text-white/60 leading-relaxed cursor-pointer">
+                      Je consens a renseigner mes préférences (donnée sensible art.&nbsp;9 RGPD — facultatif)
+                    </label>
+                  </div>
+                  {consentLookingFor && (
+                    <FormChoice
+                      legend="Je cherche"
+                      variant="dark"
+                      options={LOOKING_FOR}
+                      value={lookingFor}
+                      onChange={setLookingFor}
+                    />
+                  )}
+                </div>
                 <FormSubmit
                   type="button"
                   onClick={handleCreateAccount}
