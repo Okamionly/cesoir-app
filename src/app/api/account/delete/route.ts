@@ -308,24 +308,45 @@ export async function POST(request: Request) {
       });
     }
 
-    // ─── Delete avatar files (irreversible but small risk if profile
-    //     delete fails — orphan files, easier to clean than orphan rows) ─
-    let avatarsDeleted = 0;
-    const { data: files } = await userClient.storage
-      .from("avatars")
-      .list(userId);
-    if (files && files.length > 0) {
-      const paths = files.map((f) => `${userId}/${f.name}`);
-      const { data: removed, error: rmError } = await userClient.storage
-        .from("avatars")
-        .remove(paths);
-      if (rmError) {
-        logger.error("api_account_delete_avatar_remove_failed", {
-          err: rmError.message,
+    // ─── Delete storage files for all user buckets (RGPD Art.17).
+    //     Cascade SQL deletes rows but not Storage objects — orphan files
+    //     remain billable and contain PII (face photos, voice clips, moments).
+    //     Each bucket is best-effort: failure logs but never aborts deletion.
+    const storageBuckets: Array<{ bucket: string; label: string }> = [
+      { bucket: "avatars", label: "avatars" },
+      { bucket: "voice-messages", label: "voice_messages" },
+      { bucket: "moments", label: "moments" },
+    ];
+    const storageResults: Record<string, number> = {};
+
+    for (const { bucket, label } of storageBuckets) {
+      let deleted = 0;
+      try {
+        const { data: files } = await userClient.storage
+          .from(bucket)
+          .list(userId);
+        if (files && files.length > 0) {
+          const paths = files.map((f) => `${userId}/${f.name}`);
+          const { data: removed, error: rmError } = await userClient.storage
+            .from(bucket)
+            .remove(paths);
+          if (rmError) {
+            logger.error(`api_account_delete_${label}_remove_failed`, {
+              err: rmError.message,
+            });
+          } else {
+            deleted = removed?.length ?? 0;
+          }
+        }
+      } catch (e) {
+        logger.error(`api_account_delete_${label}_remove_unexpected`, {
+          err: String(e),
         });
       }
-      avatarsDeleted = removed?.length ?? 0;
+      storageResults[label] = deleted;
     }
+
+    const avatarsDeleted = storageResults["avatars"] ?? 0;
 
     // ─── Delete profile row, verify it actually deleted (RLS could silently
     //     drop the operation if policy mismatched). ──────────────────────
@@ -388,6 +409,7 @@ export async function POST(request: Request) {
       details: {
         profileDeleted: true,
         avatarsDeleted,
+        storageDeleted: storageResults,
         authDeleted,
         orphanWarning,
         cascade: cascadeSummary,
