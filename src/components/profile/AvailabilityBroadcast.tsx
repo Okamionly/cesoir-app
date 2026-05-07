@@ -17,11 +17,12 @@
  *   - Re-renders the countdown every 30s while active, and auto-flips
  *     back to IDLE the second `broadcast_until` slips into the past.
  */
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useId, useMemo, useState, useCallback } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import { Sparkles, X } from "@/components/ui/lucide";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
+import { namespacedChannelName } from "@/lib/hooks/useSupabaseQuery";
 import { useToast } from "@/components/ui/Toast";
 import { logger } from "@/lib/logger";
 
@@ -115,11 +116,15 @@ export default function AvailabilityBroadcast({
     };
   }, [user]);
 
+  // 2026-05-07 (code review M1): per-instance nonce to prevent collision
+  // between two tabs of the same user (supabase-js channel cache pitfall).
+  const broadcastNonce = useId();
+
   // ── Realtime: react to broadcast_until changes from any device ──
   useEffect(() => {
     if (!user) return;
     const channel = supabase
-      .channel(`profile_broadcast_${user.id}`)
+      .channel(namespacedChannelName("profile_broadcast", user.id, broadcastNonce))
       .on(
         "postgres_changes",
         {
@@ -136,7 +141,7 @@ export default function AvailabilityBroadcast({
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, broadcastNonce]);
 
   // ── Tick every 30s while active so the countdown updates + auto-clears ──
   const remainingMs = useMemo(

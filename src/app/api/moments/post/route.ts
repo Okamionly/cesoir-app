@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireUser, AuthError } from "@/lib/api/auth";
+import { checkRateLimitByAction, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 import {
   MOMENT_MAX_BYTES,
@@ -8,6 +9,33 @@ import {
   buildMomentPath,
   momentExtFromMime,
 } from "@/lib/storage";
+
+/**
+ * 2026-05-07 (code review C2): MIME magic-byte verification.
+ *
+ * `photo.type` is the browser-declared MIME, easily spoofed by a malicious
+ * client. We additionally inspect the first 12 bytes of the upload to verify
+ * it actually starts with one of our allowed image signatures. Rejecting at
+ * the API layer prevents storing executables / videos / random bytes labelled
+ * as `image/webp`.
+ */
+async function verifyImageMagicBytes(blob: Blob): Promise<boolean> {
+  const head = new Uint8Array(await blob.slice(0, 12).arrayBuffer());
+  if (head.length < 8) return false;
+  // JPEG: FF D8 FF
+  if (head[0] === 0xff && head[1] === 0xd8 && head[2] === 0xff) return true;
+  // PNG: 89 50 4E 47 0D 0A 1A 0A
+  if (
+    head[0] === 0x89 && head[1] === 0x50 && head[2] === 0x4e && head[3] === 0x47 &&
+    head[4] === 0x0d && head[5] === 0x0a && head[6] === 0x1a && head[7] === 0x0a
+  ) return true;
+  // WebP: "RIFF" .... "WEBP" — bytes 0-3 = 52 49 46 46, bytes 8-11 = 57 45 42 50
+  if (
+    head[0] === 0x52 && head[1] === 0x49 && head[2] === 0x46 && head[3] === 0x46 &&
+    head[8] === 0x57 && head[9] === 0x45 && head[10] === 0x42 && head[11] === 0x50
+  ) return true;
+  return false;
+}
 
 /**
  * POST /api/moments/post — publish a 24h moment.
@@ -71,6 +99,16 @@ export async function POST(request: Request) {
   const { user, supabase: db } = ctx;
   const userId = user.id;
 
+  // ─── Rate limit ────────────────────────────────────────────────────
+  // 2026-05-07 (code review C2): 4MB upload endpoint with no throttle is
+  // a storage-flood vector. "strict" preset = 1 req / hour (limiteur
+  // existant) — adjust to "api" if too aggressive in real usage.
+  const rl = await checkRateLimitByAction(
+    `moments-post:${userId}:${getClientIp(request)}`,
+    "api",
+  );
+  if (!rl.ok) return rateLimitResponse(rl);
+
   // ─── Parse multipart ───────────────────────────────────────────────
   let form: FormData;
   try {
@@ -111,13 +149,21 @@ export async function POST(request: Request) {
     );
   }
 
-  // MIME check — browsers occasionally lie (especially iOS), but we
-  // still reject the obvious wrong types. The bucket's
-  // allowed_mime_types is the real backstop.
+  // MIME check — header AND magic-byte. Browsers occasionally lie
+  // (especially iOS) and a malicious client controls `photo.type`
+  // entirely. Magic-byte gives us defence in depth.
+  // (Code review C2, 2026-05-07.)
   const mime = photo.type;
   if (mime && !ALLOWED_MIME.has(mime)) {
     return NextResponse.json(
       { error: "unsupported_mime", message: `Type ${mime} non supporté` },
+      { status: 415 },
+    );
+  }
+  if (!(await verifyImageMagicBytes(photo))) {
+    logger.warn("api_moments_post_magic_byte_rejection", { userId, mime });
+    return NextResponse.json(
+      { error: "unsupported_mime", message: "Format image non reconnu" },
       { status: 415 },
     );
   }
@@ -156,12 +202,15 @@ export async function POST(request: Request) {
     });
 
   if (uploadError) {
+    // 2026-05-07 (code review H1): keep the Supabase error.message in
+    // server logs, but DON'T echo it to the client — leaks bucket
+    // policies / table names / RLS hints to attackers.
     logger.error("api_moments_post_upload_failed", {
       err: uploadError.message,
       userId,
     });
     return NextResponse.json(
-      { error: "upload_failed", message: uploadError.message },
+      { error: "upload_failed", message: "Erreur serveur" },
       { status: 500 },
     );
   }
@@ -185,6 +234,8 @@ export async function POST(request: Request) {
     .single<InsertedMomentRow>();
 
   if (insertError || !row) {
+    // 2026-05-07 (code review H1): same as above — never echo the
+    // Postgres / RLS error string to the client.
     logger.error("api_moments_post_insert_failed", {
       err: insertError?.message ?? "no_row",
       userId,
@@ -192,10 +243,7 @@ export async function POST(request: Request) {
     // Best-effort rollback of the storage upload — don't block on it.
     void db.storage.from("moments").remove([path]).catch(() => {});
     return NextResponse.json(
-      {
-        error: "insert_failed",
-        message: insertError?.message ?? "Insert returned no row",
-      },
+      { error: "insert_failed", message: "Erreur serveur" },
       { status: 500 },
     );
   }

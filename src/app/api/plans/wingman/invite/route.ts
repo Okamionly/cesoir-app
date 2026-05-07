@@ -21,16 +21,19 @@
  * fabricate a row for another inviter_id. The server-side membership +
  * tie checks add the policy decisions RLS can't express.
  */
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireUser, AuthError } from "@/lib/api/auth";
 import { apiError, apiOk } from "@/lib/api/response";
 import { sendPushToUser } from "@/lib/push/sendPush";
+import { checkRateLimitByAction, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const PG_UNIQUE_VIOLATION = "23505";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Db = any;
+// 2026-05-07 (code review H2): typed as SupabaseClient<any> instead of
+// bare `any` so .from().select() builder typing is recovered.
+type Db = SupabaseClient;
 
 interface InviteBody {
   planId: string;
@@ -106,6 +109,16 @@ export async function POST(request: Request) {
   }
   const { user, supabase: db } = ctx;
   const callerId = user.id;
+
+  // 1.5) Rate limit — wingman invite triggers a push to the invitee +
+  // creates an `wingman_invites` row. Without throttling, an attacker
+  // can spam invites to enumerate valid plan/user UUIDs.
+  // (Code review C1, 2026-05-07.)
+  const rl = await checkRateLimitByAction(
+    `wingman-invite:${callerId}:${getClientIp(request)}`,
+    "api",
+  );
+  if (!rl.ok) return rateLimitResponse(rl);
 
   // 2) Body parse -----------------------------------------------------
   let raw: unknown;

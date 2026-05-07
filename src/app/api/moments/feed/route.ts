@@ -86,7 +86,8 @@ export async function GET(request: Request) {
       userId,
     });
     return NextResponse.json(
-      { error: "feed_failed", message: convoError.message },
+      // 2026-05-07 (code review H1): never echo Supabase error string to client.
+      { error: "feed_failed", message: "Erreur serveur" },
       { status: 500 },
     );
   }
@@ -119,7 +120,7 @@ export async function GET(request: Request) {
       userId,
     });
     return NextResponse.json(
-      { error: "feed_failed", message: momentsError.message },
+      { error: "feed_failed", message: "Erreur serveur" },
       { status: 500 },
     );
   }

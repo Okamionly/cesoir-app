@@ -37,10 +37,12 @@
  * auth.uid().
  */
 import { NextResponse } from "next/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { requireUser, AuthError } from "@/lib/api/auth";
 import { apiError, apiOk } from "@/lib/api/response";
 import { sendPushToUser } from "@/lib/push/sendPush";
+import { checkRateLimitByAction, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 
 // --- Constants ----------------------------------------------------------
@@ -93,8 +95,9 @@ interface PlanLookup {
  * may have multiple historic plans.
  */
 async function findMostRecentPlan(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  db: any,
+  // 2026-05-07 (code review H2): typed as SupabaseClient<any> instead of
+  // bare `any` so we recover .from().select() builder typing inside.
+  db: SupabaseClient,
   userA: string,
   userB: string,
 ): Promise<PlanLookup | null> {
@@ -167,6 +170,16 @@ export async function POST(request: Request) {
   }
   const { user, supabase: db } = ctx;
   const callerId = user.id;
+
+  // 1.5) Rate limit — karma-awarding endpoint, prevent enumeration of
+  // valid conversationIds + spam confirm attempts. The DB unique
+  // constraint blocks duplicates but not brute-force enumeration.
+  // (Code review C1, 2026-05-07.)
+  const rl = await checkRateLimitByAction(
+    `confirm-irl:${callerId}:${getClientIp(request)}`,
+    "api",
+  );
+  if (!rl.ok) return rateLimitResponse(rl);
 
   // 2) Body parse -----------------------------------------------------
   let body: unknown;

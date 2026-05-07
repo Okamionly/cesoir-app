@@ -17,6 +17,7 @@
  */
 
 import { use, useCallback, useState } from "react";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
@@ -26,7 +27,16 @@ import EmptyState from "@/components/ui/EmptyState";
 import { SkeletonEventDetail } from "@/components/ui/skeletons";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import EventLineup from "@/components/events/EventLineup";
-import EventVenueMap from "@/components/events/EventVenueMap";
+// 2026-05-07 (perf C1 — round 3): EventVenueMap statically imported
+// `maplibre-gl` (~250 KB gzip) into the events/[id] page chunk on every
+// visit, even when the user never scrolled to the venue map (it's below
+// the fold, after lineup + RSVP bar). Switch to dynamic import with
+// ssr:false so MapLibre + its CSS only land when the component actually
+// renders. The /map page already uses this pattern correctly.
+const EventVenueMap = dynamic(
+  () => import("@/components/events/EventVenueMap"),
+  { ssr: false },
+);
 import EventRsvpBar from "@/components/events/EventRsvpBar";
 import { useEvent } from "@/lib/useEvents";
 import { EVENT_CATEGORY_LABELS } from "@/lib/events-types";

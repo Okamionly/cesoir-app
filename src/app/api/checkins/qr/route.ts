@@ -37,6 +37,7 @@ import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { requireUser, AuthError } from "@/lib/api/auth";
 import { apiError, apiOk } from "@/lib/api/response";
 import { sendPushToUser } from "@/lib/push/sendPush";
+import { checkRateLimitByAction, getClientIp, rateLimitResponse } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
 
 // --- Constants ----------------------------------------------------------
@@ -88,6 +89,14 @@ export async function POST(request: Request) {
   }
   const { user, supabase: db } = ctx;
   const callerId = user.id;
+
+  // 1.5) Rate limit — karma-awarding endpoint, prevent QR-token brute
+  // forcing + scan farming. (Code review C1, 2026-05-07.)
+  const rl = await checkRateLimitByAction(
+    `qr-checkin:${callerId}:${getClientIp(request)}`,
+    "api",
+  );
+  if (!rl.ok) return rateLimitResponse(rl);
 
   // 2) Body parse + shape validation ----------------------------------
   let body: unknown;

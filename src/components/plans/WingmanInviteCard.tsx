@@ -13,11 +13,12 @@
  * exists for the caller.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
+import { namespacedChannelName } from "@/lib/hooks/useSupabaseQuery";
 import { useToast } from "@/components/ui/Toast";
 import { Loader2, UserPlus, X } from "@/components/ui/lucide";
 import { logger } from "@/lib/logger";
@@ -142,6 +143,12 @@ export function WingmanInviteCard() {
     }
   }, [user]);
 
+  // 2026-05-07 (code review H4): per-instance nonce so two tabs of the
+  // same user don't collide on the same channel name (supabase-js
+  // returns the cached instance, second .subscribe() either silently
+  // fails or kicks the first off — same crash class as PR #43).
+  const channelNonce = useId();
+
   useEffect(() => {
     void load();
     if (!user) return;
@@ -149,7 +156,7 @@ export function WingmanInviteCard() {
     // Realtime: any change to wingman_invites for this user triggers a
     // re-fetch. Cheap because the list is small.
     const channel = supabase
-      .channel(`wingman-invites-${user.id}`)
+      .channel(namespacedChannelName("wingman-invites", user.id, channelNonce))
       .on(
         "postgres_changes",
         {
@@ -167,7 +174,7 @@ export function WingmanInviteCard() {
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [user, load]);
+  }, [user, load, channelNonce]);
 
   const respond = useCallback(
     async (inviteId: string, accept: boolean) => {
