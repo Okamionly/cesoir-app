@@ -114,8 +114,9 @@ export function LocationCard({ lat, lng, isOwn, time, distance = "1.2 km" }: Loc
             </div>
           </div>
           {/* Coordinates */}
+          {/* toFixed(2) = ~1km precision. SEC-002: never expose <1km coords in chat UI */}
           <span className="absolute bottom-1 right-2 text-[9px] text-text-muted bg-white/80 rounded px-1">
-            {lat.toFixed(4)}, {lng.toFixed(4)}
+            {lat.toFixed(2)}, {lng.toFixed(2)}
           </span>
         </div>
 
