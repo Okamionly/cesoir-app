@@ -7,7 +7,19 @@ import { m, AnimatePresence } from "motion/react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { trackAcquisition, track, identifyUser, captureFirstVisit, trackFirstTime } from "@/lib/analytics";
-import PhotoUpload from "@/components/app/PhotoUpload";
+import dynamic from "next/dynamic";
+
+// FIX H (perf-ml-001): PhotoUpload pulls in nsfwjs + @tensorflow/tfjs (~3 MB)
+// via @/lib/nsfw. Lazy-load so those chunks are fetched only when the user
+// reaches the photo step in the registration flow.
+const PhotoUpload = dynamic(() => import("@/components/app/PhotoUpload"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center w-full h-32 rounded-2xl bg-bg-card border border-border">
+      <span className="text-[12px] text-text-muted">Chargement...</span>
+    </div>
+  ),
+});
 import { landing } from "@/lib/design-tokens";
 import { springs, easings } from "@/lib/motion-design";
 import { Eye, EyeOff, Loader2 } from "@/components/ui/lucide";
