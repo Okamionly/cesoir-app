@@ -132,7 +132,8 @@ export default function TopNav({
           className="flex items-center gap-2 mr-auto tap-target focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none rounded-lg"
           aria-label="CeSoir — Accueil"
         >
-          <span className="text-accent text-lg" aria-hidden="true">☾</span>
+          {/* data-logo-moon: SOSButton triple-tap target — do not remove */}
+          <span className="text-accent text-lg" aria-hidden="true" data-logo-moon>☾</span>
           <span className="text-[15px] font-bold tracking-tight text-text">CeSoir</span>
         </Link>
 
