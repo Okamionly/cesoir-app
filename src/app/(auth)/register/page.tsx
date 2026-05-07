@@ -94,13 +94,17 @@ function RegisterPageInner() {
   const [showPassword, setShowPassword] = useState(false);
   const [gender, setGender] = useState("");
   const [lookingFor, setLookingFor] = useState("");
+  // RGPD Art.9: explicit consent required before collecting orientation preference.
+  const [consentLookingFor, setConsentLookingFor] = useState(false);
   const [bio, setBio] = useState("");
   const [error, setError] = useState("");
   const [tempUserId, setTempUserId] = useState<string | null>(null);
   const [photoUploaded, setPhotoUploaded] = useState(false);
 
+  // lookingFor is now optional — requires explicit consent checkbox.
+  // Default "u" (unspecified) is used when consent is not given.
   const stepOneInvalid =
-    !gender || !lookingFor || !name || !email || !password || !age;
+    !gender || !name || !email || !password || !age;
 
   // If an invite code is passed in the URL (e.g. from /invite/[code]),
   // auto-verify it and skip the gate. Falls through to step 0 on failure.
@@ -163,11 +167,12 @@ function RegisterPageInner() {
     // navigation). Idempotent — no-op after the first capture.
     captureFirstVisit();
 
+    // RGPD Art.9: only send looking_for if user explicitly consented.
     const user = await signUp(email, password, {
       name,
       age: parseInt(age),
       gender,
-      looking_for: lookingFor,
+      looking_for: consentLookingFor && lookingFor ? lookingFor : "u",
     });
 
     if (!user) {
@@ -455,13 +460,39 @@ function RegisterPageInner() {
                   value={gender}
                   onChange={setGender}
                 />
-                <FormChoice
-                  legend="Je cherche"
-                  variant="dark"
-                  options={LOOKING_FOR}
-                  value={lookingFor}
-                  onChange={setLookingFor}
-                />
+                {/* RGPD Art.9 — orientation is sensitive data. Explicit consent required. */}
+                <div>
+                  <div className="mb-3 flex items-start gap-2">
+                    <input
+                      type="checkbox"
+                      id="consent-looking-for"
+                      checked={consentLookingFor}
+                      onChange={(e) => {
+                        setConsentLookingFor(e.target.checked);
+                        if (!e.target.checked) setLookingFor("");
+                      }}
+                      className="mt-0.5 h-4 w-4 rounded cursor-pointer shrink-0"
+                      style={{ accentColor: landing.violet }}
+                    />
+                    <label
+                      htmlFor="consent-looking-for"
+                      className="text-[11px] text-white/60 leading-relaxed cursor-pointer"
+                    >
+                      Je consens a renseigner mes préférences de rencontre (donnée
+                      sensible au sens de l&apos;art.&nbsp;9 RGPD). Ce champ est
+                      facultatif et n&apos;affecte pas l&apos;accès a l&apos;app.
+                    </label>
+                  </div>
+                  {consentLookingFor && (
+                    <FormChoice
+                      legend="Je cherche"
+                      variant="dark"
+                      options={LOOKING_FOR}
+                      value={lookingFor}
+                      onChange={setLookingFor}
+                    />
+                  )}
+                </div>
                 <FormSubmit
                   type="button"
                   onClick={handleCreateAccount}
