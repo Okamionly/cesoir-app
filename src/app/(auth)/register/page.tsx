@@ -163,11 +163,13 @@ function RegisterPageInner() {
     // navigation). Idempotent — no-op after the first capture.
     captureFirstVisit();
 
+    // RGPD Art.9: only send looking_for if user explicitly consented.
+    // Default "u" (unspecified) has no impact on matching (filter is opt-in).
     const user = await signUp(email, password, {
       name,
       age: parseInt(age),
       gender,
-      looking_for: lookingFor,
+      looking_for: consentLookingFor && lookingFor ? lookingFor : "u",
     });
 
     if (!user) {

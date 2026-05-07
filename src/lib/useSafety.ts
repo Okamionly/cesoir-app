@@ -451,6 +451,10 @@ export function useSafety(): UseSafetyResult {
         });
         if (error) throw error;
 
+        // Auto-block on report (idempotent — upsert handles already-blocked).
+        // ReportSheet UI promises "Ce profil sera aussi bloqué automatiquement".
+        await blockUser(reportedUserId, `auto-block:report:${reason}`);
+
         addAction(setRecentActions, "report", `Profil signale: ${reason}`);
         return true;
       } catch (err) {
