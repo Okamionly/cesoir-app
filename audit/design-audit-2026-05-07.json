@@ -1,0 +1,242 @@
+{
+  "role": "design-specialist",
+  "saas_name": "CeSoir",
+  "audit_date": "2026-05-07",
+  "design_system_status": "partial",
+
+  "design_tokens": {
+    "colors": [
+      "--color-bg: #FFFFFF",
+      "--color-bg-card: #F8F8F8",
+      "--color-bg-dark: #111111",
+      "--color-border: #EBEBEB",
+      "--color-text: #111111",
+      "--color-text-muted: #696969 (WCAG AA 4.54:1 sur blanc)",
+      "--color-accent: #8B5CF6",
+      "--color-accent-2: #00FF88",
+      "--color-safe: #22c55e",
+      "--color-danger: #ef4444",
+      "--color-warn: #f59e0b",
+      "--color-trust-verified: #00FF88",
+      "--color-trust-pending: #F59E0B",
+      "--color-trust-flagged: #EF4444"
+    ],
+    "spacing": ["4px baseline grid via Tailwind (gap-1=4, gap-2=8, gap-4=16, gap-6=24, gap-8=32)"],
+    "typography": [
+      "--font-sans: Outfit",
+      "--font-display: Space Grotesk",
+      "scale: 10px/11px/12px/14px/16px/20px/22px/24px/32px/48px"
+    ],
+    "radii": [
+      "--radius-sm: 6px",
+      "--radius-md: 12px",
+      "--radius-lg: 16px",
+      "--radius-xl: 20px",
+      "--radius-2xl: 24px",
+      "--radius-3xl: 28px (SwipeCard)",
+      "--radius-full: 9999px"
+    ],
+    "shadows": [
+      "shadow-glow: 0 0 30px rgba(139,92,246,0.2)",
+      "Button primary: 0 6px 20px rgba(139,92,246,0.35)",
+      "AppShell desktop: 0 40px 80px -20px rgba(17,17,17,0.25)"
+    ]
+  },
+
+  "scores": {
+    "visual_consistency": 7,
+    "design_system_maturity": 7,
+    "dark_mode_parity": 8,
+    "accessibility": 8,
+    "motion_quality": 9,
+    "mobile_responsiveness": 8,
+    "brand_identity": 9
+  },
+  "overall_score": 8.0,
+
+  "findings": [
+    {
+      "severity": "critical",
+      "area": "palette — pages crystal + manifesto",
+      "observation": "crystal/page.tsx utilise bg-gradient-to-b from-[#1E1B4B] via-black to-black pour l'empty state. manifesto/page.tsx injecte accent: #EC4899 (pink Hinge) sur la section 02. Deux îlots complètement hors-palette qui trahissent la marque.",
+      "recommendation": "crystal empty state: remplacer par bg-bg-dark (#111) + radial-gradient accent/10 centré. manifesto section 02: passer l'accent à #00FF88 (isolement → solution = vert fluo cohérent).",
+      "priority": 1
+    },
+    {
+      "severity": "critical",
+      "area": "palette — progress/page.tsx leaderboard",
+      "observation": "Rang #2 utilise text-zinc-300 (Tailwind zinc, hors-charte). Cohérence brisée dans le seul composant gamification visible.",
+      "recommendation": "Remplacer text-zinc-300 par text-text-muted ou une valeur hex directe #C0C0C0 nommée --color-silver dans les tokens.",
+      "priority": 1
+    },
+    {
+      "severity": "important",
+      "area": "PageHeader — palette neutral",
+      "observation": "PageHeader.tsx (ligne ~250, ~390, ~402) utilise text-neutral-200, text-neutral-500, text-neutral-900 dans le tone='white'. Ce composant est monté sur toutes les pages — la contamination est structurelle.",
+      "recommendation": "Remplacer text-neutral-* par les tokens CeSoir : text-text, text-text-muted, text-text-inv selon le contexte. Ajouter un lint rule no-restricted-classes pour neutral/slate/zinc/gray.",
+      "priority": 1
+    },
+    {
+      "severity": "important",
+      "area": "admin/finance — neutral palette",
+      "observation": "admin/finance/page.tsx et components/admin/RunwayCalculator.tsx saturés de text-neutral-* / bg-neutral-*. L'admin n'est pas public mais c'est un vecteur de dette qui peut contaminer si des snippets sont réutilisés.",
+      "recommendation": "Migrer vers tokens CeSoir ou marquer explicitement /* admin-only, palette exception */ dans chaque classe.",
+      "priority": 2
+    },
+    {
+      "severity": "important",
+      "area": "border-radius — outliers arbitraires",
+      "observation": "rounded-[28px] (PhotoGallery), rounded-[13px] (ProfileShareCard), rounded-[14px] (ProfileShareCard x2), rounded-[4px] (VoiceIntroRecorder). Cinq valeurs px non-issues du token set.",
+      "recommendation": "Map : 28px → radius-3xl, 14px → radius-lg, 13px → radius-lg, 4px → radius-sm. Landing PhoneVideo (44px/50px) est intentionnelle (bezzel réalisme) — commenter /* phone-bezel intentional */.",
+      "priority": 2
+    },
+    {
+      "severity": "important",
+      "area": "empty states — copy chaleur",
+      "observation": "'Position introuvable' (/browse geo-denied) est un message d'erreur technique, pas une empty state chaleureuse. 'Aucun résultat pour ces filtres' (/events) est correct mais générique.",
+      "recommendation": "browse geo-denied: 'On a besoin de ta position pour trouver quelqu'un ce soir pres de toi'. events filtres vides: 'Aucune soiree ce soir avec ces filtres — essaie d'elargir la date ou la categorie'.",
+      "priority": 2
+    },
+    {
+      "severity": "important",
+      "area": "EmptyState — title taille",
+      "observation": "EmptyState title est text-sm/font-bold — hiérarchie écrasée. Sur mobile en 320px, le glyph 5xl + titre sm crée un ratio de 3:1 entre illustration et texte, lisibilité compromise.",
+      "recommendation": "Passer title à text-base (16px) / font-bold. Subtitle reste text-xs. Ajouter un max-width: 260px sur le titre pour éviter les longues lignes.",
+      "priority": 2
+    },
+    {
+      "severity": "important",
+      "area": "venues layout — palette cassée",
+      "observation": "src/app/(venues)/layout.tsx utilise bg-white text-neutral-900 directement — bypass complet du design system. La section venues a sa propre strate hors-tokens.",
+      "recommendation": "Remplacer par bg-bg text-text. Si le design venues est intentionnellement distinct (B2B), créer --color-bg-venues et le documenter dans globals.css.",
+      "priority": 2
+    },
+    {
+      "severity": "nice-to-have",
+      "area": "chat thread — waveform qualité",
+      "observation": "VoiceMessagePlayer existe et est monté dans /chat/[id]. Pas de waveform visuel identifié (à confirmer dans le composant lui-même) — la plupart des implémentations voice utilisent des barres statiques placeholder.",
+      "recommendation": "Implémenter une waveform Web Audio API réelle (50 barres calculées à partir du blob audio, animées pendant lecture). Pattern Spotify-like : barres passées en accent, non-passées en border.",
+      "priority": 3
+    },
+    {
+      "severity": "nice-to-have",
+      "area": "onboarding — step count",
+      "observation": "/signup-quick est déjà en 3 steps (identity / intent / landing). La mission 'onboarding 4→3 steps' est accomplie. Mais step 3 (landing splash) ne collecte aucune donnée — c'est essentiellement une animation.",
+      "recommendation": "Envisager de fusionner step 3 avec la redirection vers /browse avec un overlay de bienvenue. Gain: -1 page-load, -1 back-button friction.",
+      "priority": 3
+    },
+    {
+      "severity": "nice-to-have",
+      "area": "premium upsell modal",
+      "observation": "Le cap de matchs (/browse) affiche un overlay avec gradient-bg CTA 'Passer Premium'. Design correct. Mais le modal n'a pas de dismiss explicite (X button) — on ne peut que 'Revenir à HH:MM' ou cliquer Premium.",
+      "recommendation": "Ajouter un bouton ghost 'Plus tard' en bas du modal. Respecter le droit UX de fermer sans convertir — réduit la perception aggressive et améliore trust.",
+      "priority": 3
+    },
+    {
+      "severity": "nice-to-have",
+      "area": "map — cluster UI",
+      "observation": "Supercluster est intégré (import visible dans map/page.tsx). Les clusters existent. Le style visuel des pins cluster n'est pas auditable sans screenshot live.",
+      "recommendation": "S'assurer que les cluster pins utilisent --color-accent (#8B5CF6) avec count badge en --color-accent-2 (#00FF88). Pattern: cercle violet taille proportionnelle au count + chiffre vert fluo au centre.",
+      "priority": 3
+    }
+  ],
+
+  "sub_agents_dispatched": [],
+
+  "design_quick_wins": [
+    "Remplacer text-zinc-300 par text-text-muted dans progress/page.tsx leaderboard (1 line fix, impact visible immédiat)",
+    "Patcher l'empty state crystal: bg-gradient-to-b from-[#1E1B4B] → bg-bg-dark + radial violet/10 (5 lines, palette clean)",
+    "Patcher manifesto section 02: accent #EC4899 → #00FF88 (1 line, brand compliance)",
+    "PageHeader neutral-* → tokens CeSoir (15 lignes, impacte toutes les pages)",
+    "Browse geo-denied copy: 'Position introuvable' → message humain chaleureux",
+    "EmptyState title: text-sm → text-base (1 line, lisibilité mobile +20%)"
+  ],
+
+  "design_debt_hotspots": [
+    "src/components/ui/PageHeader.tsx (neutral-* structurel, monté partout)",
+    "src/app/(app)/crystal/page.tsx (palette hors-charte complète sur l'empty state)",
+    "src/app/(app)/manifesto/page.tsx (EC4899 pink hors-palette)",
+    "src/app/(app)/progress/page.tsx (zinc-300 leaderboard)",
+    "src/app/(venues)/layout.tsx (bypass complet design system)",
+    "src/components/app/PhotoGallery.tsx + ProfileShareCard.tsx (radius outliers)"
+  ],
+
+  "tokens_missing": [
+    "--color-silver (rang #2 leaderboard — actuellement zinc-300 hardcodé)",
+    "--radius-phone-bezel (44-50px pour landing PhoneVideo — actuellement px arbitraire)",
+    "--color-bg-venues (si les pages venues ont un traitement visuel distinct intentionnel)"
+  ],
+
+  "top10_q3_2026_priorities": [
+    {
+      "rank": 1,
+      "feature": "Palette cleanup critical",
+      "scope": "crystal empty state + manifesto #EC4899 + progress zinc + PageHeader neutral",
+      "effort": "S",
+      "impact": "brand integrity"
+    },
+    {
+      "rank": 2,
+      "feature": "EmptyState polish",
+      "scope": "Copy geo-denied (browse), events filtres vides, chat pas de messages, map aucun profil",
+      "effort": "S",
+      "impact": "activation + NPS"
+    },
+    {
+      "rank": 3,
+      "feature": "Form errors UX Hinge-level",
+      "scope": "signup-quick + profile edit — inline validation avec message positif ('Email valide !') pas juste rouge",
+      "effort": "M",
+      "impact": "signup conversion"
+    },
+    {
+      "rank": 4,
+      "feature": "Profile builder drag/drop photos",
+      "scope": "PhotoUpload.tsx — actuellement pas de réordering. DnD avec react-dnd ou @dnd-kit",
+      "effort": "M",
+      "impact": "profile completion rate"
+    },
+    {
+      "rank": 5,
+      "feature": "Chat thread polish — read receipts indicator",
+      "scope": "Le backend est pret (showReadReceipt / readAt). S'assurer que le 'Vu HH:MM' est visible et stylee correctement (italic, text-text-muted, pas text-white/60 sur fond gradient)",
+      "effort": "S",
+      "impact": "perceived quality"
+    },
+    {
+      "rank": 6,
+      "feature": "Voice waveform réelle",
+      "scope": "VoiceMessagePlayer — remplacer placeholder barres statiques par waveform Web Audio calculée",
+      "effort": "M",
+      "impact": "voice feature adoption"
+    },
+    {
+      "rank": 7,
+      "feature": "Map v2 — cluster style + filter UI",
+      "scope": "Pins cluster en --color-accent + badge --color-accent-2. MapFiltersSheet bottom sheet cinematic",
+      "effort": "M",
+      "impact": "map engagement"
+    },
+    {
+      "rank": 8,
+      "feature": "Settings v2 — privacy controls dashboard",
+      "scope": "Regrouper profilVisible / partagerPosition / modeFantome / readReceiptsEnabled en une section 'Confidentialite' avec toggle switch stylee (accent pill, pas browser-default)",
+      "effort": "M",
+      "impact": "trust + RGPD UX"
+    },
+    {
+      "rank": 9,
+      "feature": "Premium upsell modal dismiss",
+      "scope": "Ajouter bouton ghost 'Plus tard' dans le match-cap overlay. Respect UX = meilleur taux de retour",
+      "effort": "XS",
+      "impact": "trust + eventual conversion"
+    },
+    {
+      "rank": 10,
+      "feature": "Empty geo state desktop friendly",
+      "scope": "Sur desktop (> 768px), quand geo refusee sur /browse, afficher un mockup Montpellier statique avec profils floutes + CTA 'Activer la position pour voir les vraies personnes'",
+      "effort": "M",
+      "impact": "desktop activation"
+    }
+  ]
+}
