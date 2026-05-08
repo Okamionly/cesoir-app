@@ -52,7 +52,9 @@ export default function CrystalPage() {
   // ────────────────────────────────────────────
   if (!match) {
     return (
-      <div className="fixed inset-0 z-50 bg-gradient-to-b from-[#1E1B4B] via-black to-black flex items-center justify-center px-6">
+      <div className="fixed inset-0 z-50 bg-bg-dark flex items-center justify-center px-6"
+        style={{ background: "radial-gradient(ellipse at 50% 30%, rgba(139,92,246,0.12) 0%, #111111 60%)" }}
+      >
         <button
           type="button"
           onClick={() => router.back()}
@@ -82,15 +84,15 @@ export default function CrystalPage() {
             </m.div>
           </m.div>
           <h1 className="text-2xl font-semibold text-white mb-3">
-            Crystal Ball
+            Le Crystal Ball t&apos;attend ☾
           </h1>
           <p className="text-white/70 text-sm leading-relaxed">
             Chaque soir à 20h, l&apos;algo te réserve un seul profil. Photo
             floutée, prénom caché. Si vous vous likez tous les deux dans les
             24h, vos visages se révèlent et le chat s&apos;ouvre.
           </p>
-          <p className="mt-6 text-white/50 text-xs">
-            Reviens à 20h pour découvrir ton match du jour.
+          <p className="mt-6 text-white/70 text-sm font-medium">
+            Reviens à 20h pour ton match du jour ☾
           </p>
           {error && (
             <p className="mt-4 text-red-400 text-xs">
