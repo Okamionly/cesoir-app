@@ -247,7 +247,7 @@ function BackButton({
 }) {
   const cls =
     tone === "white"
-      ? "flex items-center justify-center w-8 h-8 rounded-full bg-white border border-neutral-200 text-neutral-500 hover:text-neutral-900 transition-colors"
+      ? "flex items-center justify-center w-8 h-8 rounded-full bg-[--color-bg-venues] border border-border text-text-muted hover:text-text transition-colors"
       : "flex items-center justify-center w-8 h-8 rounded-full bg-card border border-border text-text-muted hover:text-text transition-colors";
   const iconNode = variant === "close" ? closeIcon : chevronIcon;
 
@@ -367,7 +367,7 @@ function PageHeader({
 
   const toneClass =
     tone === "white"
-      ? "bg-white/90 border-neutral-200"
+      ? "bg-[--color-bg-venues]/90 border-border"
       : "bg-bg/80 border-border";
   const borderClass = borderless ? "" : "border-b";
 
@@ -387,7 +387,7 @@ function PageHeader({
         <h1
           className={[
             "text-lg font-display font-bold truncate",
-            tone === "white" ? "text-neutral-900" : "text-text",
+            tone === "white" ? "text-[--color-text-venues]" : "text-text",
             titleClassName ?? "",
           ]
             .filter(Boolean)
@@ -399,7 +399,7 @@ function PageHeader({
           <p
             className={[
               "text-xs truncate",
-              tone === "white" ? "text-neutral-500" : "text-text-muted",
+              tone === "white" ? "text-text-muted" : "text-text-muted",
             ].join(" ")}
           >
             {subtitle}
