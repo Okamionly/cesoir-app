@@ -73,9 +73,10 @@ export default function EmptyState({
         </m.div>
       )}
 
-      {/* Title */}
+      {/* Title — text-base minimum for mobile legibility (audit D-6: text-sm
+          paired with text-5xl glyph created a 3:1 ratio hurting 320px readability) */}
       <m.p
-        className="text-sm font-bold text-text"
+        className="text-base sm:text-lg font-bold text-text max-w-[260px]"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ ...springs.heavy, delay: 0.1 }}

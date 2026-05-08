@@ -150,7 +150,7 @@ export default function AboutPage() {
       {/* Mission hero */}
       <div className="px-5 pt-10 pb-6 max-w-lg mx-auto text-center">
         <div className="text-[36px] font-black mb-2">
-          <span className="gradient-text">CeSoir</span>
+          <span className="gradient-text-deco">CeSoir</span>
         </div>
         <p className="text-[18px] font-black text-text mt-4 max-w-[340px] mx-auto leading-tight">
           Personne ne dine seul ce soir a Montpellier.
@@ -362,7 +362,7 @@ export default function AboutPage() {
               key={s.l}
               className="flex-1 bg-bg-card border border-border rounded-xl py-4 text-center"
             >
-              <p className="text-[20px] font-black gradient-text">{s.n}</p>
+              <p className="text-[20px] font-black gradient-text-deco">{s.n}</p>
               <p className="text-[9px] text-text-muted uppercase tracking-wider font-semibold">
                 {s.l}
               </p>

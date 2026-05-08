@@ -23,7 +23,10 @@ export default function VenuesLayout({
 }) {
   return (
     <AuthProvider>
-      <div className="min-h-screen bg-white text-neutral-900 antialiased">
+      {/* bg-[--color-bg-venues] + text-[--color-text-venues]: intentionally
+          distinct from the consumer app dark theme. B2B owners expect a clean
+          light dashboard. Tokens defined in globals.css. */}
+      <div className="min-h-screen bg-[--color-bg-venues] text-[--color-text-venues] antialiased">
         {children}
       </div>
     </AuthProvider>

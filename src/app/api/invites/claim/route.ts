@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 import { checkRateLimit, rateLimitResponse, getClientIp } from "@/lib/rate-limit";
 import { logger } from "@/lib/logger";
+import { isMaleThrottled, getCurrentRatio } from "@/lib/analytics/genderRatio";
 
 /**
  * POST /api/invites/claim
@@ -29,6 +30,8 @@ const SUPABASE_SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
 interface ClaimBody {
   code?: string;
   verify?: boolean;
+  /** Gender of the registering user — used for H/F ratio throttle check. */
+  gender?: string;
 }
 
 export async function POST(request: Request) {
@@ -77,6 +80,50 @@ export async function POST(request: Request) {
     if (new Date(data.expires_at) < new Date()) {
       return NextResponse.json({ valid: false, reason: "expired" }, { status: 410 });
     }
+
+    // --- H/F ratio throttle (W2-2 CEO P0) -----------------------------------
+    // If the ratio of males in the last 7 days exceeds 60%, block new male
+    // signups so the platform stays balanced. Female and non-binary users
+    // always pass. The check runs during verify (phase 1) so the user gets
+    // feedback before completing the full auth.signup flow.
+    const gender = (body.gender ?? "").trim();
+    if (gender) {
+      try {
+        const throttled = await isMaleThrottled(gender);
+        const ratio = await getCurrentRatio();
+
+        // PostHog event — fires whether blocked or allowed.
+        // Server-side track writes to logger since PostHog JS is browser-only.
+        logger.info("signup_gender_check", {
+          gender,
+          current_ratio_pct: ratio.ratio_male_pct,
+          throttled,
+          male: ratio.male,
+          female: ratio.female,
+        });
+
+        if (throttled) {
+          return NextResponse.json(
+            {
+              valid: false,
+              reason: "gender_quota",
+              message:
+                "Pour maintenir l'équilibre de la communauté, les inscriptions masculines sont temporairement suspendues. Réessaie dans quelques jours.",
+              ratio_male_pct: ratio.ratio_male_pct,
+            },
+            { status: 429 },
+          );
+        }
+      } catch (ratioErr) {
+        // Non-fatal: if the ratio check fails (e.g. service role missing in
+        // local dev), log and let the signup continue rather than blocking
+        // legitimate users on an infra error.
+        logger.warn("gender_ratio_check_failed", {
+          err: ratioErr instanceof Error ? ratioErr.message : String(ratioErr),
+        });
+      }
+    }
+
     return NextResponse.json({ valid: true, code: data.code });
   }
 

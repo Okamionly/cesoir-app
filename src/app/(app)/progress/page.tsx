@@ -256,7 +256,7 @@ function LeaderboardTab() {
           rank === 1
             ? "text-amber-400"
             : rank === 2
-            ? "text-zinc-300"
+            ? "text-[--color-silver]"
             : rank === 3
             ? "text-orange-300"
             : "text-text-muted";
@@ -298,7 +298,7 @@ function LeaderboardTab() {
               </p>
             </div>
             <div className="text-right shrink-0">
-              <p className="text-[14px] font-black gradient-text">{row.karma ?? 0}</p>
+              <p className="text-[14px] font-black gradient-text-deco">{row.karma ?? 0}</p>
               <p className="text-[9px] text-text-muted -mt-0.5">karma</p>
             </div>
           </m.div>
@@ -372,7 +372,7 @@ function TrustTab() {
         <p className="text-[11px] uppercase tracking-wider text-text-muted mb-1">
           Score de confiance
         </p>
-        <p className="text-[44px] font-black gradient-text leading-none">
+        <p className="text-[44px] font-black gradient-text-deco leading-none">
           {trustScore}
         </p>
         <p className="text-[11px] text-text-muted mt-1">sur 100</p>

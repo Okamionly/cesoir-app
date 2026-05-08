@@ -30,11 +30,14 @@ export const FEATURE_FLAGS = {
    *   - All of the above re-surface; premium-gate.ts regains its teeth
    *   - Must be paired with `STRIPE_ENABLED=true` on the server
    */
-  monetizationEnabled: false,
+  monetizationEnabled: process.env.MONETIZATION_ENABLED === "true" || process.env.STRIPE_ENABLED === "true",
 } as const;
 
 /** Convenience alias — exported for grep-ability in gating sites. */
 export const MONETIZATION_ENABLED = FEATURE_FLAGS.monetizationEnabled;
+
+// Wave 2 revenue activation: set STRIPE_ENABLED=true in Vercel to flip the
+// paywall. MONETIZATION_ENABLED reads from env at module load — no rebuild needed.
 
 /**
  * Server-side guard — combines the client flag with the explicit env flag.

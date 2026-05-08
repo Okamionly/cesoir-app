@@ -349,22 +349,19 @@ function BrowsePageInner() {
           // render silently and they'd just see an empty deck).
           <div role="alert" aria-live="assertive" className="w-full h-full flex flex-col items-center justify-center text-center px-8">
             <div className="w-16 h-16 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center mb-5">
-              <span className="text-[28px]" aria-hidden="true">📍</span>
+              <span className="text-[28px]" aria-hidden="true">☾</span>
             </div>
             <p className="text-[17px] font-bold mb-2 text-text">
-              Position introuvable
+              On a besoin de te localiser
             </p>
-            <p className="text-[13px] text-text-muted mb-1 max-w-[280px] leading-relaxed">
-              CeSoir matche les gens proches de toi ce soir. Sans ta position, impossible de te proposer des profils.
-            </p>
-            <p className="text-[11px] text-text-muted/60 mb-6 max-w-[240px]">
-              Active la localisation dans les réglages de ton navigateur, puis rafraîchis.
+            <p className="text-[13px] text-text-muted mb-6 max-w-[280px] leading-relaxed">
+              CeSoir matche les gens proches de toi ce soir. Active ta position et on te trouve quelqu&apos;un.
             </p>
             <button
               onClick={() => window.location.reload()}
               className="gradient-bg text-white px-8 py-3 rounded-full text-[14px] font-semibold shadow-[0_8px_24px_rgba(139,92,246,0.25)] active:scale-95 transition-transform"
             >
-              Activer et réessayer
+              Activer ma position
             </button>
             <Link
               href="/help"

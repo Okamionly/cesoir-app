@@ -260,7 +260,7 @@ export default function OnboardingPage() {
             className="flex w-full max-w-sm flex-col items-center gap-6 text-center"
           >
             <motion.h1
-              className="font-display text-3xl font-bold gradient-text"
+              className="font-display text-3xl font-bold gradient-text-deco"
               variants={welcomeVariants.illustration}
               initial="hidden"
               animate="visible"
