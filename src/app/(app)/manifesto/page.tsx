@@ -49,7 +49,7 @@ const SECTIONS = [
       "La plupart des conversations meurent avant même de proposer quelque chose.",
       "Le problème n'est pas le manque de gens. C'est le manque de prétexte, de spontanéité, de proximité.",
     ],
-    accent: "#EC4899",
+    accent: "#00FF88",
   },
   {
     kicker: "03 · L'insight",
@@ -102,7 +102,7 @@ export default function ManifestoPage() {
         className="fixed top-0 left-0 right-0 h-[2px] z-50 origin-left pointer-events-none"
         style={{
           width: progressBar,
-          background: "linear-gradient(90deg, #8B5CF6 0%, #EC4899 50%, #00FF88 100%)",
+          background: "linear-gradient(90deg, #8B5CF6 0%, #00FF88 100%)",
           boxShadow: "0 0 12px rgba(139,92,246,0.5)",
         }}
       />
@@ -160,7 +160,7 @@ export default function ManifestoPage() {
             href="/signup-quick"
             className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl font-display text-[15px] font-black text-white"
             style={{
-              background: "linear-gradient(135deg, #8B5CF6, #EC4899, #00FF88)",
+              background: "linear-gradient(135deg, #8B5CF6, #00FF88)",
               boxShadow: "0 0 40px rgba(139,92,246,0.35)",
             }}
           >
