@@ -23,6 +23,7 @@ import { ChevronRight as LucideChevronRight, Settings as LucideSettings, Plus as
 import { VoiceIntroPlayer } from "@/components/profile/VoiceIntroPlayer";
 import PromptEditor from "@/components/profile/PromptEditor";
 import BioAssistantModal from "@/components/profile/BioAssistantModal";
+import InviteWidget from "@/components/profile/InviteWidget";
 import { useProfilePrompts } from "@/lib/useProfilePrompts";
 import { PROMPT_SLOT_COUNT } from "@/lib/prompts";
 
@@ -552,6 +553,12 @@ export default function ProfilePage() {
       <m.div className="mb-8" {...fade(0.06)}>
         <MasteryStrip />
       </m.div>
+
+      {/* ── INVITE WIDGET (W2-7) ── viral loop surface point.
+           Between MasteryStrip and VibePicker — high-attention slot
+           so invite CTA sees the most scroll depth before churn.
+           Widget reads mig 021 + 025 invite codes + referral stats. */}
+      <InviteWidget />
 
       {/* ── VIBE: tonight's mood (Wave 17, mig 039) ── */}
       <m.section
