@@ -222,6 +222,72 @@ function PillSelector<T extends string>({
 const themeToMode = { auto: "auto", clair: "light", sombre: "dark" } as const;
 const modeToTheme = { auto: "auto", light: "clair", dark: "sombre" } as const;
 
+// ── RGPD Export button ────────────────────────────────────────────────────────
+
+function ExportDataButton() {
+  const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+
+  const handleExport = async () => {
+    setStatus("loading");
+    try {
+      const token = (await import("@/lib/supabase")).supabase.auth
+        .getSession()
+        .then((r) => r.data.session?.access_token ?? "");
+      const accessToken = await token;
+
+      const res = await fetch("/api/account/export", {
+        method: "POST",
+        headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+      });
+
+      if (res.status === 429) {
+        setStatus("error");
+        return;
+      }
+
+      if (!res.ok) {
+        setStatus("error");
+        return;
+      }
+
+      // Trigger download
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const today = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = `cesoir-data-export-${today}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      setStatus("done");
+    } catch {
+      setStatus("error");
+    }
+  };
+
+  const label =
+    status === "loading" ? "Export en cours…"
+    : status === "done"    ? "Téléchargé"
+    : status === "error"   ? "Réessayer demain"
+    : "Exporter mes données";
+
+  return (
+    <button
+      type="button"
+      onClick={handleExport}
+      disabled={status === "loading" || status === "done"}
+      className="flex items-center justify-between px-4 py-3.5 w-full tap-target transition-colors active:bg-border/20 disabled:opacity-50"
+    >
+      <span className="text-[13px] font-semibold text-text">{label}</span>
+      <ChevronRight size={16} strokeWidth={1.5} className="text-text-muted" aria-hidden="true" />
+    </button>
+  );
+}
+
+// ── Main Page ──────────────────────────────────────────────────────────────
+
 export default function SettingsPage() {
   const { user } = useAuth();
   const router = useRouter();
@@ -396,6 +462,7 @@ export default function SettingsPage() {
         <Section title="Compte" index={0}>
           <InfoRow label="Email" value={user?.email ?? "Non connecté"} />
           <LinkRow label="Changer le mot de passe" href="/profile/edit" />
+          <ExportDataButton />
           <LinkRow label="Supprimer mon compte" href="/profile/delete" danger />
         </Section>
 
