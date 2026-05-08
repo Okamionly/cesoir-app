@@ -1,0 +1,104 @@
+{
+  "role": "CTO-builder",
+  "branch": "fix/p0-critical-2026-05-07",
+  "pr_url": "https://github.com/Okamionly/cesoir-app/pull/50",
+  "merged": false,
+  "commits": [
+    {
+      "sha": "6213db5",
+      "message": "fix(auth): add server-side age >= 18 check in POST /api/auth/signup",
+      "files": ["src/app/api/auth/signup/route.ts"]
+    },
+    {
+      "sha": "0de503b",
+      "message": "fix(trust): wire selfie/video verify to real API instead of no-op onComplete",
+      "files": [
+        "src/app/api/profile/verify/selfie/route.ts",
+        "src/app/api/profile/verify/video/route.ts",
+        "supabase/migrations/049_verify_storage_bucket.sql",
+        "src/app/(app)/profile/verify/page.tsx"
+      ]
+    },
+    {
+      "sha": "05c3b84",
+      "message": "fix(rgpd): delete voice-messages and moments storage files on account delete",
+      "files": ["src/app/api/account/delete/route.ts"]
+    },
+    {
+      "sha": "810d7b0",
+      "message": "fix(infra): deduplicate supabase_env_trimmed warning to one log per boot",
+      "files": ["src/lib/supabase.ts"]
+    },
+    {
+      "sha": "f104638",
+      "message": "fix(seo): add landing-specific metadata for social sharing",
+      "files": ["src/app/page.tsx"]
+    },
+    {
+      "sha": "2c01661",
+      "message": "fix(rgpd): add Art.9 consent checkbox for looking_for in /register",
+      "files": ["src/app/(auth)/register/page.tsx"]
+    },
+    {
+      "sha": "a103558",
+      "message": "fix(design): replace indigo gradient in crystal page with brand violet tokens",
+      "files": ["src/app/(app)/crystal/page.tsx"]
+    }
+  ],
+  "tests_status": "passed",
+  "build_status": "success",
+  "priorities_implemented": [
+    {
+      "audit_finding": "FIX #1 — Verify selfie/video factice (P0 Trust)",
+      "files_changed": [
+        "src/app/api/profile/verify/selfie/route.ts",
+        "src/app/api/profile/verify/video/route.ts",
+        "supabase/migrations/049_verify_storage_bucket.sql",
+        "src/app/(app)/profile/verify/page.tsx"
+      ],
+      "approach": "Created POST /api/profile/verify/selfie and /video routes with FormData upload to private 'verifications' bucket. Write profile_verifications row status='pending'. Rate limited 3/hour. Migration 049 adds status/storage_path/submitted_at columns and creates private bucket with RLS. UI wired to real APIs with error states."
+    },
+    {
+      "audit_finding": "FIX #2 — Age check serveur absent (P0 RGPD mineurs)",
+      "files_changed": ["src/app/api/auth/signup/route.ts"],
+      "approach": "Added numeric age validation after metadata extraction: if age < 18 return 400 before supabase.auth.signUp. Client-side min={18} remains as UX guard."
+    },
+    {
+      "audit_finding": "FIX #3 — Storage files orphans apres delete (P0 RGPD art.17)",
+      "files_changed": ["src/app/api/account/delete/route.ts"],
+      "approach": "Replaced single-bucket avatar delete with loop over avatars + voice-messages + moments. Each bucket is best-effort. Response includes storageDeleted breakdown per bucket."
+    },
+    {
+      "audit_finding": "FIX #4 — looking_for orientation consentement art.9 (P0 RGPD)",
+      "files_changed": ["src/app/(auth)/register/page.tsx"],
+      "approach": "Added consentLookingFor boolean state + checkbox with Art.9 disclosure text. FormChoice only renders when consent ticked. signUp defaults to 'u' when no consent. Removed from stepOneInvalid gate."
+    },
+    {
+      "audit_finding": "FIX #5 — Crystal-ball empty state palette violation (P1 design)",
+      "files_changed": ["src/app/(app)/crystal/page.tsx"],
+      "approach": "Replaced indigo bg-gradient-to-b from-[#1E1B4B] with radial-gradient rgba(139,92,246,0.18) + --color-bg CSS var. Text tokens updated to text-muted. Empty state copy updated with brand moon glyph."
+    },
+    {
+      "audit_finding": "FIX #6 — Meta tags absents landing (P0 CRO)",
+      "files_changed": ["src/app/page.tsx"],
+      "approach": "Added page-level export const metadata with Montpellier CRO wording overriding layout defaults. OG + Twitter cards. opengraph-image.tsx auto-wiring preserved."
+    },
+    {
+      "audit_finding": "FIX #7 — Supabase env trimmed warning spam (P2 console)",
+      "files_changed": ["src/lib/supabase.ts"],
+      "approach": "Added module-level _envTrimmedWarned boolean guard. logger.warn fires exactly once per boot instead of on every component mount."
+    }
+  ],
+  "priorities_skipped": [],
+  "subagents_used": ["senior-software-engineer"],
+  "duration_minutes": 35,
+  "next_steps": [
+    "Run `supabase db push` to apply migration 049_verify_storage_bucket.sql (adds status/storage_path/submitted_at to profile_verifications, creates private verifications bucket with RLS)",
+    "Create the 'verifications' bucket in Supabase Storage dashboard with public=false if migration push is not available",
+    "Set SUPABASE_SERVICE_ROLE_KEY in Vercel env if not already set (required for verify routes to upload to private bucket)",
+    "Wire moderator review queue: admin UI to review profile_verifications rows with status='pending' and flip to 'verified'/'rejected'",
+    "Optionally integrate Sightengine or face-api.js for automated confidence scoring on video submissions",
+    "Merge PR #50 after manual smoke test of the verify flow and age check",
+    "Apply same Art.9 consent gate to /signup-quick page (looking_for defaults to 'u' there already but checkbox disclosure is missing)"
+  ]
+}
