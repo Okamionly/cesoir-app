@@ -7,7 +7,19 @@ import { m, AnimatePresence } from "motion/react";
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { trackAcquisition, track, identifyUser, captureFirstVisit, trackFirstTime } from "@/lib/analytics";
-import PhotoUpload from "@/components/app/PhotoUpload";
+import dynamic from "next/dynamic";
+
+// FIX H (perf-ml-001): PhotoUpload pulls in nsfwjs + @tensorflow/tfjs (~3 MB)
+// via @/lib/nsfw. Lazy-load so those chunks are fetched only when the user
+// reaches the photo step in the registration flow.
+const PhotoUpload = dynamic(() => import("@/components/app/PhotoUpload"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center w-full h-32 rounded-2xl bg-bg-card border border-border">
+      <span className="text-[12px] text-text-muted">Chargement...</span>
+    </div>
+  ),
+});
 import { landing } from "@/lib/design-tokens";
 import { springs, easings } from "@/lib/motion-design";
 import { Eye, EyeOff, Loader2 } from "@/components/ui/lucide";
@@ -94,13 +106,14 @@ function RegisterPageInner() {
   const [showPassword, setShowPassword] = useState(false);
   const [gender, setGender] = useState("");
   const [lookingFor, setLookingFor] = useState("");
+  const [consentLookingFor, setConsentLookingFor] = useState(false);
   const [bio, setBio] = useState("");
   const [error, setError] = useState("");
   const [tempUserId, setTempUserId] = useState<string | null>(null);
   const [photoUploaded, setPhotoUploaded] = useState(false);
 
   const stepOneInvalid =
-    !gender || !lookingFor || !name || !email || !password || !age;
+    !gender || !name || !email || !password || !age;
 
   // If an invite code is passed in the URL (e.g. from /invite/[code]),
   // auto-verify it and skip the gate. Falls through to step 0 on failure.
@@ -163,11 +176,13 @@ function RegisterPageInner() {
     // navigation). Idempotent — no-op after the first capture.
     captureFirstVisit();
 
+    // RGPD Art.9: only send looking_for if user explicitly consented.
+    // Default "u" (unspecified) has no impact on matching (filter is opt-in).
     const user = await signUp(email, password, {
       name,
       age: parseInt(age),
       gender,
-      looking_for: lookingFor,
+      looking_for: consentLookingFor && lookingFor ? lookingFor : "u",
     });
 
     if (!user) {
@@ -455,13 +470,33 @@ function RegisterPageInner() {
                   value={gender}
                   onChange={setGender}
                 />
-                <FormChoice
-                  legend="Je cherche"
-                  variant="dark"
-                  options={LOOKING_FOR}
-                  value={lookingFor}
-                  onChange={setLookingFor}
-                />
+                {/* RGPD Art.9: explicit consent before collecting orientation */}
+                <div>
+                  <div className="mb-2 flex items-start gap-2">
+                    <input
+                      type="checkbox"
+                      id="consent-looking-for"
+                      checked={consentLookingFor}
+                      onChange={(e) => {
+                        setConsentLookingFor(e.target.checked);
+                        if (!e.target.checked) setLookingFor("");
+                      }}
+                      className="mt-0.5 h-4 w-4 rounded cursor-pointer shrink-0"
+                    />
+                    <label htmlFor="consent-looking-for" className="text-[11px] text-white/60 leading-relaxed cursor-pointer">
+                      Je consens a renseigner mes préférences (donnée sensible art.&nbsp;9 RGPD — facultatif)
+                    </label>
+                  </div>
+                  {consentLookingFor && (
+                    <FormChoice
+                      legend="Je cherche"
+                      variant="dark"
+                      options={LOOKING_FOR}
+                      value={lookingFor}
+                      onChange={setLookingFor}
+                    />
+                  )}
+                </div>
                 <FormSubmit
                   type="button"
                   onClick={handleCreateAccount}

@@ -58,6 +58,15 @@ const CSP = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  // FIX H (perf-ml-001): exclude heavy ML packages from SSR bundles.
+  // nsfwjs (~700 KB) + @tensorflow/tfjs (~2.3 MB) + @vladmandic/face-api
+  // (~1 MB) are browser-only — they use WebGL / WASM / tf.ENV.  They must
+  // never be bundled for Node.js server rendering or included in the initial
+  // JS that Next.js traces for the Edge runtime.  The actual code that imports
+  // them (`@/lib/nsfw`, `SelfieVerification`) already uses `await import()`
+  // so the browser receives them as separate async chunks — this config just
+  // prevents webpack from pulling them into the SSR bundle as a side-effect.
+  serverExternalPackages: ["@tensorflow/tfjs", "nsfwjs", "@vladmandic/face-api"],
   // typedRoutes: true,
   //   ↑ Deferred. Next 16's <Link> type is already narrow via RouteImpl<>
   //   (see .next/types/routes.d.ts when present), so enabling typedRoutes

@@ -6,7 +6,19 @@ import { m, AnimatePresence } from "motion/react";
 import { springs } from "@/lib/motion-design";
 import { useAuth } from "@/context/AuthContext";
 import { useProfile } from "@/lib/useProfile";
-import PhotoUpload from "@/components/app/PhotoUpload";
+import dynamic from "next/dynamic";
+
+// FIX H (perf-ml-001): PhotoUpload pulls in nsfwjs + @tensorflow/tfjs (~3 MB)
+// via @/lib/nsfw. Lazy-load so those chunks are fetched only when the user
+// reaches the upload step, not on initial page load.
+const PhotoUpload = dynamic(() => import("@/components/app/PhotoUpload"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center w-full h-32 rounded-2xl bg-bg-card border border-border">
+      <span className="text-[12px] text-text-muted">Chargement...</span>
+    </div>
+  ),
+});
 import PageHeader from "@/components/ui/PageHeader";
 import {
   FormField,
