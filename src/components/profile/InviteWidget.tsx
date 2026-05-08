@@ -77,7 +77,7 @@ export default function InviteWidget() {
     const message = buildShareMessage(activeCode.code);
     const url = buildInviteUrl(activeCode.code);
 
-    if (typeof navigator !== "undefined" && "share" in navigator) {
+    if ("share" in navigator) {
       try {
         await navigator.share({
           title: "CeSoir — rejoins-moi ce soir",
@@ -91,7 +91,7 @@ export default function InviteWidget() {
     } else {
       // Desktop fallback: copy the full message.
       try {
-        await navigator.clipboard.writeText(message);
+        await window.navigator.clipboard.writeText(message);
         flash("Message copié");
       } catch {
         flash("Code : " + activeCode.code);
@@ -102,7 +102,7 @@ export default function InviteWidget() {
   async function handleCopy() {
     if (!activeCode) return;
     try {
-      await navigator.clipboard.writeText(buildInviteUrl(activeCode.code));
+      await window.navigator.clipboard.writeText(buildInviteUrl(activeCode.code));
       flash("Lien copié");
     } catch {
       flash("Code : " + activeCode.code);

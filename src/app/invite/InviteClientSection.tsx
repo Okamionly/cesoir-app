@@ -33,21 +33,18 @@ function useTopInviters(): LeaderEntry[] {
   useEffect(() => {
     // Top 5 inviters by referral count — join invite_codes + profiles.
     // RLS allows public read on profiles (name only — no sensitive fields).
-    supabase
-      .rpc("get_top_inviters", { limit_n: 5 })
-      .then(({ data }: { data: Array<{ name: string; referral_count: number }> | null }) => {
-        if (data) {
-          setTop(
-            data.map((r) => ({
-              name: r.name,
-              referrals: r.referral_count,
-            }))
-          );
+    async function fetch() {
+      try {
+        const { data } = await supabase.rpc("get_top_inviters", { limit_n: 5 });
+        const rows = data as Array<{ name: string; referral_count: number }> | null;
+        if (rows) {
+          setTop(rows.map((r) => ({ name: r.name, referrals: r.referral_count })));
         }
-      })
-      .catch(() => {
+      } catch {
         // RPC may not exist yet — leaderboard degrades gracefully.
-      });
+      }
+    }
+    void fetch();
   }, []);
 
   return top;
@@ -61,7 +58,7 @@ async function shareCode(code: string, onDone: (msg: string) => void) {
   const url = buildInviteUrl(code);
   const message = `Rejoins-moi sur CeSoir, l'app pour trouver quelqu'un ce soir a Montpellier ☾ Code : ${code} → ${url}`;
 
-  if (typeof navigator !== "undefined" && "share" in navigator) {
+  if ("share" in navigator) {
     try {
       await navigator.share({ title: "CeSoir — rejoins-moi ce soir", text: message, url });
       onDone("Partage envoyé");
@@ -70,7 +67,7 @@ async function shareCode(code: string, onDone: (msg: string) => void) {
     }
   } else {
     try {
-      await navigator.clipboard.writeText(message);
+      await window.navigator.clipboard.writeText(message);
       onDone("Message copie");
     } catch {
       onDone("Code : " + code);
