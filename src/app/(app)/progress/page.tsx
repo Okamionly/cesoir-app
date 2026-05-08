@@ -256,7 +256,7 @@ function LeaderboardTab() {
           rank === 1
             ? "text-amber-400"
             : rank === 2
-            ? "text-zinc-300"
+            ? "text-[--color-silver]"
             : rank === 3
             ? "text-orange-300"
             : "text-text-muted";
