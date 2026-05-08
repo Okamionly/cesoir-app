@@ -80,9 +80,20 @@ export async function POST(request: Request) {
     auth: { persistSession: false },
   });
 
+  // P0 RGPD: server-side age check — client-side min={18} is bypassed by direct POST.
   const metadata = body.metadata && typeof body.metadata === "object"
     ? body.metadata
     : undefined;
+
+  if (metadata?.age !== undefined) {
+    const age = Number(metadata.age);
+    if (isNaN(age) || age < 18) {
+      return NextResponse.json(
+        { error: "Vous devez avoir 18 ans ou plus pour vous inscrire." },
+        { status: 400 },
+      );
+    }
+  }
 
   const { data, error } = await supabase.auth.signUp({
     email,

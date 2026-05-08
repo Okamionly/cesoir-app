@@ -34,14 +34,20 @@ export default function CrystalPage() {
   // ────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center"
+        style={{
+          background:
+            "radial-gradient(circle at 50% 40%, rgba(139,92,246,0.18) 0%, transparent 70%), var(--color-bg, #111)",
+        }}
+      >
         <m.div
           className="flex flex-col items-center gap-3"
           animate={{ opacity: [0.5, 1, 0.5] }}
           transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
         >
-          <Sparkles size={32} className="text-[#8B5CF6]" />
-          <span className="text-white/60 text-sm">Consultation de la boule…</span>
+          <Sparkles size={32} className="text-accent" />
+          <span className="text-text-muted text-sm">Consultation de la boule…</span>
         </m.div>
       </div>
     );
@@ -52,7 +58,13 @@ export default function CrystalPage() {
   // ────────────────────────────────────────────
   if (!match) {
     return (
-      <div className="fixed inset-0 z-50 bg-gradient-to-b from-[#1E1B4B] via-black to-black flex items-center justify-center px-6">
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center px-6"
+        style={{
+          background:
+            "radial-gradient(circle at 50% 35%, rgba(139,92,246,0.18) 0%, transparent 65%), var(--color-bg, #111)",
+        }}
+      >
         <button
           type="button"
           onClick={() => router.back()}
@@ -84,13 +96,13 @@ export default function CrystalPage() {
           <h1 className="text-2xl font-semibold text-white mb-3">
             Crystal Ball
           </h1>
-          <p className="text-white/70 text-sm leading-relaxed">
+          <p className="text-text-muted text-sm leading-relaxed">
             Chaque soir à 20h, l&apos;algo te réserve un seul profil. Photo
             floutée, prénom caché. Si vous vous likez tous les deux dans les
             24h, vos visages se révèlent et le chat s&apos;ouvre.
           </p>
-          <p className="mt-6 text-white/50 text-xs">
-            Reviens à 20h pour découvrir ton match du jour.
+          <p className="mt-6 text-text-muted/60 text-xs">
+            Reviens à 20h pour ton match du jour ☾
           </p>
           {error && (
             <p className="mt-4 text-red-400 text-xs">

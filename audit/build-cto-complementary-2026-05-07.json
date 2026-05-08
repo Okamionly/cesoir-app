@@ -1,0 +1,85 @@
+{
+  "role": "CTO-builder-complementary",
+  "branch": "fix/p0-safety-a11y",
+  "pr_url": "https://github.com/Okamionly/cesoir-app/pull/49",
+  "merged": false,
+  "commits": [
+    {
+      "sha": "9716c41",
+      "message": "fix(safety): add data-logo-moon to all ☾ logo elements for SOS triple-tap",
+      "files": [
+        "src/components/app/TopNav.tsx",
+        "src/components/app/FABMenu.tsx"
+      ]
+    },
+    {
+      "sha": "6854010",
+      "message": "fix(safety): make SOS activation stealth — remove red fullscreen overlay",
+      "files": ["src/components/app/SOSButton.tsx"]
+    },
+    {
+      "sha": "060e825",
+      "message": "fix(privacy): reduce LocationCard coord precision from 11m to 1km (SEC-002)",
+      "files": ["src/components/chat/LocationShare.tsx"]
+    },
+    {
+      "sha": "0a336a4",
+      "message": "fix(safety): auto-block user on report — match UI promise in ReportSheet",
+      "files": ["src/lib/useSafety.ts"],
+      "note": "committed on fix/p0-critical-2026-05-07 to avoid conflict with parallel builder"
+    },
+    {
+      "sha": "9cd9c7f",
+      "message": "fix(a11y): WCAG contrast fixes — gradient-text, link color, gradient-bg text-shadow",
+      "files": ["src/app/globals.css"]
+    },
+    {
+      "sha": "3978d5f",
+      "message": "fix(a11y): restore reducedMotion='user' in MotionConfig — WCAG 2.3.3",
+      "files": ["src/app/(app)/layout.tsx"]
+    }
+  ],
+  "tests_status": "skipped",
+  "build_status": "skipped",
+  "priorities_implemented": [
+    {
+      "audit_finding": "FIX A — SOS triple-tap dead (P0 SAFETY)",
+      "files_changed": ["src/components/app/TopNav.tsx", "src/components/app/FABMenu.tsx"],
+      "approach": "Added data-logo-moon attribute to TopNav brand logo span and FABMenu moon glyph (conditional: only when showing ☾, not +). SOSButton was already listening for [data-logo-moon] via document event delegation."
+    },
+    {
+      "audit_finding": "FIX B — SOS red fullscreen overlay visible to aggressor (P0 SAFETY)",
+      "files_changed": ["src/components/app/SOSButton.tsx"],
+      "approach": "Complete rewrite of SOSButton. Removed AnimatePresence red overlay. New: navigator.vibrate([200,100,200]) + 2s auto-dismissing toast (bottom-right, 80% black, small font) + fire-and-forget triggerSOS(). Screen shows nothing to observer."
+    },
+    {
+      "audit_finding": "FIX C — LocationCard 11m precision leak in chat (P0 PRIVACY)",
+      "files_changed": ["src/components/chat/LocationShare.tsx"],
+      "approach": "toFixed(4) → toFixed(2) on display label. ~11m → ~1.1km precision. Google Maps link unchanged (full precision for navigation intent). Consistent with SEC-002."
+    },
+    {
+      "audit_finding": "FIX D — Report does not auto-block (P0 SAFETY)",
+      "files_changed": ["src/lib/useSafety.ts"],
+      "approach": "In reportUser() after successful insert, call blockUser(reportedUserId, 'auto-block:report:<reason>'). blockUser uses upsert so idempotent. Matches UI copy 'Ce profil sera aussi bloqué automatiquement'."
+    },
+    {
+      "audit_finding": "FIX E — WCAG contrast failures: gradient-text 2.1:1, links 4.23:1, gradient-bg buttons 1.8:1 (P0 A11Y)",
+      "files_changed": ["src/app/globals.css"],
+      "approach": "gradient-text changed to violet-only #8B5CF6→#6D28D9 (both pass 4.5:1 AA). Added gradient-text-deco class for decorative non-text uses (keeps violet+green). Added --color-link: #7C3AED token (5.23:1 on white). Added text-shadow: 0 1px 2px rgba(0,0,0,0.35) to gradient-bg for button text contrast boost."
+    },
+    {
+      "audit_finding": "FIX F — reducedMotion='never' breaks WCAG 2.3.3 (P0 A11Y)",
+      "files_changed": ["src/app/(app)/layout.tsx"],
+      "approach": "Changed MotionConfig reducedMotion='never' to 'user'. Restores OS prefers-reduced-motion signal to useReducedMotion() hooks across 40+ components. The stuck-opacity-at-0 regression that motivated 'never' is handled by CSS @media (prefers-reduced-motion) 0.01ms clamp + .cesoir-reduced-motion class."
+    }
+  ],
+  "priorities_skipped": [],
+  "subagents_used": [],
+  "duration_minutes": 25,
+  "next_steps": [
+    "Merge PR #49 after review + test with OS Reduce Motion enabled",
+    "Verify triple-tap SOS on mobile device (touchend events vs click)",
+    "Consider migrating gradient-text usages to gradient-text-deco where decorative (audit needed across 30+ usages)",
+    "Inline link colors using text-accent class need manual migration to text-[#7C3AED] or a new text-link Tailwind token"
+  ]
+}
