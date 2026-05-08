@@ -251,7 +251,7 @@ export default function InvitePage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ ...springs.cinematic, delay: 0.35 }}
-                className="text-lg font-display font-bold gradient-text mb-6"
+                className="text-lg font-display font-bold gradient-text-deco mb-6"
               >
                 Rejoins-moi sur CeSoir
               </m.p>

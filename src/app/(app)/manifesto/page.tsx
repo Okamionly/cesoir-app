@@ -119,7 +119,7 @@ export default function ManifestoPage() {
         </p>
         <h1 className="font-display text-[36px] sm:text-[52px] md:text-[64px] font-black leading-[1.02] tracking-tight mb-6">
           Personne ne dîne seul ce soir à{" "}
-          <span className="gradient-text">Montpellier</span>.
+          <span className="gradient-text-deco">Montpellier</span>.
         </h1>
         <p className="text-[14px] sm:text-[16px] text-text-muted leading-relaxed max-w-lg mx-auto">
           Un manifeste fondateur. Direct, sans filtre.

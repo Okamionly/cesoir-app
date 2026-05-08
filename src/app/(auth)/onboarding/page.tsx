@@ -192,7 +192,7 @@ export default function OnboardingPage() {
                 Bienvenue
               </m.p>
               <m.h1
-                className="text-[26px] font-black gradient-text mb-3"
+                className="text-[26px] font-black gradient-text-deco mb-3"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ ...springs.elastic, delay: 0.3 }}
