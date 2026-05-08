@@ -239,8 +239,12 @@ export function FABMenu() {
           >
             {/* a11y round 2: hide moon glyph from SR — NVDA/VoiceOver
                 otherwise double-announce "croissant de lune" + aria-label. */}
-            <span className="text-lg font-bold text-white select-none" aria-hidden="true">
-              {isOpen ? "+" : "\u263E"}
+            <span
+              className="text-lg font-bold text-white select-none"
+              aria-hidden="true"
+              data-logo-moon={!isOpen || undefined}
+            >
+              {isOpen ? "+" : "☾"}
             </span>
           </m.button>
         </div>

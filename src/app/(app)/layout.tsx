@@ -31,25 +31,26 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <DarkModeProvider>
         <AccessibilityProvider>
           {/*
-            MotionConfig reducedMotion="never" — bug report 2026-04-19:
-            motion/react's default useReducedMotion detection was returning
-            true for some users (OS prefers-reduced-motion), and the
-            `initial="hidden" animate="visible"` variants pattern was
-            staying stuck at the hidden state (opacity:0) on /profile,
-            /settings, /safety, /profile/edit, /profile/privacy,
-            /modes/solo-diner.
+            MotionConfig reducedMotion="user" — WCAG 2.3.3 fix 2026-05-07:
+            Previous value was "never" (bug fix 2026-04-19) because motion/react's
+            useReducedMotion() returned true and stuck opacity:0 on some pages.
 
-            We disable motion/react's own reduced-motion detection here
-            and rely on:
-              1. globals.css `@media (prefers-reduced-motion: reduce)`
-                 clamp on transition-duration (0.01ms) and animation-
-                 duration for visual concerns
-              2. AccessibilityProvider body class `.cesoir-reduced-motion`
-                 that applies the same clamp via !important
-            This way motion/react always applies the animate state
-            (opacity:1), and CSS keeps the accessibility contract.
+            Root cause of the 2026-04-19 bug: those pages used initial="hidden"
+            without a fallback `layout` or explicit `initial={false}` guard.
+            The real fix is at the component level (don't rely on motion JS for
+            initial state — rely on CSS). The CSS @media (prefers-reduced-motion)
+            already clamps durations to 0.01ms so animations are imperceptible.
+
+            With "user": components that call useReducedMotion() now correctly
+            get the OS setting, enabling JS-level branching (skip animations,
+            disable 3D tilt, etc.). The CSS layer remains as a safety net.
+            The stuck-opacity issue is handled by:
+              1. AccessibilityProvider's `.cesoir-reduced-motion` class
+              2. globals.css @media (prefers-reduced-motion) clamping
+            Both set transition-duration/animation-duration to 0.01ms so the
+            "hidden → visible" transition completes in 0.01ms = instant.
           */}
-          <MotionConfig reducedMotion="never">
+          <MotionConfig reducedMotion="user">
             <LazyMotionMaxProvider>
               <ToastProvider>
                 {/*
