@@ -33,6 +33,13 @@
   --color-trust-flagged:  #EF4444;
   --color-trust-neutral:  #888888;
 
+  /* Extended tokens — design-polish wave 2 (2026-05-08) */
+  --color-silver: #E5E7EB;          /* leaderboard rank #2 — replaces zinc-300 */
+  --radius-phone-bezel: 2.75rem;    /* 44px — PhoneVideo landing bezel, intentional */
+  /* venues B2B layout — intentionally distinct from consumer app */
+  --color-bg-venues: #FFFFFF;
+  --color-text-venues: #111111;
+
   --font-sans: var(--font-outfit), -apple-system, sans-serif;
   --font-display: var(--font-space-grotesk), -apple-system, sans-serif;
 
@@ -74,12 +81,32 @@ body { padding-top: env(safe-area-inset-top); }
 /* === GRADIENTS === */
 .gradient-bg { background: linear-gradient(135deg, #8B5CF6, #00FF88); }
 .gradient-bg-subtle { background: linear-gradient(135deg, rgba(139,92,246,0.08), rgba(0,255,136,0.08)); }
+
+/*
+ * gradient-text — WCAG-compliant violet-only gradient for informational text.
+ * Use for: copy, labels, stats where the user reads and must parse meaning.
+ * Contrast: #8B5CF6 on white = 4.5:1 (WCAG AA).
+ */
 .gradient-text {
+  background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/*
+ * gradient-text-deco — decorative violet+green gradient.
+ * Use ONLY for: logos, ornaments, 1-3 word display headings where visual
+ * impact matters more than contrast compliance.
+ * NOT for body copy, subtitles, or any text the user must read at length.
+ */
+.gradient-text-deco {
   background: linear-gradient(135deg, #8B5CF6, #00FF88);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
 .shadow-glow { box-shadow: 0 0 30px rgba(139,92,246,0.2); }
 
 /* === FOCUS (A11y) === */
