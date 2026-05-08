@@ -25,12 +25,21 @@ import { usePausableInterval } from "@/lib/usePausableInterval";
 // StarField: ambient particle layer rendered above plasma. Pure decoration
 // (aria-hidden), so deferring it doesn't affect a11y or LCP candidate. Both
 // are no-SSR because they run inside a useEffect and need `window`.
+//
+// SocialProofBanner: queries Supabase for live stats (active members + plans).
+// Deferred so it doesn't compete with LCP h1 for network bandwidth.
+// Renders AFTER a 0.9s delay anyway (motion transition.delay) so ssr:false
+// is appropriate — SSR output would be stale numbers anyway.
 const PlasmaOcean = dynamic(() => import("@/components/landing/PlasmaOcean"), {
   ssr: false,
 });
 const StarField = dynamic(() => import("@/components/landing/StarField"), {
   ssr: false,
 });
+const SocialProofBanner = dynamic(
+  () => import("@/components/landing/SocialProofBanner"),
+  { ssr: false },
+);
 
 /**
  * SceneController — single-page morphic cinematic landing.
@@ -618,6 +627,10 @@ function SceneIntroCTA() {
             Comment gratuit ?
           </Link>
         </motion.p>
+
+        {/* Social proof banner — W2-9. Live member count + plans ce soir
+            + 3 testimonial cards. Deferred 0.9s so it doesn't fight LCP. */}
+        <SocialProofBanner />
       </motion.div>
     </motion.div>
   );
