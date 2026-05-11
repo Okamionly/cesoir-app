@@ -1227,7 +1227,7 @@ export default function ConversationPage({
               </div>
               <div className="px-6 text-center">
                 <div className="text-[40px] mb-3">
-                  {screeningResult.severity === "block" ? "\u26D4" : "\u26A0\uFE0F"}
+                  {screeningResult.severity === "block" ? "⛔" : "⚠️"}
                 </div>
                 <h3 className="text-[16px] font-bold text-text mb-2">
                   {screeningResult.severity === "block" ? "Message bloque" : "Attention"}

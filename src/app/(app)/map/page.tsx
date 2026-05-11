@@ -677,7 +677,7 @@ export default function MapPage() {
             subtitle: `${time} · ${ev.venue.name}`,
             lat,
             lng,
-            emoji: "\u26A1",
+            emoji: "⚡",
           });
         }
       });
