@@ -484,7 +484,7 @@ function BrowsePageInner() {
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
           >
             <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-4">
-              <span className="text-[28px]">{"\uD83D\uDD12"}</span>
+              <span className="text-[28px]">{"🔒"}</span>
             </div>
             <h2 className="text-[20px] font-black text-text mb-2">Tu as atteint ta limite !</h2>
             <p className="text-[14px] text-text-muted mb-1">
