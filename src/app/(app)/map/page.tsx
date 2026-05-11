@@ -22,7 +22,7 @@ import PageHeader from "@/components/ui/PageHeader";
 // blocking parse + execution before the page could even render its loading
 // state. Now we lazy-load it inside the init effect via dynamic import. The
 // CSS still ships with the page (loaded once on first map mount via
-// `import('maplibre-gl/dist/maplibre-gl.css')`).
+// `import('maplibre-gl/dist/maplibre-gl.css')`.
 //
 // Type-only import keeps `maplibregl.Map` references compiling without a
 // runtime cost — TS strips it during emit.
