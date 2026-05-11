@@ -26,9 +26,9 @@ import { namespacedChannelName } from "@/lib/hooks/useSupabaseQuery";
 import { useToast } from "@/components/ui/Toast";
 import { logger } from "@/lib/logger";
 
-// ────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────
 // Types
-// ────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────
 
 type BroadcastHours = 1 | 3 | 6;
 
@@ -45,9 +45,9 @@ interface ApiErrorBody {
   code?: string;
 }
 
-// ────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────
 // Helpers
-// ────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────
 
 /** Returns ms remaining until expiry; <= 0 means expired or not active. */
 function msUntilExpiry(broadcastUntil: string | null): number {
@@ -66,9 +66,9 @@ function formatRemaining(ms: number): string {
   return "<1m";
 }
 
-// ────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────
 // Component
-// ────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────
 
 interface Props {
   /** Optional initial value to avoid a fetch flash on mount. */
