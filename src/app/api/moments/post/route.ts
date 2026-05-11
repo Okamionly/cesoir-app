@@ -86,7 +86,7 @@ interface InsertedMomentRow {
 }
 
 export async function POST(request: Request) {
-  // ─── Auth ────────────────────────────────────────────────────────
+  // ─── Auth ──────────────────────────────────────────────────────────
   let ctx;
   try {
     ctx = await requireUser(request);
@@ -109,7 +109,7 @@ export async function POST(request: Request) {
   );
   if (!rl.ok) return rateLimitResponse(rl);
 
-  // ─── Parse multipart ────────────────────────────────────────────────
+  // ─── Parse multipart ───────────────────────────────────────────────
   let form: FormData;
   try {
     form = await request.formData();
@@ -215,7 +215,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // ─── Insert DB row ───────────────────────────────────────────────
+  // ─── Insert DB row ─────────────────────────────────────────────────
   // The `expires_at` column has a NOT NULL constraint AND a CHECK that
   // it equals posted_at + 24h. Postgres doesn't accept NOT NULL columns
   // omitted from INSERT, so we send a placeholder — the BEFORE INSERT
@@ -248,7 +248,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // ─── Sign URL for immediate render ──────────────────────────────────
+  // ─── Sign URL for immediate render ────────────────────────────────
   // 1h TTL — matches the moments lifetime sweet spot; the client can
   // re-sign on its own (via the feed endpoint) after that.
   let signedUrl: string | null = null;

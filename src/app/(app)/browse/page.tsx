@@ -314,21 +314,7 @@ function BrowsePageInner() {
       {/* Mode switcher */}
       <ModeSwitcher active={filter} onChange={(m) => { setFilter(m); setIdx(0); }} />
 
-      {/* Card area — 3D Perspective deck.
-          a11y round 2 (2026-04-27): removed `role="list"` from `<main>`.
-          The combo is invalid per WAI-ARIA — `role` overrides the landmark,
-          so VoiceOver was announcing this as a list rather than the page's
-          main content. Kept `aria-label` as a region label. The card
-          underneath still carries `role="listitem"`-like semantics via its
-          aria-label / variant pattern, but a single-card deck doesn't
-          really need list semantics anyway. */}
       <main ref={mainRef} data-tour="swipe-deck" className="flex-1 relative px-4 pb-1 overflow-hidden" style={{ perspective: 800 }} aria-label="Profils à découvrir">
-        {/* 2026-04-27 perf fix: invisible image preloader for the next 2
-            cards. Without this the next card's photo started fetching
-            only when its <Image> mounted (i.e. AFTER the swipe), so the
-            user saw the deck advance to a card with no photo for ~200ms.
-            Using `loading="eager"` + sized 1×1 + opacity 0 keeps the
-            request happening but pays no visible cost. */}
         {(next1 || next2) && (
           <div aria-hidden style={{ position: "absolute", width: 1, height: 1, opacity: 0, pointerEvents: "none", overflow: "hidden" }}>
             {next1 && (
@@ -340,13 +326,7 @@ function BrowsePageInner() {
           </div>
         )}
 
-        {/* Geolocation denied / unavailable — show a dedicated CTA state
-            (CPO-002). Previously we fell through to "C'est tout pour ce soir"
-            EmptyState which told the user nothing useful. */}
         {!geoLoading && geoError && (!latitude || !longitude) && (
-          // a11y round 2 (2026-04-27): role="alert" so SR users hear the
-          // geolocation error the moment it surfaces (otherwise it would
-          // render silently and they'd just see an empty deck).
           <div role="alert" aria-live="assertive" className="w-full h-full flex flex-col items-center justify-center text-center px-8">
             <div className="w-16 h-16 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center mb-5">
               <span className="text-[28px]" aria-hidden="true">📍</span>
@@ -375,7 +355,6 @@ function BrowsePageInner() {
           </div>
         )}
 
-        {/* Loading skeleton — 3 placeholder cards with pulse animation */}
         {!geoError && loading && matches.length === 0 && (
           <div className="w-full h-full flex flex-col items-center justify-center gap-3">
             {[0, 1, 2].map((i) => (
@@ -399,7 +378,6 @@ function BrowsePageInner() {
           </div>
         )}
 
-        {/* Error state */}
         {error && !loading && matches.length === 0 && (
           <div className="w-full h-full flex flex-col items-center justify-center text-center px-8">
             <p className="text-[14px] text-text-muted mb-4">{error}</p>
@@ -409,15 +387,6 @@ function BrowsePageInner() {
           </div>
         )}
 
-        {/* Card stack (suppressed when geoloc missing so user sees the
-            dedicated geo-denied state instead of a misleading empty state).
-
-            2026-04-27 perf fix: removed `mode="popLayout"`. With popLayout,
-            AnimatePresence held the next card off the DOM until the
-            outgoing card finished its 0.4s `swipeLeft` exit, so users
-            saw a half-second pause between swipes. Default `mode="sync"`
-            mounts the next card immediately while the previous one
-            animates out — exactly the Tinder/Bumble feel we want. */}
         {!loading && !geoError && (
           <AnimatePresence>
             {card ? (
@@ -434,7 +403,6 @@ function BrowsePageInner() {
                 whileTap={{ scale: 0.97, transition: springs.micro }}
                 style={{ transformStyle: "preserve-3d" }}
               >
-                {/* Stacked card behind — physical depth illusion */}
                 {next1 && (
                   <motion.div
                     className="absolute inset-x-5 top-1 bottom-2 rounded-3xl overflow-hidden z-[1]"
@@ -470,7 +438,6 @@ function BrowsePageInner() {
         )}
       </main>
 
-      {/* Match cap overlay */}
       {isAtCap && (
         <motion.div
           className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
@@ -514,7 +481,6 @@ function BrowsePageInner() {
         </motion.div>
       )}
 
-      {/* Actions */}
       {card && !loading && (
         <ActionButtons
           onPass={swipe.triggerPass}
@@ -526,7 +492,6 @@ function BrowsePageInner() {
         />
       )}
 
-      {/* Match cinematic takeover — Wave 15 · CPO brief */}
       <MatchCinematic
         open={Boolean(match)}
         peerId={match?.id ?? ""}
@@ -540,7 +505,6 @@ function BrowsePageInner() {
         }}
       />
 
-      {/* Report sheet */}
       {card && (
         <ReportSheet
           profileName={card.name}
@@ -575,17 +539,7 @@ function ActionButtons({
   canAffordRose: boolean;
 }) {
   return (
-    // 2026-04-26 fix: pb-[76px] left only 16px clearance over the BottomNav
-    // (h-[60px] + safe-area-inset-bottom on iPhone). Action buttons (60px tall)
-    // got clipped — heart/super-like visible only top-half on devices with a
-    // home bar. Bumped to 96px + safe-area so circles always sit fully above
-    // the glass nav. Pair with pt-2 for symmetric spacing above.
     <div className="shrink-0 pt-2 pb-[calc(96px+env(safe-area-inset-bottom))]" role="group" aria-label="Actions">
-      {/* Small undo icon above main row.
-          Visual stays 28px (compact above the 60px main row) but the
-          tap-target-expand utility renders a 44px invisible hit area
-          via ::before so we still meet WCAG 2.5.5 / Apple HIG.
-          Sweep 2026-04-27. */}
       <div className="flex justify-center mb-2">
         <motion.button
           onClick={onUndo}
@@ -602,9 +556,7 @@ function ActionButtons({
         </motion.button>
       </div>
 
-      {/* 3 clean buttons: Pass, SuperLike, Like — magnetic on fine pointers */}
       <div className="flex items-center justify-center gap-5">
-        {/* Pass */}
         <Magnetic strength={0.18} radius={70}>
           <motion.button
             onClick={onPass}
@@ -617,7 +569,6 @@ function ActionButtons({
           </motion.button>
         </Magnetic>
 
-        {/* Super Like — subtle pulse glow when affordable */}
         <Magnetic strength={0.22} radius={60}>
           <motion.button
             onClick={onSuperLike}
@@ -655,7 +606,6 @@ function ActionButtons({
           </motion.button>
         </Magnetic>
 
-        {/* Like — gradient with magnetic + violet→green glow on hover */}
         <Magnetic strength={0.18} radius={70}>
           <motion.button
             onClick={onLike}
@@ -700,11 +650,6 @@ function EmptyState({ onReset }: { onReset: () => void }) {
   );
 }
 
-// Wave 15 · CPO — MatchToast replaced by full-screen MatchCinematic.
-// See src/components/app/MatchCinematic.tsx.
-
-// 2026-04-24: Wrap in Suspense for useSearchParams bail-out (Next 16 requirement).
-// Same pattern as feed/plans/plans-create after /glowup/suspense-boundaries PR.
 export default function BrowsePage() {
   return (
     <Suspense fallback={<PageLoader />}>
